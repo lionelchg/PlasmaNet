@@ -5,4 +5,4 @@
 if [ ! -d datasets ] ; then
     mkdir datasets
 fi
-rsync -rzvhp kraken:/scratch/cfd/bogopolsky/DL/poisson_datasets ./datasets
+rsync -rzvhp kraken:/scratch/cfd/bogopolsky/DL/poisson_datasets/ ./datasets
