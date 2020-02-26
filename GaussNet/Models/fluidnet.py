@@ -127,12 +127,12 @@ class MultiSimpleNet(nn.Module):
     def forward(self, x):
         quarter_size = [int(i * 0.25) for i in list(x.size()[2:])]
         half_size = [int(i * 0.5) for i in list(x.size()[2:])]
-        conv_4_out = self.conv_4(F.upsample(x, quarter_size, mode='bilinear'))
-        conv_2_out = self.conv_2(torch.cat((F.upsample(x, half_size, mode='bilinear'),
-                                            F.upsample(conv_4_out, half_size, mode='bilinear')),
+        conv_4_out = self.conv_4(F.interpolate(x, quarter_size, mode='bilinear'))
+        conv_2_out = self.conv_2(torch.cat((F.interpolate(x, half_size, mode='bilinear'),
+                                            F.interpolate(conv_4_out, half_size, mode='bilinear')),
                                            dim=1))
-        conv_1_out = self.conv_1(torch.cat((F.upsample(x, x.size()[2:], mode='bilinear'),
-                                            F.upsample(conv_2_out, x.size()[2:], mode='bilinear')),
+        conv_1_out = self.conv_1(torch.cat((F.interpolate(x, x.size()[2:], mode='bilinear'),
+                                            F.interpolate(conv_2_out, x.size()[2:], mode='bilinear')),
                                            dim=1))
         final_out = self.final(conv_1_out)
         return final_out
