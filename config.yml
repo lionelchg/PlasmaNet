@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                           GaussNet -- Configuration file                                             #
+#                                           PlasmaNet -- Configuration file                                            #
 #                                                                                                                      #
 #                                      Guillaume Bogopolsky, CERFACS, 26.02.2020                                       #
 #                                                                                                                      #
@@ -10,7 +10,7 @@
 
 # To import the parameters, use
 #     import yaml
-#     with open('config.yaml', 'r') as yaml_stream:
+#     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
 optimization_params:

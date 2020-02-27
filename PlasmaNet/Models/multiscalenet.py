@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                            FluidNet: neural network from the summer 2019 plasma workshop                             #
+#                           MultiScale: neural network from the summer 2019 plasma workshop                            #
 #                                                                                                                      #
 #                        Ekhi Ajuria, Guillaume Bogopolsky (transcription) CERFACS, 26.02.2020                         #
 #                                                                                                                      #
@@ -80,7 +80,7 @@ class _ConvBlock3(nn.Module):
     Optional dropout before the final Conv2d layer.
     ReLU after the first four Conv2d layers, not after the last two - predictions can be positive or negative.
     """
-    def __init__(self, in_channels, mid1_channels, mid2_channels,mid3_channels, out_channels, dropout=False):
+    def __init__(self, in_channels, mid1_channels, mid2_channels, mid3_channels, out_channels, dropout=False):
         super(_ConvBlock3, self).__init__()
         layers = [
             nn.ReplicationPad2d(2),
