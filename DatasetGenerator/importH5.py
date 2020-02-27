@@ -8,10 +8,10 @@
 
 import os
 import numpy as np
-import antares as ant
+import antares as asc
 from tqdm import tqdm
 
-ant.set_progress_bar(True)
+asc.set_progress_bar(True)
 
 
 def load_avbp_run(solut_path, mesh_path=None, base=None, verbose=False):
@@ -20,13 +20,13 @@ def load_avbp_run(solut_path, mesh_path=None, base=None, verbose=False):
         raise ValueError('Specify either a mesh_path to create a base or an existing base')
     elif base is None and mesh_path is not None:
         # Load grid data from mesh file
-        reader = ant.Reader('hdf_avbp')
+        reader = asc.Reader('hdf_avbp')
         reader['filename'] = mesh_path
         reader['shared'] = True
         base = reader.read()
 
     # Add solution
-    reader = ant.Reader('hdf_avbp')
+    reader = asc.Reader('hdf_avbp')
     reader['filename'] = solut_path
     reader['base'] = base
     base = reader.read()
@@ -44,6 +44,8 @@ def ant_to_numpy_quad(instant, variables, out_shape):
         res = list()
         for key in variables:
             res.append(instant[key].reshape(out_shape))
+    else:
+        raise TypeError('Variables parameter should be a list')
     return res
 
 
@@ -80,13 +82,13 @@ if __name__ == '__main__':
     verbose = False
 
     # Load base
-    solut_path = '/Users/bogopolsky/THESE/POISSON/GaussNet/datasets/50x50/sliding_gaussian/SRC/RUN/SOLUT/poisson_0000<instant>.h5'
-    mesh_path = '/Users/bogopolsky/THESE/POISSON/GaussNet/datasets/50x50/sliding_gaussian/SRC/MESH/mesh_quad_50.mesh.h5'
+    solut_path = '/Users/bogopolsky/THESE/POISSON/PlasmaNet/datasets/50x50/sliding_gaussian/SRC/RUN/SOLUT/poisson_0000<instant>.h5'
+    mesh_path = '/Users/bogopolsky/THESE/POISSON/PlasmaNet/datasets/50x50/sliding_gaussian/SRC/MESH/mesh_quad_50.mesh.h5'
     base = load_avbp_run(solut_path, mesh_path, verbose=verbose)
 
     # Save base
     print('Converting and saving...')
-    save_path = '/Users/bogopolsky/THESE/POISSON/GaussNet/datasets/50x50/sliding_gaussian'
+    save_path = '/Users/bogopolsky/THESE/POISSON/PlasmaNet/datasets/50x50/sliding_gaussian'
     variables = ['E_field_x', 'E_field_y', 'potential', 'rhs', 'physical_rhs']
     out_shape = (51, 51)
 

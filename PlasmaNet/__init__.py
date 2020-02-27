@@ -5,7 +5,7 @@ Guillaume Bogopolsky, Lionel Cheng, Ekhi Ajuria
 CERFACS
 """
 
-__author__ = 'Guillaume Bogopolsky, Lionel Cheng, Akhi Ajuria'
+__author__ = 'Guillaume Bogopolsky, Lionel Cheng, Ekhi Ajuria'
 __mail__ = ''
 __version__ = '0.1'
 
