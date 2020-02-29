@@ -1,6 +1,8 @@
 # Common
 .DS_Store
 .idea
+__pychache__/
+*.pyc
 
 # Storage directories
 datasets/*
