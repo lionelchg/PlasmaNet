@@ -33,7 +33,7 @@ def test_divergence_2d():
     # Compute divergence
     computed = div(field, dx, dy)
 
-    # assert torch.all(computed.eq(analytical))
+    assert torch.allclose(computed, analytical)
     return X, Y, computed, analytical, field
 
 
@@ -43,11 +43,6 @@ if __name__ == '__main__':
     from matplotlib import ticker
 
     x, y, computed, analytical, field = test_divergence_2d()
-
-    print((computed[0, 0, :, :] - analytical[0, 0, :, :]))
-    print(computed[0, 0, :, :])
-    print(analytical[0, 0, :, :])
-    print(torch.allclose(computed[0], analytical[0]))
 
     fig, axarr = plt.subplots(2, 2, figsize=(10, 8))
     ax1, ax2, ax3, _ = axarr.ravel()
@@ -59,4 +54,4 @@ if __name__ == '__main__':
                       locator=ticker.LogLocator())
     cbar3 = fig.colorbar(p3, label='Relative difference', ax=ax3)
     plt.tight_layout()
-    plt.savefig('test_divergence_2d')
+    plt.savefig('test_divergence_2d.png')

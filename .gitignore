@@ -3,6 +3,8 @@
 .idea
 __pychache__/
 *.pyc
+.pytest_cache/
+*.png
 
 # Storage directories
 datasets/*

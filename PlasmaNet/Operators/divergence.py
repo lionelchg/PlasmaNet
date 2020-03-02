@@ -39,21 +39,22 @@ def divergence(field, dx, dy):
 
     assert field.is_contiguous() and divergence.is_contiguous(), 'Input is not contiguous'
 
-    # Compute divergence
+    # Compute divergence (correction using linear interpolation at boundaries)
     # i <-> y and j <-> x, so field[:, 0, :, :] is field_x and field[:, 1, :, :] is field_y
     # center of the array
     divergence[:, 0, 1:-1, 1:-1] = (field[:, 0, 1:-1, 2:] - field[:, 0, 1:-1, :-2]) / (2 * dx) + \
                                    (field[:, 1, 2:, 1:-1] - field[:, 1, :-2, 1:-1]) / (2 * dy)
 
-    #  array sides except corners (respectively upper, lower, left and right sides)
+    # array sides except corners (respectively upper, lower, left and right sides)
     divergence[:, 0, 0, 1:-1] = (field[:, 0, 0, 2:] - field[:, 0, 0, :-2]) / (2 * dx) + \
                                 (4 * field[:, 1, 1, 1:-1] - 3 * field[:, 1, 0, 1:-1] - field[:, 1, 2, 1:-1]) / (2 * dy)
     divergence[:, 0, -1, 1:-1] = (field[:, 0, -1, 2:] - field[:, 0, -1, :-2]) / (2 * dx) + \
-                                (3 * field[:, 1, -1, 1:-1] - 4 * field[:, 1, -2, 1:-1] + field[:, 1, -3, 1:-1]) / (2 * dy)
-    divergence[:, 0, 1:-1, 0] = (4 * field[:, 0, 1:-1, 1] - 3 * field[:, 0, 1:-1, 0] - field[:, 0, 1:-1, 2]) / (2 * dx) + \
-                                (field[:, 1, 2:, 0] - field[:, 1, :-2, 0]) / (2 * dy)
-    divergence[:, 0, 1:-1, -1] = (3 * field[:, 0, 1:-1, -1] - 4 * field[:, 0, 1:-1, -2] + field[:, 0, 1:-1, -3]) / (2 * dx) + \
-                                 (field[:, 1, 2:, -1] - field[:, 1, :-2, -1]) / (2 * dy)
+                                 (3 * field[:, 1, -1, 1:-1] - 4 * field[:, 1, -2, 1:-1] + field[:, 1, -3, 1:-1]) / \
+                                 (2 * dy)
+    divergence[:, 0, 1:-1, 0] = (4 * field[:, 0, 1:-1, 1] - 3 * field[:, 0, 1:-1, 0] - field[:, 0, 1:-1, 2]) / \
+                                (2 * dx) + (field[:, 1, 2:, 0] - field[:, 1, :-2, 0]) / (2 * dy)
+    divergence[:, 0, 1:-1, -1] = (3 * field[:, 0, 1:-1, -1] - 4 * field[:, 0, 1:-1, -2] + field[:, 0, 1:-1, -3]) / \
+                                 (2 * dx) + (field[:, 1, 2:, -1] - field[:, 1, :-2, -1]) / (2 * dy)
 
     # corners (respectively upper left, upper right, lower left and lower right)
     divergence[:, 0, 0, 0] = (4 * field[:, 0, 0, 1] - 3 * field[:, 0, 0, 0] - field[:, 0, 0, 2]) / (2 * dx) + \
