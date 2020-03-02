@@ -1,20 +1,18 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                           Test the divergence operator                                               #
+#                                            Test the gradient operator                                                #
 #                                                                                                                      #
-#                               Lionel Cheng, Guillaume Bogopolsky, CERFACS, 28.02.2020                                #
+#                               Guillaume Bogopolsky, Lionel Cheng, CERFACS, 02.03.2020                                #
 #                                                                                                                      #
 ########################################################################################################################
 
-
 import torch
-import numpy as np
 import pytest
-from PlasmaNet.Operators.divergence import divergence as div
+from PlasmaNet.Operators.gradient import gradient_numpy
 
 
-def test_divergence_2d():
-    """ Test the divergence operator on an analytical case. """
+def test_gradient_numpy():
+    """ Test the gradient_numpy operator on an analytical case. """
     xmin, xmax, ymin, ymax = 0, 1, 0, 1
     nx, ny = 101, 101
     nchannels = 10
@@ -23,17 +21,17 @@ def test_divergence_2d():
     Y, X = torch.meshgrid(y, x)  # Pay attention to the reversed order of the axes with torch.Tensor !
 
     # Field and analytical solution initialisation
-    field = torch.zeros((nchannels, 2, ny, nx)).type(torch.float64)
-    analytical = torch.zeros((nchannels, 1, ny, nx)).type(torch.float64)
+    field = torch.zeros((nchannels, 1, ny, nx)).type(torch.float64)
+    analytical = torch.zeros((nchannels, 2, ny, nx)).type(torch.float64)
     for channel in range(nchannels):
-        field[channel, 0, :, :] = X**2
-        field[channel, 1, :, :] = Y**2
-        analytical[channel, 0, :, :] = 2 * X + 2 * Y
+        field[channel, 0, :, :] = X**2 + Y**2
+        analytical[channel, 0, :, :] = 2 * X
+        analytical[channel, 1, :, :] = 2 * Y
 
-    # Compute divergence
-    computed = div(field, dx, dy)
+    # Compute gradient
+    computed = gradient_numpy(field, dx, dy)
 
-    assert torch.allclose(computed, analytical)
+    assert torch.allclose(computed, analytical, atol=.01001)  # atol to account for order degradation at the corners
     return X, Y, computed, analytical, field
 
 
@@ -41,16 +39,18 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from matplotlib import ticker
 
-    x, y, computed, analytical, field = test_divergence_2d()
+    x, y, computed, analytical, field = test_gradient_numpy()
+    analytical_norm = torch.sqrt((analytical[0]**2).sum(0))
+    computed_norm = torch.sqrt((computed[0]**2).sum(0))
 
     fig, axarr = plt.subplots(2, 2, figsize=(10, 8))
     ax1, ax2, ax3, _ = axarr.ravel()
-    p1 = ax1.contourf(x, y, analytical[0, 0, :, :], 100)
-    cbar1 = fig.colorbar(p1, label='Analytical divergence field', ax=ax1)
-    p2 = ax2.contourf(x, y, computed[0, 0, :, :], 100)
-    cbar2 = fig.colorbar(p2, label='Computed divergence field', ax=ax2)
-    p3 = ax3.contourf(x, y, torch.abs(computed[0, 0, :, :] - analytical[0, 0, :, :]) / analytical[0, 0, :, :], 100,
+    p1 = ax1.contourf(x, y, analytical_norm, 100)
+    cbar1 = fig.colorbar(p1, label='Analytical gradient norm', ax=ax1)
+    p2 = ax2.contourf(x, y, computed_norm, 100)
+    cbar2 = fig.colorbar(p2, label='Computed gradient norm', ax=ax2)
+    p3 = ax3.contourf(x, y, torch.abs(computed_norm - analytical_norm) / analytical_norm, 100,
                       locator=ticker.LogLocator())
     cbar3 = fig.colorbar(p3, label='Relative difference', ax=ax3)
     plt.tight_layout()
-    plt.savefig('test_divergence_2d.png')
+    plt.savefig('test_gradient_numpy.png')

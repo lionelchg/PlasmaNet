@@ -18,13 +18,13 @@ def divergence(field, dx, dy):
     Parameters
     ----------
     field : torch.Tensor
-        Input 2D field: tensor of size (batch, 2, H, W)
+        Input 2D field: tensor of size (batch_size, 2, H, W)
 
     dx, dy : float
 
     Returns
     -------
-    Tensor
+    torch.Tensor
         Output divergence (scalar field)
     """
 
@@ -34,8 +34,6 @@ def divergence(field, dx, dy):
     # Check sizes
     assert field.dim() == 4 and divergence.dim() == 4, 'Dimension mismatch'
     assert field.size(1) == 2, 'field is not 2D'
-    batch_size = field.size(0)
-    h, w = field.size(2), field.size(3)
 
     assert field.is_contiguous() and divergence.is_contiguous(), 'Input is not contiguous'
 
