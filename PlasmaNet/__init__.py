@@ -10,6 +10,7 @@ __mail__ = ''
 __version__ = '0.1'
 
 from .Models.multiscalenet import MultiSimpleNet
+from .misc import *
 from .Operators import *
 
 __ALL__ = [
