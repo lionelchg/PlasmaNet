@@ -47,22 +47,22 @@ def divergence(field, dx, dy):
 
     #  array sides except corners (respectively upper, lower, left and right sides)
     divergence[:, 0, 0, 1:-1] = (field[:, 0, 0, 2:] - field[:, 0, 0, :-2]) / (2 * dx) + \
-                                (field[:, 1, 1, 1:-1] - field[:, 1, 0, 1:-1]) / dy
+                                (4 * field[:, 1, 1, 1:-1] - 3 * field[:, 1, 0, 1:-1] - field[:, 1, 2, 1:-1]) / (2 * dy)
     divergence[:, 0, -1, 1:-1] = (field[:, 0, -1, 2:] - field[:, 0, -1, :-2]) / (2 * dx) + \
-                                 (field[:, 1, -1, 1:-1] - field[:, 1, -2, 1:-1]) / dy
-    divergence[:, 0, 1:-1, 0] = (field[:, 0, 1:-1, 1] - field[:, 0, 1:-1, 0]) / dx + \
+                                (3 * field[:, 1, -1, 1:-1] - 4 * field[:, 1, -2, 1:-1] + field[:, 1, -3, 1:-1]) / (2 * dy)
+    divergence[:, 0, 1:-1, 0] = (4 * field[:, 0, 1:-1, 1] - 3 * field[:, 0, 1:-1, 0] - field[:, 0, 1:-1, 2]) / (2 * dx) + \
                                 (field[:, 1, 2:, 0] - field[:, 1, :-2, 0]) / (2 * dy)
-    divergence[:, 0, 1:-1, -1] = (field[:, 0, 1:-1, -1] - field[:, 0, 1:-1, -2]) / dx + \
+    divergence[:, 0, 1:-1, -1] = (3 * field[:, 0, 1:-1, -1] - 4 * field[:, 0, 1:-1, -2] + field[:, 0, 1:-1, -3]) / (2 * dx) + \
                                  (field[:, 1, 2:, -1] - field[:, 1, :-2, -1]) / (2 * dy)
 
     # corners (respectively upper left, upper right, lower left and lower right)
-    divergence[:, 0, 0, 0] = (field[:, 0, 0, 1] - field[:, 0, 0, 0]) / dx + \
-                             (field[:, 1, 1, 0] - field[:, 1, 0, 0]) / dy
-    divergence[:, 0, -1, 0] = (field[:, 0, -1, 1] - field[:, 0, -1, 0]) / dx +\
-                              (field[:, 1, -1, 0] - field[:, 1, -2, 0]) / dy
-    divergence[:, 0, 0, -1] = (field[:, 0, 0, -1] - field[:, 0, 0, -2]) / dx +\
-                              (field[:, 1, 1, -1] - field[:, 1, 0, -1]) / dy
-    divergence[:, 0, -1, -1] = (field[:, 0, -1, -1] - field[:, 0, -1, -2]) / dx + \
-                               (field[:, 1, -1, -1] - field[:, 1, -2, -1]) / dy
+    divergence[:, 0, 0, 0] = (4 * field[:, 0, 0, 1] - 3 * field[:, 0, 0, 0] - field[:, 0, 0, 2]) / (2 * dx) + \
+                             (4 * field[:, 0, 1, 0] - 3 * field[:, 0, 0, 0] - field[:, 0, 2, 0]) / (2 * dy)
+    divergence[:, 0, -1, 0] = (4 * field[:, 0, -1, 1] - 3 * field[:, 0, -1, 0] - field[:, 0, -1, 2]) / (2 * dx) + \
+                              (3 * field[:, 1, -1, 0] - 4 * field[:, 1, -2, 0] + field[:, 1, -3, 0]) / (2 * dy)
+    divergence[:, 0, 0, -1] = (3 * field[:, 0, 0, -1] - 4 * field[:, 0, 0, -2] + field[:, 0, 0, -3]) / (2 * dx) +\
+                              (4 * field[:, 1, 1, -1] - 3 * field[:, 1, 0, -1] - field[:, 1, 2, -1]) / (2 * dy)
+    divergence[:, 0, -1, -1] = (3 * field[:, 0, -1, -1] - 4 * field[:, 0, -1, -2] + field[:, 0, -1, -3]) / (2 * dx) + \
+                               (3 * field[:, 1, -1, -1] - 4 * field[:, 1, -2, -1] + field[:, 1, -3, -1]) / (2 * dy)
 
     return divergence

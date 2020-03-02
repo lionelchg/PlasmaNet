@@ -24,7 +24,7 @@ def test_divergence_2d():
 
     # Field and analytical solution initialisation
     field = torch.zeros((nchannels, 2, ny, nx)).type(torch.float64)
-    analytical = torch.zeros((nchannels, 2, ny, nx)).type(torch.float64)
+    analytical = torch.zeros((nchannels, 1, ny, nx)).type(torch.float64)
     for channel in range(nchannels):
         field[channel, 0, :, :] = X**2
         field[channel, 1, :, :] = Y**2
@@ -45,7 +45,9 @@ if __name__ == '__main__':
     x, y, computed, analytical, field = test_divergence_2d()
 
     print((computed[0, 0, :, :] - analytical[0, 0, :, :]))
-    print(torch.allclose(computed[0], analytical[0], atol=1.e-5, rtol=1.e-1))
+    print(computed[0, 0, :, :])
+    print(analytical[0, 0, :, :])
+    print(torch.allclose(computed[0], analytical[0]))
 
     fig, axarr = plt.subplots(2, 2, figsize=(10, 8))
     ax1, ax2, ax3, _ = axarr.ravel()
@@ -57,4 +59,4 @@ if __name__ == '__main__':
                       locator=ticker.LogLocator())
     cbar3 = fig.colorbar(p3, label='Relative difference', ax=ax3)
     plt.tight_layout()
-    plt.show()
+    plt.savefig('test_divergence_2d')
