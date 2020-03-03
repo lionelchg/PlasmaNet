@@ -8,8 +8,8 @@
 
 import torch
 import pytest
-from PlasmaNet.Operators.gradient import gradient_numpy, gradient_scalar, gradient_diag
-from tests.Operators import create_grid
+from PlasmaNet.operators.gradient import gradient_numpy, gradient_scalar, gradient_diag
+from tests.operators import create_grid
 
 
 def init_scalar_gradient():

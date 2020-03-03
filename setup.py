@@ -21,7 +21,7 @@ setup(
         'Programming Language :: Python :: 3.8'
     ],
     description='PlasmaNet: Solving the electrostatic Poisson equation for plasma simulations',
-    install_requirements=requirements,
+    install_requires=requirements,
     license='GNU General Public License v3',
     long_description='\n\n',
     include_package_data=True,
@@ -34,5 +34,5 @@ setup(
     tests_require=tests_requirements,
     url='https://nitrox.cerfacs.fr/cfd-apps/plasmanet',
     version='0.1',
-    zip_safe=False
+    zip_safe=False,
 )
