@@ -12,7 +12,7 @@ import torch
 
 def divergence(field, dx, dy):
     """
-    Calculates the field divergence (second order accurate, degraded to first order on boundaries).
+    Calculates the divergence of a vector field (second order accurate, degraded to first order on boundaries).
     The output shape is the same as the input shape.
 
     Parameters

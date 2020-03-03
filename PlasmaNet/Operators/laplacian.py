@@ -12,7 +12,7 @@ import torch
 
 def laplacian(field, dx, dy, b=0):
     """
-    Calculates the field laplacian (second order accurate, degraded to first order on boundaries).
+    Calculates the laplacian of a scalar field (second order accurate, degraded to first order on boundaries).
     The output shape is the same as the input shape.
 
     Parameters
