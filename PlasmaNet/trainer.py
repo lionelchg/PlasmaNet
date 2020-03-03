@@ -7,17 +7,11 @@
 ########################################################################################################################
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.autograd import no_grad
-import torch.utils.data
-
-import numpy as np
-import matplotlib.pyplot
+from .model.loss import laplacian_loss
+from .operators.gradient import gradient_diag
 
 
-def train(epoch, model, train_loader, loss_function, optimizer, scheduler, save_value, mse_weight, gdl_weight,
+def train(epoch, model, criterion, train_loader, optimizer, scheduler, save_value, mse_weight, gdl_weight,
           div_weight, folder):
     """ Train the model for the given epoch. """
 
@@ -26,6 +20,8 @@ def train(epoch, model, train_loader, loss_function, optimizer, scheduler, save_
 
     # Initialize loss scores
     train_loss, train_mse, train_gdl, train_div = 0., 0., 0., 0.
+
+    dx, dy = 5e-5  # TODO: hardcoded, to pass as argument
 
     # Loop through data, sorted into batches
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -39,10 +35,35 @@ def train(epoch, model, train_loader, loss_function, optimizer, scheduler, save_
         # Forward
         output = model(data)
 
-        # Compute divergence loss
-        div_error = div_loss(output, data, save_value, dx, dy, epoch, batch_idx, folder)
-        grad_output = grad()
+        # Compute loss
+        div_error = laplacian_loss(output, data, save_value, dx, dy, epoch, batch_idx, folder)
+        grad_output = gradient_diag(output, dx, dy)
+        grad_data = gradient_diag(target, dx, dy)
 
+        mse_loss = criterion(output, target)
+        gdl_loss = criterion(grad_output, grad_data)
+        div_loss = (div_error**2).sum()
 
+        loss = mse_weight * mse_loss + gdl_weight * gdl_loss + div_weight * div_loss
 
+        # Backpropagation and optimisation
+        loss.backward()
+        optimizer.step()
+        scheduler.step(epoch + batch_idx / len(train_loader))
 
+        train_loss += loss.item()
+        train_mse += (mse_weight * mse_loss).item()
+        train_gdl += (gdl_weight * gdl_loss).item()
+        train_div += (div_weight * div_loss).item()
+
+    # Divide loss by dataset length
+    train_loss /= len(train_loader.dataset)
+    train_mse /= len(train_loader.dataset)
+    train_gdl /= len(train_loader.dataset)
+    train_div /= len(train_loader.dataset)
+
+    # Print loss for the whole dataset
+    print('\nTrain set: Avg loss: {:.6f}, Avg MSE : {:.6f}, Avg GDL: {:.6f}, Avg Div: {:.6f}'.format(
+        train_loss, train_mse, train_gdl, train_div))
+
+    return train_loss, train_mse, train_gdl, train_div
