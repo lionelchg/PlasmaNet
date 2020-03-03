@@ -11,16 +11,13 @@ import torch
 import numpy as np
 import pytest
 from PlasmaNet.Operators.divergence import divergence as div
+from tests.Operators import create_grid
 
 
 def test_divergence_2d():
     """ Test the divergence operator on an analytical case. """
-    xmin, xmax, ymin, ymax = 0, 1, 0, 1
-    nx, ny = 101, 101
-    nchannels = 10
-    dx, dy = (xmax - xmin) / (nx - 1), (ymax - ymin) / (ny - 1)
-    x, y = torch.linspace(xmin, xmax, nx), torch.linspace(ymin, ymax, ny)
-    Y, X = torch.meshgrid(y, x)  # Pay attention to the reversed order of the axes with torch.Tensor !
+    # Create test grid
+    nchannels, nx, ny, dx, dy, X, Y = create_grid()
 
     # Field and analytical solution initialisation
     field = torch.zeros((nchannels, 2, ny, nx)).type(torch.float64)

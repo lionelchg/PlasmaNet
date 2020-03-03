@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                            Test the gradient operator                                                #
+#                                           Test the gradient operators                                                #
 #                                                                                                                      #
 #                               Guillaume Bogopolsky, Lionel Cheng, CERFACS, 02.03.2020                                #
 #                                                                                                                      #
@@ -8,17 +8,14 @@
 
 import torch
 import pytest
-from PlasmaNet.Operators.gradient import gradient_numpy, gradient_scalar
+from PlasmaNet.Operators.gradient import gradient_numpy, gradient_scalar, gradient_diag
+from tests.Operators import create_grid
 
 
 def init_scalar_gradient():
     """ Return a scalar field and its analytical gradient, as well as the coordinates used. """
-    xmin, xmax, ymin, ymax = 0, 1, 0, 1
-    nx, ny = 101, 101
-    nchannels = 10
-    dx, dy = (xmax - xmin) / (nx - 1), (ymax - ymin) / (ny - 1)
-    x, y = torch.linspace(xmin, xmax, nx), torch.linspace(ymin, ymax, ny)
-    Y, X = torch.meshgrid(y, x)  # Pay attention to the reversed order of the axes with torch.Tensor !
+    # Create test grid
+    nchannels, nx, ny, dx, dy, X, Y = create_grid()
 
     # Field and analytical solution initialisation
     field = torch.zeros((nchannels, 1, ny, nx)).type(torch.float64)
@@ -55,6 +52,30 @@ def test_gradient_scalar():
     return X, Y, computed, analytical, field
 
 
+def test_gradient_diag():
+    """
+    Test the gradient_diag operator on an analytical case. The sum of the diagonal terms should be equal to the
+    divergence of the input vector field.
+    """
+    # Create test grid
+    nchannels, nx, ny, dx, dy, X, Y = create_grid()
+
+    # Field and analytical solution initialisation
+    field = torch.zeros((nchannels, 2, ny, nx)).type(torch.float64)
+    analytical = torch.zeros((nchannels, 2, ny, nx)).type(torch.float64)
+    for channel in range(nchannels):
+        field[channel, 0, :, :] = X ** 2
+        field[channel, 1, :, :] = Y ** 2
+        analytical[channel, 0, :, :] = 2 * X
+        analytical[channel, 1, :, :] = 2 * Y
+
+    # Compute gradient
+    computed = gradient_diag(field, dx, dy)
+
+    assert torch.allclose(computed, analytical)
+    return X, Y, computed, analytical, field
+
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from matplotlib import ticker
@@ -77,7 +98,7 @@ if __name__ == '__main__':
     plt.tight_layout()
     plt.savefig('test_gradient_numpy.png')
 
-    # gradient_numpy
+    # gradient_scalar
 
     x, y, computed, analytical, field = test_gradient_scalar()
     analytical_norm = torch.sqrt((analytical[0] ** 2).sum(0))
