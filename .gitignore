@@ -6,6 +6,8 @@ __pychache__/
 .pytest_cache/
 *.png
 *.prof
+*.out
 
 # Storage directories
-datasets/*
+datasets
+models

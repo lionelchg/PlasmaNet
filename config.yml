@@ -15,7 +15,7 @@
 
 optimization_params:
   initial_lr: 3.e-4                       # Initial learning rate (float)
-  scheduler_factor: 0.5                   # Amount scheduler reduces LR by (float)
+  scheduler_factor: 0.99                    # Amount scheduler reduces LR by (float)
   scheduler_patience: 50                  # Number of epochs the scheduler waits (int)
   scheduler_threshold: 3.e-4              # Relative improvement the scheduler must see (float)
 

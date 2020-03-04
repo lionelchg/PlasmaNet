@@ -65,12 +65,12 @@ if not os.path.exists(saving_model):
 file_Ex = load_folder + '/E_field_x.npy'
 file_Ey = load_folder + '/E_field_y.npy'
 file_rhs = load_folder + '/rhs.npy'
-file_Potentiel = load_folder + '/potential.npy'
+file_potential = load_folder + '/potential.npy'
 
 E_x = np.load(file_Ex)
 E_y = np.load(file_Ey)
 rhs = np.load(file_rhs)
-Pot = np.load(file_Potentiel)
+potential = np.load(file_potential)
 
 # Plot Histograms
 
@@ -105,6 +105,15 @@ plt.show()
 plt.savefig(folder + '/Div_Images' + '/Ey_Distribution.png')
 plt.close()
 
+n1, bins1, patches1 = plt.hist(potential.flatten(), 100, density=True, facecolor='g')
+
+plt.xlabel('Potential')
+plt.ylabel('Probability')
+plt.title('Potential Distribution')
+plt.show()
+plt.savefig(folder + '/Div_Images' + '/potential_Distribution.png')
+plt.close()
+
 # N of Testing values and total size
 tt = len(E_x[:, 0, 0])
 t_n = 1  # Separation of test dataset (no test for now)
@@ -115,17 +124,14 @@ w = np.int(len(E_x[0, 0, :]))
 # Declaration of the X_train and X_test Tensors
 X_Train = np.zeros((tt - t_n, 1, h, w))
 X_Test = np.zeros((t_n, 1, h, w))
-Y_Train = np.zeros((tt - t_n, 2, h, w))
-Y_Test = np.zeros((t_n, 2, h, w))
+Y_Train = np.zeros((tt - t_n, 1, h, w))
+Y_Test = np.zeros((t_n, 1, h, w))
 
 X_Train = np.expand_dims(rhs[t_n:, :, :], axis=1)
 X_Test = np.expand_dims(rhs[:t_n, :, :], axis=1)
 
-Y_Train[:, 0] = E_x[t_n:]
-Y_Test[:, 0] = E_x[:t_n]
-
-Y_Train[:, 1] = E_y[t_n:]
-Y_Test[:, 1] = E_y[:t_n]
+Y_Train[:, 0] = potential[t_n:]
+Y_Test[:, 0] = potential[:t_n]
 
 # Print the shape of the Loaded Velocity vector
 print('The Loaded Dataset  has the following shape: ', 'X Train: ', X_Train.shape, 'X Test: ', X_Test.shape,
@@ -281,7 +287,7 @@ val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_sz, num_w
                                          shuffle=data_params['shuffle_val_set'])
 
 # Define loss function
-criterion = torch.nn.MSELoss
+criterion = torch.nn.MSELoss()
 
 for epoch in range(1, epochs + 1):
     # ---------------------------------------------------------------------
@@ -290,7 +296,7 @@ for epoch in range(1, epochs + 1):
     # val_loss, val_MSE, val_lapl = val()
     train_loss, train_MSE, train_lapl, train_elec = train(epoch, model, criterion, train_loader, optimizer, scheduler,
                                                           MSE_weight, lapl_weight, elec_weight)
-    val_loss, val_MSE, val_lapl, val_elec = validate(model, criterion, val_loader, epoch, MSE_weight, lapl_weight,
+    val_loss, val_MSE, val_lapl, val_elec = validate(model, criterion, val_loader, MSE_weight, lapl_weight,
                                                      elec_weight)
 
     # Step scheduler, will reduce LR if loss has plateaued
