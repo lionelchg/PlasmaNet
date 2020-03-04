@@ -20,7 +20,8 @@ def train(epoch, model, criterion, train_loader, optimizer, scheduler, mse_weigh
     # Initialize loss scores
     train_loss, train_mse, train_lapl, train_elec = 0., 0., 0., 0.
 
-    dx, dy = 1e-2 / 63  # TODO: hardcoded, to pass as argument
+    dx = 1e-2 / 63  # TODO: hardcoded, to pass as argument
+    dy = dx
 
     # Loop through data, sorted into batches
     for batch_idx, (data, target) in enumerate(train_loader):

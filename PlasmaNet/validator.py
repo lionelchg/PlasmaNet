@@ -20,7 +20,8 @@ def validate(model, criterion, val_loader, mse_weight, lapl_weight, elec_weight)
     # Initialize validation scores
     val_loss, val_mse, val_lapl, val_elec = 0., 0., 0., 0.
 
-    dx, dy = 1e-2 / 63  # TODO: hardcoded, to pass as argument
+    dx = 1e-2 / 63  # TODO: hardcoded, to pass as argument
+    dy = dx
 
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(val_loader):
