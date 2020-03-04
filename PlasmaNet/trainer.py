@@ -76,7 +76,7 @@ def train(epoch, model, criterion, train_loader, optimizer, scheduler, mse_weigh
             fig.colorbar(tt, ax=ax3)
 
             plt.tight_layout()
-            plt.savefig(folder + '/Train_Images' + '/Model_{}_Result_{}.png'.format(batch_idx, epoch))
+            plt.savefig(folder + '/Train_Images' + '/Model_{}_Result_{:06d}.png'.format(batch_idx, epoch))
             plt.close('all')
 
     # Divide loss by dataset length

@@ -284,8 +284,8 @@ for epoch in range(1, epochs + 1):
     # val_loss, val_MSE, val_lapl = val()
     train_loss, train_MSE, train_lapl, train_elec = train(epoch, model, criterion, train_loader, optimizer, scheduler,
                                                           MSE_weight, lapl_weight, elec_weight, folder)
-    val_loss, val_MSE, val_lapl, val_elec = validate(model, criterion, val_loader, MSE_weight, lapl_weight,
-                                                     elec_weight)
+    val_loss, val_MSE, val_lapl, val_elec = validate(epoch, model, criterion, val_loader, MSE_weight, lapl_weight,
+                                                     elec_weight, folder)
 
     # Step scheduler, will reduce LR if loss has plateaued
     # scheduler.step(train_loss)
