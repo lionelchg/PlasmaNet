@@ -6,11 +6,25 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import torch
+from torch.nn import MSELoss
 from ..operators.laplacian import laplacian as lapl
+from ..operators.gradient import gradient_scalar
 
 
-def laplacian_loss(*args, **kwargs):
+def laplacian_loss(field, rhs, dx, dy):
     """ A Laplacian loss function. """
 
-    raise NotImplementedError('laplacian_loss is not implemented')
+    laplacian = lapl(field, dx, dy)
+    lapl_loss = MSELoss(laplacian + rhs)
+
+    return lapl_loss
+
+
+def electric_loss(field, target, dx, dy):
+    """ Loss function on the electric field. """
+
+    elec_output = gradient_scalar(field, dx, dy)
+    elec_target = gradient_scalar(target, dx, dy)
+    elec_loss = MSELoss(elec_output - elec_target)
+
+    return elec_loss

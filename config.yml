@@ -20,18 +20,18 @@ optimization_params:
   scheduler_threshold: 3e-4               # Relative improvement the scheduler must see (float)
 
 data_params:
-  data_dir: 'datasets/50x50/sliding_gaussian'     # Training data directory
+  data_dir: 'datasets/64x64/sliding_gaussian'     # Training data directory
   output_dir: ''                                  # Output directory
   output_name: 'sliding_gaussian_1'               # Case name
-  val_no: 2000                                    # Size of validation set (int)
+  val_no: 500                                     # Size of validation set (int)
   shuffle_train_set: True                         # Shuffle training test (bool, suggest True)
   shuffle_val_set: False                          # Shuffle validation set (bool, suggest False, though it should not matter)
   data_augmentation: False                        # Whether to mix the data before splitting into train & val (bool, suggest False)
 
 option_params:
   MSE_weight: 1                           # Weighting of MSE (float)
-  GDL_weight: 0                           # Weighting of GDL: needs to be determined based on data (float)
-  Lap_weight: 1e-5                        # Weighting of Laplacian: needs to be determined based on data (float)
+  elec_weight: 0                          # Weighting of GDL: needs to be determined based on data (float)
+  lapl_weight: 1e-5                       # Weighting of Laplacian: needs to be determined based on data (float)
   batch_size: 64                          # Size of batches to use: if noise is varied between epochs should be smaller (int)
   n_epochs: 1000                          # Number of epochs (int)
   state_dir: ''                           # State saving directory
