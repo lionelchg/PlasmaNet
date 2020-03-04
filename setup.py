@@ -6,7 +6,7 @@ The setup script for pip. Allows for `pip install -e .` installation.
 
 from setuptools import setup, find_packages
 
-requirements = ['numpy', 'matplotlib', 'torch', 'h5py']
+requirements = ['numpy', 'matplotlib', 'torch', 'h5py', 'PyYAML']
 setup_requirements = []
 tests_requirements = ['pytest']
 
