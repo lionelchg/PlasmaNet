@@ -104,7 +104,7 @@ plt.close()
 
 # N of Testing values and total size
 tt = len(potential[:, 0, 0])
-t_n = 19500  # Separation of test dataset (no test for now)
+t_n = 1  # Separation of test dataset (no test for now)
 
 h = np.int(len(potential[0, :, 0]))
 w = np.int(len(potential[0, 0, :]))

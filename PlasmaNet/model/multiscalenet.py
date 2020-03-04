@@ -122,7 +122,7 @@ class MultiSimpleNet(nn.Module):
         self.conv_4 = _ConvBlock1(data_channels, 32, 64, 1)
         self.conv_2 = _ConvBlock2(data_channels + 1, 32, 64, 128, 1)
         self.conv_1 = _ConvBlock3(data_channels + 1, 32, 64, 128, 8)
-        self.final = nn.Conv2d(8, 2, kernel_size=1)
+        self.final = nn.Conv2d(8, 1, kernel_size=1)
 
     def forward(self, x):
         quarter_size = [int(i * 0.25) for i in list(x.size()[2:])]
