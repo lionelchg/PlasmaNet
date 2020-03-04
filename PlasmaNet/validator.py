@@ -11,7 +11,7 @@ from .model.loss import laplacian_loss, electric_loss
 from .operators.gradient import gradient_diag
 
 
-def validate(epoch, model, criterion, val_loader, mse_weight, lapl_weight, elec_weight):
+def validate(model, criterion, val_loader, mse_weight, lapl_weight, elec_weight):
     """ Validate the model for a given epoch. """
 
     # Set model to eval mode

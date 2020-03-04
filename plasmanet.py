@@ -38,7 +38,7 @@ data_channels = 1
 
 # Baseline_folder
 folder_base = data_params['output_dir']
-folder_name =  ata_params['output_name']
+folder_name = data_params['output_name']
 folder = os.path.join(folder_base, folder_name)
 load_folder = data_params['data_dir']
 folder_state = option_params['state_dir']
@@ -280,14 +280,18 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_sz, n
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_sz, num_workers=4,
                                          shuffle=data_params['shuffle_val_set'])
 
+# Define loss function
+criterion = torch.nn.MSELoss
+
 for epoch in range(1, epochs + 1):
     # ---------------------------------------------------------------------
     # Train on train set, then also test on val set and test set
     # train_loss, train_MSE, train_lapl = train(epoch)
     # val_loss, val_MSE, val_lapl = val()
-    train_loss, train_MSE, train_lapl, train_elec = train(epoch, model, train_loader, optimizer, scheduler,
+    train_loss, train_MSE, train_lapl, train_elec = train(epoch, model, criterion, train_loader, optimizer, scheduler,
                                                           MSE_weight, lapl_weight, elec_weight)
-    val_loss, val_MSE, val_lapl, val_elec = validate(model, val_loader, epoch, MSE_weight, lapl_weight, elec_weight)
+    val_loss, val_MSE, val_lapl, val_elec = validate(model, criterion, val_loader, epoch, MSE_weight, lapl_weight,
+                                                     elec_weight)
 
     # Step scheduler, will reduce LR if loss has plateaued
     scheduler.step(train_loss)
