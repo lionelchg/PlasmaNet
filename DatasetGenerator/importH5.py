@@ -82,15 +82,15 @@ if __name__ == '__main__':
     verbose = False
 
     # Load base
-    solut_path = '/Users/bogopolsky/THESE/POISSON/PlasmaNet/datasets/50x50/sliding_gaussian/SRC/RUN/SOLUT/poisson_0000<instant>.h5'
-    mesh_path = '/Users/bogopolsky/THESE/POISSON/PlasmaNet/datasets/50x50/sliding_gaussian/SRC/MESH/mesh_quad_50.mesh.h5'
+    solut_path = '/Users/bogopolsky/THESE/POISSON/PlasmaNet/datasets/64x64/sliding_gaussian_zerofield/src/RUN/SOLUT_zerofield/poisson_000<instant>.h5'
+    mesh_path = '/Users/bogopolsky/THESE/POISSON/PlasmaNet/datasets/64x64/sliding_gaussian_zerofield/src/MESH/mesh_quad_64.mesh.h5'
     base = load_avbp_run(solut_path, mesh_path, verbose=verbose)
 
     # Save base
     print('Converting and saving...')
-    save_path = '/Users/bogopolsky/THESE/POISSON/PlasmaNet/datasets/50x50/sliding_gaussian'
+    save_path = '/Users/bogopolsky/THESE/POISSON/PlasmaNet/datasets/64x64/sliding_gaussian_zerofield'
     variables = ['E_field_x', 'E_field_y', 'potential', 'rhs', 'physical_rhs']
-    out_shape = (51, 51)
+    out_shape = (64, 64)
 
     # Save as multiple .npy files for each instant
     # save_multiple_file(base, save_path, variables, out_shape)

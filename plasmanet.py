@@ -67,10 +67,16 @@ file_Ey = load_folder + '/E_field_y.npy'
 file_rhs = load_folder + '/rhs.npy'
 file_potential = load_folder + '/potential.npy'
 
-E_x = np.load(file_Ex)
-E_y = np.load(file_Ey)
 rhs = np.load(file_rhs)
 potential = np.load(file_potential)
+
+# Normalize
+dx = 1.e-2 / 63
+rhs_max = rhs.max(0)
+potential_norm = dx ** 2 * rhs_max
+
+rhs /= rhs_max
+potential /= potential_norm
 
 # Plot Histograms
 
@@ -87,23 +93,6 @@ plt.savefig(folder + '/Div_Images' + '/RHS_Distribution.png')
 plt.close()
 
 # the histogram of the data
-n2, bins2, patches2 = plt.hist(E_x.flatten(), 100, density=True, facecolor='g')
-
-plt.xlabel('Ex')
-plt.ylabel('Probability')
-plt.title('Ex Distribution')
-plt.show()
-plt.savefig(folder + '/Div_Images' + '/E_x_Distribution.png')
-plt.close()
-
-n1, bins1, patches1 = plt.hist(E_y.flatten(), 100, density=True, facecolor='g')
-
-plt.xlabel('Ey')
-plt.ylabel('Probability')
-plt.title('Ey Distribution')
-plt.show()
-plt.savefig(folder + '/Div_Images' + '/Ey_Distribution.png')
-plt.close()
 
 n1, bins1, patches1 = plt.hist(potential.flatten(), 100, density=True, facecolor='g')
 
@@ -115,11 +104,11 @@ plt.savefig(folder + '/Div_Images' + '/potential_Distribution.png')
 plt.close()
 
 # N of Testing values and total size
-tt = len(E_x[:, 0, 0])
+tt = len(potential[:, 0, 0])
 t_n = 1  # Separation of test dataset (no test for now)
 
-h = np.int(len(E_x[0, :, 0]))
-w = np.int(len(E_x[0, 0, :]))
+h = np.int(len(potential[0, :, 0]))
+w = np.int(len(potential[0, 0, :]))
 
 # Declaration of the X_train and X_test Tensors
 X_Train = np.zeros((tt - t_n, 1, h, w))
