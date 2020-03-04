@@ -7,7 +7,7 @@
 ########################################################################################################################
 
 import torch
-from .model.loss import laplacian_loss, electric_loss
+from .model.loss import laplacian_loss, electric_loss, dirichlet_boundary_loss
 from .operators.gradient import gradient_diag
 
 
@@ -32,7 +32,7 @@ def validate(model, criterion, val_loader, mse_weight, lapl_weight, elec_weight)
             output = model(data)
 
             # Compute loss
-            lapl_loss = laplacian_loss(output, data, dx, dy)
+            lapl_loss = laplacian_loss(output, data, dx, dy) + dirichlet_boundary_loss(output, data, dx, dy)
             elec_loss = electric_loss(output, target, dx, dy)
 
             mse_loss = criterion(output, target)
