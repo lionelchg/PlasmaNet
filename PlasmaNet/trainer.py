@@ -60,17 +60,17 @@ def train(epoch, model, criterion, train_loader, optimizer, scheduler, mse_weigh
             ax1, ax2, ax3 = axes.ravel()
             fig.suptitle(' Model {} for epoch {}'.format(batch_idx, epoch))
 
-            tt = ax1.imshow(data[batch_idx, 0].cpu().numpy(), origin='lower')
+            tt = ax1.imshow(data[batch_idx, 0].detach().cpu().numpy(), origin='lower')
             ax1.set_title('rhs')
             ax1.axis('off')
             fig.colorbar(tt, ax=ax1)
 
-            tt = ax2.imshow(output[batch_idx, 0].cpu().numpy(), origin='lower')
+            tt = ax2.imshow(output[batch_idx, 0].detach().cpu().numpy(), origin='lower')
             ax2.set_title('predicted potential')
             ax2.axis('off')
             fig.colorbar(tt, ax=ax2)
 
-            tt = ax3.imshow(target[batch_idx, 0].cpu().numpy(), origin='lower')
+            tt = ax3.imshow(target[batch_idx, 0].detach().cpu().numpy(), origin='lower')
             ax3.set_title('target potential')
             ax3.axis('off')
             fig.colorbar(tt, ax=ax3)
