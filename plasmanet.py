@@ -64,19 +64,18 @@ if not os.path.exists(saving_model):
 
 file_Ex = load_folder + '/E_field_x.npy'
 file_Ey = load_folder + '/E_field_y.npy'
-file_rhs = load_folder + '/rhs.npy'
+file_rhs = load_folder + '/physical_rhs.npy'
 file_potential = load_folder + '/potential.npy'
 
 rhs = np.load(file_rhs)
 potential = np.load(file_potential)
 
 # Normalize
-dx = 1.e-2 / 63
-rhs_max = rhs.max(0)
-potential_norm = dx ** 2 * rhs_max
+rhs_max = rhs.max()
+potential_max = potential.max()
 
 rhs /= rhs_max
-potential /= potential_norm
+potential /= potential_max
 
 # Plot Histograms
 
@@ -105,7 +104,7 @@ plt.close()
 
 # N of Testing values and total size
 tt = len(potential[:, 0, 0])
-t_n = 1  # Separation of test dataset (no test for now)
+t_n = 19500  # Separation of test dataset (no test for now)
 
 h = np.int(len(potential[0, :, 0]))
 w = np.int(len(potential[0, 0, :]))
@@ -289,7 +288,7 @@ for epoch in range(1, epochs + 1):
                                                      elec_weight)
 
     # Step scheduler, will reduce LR if loss has plateaued
-    scheduler.step(train_loss)
+    # scheduler.step(train_loss)
 
     # Store training loss function, and also raw MSE and lapl
     train_loss_plot = np.append(train_loss_plot, train_loss)

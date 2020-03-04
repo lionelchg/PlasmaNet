@@ -20,19 +20,19 @@ optimization_params:
   scheduler_threshold: 3.e-4              # Relative improvement the scheduler must see (float)
 
 data_params:
-  data_dir: 'datasets/64x64/sliding_gaussian'     # Training data directory
+  data_dir: 'datasets/64x64/sliding_gaussian_zerofield'     # Training data directory
   output_dir: './outputs/'                        # Output directory
-  output_name: 'sliding_gaussian_1'               # Case name
-  val_no: 500                                     # Size of validation set (int)
+  output_name: 'sliding_gaussian_7'               # Case name
+  val_no: 250                                    # Size of validation set (int)
   shuffle_train_set: False                        # Shuffle training test (bool, suggest True)
   shuffle_val_set: False                          # Shuffle validation set (bool, suggest False, though it should not matter)
   data_augmentation: False                        # Whether to mix the data before splitting into train & val (bool, suggest False)
 
 option_params:
-  MSE_weight: 1                           # Weighting of MSE (float)
+  MSE_weight: 1.                          # Weighting of MSE (float)
   elec_weight: 0                          # Weighting of GDL: needs to be determined based on data (float)
-  lapl_weight: 0                          # Weighting of Laplacian: needs to be determined based on data (float)
-  batch_size: 64                          # Size of batches to use: if noise is varied between epochs should be smaller (int)
+  lapl_weight: 0                         # Weighting of Laplacian: needs to be determined based on data (float)
+  batch_size: 128                         # Size of batches to use: if noise is varied between epochs should be smaller (int)
   n_epochs: 1000                          # Number of epochs (int)
   state_dir: './models/'                  # State saving directory
-  state_name: '001'                       # If None, state_name is created automatically based on parameters
+  state_name: '007'                       # If None, state_name is created automatically based on parameters

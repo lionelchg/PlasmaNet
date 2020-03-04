@@ -48,7 +48,7 @@ def train(epoch, model, criterion, train_loader, optimizer, scheduler, mse_weigh
         # Backpropagation and optimisation
         loss.backward()
         optimizer.step()
-        scheduler.step(epoch + batch_idx / len(train_loader))
+        # scheduler.step(epoch + batch_idx / len(train_loader))
 
         train_loss += loss.item()
         train_mse += (mse_weight * mse_loss).item()
