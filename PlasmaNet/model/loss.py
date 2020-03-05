@@ -15,6 +15,12 @@ from ..operators.gradient import gradient_scalar
 loss = MSELoss()
 
 
+def inside_loss(field, target):
+    """ Computes the MSELoss of the interior of the domain (excluding boundaries). """
+
+    return loss(field[:, 0, 1:-1, 1:-1], target[:, 0, 1:-1, 1:-1])
+
+
 def laplacian_loss(field, rhs, dx, dy):
     """ A Laplacian loss function on the inside of the domain (excluding boundaries). """
 
@@ -34,7 +40,7 @@ def electric_loss(field, target, dx, dy):
     return elec_loss
 
 
-def dirichlet_boundary_loss(field, target, dx, dy):
+def dirichlet_boundary_loss(field, target):
     """ Loss for Dirichlet boundaries. """
 
     bnd_loss = loss(field[:, 0, 0, :], target[:, 0, 0, :])

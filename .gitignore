@@ -11,3 +11,4 @@ __pychache__/
 # Storage directories
 datasets
 models
+outputs

@@ -160,7 +160,8 @@ for param_group in optimizer.param_groups:
     print('LR', float(param_group['lr']))
 
 # Set up loss function weightings
-MSE_weight = option_params['MSE_weight']
+inside_weight = option_params['inside_weight']
+bound_weight = option_params['bound_weight']
 elec_weight = option_params['elec_weight']
 lapl_weight = option_params['lapl_weight']
 
@@ -282,10 +283,10 @@ for epoch in range(1, epochs + 1):
     # Train on train set, then also test on val set and test set
     # train_loss, train_MSE, train_lapl = train(epoch)
     # val_loss, val_MSE, val_lapl = val()
-    train_loss, train_MSE, train_lapl, train_elec = train(epoch, model, criterion, train_loader, optimizer, scheduler,
-                                                          MSE_weight, lapl_weight, elec_weight, folder)
-    val_loss, val_MSE, val_lapl, val_elec = validate(epoch, model, criterion, val_loader, MSE_weight, lapl_weight,
-                                                     elec_weight, folder)
+    train_loss, train_inside, train_bound, train_lapl, train_elec = train(epoch, model, criterion, train_loader, optimizer, scheduler,
+                                                                          inside_weight, bound_weight, lapl_weight, elec_weight, folder)
+    val_loss, val_inside, train_bound, val_lapl, val_elec = validate(epoch, model, criterion, val_loader, inside_weight, bound_weight, lapl_weight,
+                                                                     elec_weight, folder)
 
     # Step scheduler, will reduce LR if loss has plateaued
     # scheduler.step(train_loss)
@@ -293,8 +294,8 @@ for epoch in range(1, epochs + 1):
     # Store training loss function, and also raw MSE and lapl
     train_loss_plot = np.append(train_loss_plot, train_loss)
     val_loss_plot = np.append(val_loss_plot, val_loss)
-    train_MSE_plot = np.append(train_MSE_plot, train_MSE)
-    val_MSE_plot = np.append(val_MSE_plot, val_MSE)
+    train_MSE_plot = np.append(train_MSE_plot, train_inside)
+    val_MSE_plot = np.append(val_MSE_plot, val_inside)
     train_lapl_plot = np.append(train_lapl_plot, train_lapl)
     val_lapl_plot = np.append(val_lapl_plot, val_lapl)
     train_elec_plot = np.append(train_elec_plot, train_elec)
@@ -302,8 +303,8 @@ for epoch in range(1, epochs + 1):
 
     state['train_loss_plot'] = np.append(state['train_loss_plot'], train_loss)
     state['val_loss_plot'] = np.append(state['val_loss_plot'], val_loss)
-    state['train_MSE_plot'] = np.append(state['train_MSE_plot'], train_MSE)
-    state['val_MSE_plot'] = np.append(state['val_MSE_plot'], val_MSE)
+    state['train_MSE_plot'] = np.append(state['train_MSE_plot'], train_inside)
+    state['val_MSE_plot'] = np.append(state['val_MSE_plot'], val_inside)
     state['train_lapl_plot'] = np.append(state['train_lapl_plot'], train_lapl)
     state['val_lapl_plot'] = np.append(state['val_lapl_plot'], val_lapl)
     state['train_elec_plot'] = np.append(state['train_elec_plot'], train_elec)
