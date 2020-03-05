@@ -46,24 +46,30 @@ def validate(epoch, model, criterion, val_loader, mse_weight, lapl_weight, elec_
             val_elec += (elec_weight * elec_loss).item()
 
             if epoch % 10 == 0. and batch_idx == 0:
-                fig, axes = plt.subplots(figsize=(5, 12), nrows=3, ncols=1)
-                ax1, ax2, ax3 = axes.ravel()
+                # Detach tensors and send them to cpu as numpy
+                data_np = data.detach().cpu().numpy()
+                target_np = target.detach().cpu().numpy()
+                output_np = output.detach().cpu().numpy()
+
+                # Lots of plots
+                fig, axes = plt.subplots(figsize=(12, 25), nrows=5, ncols=3)
                 fig.suptitle(' Model {} for epoch {}'.format(batch_idx, epoch))
 
-                tt = ax1.imshow(data[batch_idx, 0].detach().cpu().numpy(), origin='lower')
-                ax1.set_title('rhs')
-                ax1.axis('off')
-                fig.colorbar(tt, ax=ax1)
+                for k in range(5):
+                    tt = axes[k, 0].imshow(data_np[batch_idx + k, 0], origin='lower')
+                    axes[k, 0].set_title('rhs')
+                    axes[k, 0].axis('off')
+                    fig.colorbar(tt, ax=axes[k, 0])
 
-                tt = ax2.imshow(output[batch_idx, 0].detach().cpu().numpy(), origin='lower')
-                ax2.set_title('predicted potential')
-                ax2.axis('off')
-                fig.colorbar(tt, ax=ax2)
+                    tt = axes[k, 1].imshow(output_np[batch_idx + k, 0], origin='lower')
+                    axes[k, 1].set_title('predicted potential')
+                    axes[k, 1].axis('off')
+                    fig.colorbar(tt, ax=axes[k, 1])
 
-                tt = ax3.imshow(target[batch_idx, 0].detach().cpu().numpy(), origin='lower')
-                ax3.set_title('target potential')
-                ax3.axis('off')
-                fig.colorbar(tt, ax=ax3)
+                    tt = axes[k, 2].imshow(target_np[batch_idx + k, 0], origin='lower')
+                    axes[k, 2].set_title('target potential')
+                    axes[k, 2].axis('off')
+                    fig.colorbar(tt, ax=axes[k, 2])
 
                 plt.tight_layout()
                 plt.savefig(folder + '/Val_Images' + '/Model_{}_Result_{:06d}.png'.format(batch_idx, epoch))
