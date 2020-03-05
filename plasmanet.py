@@ -252,6 +252,11 @@ class NewTensorDataset(Dataset):
         return self.data.size(0)
 
 
+# Shuffle training data before separation
+shuffler = np.random.permutation(X_Train.shape[0])
+X_Train = X_Train[shuffler]
+Y_Train = Y_Train[shuffler]
+
 # create tensors, clean and noisy, and split into train and val
 train_targets = torch.from_numpy(np.float32(Y_Train[val_no:]))
 val_targets = torch.from_numpy(np.float32(Y_Train[:val_no]))

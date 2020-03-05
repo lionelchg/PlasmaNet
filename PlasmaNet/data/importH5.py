@@ -82,8 +82,8 @@ if __name__ == '__main__':
     verbose = False
 
     # Load base
-    solut_path = '/Users/bogopolsky/THESE/POISSON/PlasmaNet/datasets/64x64/sliding_gaussian_zerofield/src/RUN/SOLUT_zerofield/poisson_000<instant>.h5'
-    mesh_path = '/Users/bogopolsky/THESE/POISSON/PlasmaNet/datasets/64x64/sliding_gaussian_zerofield/src/MESH/mesh_quad_64.mesh.h5'
+    solut_path = '/Users/bogopolsky/THESE/POISSON/PlasmaNet/datasets/src/64x64/sliding_gaussian_zerofield/RUN/SOLUT_zerofield/poisson_000<instant>.h5'
+    mesh_path = '/Users/bogopolsky/THESE/POISSON/PlasmaNet/datasets/src/64x64/sliding_gaussian_zerofield/MESH/mesh_quad_64.mesh.h5'
     base = load_avbp_run(solut_path, mesh_path, verbose=verbose)
 
     # Save base
