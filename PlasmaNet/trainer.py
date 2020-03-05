@@ -12,7 +12,7 @@ from .operators.gradient import gradient_diag
 import matplotlib.pyplot as plt
 
 
-def train(epoch, model, criterion, train_loader, optimizer, scheduler, inside_weight, bound_weight, lapl_weight,
+def train(epoch, model, criterion, train_loader, optimizer, scheduler, in_weight, bound_weight, lapl_weight,
           elec_weight, folder):
     """ Train the model for the given epoch. """
 
@@ -20,7 +20,7 @@ def train(epoch, model, criterion, train_loader, optimizer, scheduler, inside_we
     model.train()
 
     # Initialize loss scores
-    train_loss, train_inside, train_lapl, train_elec, train_bound = 0., 0., 0., 0., 0.
+    train_loss, train_in, train_lapl, train_elec, train_bound = 0., 0., 0., 0., 0.
 
     dx = 1e-2 / 63  # TODO: hardcoded, to pass as argument
     dy = dx
@@ -41,10 +41,10 @@ def train(epoch, model, criterion, train_loader, optimizer, scheduler, inside_we
         lapl_loss = laplacian_loss(output, data, dx, dy)
         elec_loss = electric_loss(output, target, dx, dy)
 
-        inside_loss = inside_loss(output, target)
+        in_loss = inside_loss(output, target)
         bound_loss = dirichlet_boundary_loss(output, target)
 
-        loss = inside_weight * inside_loss + bound_weight * bound_loss + lapl_weight * lapl_loss + elec_weight * elec_loss
+        loss = in_weight * in_loss + bound_weight * bound_loss + lapl_weight * lapl_loss + elec_weight * elec_loss
 
         # Backpropagation and optimisation
         loss.backward()
@@ -52,7 +52,7 @@ def train(epoch, model, criterion, train_loader, optimizer, scheduler, inside_we
         # scheduler.step(epoch + batch_idx / len(train_loader))
 
         train_loss += loss.item()
-        train_inside += (inside_weight * inside_loss).item()
+        train_in += (in_weight * in_loss).item()
         train_lapl += (lapl_weight * lapl_loss).item()
         train_elec += (elec_weight * elec_loss).item()
         train_bound += (bound_weight * bound_loss).item()
@@ -90,13 +90,13 @@ def train(epoch, model, criterion, train_loader, optimizer, scheduler, inside_we
 
     # Divide loss by dataset length
     train_loss /= len(train_loader.dataset)
-    train_inside /= len(train_loader.dataset)
+    train_in /= len(train_loader.dataset)
     train_lapl /= len(train_loader.dataset)
     train_elec /= len(train_loader.dataset)
     train_bound /= len(train_loader.dataset)
 
     # Print loss for the whole dataset
-    print('\nTrain set: Avg loss: {:.6f}, Avg MSE : {:.6f}, Avg bound : {:.6f}, Avg Lapl: {:.6f}, Avg Elec: {:.6f}'.format(
-        train_loss, train_inside, train_bound, train_lapl, train_elec))
+    print('\nTrain set: Avg loss: {:.6f}, Avg in : {:.6f}, Avg bound : {:.6f}, Avg Lapl: {:.6f}, Avg Elec: {:.6f}'.format(
+        train_loss, train_in, train_bound, train_lapl, train_elec))
 
-    return train_loss, train_inside, train_bound, train_lapl, train_elec
+    return train_loss, train_in, train_bound, train_lapl, train_elec
