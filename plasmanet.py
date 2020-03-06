@@ -165,11 +165,12 @@ bound_weight = option_params['bound_weight']
 elec_weight = option_params['elec_weight']
 lapl_weight = option_params['lapl_weight']
 
-# Create State, name and path
+# Create State, name, path and state that will be always saved (lastEpoch)
 state_name = option_params['state_name']
 
 state_dir = folder_state + '/model_saves'
 state_path = os.path.join(state_dir, state_name)
+state_save = glob.os.path.join('/', state_path, 'convModel_lastEpoch.pth')
 
 state = {}
 time_vec = np.zeros(8)
@@ -183,6 +184,9 @@ state['train_elec_plot'] = np.array([])
 state['val_elec_plot'] = np.array([])
 state['train_lapl_plot'] = np.array([])
 state['val_lapl_plot'] = np.array([])
+
+#For saving only the best model, the lowest val loss will be stored here
+state['bestPerf'] = float('Inf')
 
 # initialise arrays for recording results
 train_loss_plot = np.array([])
@@ -292,7 +296,6 @@ for epoch in range(1, epochs + 1):
                                                                           inside_weight, bound_weight, lapl_weight, elec_weight, potential_max, rhs_max, folder)
     val_loss, val_inside, val_bound, val_lapl, val_elec = validate(epoch, model, criterion, val_loader, inside_weight, bound_weight, lapl_weight,
                                                                    elec_weight, potential_max, rhs_max, folder)
-
     # Step scheduler, will reduce LR if loss has plateaued
     # scheduler.step(train_loss)
 
@@ -317,4 +320,10 @@ for epoch in range(1, epochs + 1):
 
     state['model_state_dict'] = model.state_dict()
     state['optimizer_state_dict'] = optimizer.state_dict()
-    torch.save(state, state_path)
+    torch.save(state, state_save)
+
+    # If the validation loss is smaller than the previous best, save the model with the 'best' name
+    if val_loss < state['bestPerf']:
+        state['bestPerf'] = val_loss
+        state_best = glob.os.path.join('/', state_path, 'convModel_best.pth')
+        copyfile(state_save, state_best)
