@@ -22,7 +22,7 @@ optimization_params:
 data_params:
   data_dir: 'datasets/64x64/sliding_gaussian_zerofield'     # Training data directory
   output_dir: './outputs/'                        # Output directory
-  output_name: 'sliding_gaussian_13'              # Case name
+  output_name: 'sliding_gaussian_14'              # Case name
   val_no: 1000                                     # Size of validation set (int)
   shuffle_train_set: True                         # Shuffle training test (bool, suggest True)
   shuffle_val_set: True                          # Shuffle validation set (bool, suggest False, though it should not matter)
@@ -33,7 +33,7 @@ option_params:
   bound_weight: 1.                        # Weighting of MSE on the boundaries
   elec_weight: 0                          # Weighting of GDL: needs to be determined based on data (float)
   lapl_weight: 0.1                        # Weighting of Laplacian: needs to be determined based on data (float)
-  batch_size: 128                         # Size of batches to use: if noise is varied between epochs should be smaller (int)
+  batch_size: 64                         # Size of batches to use: if noise is varied between epochs should be smaller (int)
   n_epochs: 1000                          # Number of epochs (int)
   state_dir: './models/'                  # State saving directory
-  state_name: '013'                       # If None, state_name is created automatically based on parameters
+  state_name: '014'                       # If None, state_name is created automatically based on parameters
