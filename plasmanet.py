@@ -19,6 +19,7 @@ import torch.optim as optim
 import torch.utils.data
 import yaml
 from torch.utils.data import Dataset
+from shutil import copyfile
 
 from PlasmaNet import MultiSimpleNet
 from PlasmaNet.trainer import train
@@ -168,9 +169,13 @@ lapl_weight = option_params['lapl_weight']
 # Create State, name, path and state that will be always saved (lastEpoch)
 state_name = option_params['state_name']
 
-state_dir = folder_state + '/model_saves'
+state_dir = folder_state + 'model_saves'
 state_path = os.path.join(state_dir, state_name)
-state_save = glob.os.path.join('/', state_path, 'convModel_lastEpoch.pth')
+
+if not os.path.exists(state_path):
+        os.makedirs(state_path)
+
+state_save = glob.os.path.join(state_path, 'convModel_lastEpoch.pth')
 
 state = {}
 time_vec = np.zeros(8)
@@ -325,5 +330,5 @@ for epoch in range(1, epochs + 1):
     # If the validation loss is smaller than the previous best, save the model with the 'best' name
     if val_loss < state['bestPerf']:
         state['bestPerf'] = val_loss
-        state_best = glob.os.path.join('/', state_path, 'convModel_best.pth')
+        state_best = glob.os.path.join(state_path, 'convModel_best.pth')
         copyfile(state_save, state_best)
