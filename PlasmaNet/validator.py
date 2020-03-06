@@ -12,7 +12,7 @@ from .operators.gradient import gradient_diag
 import matplotlib.pyplot as plt
 
 
-def validate(epoch, model, criterion, val_loader, in_weight, bound_weight, lapl_weight, elec_weight, folder):
+def validate(epoch, model, criterion, val_loader, in_weight, bound_weight, lapl_weight, elec_weight, potential_max, rhs_max, folder):
     """ Validate the model for a given epoch. """
 
     # Set model to eval mode
@@ -33,7 +33,7 @@ def validate(epoch, model, criterion, val_loader, in_weight, bound_weight, lapl_
             output = model(data)
 
             # Compute loss
-            lapl_loss = laplacian_loss(output, data, dx, dy)
+            lapl_loss = laplacian_loss(output * potential_max / rhs_max, data, dx, dy)
             elec_loss = electric_loss(output, target, dx, dy)
 
             in_loss = inside_loss(output, target)
@@ -85,7 +85,7 @@ def validate(epoch, model, criterion, val_loader, in_weight, bound_weight, lapl_
     val_bound /= len(val_loader.dataset)
 
     # Print loss for the whole dataset
-    print('\nVal set: Avg loss: {:.6f}, Avg in : {:.6f}, Avg bound : {:.6f}, Avg Lapl: {:.6f}, Avg Elec: {:.6f}'.format(
+    print('\nVal set: Avg loss: {:.3e}, Avg in : {:.3e}, Avg bound : {:.3e}, Avg Lapl: {:.3e}, Avg Elec: {:.3e}'.format(
         val_loss, val_in, val_bound, val_lapl, val_elec))
 
     return val_loss, val_in, val_bound, val_lapl, val_elec

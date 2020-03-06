@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 
 def train(epoch, model, criterion, train_loader, optimizer, scheduler, in_weight, bound_weight, lapl_weight,
-          elec_weight, folder):
+          elec_weight, potential_max, rhs_max, folder):
     """ Train the model for the given epoch. """
 
     # Set the model to training mode
@@ -38,7 +38,7 @@ def train(epoch, model, criterion, train_loader, optimizer, scheduler, in_weight
         output = model(data)
 
         # Compute loss
-        lapl_loss = laplacian_loss(output, data, dx, dy)
+        lapl_loss = laplacian_loss(output * potential_max / rhs_max, data, dx, dy)
         elec_loss = electric_loss(output, target, dx, dy)
 
         in_loss = inside_loss(output, target)
@@ -96,7 +96,7 @@ def train(epoch, model, criterion, train_loader, optimizer, scheduler, in_weight
     train_bound /= len(train_loader.dataset)
 
     # Print loss for the whole dataset
-    print('\nTrain set: Avg loss: {:.6f}, Avg in : {:.6f}, Avg bound : {:.6f}, Avg Lapl: {:.6f}, Avg Elec: {:.6f}'.format(
+    print('\nTrain set: Avg loss: {:.3e}, Avg in : {:.3e}, Avg bound : {:.3e}, Avg Lapl: {:.3e}, Avg Elec: {:.3e}'.format(
         train_loss, train_in, train_bound, train_lapl, train_elec))
 
     return train_loss, train_in, train_bound, train_lapl, train_elec
