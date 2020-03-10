@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                      Base Trainer class (from https://github.com/victoresque/pytorch-template/)                      #
+#                                                  BaseTrainer class                                                   #
 #                                                                                                                      #
 #                                     Guillaume Bogopolsky, CERFACS, 03.03.2020                                        #
 #                                                                                                                      #
@@ -118,6 +118,7 @@ class BaseTrainer:
 
     def _save_checkpoint(self, epoch, save_best=False):
         """ Saving checkpoints. """
+        # Create checkpoint dict to be saved
         arch = type(self.model).__name__
         state = {
             'arch': arch,
@@ -128,5 +129,33 @@ class BaseTrainer:
             'config': self.config
         }
         filename = str(self.checkpoint_dir / 'checkpoint-epoch{}.pth'.format(epoch))
+        # Save checkpoint
         torch.save(state, filename)
         self.logger.info('Saving checkpoint: {} ...'.format(filename))
+        if save_best:
+            best_path = str(self.checkpoint_dir / 'model_best.pth')
+            torch.save(state, best_path)
+            self.logger.info('Saving current best: model_best.pth ...')
+
+    def _resume_checkpoint(self, resume_path):
+        """ Resume from the given saved checkpoint. """
+        resume_path = str(resume_path)
+        self.logger.info('Loading checkpoint: {} ...'.format(resume_path))
+        checkpoint = torch.load(resume_path)
+        self.start_epoch = checkpoint['epoch'] + 1
+        self.mnt_best = checkpoint['monitor_best']
+
+        # Load architecture params from checkpoint
+        if checkpoint['config']['arch'] != self.config['arch']:
+            self.logger.warning('Warning: Architecture configuration from the config file and the checkpoint is '
+                                'different. This may yield an exception while state_dict is loaded.')
+        self.model.load_state_dict(checkpoint['state_dict'])
+
+        # Load optimizer state from checkpoint only if optimizer type is not changed
+        if checkpoint['config']['optimizer']['type'] != self.config['optimizer']['type']:
+            self.logger.warning('Warning: Optimizer type from the config file and the checkpoint is different. '
+                                'Optimizer parameters are not resumed.')
+        else:
+            self.optimizer.load_state_dict(checkpoint['optimizer'])
+
+        self.logger.info('Checkpoint loaded. Resume training from epoch {}'.format(self.start_epoch))

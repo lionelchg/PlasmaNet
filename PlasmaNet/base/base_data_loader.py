@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                     Base DataLoader class (from https://github.com/victoresque/pytorch-template/)                    #
+#                                                 BaseDataLoader class                                                 #
 #                                                                                                                      #
 #                                     Guillaume Bogopolsky, CERFACS, 03.03.2020                                        #
 #                                                                                                                      #
@@ -34,14 +34,16 @@ class BaseDataLoader(DataLoader):
         super().__init__(sampler=self.sampler, **self.init_kwargs)
 
     def _split_sampler(self, split):
+        """ Split dataset in training and validation subsets with the given validation size. """
         if split == 0.0:
             return None, None
 
+        # Shuffle indexes with given seed for reproducibility
         idx_full = np.arange(self.n_samples)
-
         np.random.seed(0)
         np.random.shuffle(idx_full)
 
+        # Split random indexes list
         if isinstance(split, int):
             assert split > 0
             assert split < self.n_samples, 'Validation set size is configured to be larger than the entire dataset'
@@ -55,7 +57,7 @@ class BaseDataLoader(DataLoader):
         train_sampler = SubsetRandomSampler(train_idx)
         valid_sampler = SubsetRandomSampler(valid_idx)
 
-        # turn off shuffle option which is mutually exclusive with sampler
+        # Turn off shuffle option which is mutually exclusive with sampler
         self.shuffle = False
         self.n_samples = len(train_idx)
 

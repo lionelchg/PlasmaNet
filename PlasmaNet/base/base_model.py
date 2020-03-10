@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                       Base Model class (from https://github.com/victoresque/pytorch-template/)                       #
+#                                                   BaseModel class                                                    #
 #                                                                                                                      #
 #                                     Guillaume Bogopolsky, CERFACS, 03.03.2020                                        #
 #                                                                                                                      #
@@ -13,7 +13,7 @@ from abc import abstractmethod
 
 class BaseModel(nn.Module):
     """
-    Base class for all models.
+    Base class for all models. Overrides __str__ method and forces reimplementation of forward.
     """
     @abstractmethod
     def forward(self, *inputs):
