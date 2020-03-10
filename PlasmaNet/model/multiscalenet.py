@@ -10,6 +10,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from ..base import BaseModel
 
 
 class _ConvBlock1(nn.Module):
@@ -106,7 +107,7 @@ class _ConvBlock3(nn.Module):
         return self.encode(x)
 
 
-class MultiSimpleNet(nn.Module):
+class MultiSimpleNet(BaseModel):
     """
     Define the network. The only input needed is the number of data (input) channels.
     Procedure:
