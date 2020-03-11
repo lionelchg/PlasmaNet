@@ -6,7 +6,7 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-from torch.nn.modules import _Loss
+from torch.nn.modules.loss import _Loss
 from abc import abstractmethod
 
 
