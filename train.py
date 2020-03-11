@@ -43,8 +43,8 @@ def main(config):
 
     # Build optimizer, learning rate scheduler
     # Disable scheduler by commenting all lines with lr_scheduler
-    trainable_params = filter(lambda p: p.requires_grad(), model.parameters())
-    optimizer = config.init_obj('lr_scheduler', torch.optim, trainable_params)
+    trainable_params = filter(lambda p: p.requires_grad, model.parameters())
+    optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
 
     lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer)
 

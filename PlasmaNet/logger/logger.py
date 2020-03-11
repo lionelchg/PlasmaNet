@@ -12,7 +12,7 @@ from pathlib import Path
 from ..utils import read_yaml
 
 
-def setup_logging(save_dir, log_config='logger/logger_config.json', default_level=logging.INFO):
+def setup_logging(save_dir, log_config='PlasmaNet/logger/logger_config.yml', default_level=logging.INFO):
     """ Setup logging configuration. """
     log_config = Path(log_config)
     if log_config.is_file():
