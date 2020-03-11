@@ -19,11 +19,15 @@ def accuracy(output, target):
     return correct / len(target)
 
 
-def top_k_acc(output, target, k=3):
+def residual(output, target):
+    """ Computes the residual of the current epoch. """
     with torch.no_grad():
-        pred = torch.topk(output, k, dim=1)[1]
-        assert pred.shape[0] == len(target)
-        correct = 0
-        for i in range(k):
-            correct += torch.sum(pred[:, i] == target).item()
-    return correct / len(target)
+        res = torch.sum(torch.abs(output - target))
+    return res
+
+
+def normed_residual(output, target):
+    """ Computes the L2 norm of the residual of the currend epoch. """
+    with torch.no_grad():
+        res = torch.sum((output - target) ** 2)
+    return res
