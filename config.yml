@@ -2,7 +2,7 @@
 #                                                                                                                      #
 #                                           PlasmaNet -- Configuration file                                            #
 #                                                                                                                      #
-#                                      Guillaume Bogopolsky, CERFACS, 26.02.2020                                       #
+#                                      Guillaume Bogopolsky, CERFACS, 11.03.2020                                       #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -13,27 +13,63 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-optimization_params:
-  initial_lr: 4.e-4                       # Initial learning rate (float)
-  scheduler_factor: 0.99                    # Amount scheduler reduces LR by (float)
-  scheduler_patience: 50                  # Number of epochs the scheduler waits (int)
-  scheduler_threshold: 3.e-4              # Relative improvement the scheduler must see (float)
+# The train routine will automatically load the required `type` of each section with the given `args` by using the
+# `config.init_obj` method.
 
-data_params:
-  data_dir: 'datasets/64x64/sliding_gaussian_zerofield'     # Training data directory
-  output_dir: './outputs/'                        # Output directory
-  output_name: 'sliding_gaussian_14'              # Case name
-  val_no: 1000                                     # Size of validation set (int)
-  shuffle_train_set: True                         # Shuffle training test (bool, suggest True)
-  shuffle_val_set: True                          # Shuffle validation set (bool, suggest False, though it should not matter)
-  data_augmentation: False                        # Whether to mix the data before splitting into train & val (bool, suggest False)
 
-option_params:
-  inside_weight: 1.                       # Weighting of MSE inside the domain, excluding boundaries (float)
-  bound_weight: 1.                        # Weighting of MSE on the boundaries
-  elec_weight: 0                          # Weighting of GDL: needs to be determined based on data (float)
-  lapl_weight: 0.1                        # Weighting of Laplacian: needs to be determined based on data (float)
-  batch_size: 64                         # Size of batches to use: if noise is varied between epochs should be smaller (int)
-  n_epochs: 1000                          # Number of epochs (int)
-  state_dir: './models/'                  # State saving directory
-  state_name: '014'                       # If None, state_name is created automatically based on parameters
+name: 'PlasmaNet'                           # Experience name
+n_gpu: 1                                    # Number of GPUs to use
+
+arch:
+    type: 'MultiSimpleNet'
+    args:
+        data_channels: 1
+
+data_loader:
+    type: 'PoissonDataLoader'
+    args:
+        data_dir: 'datasets/64x64/sliding_gaussian_zerofield'
+        batch_size: 128
+        shuffle: True
+        validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
+        num_workers: 4
+
+optimizer:
+    type: 'Adam'
+    args:
+        lr: 4.e-4
+        weight_decay: 0
+        amsgrad: False                      # AMSGrad variant from paper 'On the convergence of Adam and Beyond'
+
+loss:
+    type: 'ComposedLoss'
+    args:
+        inside_weight: 1.                   # Weighting of the loss inside the domain, excluding boundaries (float)
+        bound_weight: 1.                    # Weighting of the loss on the boundaries
+        elec_weight: 0.                     # Weighting of the loss on the electric field (float)
+        lapl_weight: 1.                     # Weighting of the loss on the Laplacian (float)
+        dx: 0.01                            # Domain sizes, required for gradient and laplacian computation
+        dy: 0.01
+
+metrics:
+    - 'residual'
+    - 'l2_norm'
+
+lr_scheduler:
+    type: 'ReduceLROnPlateau'
+    args:
+        mode: 'min'
+        factor: 0.99                        # Amount scheduler reduces LR by (float)
+        patience: 50                        # Number of epochs the scheduler waits (int)
+        threshold: 3.e-4                    # Relative improvement the scheduler must see (float)
+        threshold_mode: 'rel'
+        verbose: False
+
+trainer:
+    epochs: 1000
+    save_dir: 'outputs/'
+    save_period: 1
+    verbosity: 2
+    monitor: min val_loss                   # Definition of the best model to save (here minimum loss)
+    early_stop: 50                          # Training is stopped if model performance does not increase for 50 epochs
+    tensorboard: true
