@@ -1,67 +1,106 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                                   Loss functions                                                     #
+#                                                    Loss classes                                                      #
 #                                                                                                                      #
 #                                Ekhi Ajuria, Guillaume Bogopolsky, CERFACS, 03.03.2020                                #
 #                                                                                                                      #
 ########################################################################################################################
 
-from torch.nn import MSELoss
+from ..base.base_loss import BaseLoss
+import torch.nn.functional as F
 from ..operators.laplacian import laplacian as lapl
 from ..operators.gradient import gradient_scalar
 
 
-# Instantiate loss function
-loss = MSELoss()
+class InsideLoss(BaseLoss):
+    """ Computes the weighted MSELoss of the interior of the domain (excluding boundaries). """
+    def __init__(self, inside_weight):
+        super().__init__()
+        self.weight = inside_weight
+
+    def forward(self, output, target, **kwargs):
+        return F.mse_loss(output[:, 0, 1:-1, 1:-1], target[:, 0, 1:-1, 1:-1]) * self.weight
 
 
-def inside_loss(field, target):
-    """ Computes the MSELoss of the interior of the domain (excluding boundaries). """
-
-    return loss(field[:, 0, 1:-1, 1:-1], target[:, 0, 1:-1, 1:-1])
-
-
-def laplacian_loss(field, rhs, dx, dy):
+class LaplacianLoss(BaseLoss):
     """ A Laplacian loss function on the inside of the domain (excluding boundaries). """
+    def __init__(self, lapl_weight, dx, dy):
+        super().__init__()
+        self.weight = lapl_weight
+        self.dx = dx
+        self.dy = dy
+        self._require_input_data = True  # Need rhs for computation
 
-    laplacian = lapl(field, dx, dy)
-    lapl_loss = loss(laplacian[:, 0, 1:-1, 1:-1], - rhs[:, 0, 1:-1, 1:-1])
+    def forward(self, output, target, data=None, **kwargs):
+        laplacian = lapl(output, self.dx, self.dy)
+        return F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
 
-    return lapl_loss
 
-
-def electric_loss(field, target, dx, dy):
+class ElectricLoss(BaseLoss):
     """ Loss function on the electric field. """
+    def __init__(self, elec_weight, dx, dy):
+        super().__init__()
+        self.weight = elec_weight
+        self.dx = dx
+        self.dy = dy
+        self._require_input_data = False
 
-    elec_output = gradient_scalar(field, dx, dy)
-    elec_target = gradient_scalar(target, dx, dy)
-    elec_loss = loss(elec_output, elec_target)
+    def forward(self, output, target, **kwargs):
+        elec_output = gradient_scalar(output, self.dx, self.dy)
+        elec_target = gradient_scalar(target, self.dx, self.dy)
+        return F.mse_loss(elec_output, elec_target) * self.weight
 
-    return elec_loss
 
-
-def dirichlet_boundary_loss(field, target):
+class DirichletBoundaryLoss(BaseLoss):
     """ Loss for Dirichlet boundaries. """
+    def __init__(self, bound_weight):
+        super().__init__()
+        self.weight = bound_weight
 
-    bnd_loss = loss(field[:, 0, 0, :], target[:, 0, 0, :])
-    bnd_loss += loss(field[:, 0, -1, :], target[:, 0, -1, :])
-    bnd_loss += loss(field[:, 0, :, 0], target[:, 0, :, 0])
-    bnd_loss += loss(field[:, 0, :, -1], target[:, 0, :, -1])
+    def forward(self, output, target, **kwargs):
+        bnd_loss = F.mse_loss(output[:, 0, 0, :], target[:, 0, 0, :])
+        bnd_loss += F.mse_loss(output[:, 0, -1, :], target[:, 0, -1, :])
+        bnd_loss += F.mse_loss(output[:, 0, :, 0], target[:, 0, :, 0])
+        bnd_loss += F.mse_loss(output[:, 0, :, -1], target[:, 0, :, -1])
+        return bnd_loss * self.weight
 
-    return bnd_loss
 
-
-def neumann_boundary_loss(field, target, dx, dy):
+class NeumannBoundaryLoss(BaseLoss):
     """ Loss for Neumann boundaries. """
+    def __init__(self, bound_weight, dx, dy):
+        super().__init__()
+        self.weight = bound_weight
+        self.dx = dx
+        self.dy = dy
 
-    # Compute electric field
-    grad_field = gradient_scalar(field, dx, dy)
-    grad_target = gradient_scalar(target, dx, dy)
+    def forward(self, output, target, **kwargs):
+        # Compute electric field
+        grad_output = gradient_scalar(output, self.dx, self.dy)
+        grad_target = gradient_scalar(target, self.dx, self.dy)
+        # Loss on the boundaries
+        bnd_loss = F.mse_loss(grad_output[:, 0, 1:-1, 0], grad_target[:, 0, 1:-1, 0])  # line for x = 0
+        bnd_loss += F.mse_loss(grad_output[:, 0, 1:-1, -1], grad_target[:, 0, 1:-1, -1])
+        bnd_loss += F.mse_loss(grad_output[:, 0, 0, 1:-1], grad_target[:, 0, 0, 1:-1])
+        bnd_loss += F.mse_loss(grad_output[:, 0, -1, 1:-1], grad_target[:, 0, -1, 1:-1])
+        return bnd_loss * self.weight
 
-    # Loss on the boundaries
-    bnd_loss = loss(grad_field[:, 0, 1:-1, 0], grad_target[:, 0, 1:-1, 0])  # line for x = 0
-    bnd_loss += loss(grad_field[:, 0, 1:-1, -1], grad_target[:, 0, 1:-1, -1])
-    bnd_loss += loss(grad_field[:, 0, 0, 1:-1], grad_target[:, 0, 0, 1:-1])
-    bnd_loss += loss(grad_field[:, 0, -1, 1:-1], grad_target[:, 0, -1, 1:-1])
 
-    return bnd_loss
+class ComposedLoss(BaseLoss):
+    """
+    Class for loss composition.
+    TODO: pass list of classes as argument? With list of object, to avoid manually listing losses
+    """
+    def __init__(self, inside_weight, bound_weight, elec_weight, lapl_weight, dx, dy):
+        super().__init__()
+        self.inside_loss = InsideLoss(inside_weight)
+        self.bound_loss = DirichletBoundaryLoss(bound_weight)
+        self.elec_loss = ElectricLoss(elec_weight, dx, dy)
+        self.lapl_loss = LaplacianLoss(lapl_weight, dx, dy)
+        self._require_input_data = True
+
+    def forward(self, output, target, data=None, **kwargs):
+        composed_loss = self.inside_loss.forward(output, target)
+        composed_loss += self.bound_loss.forward(output, target)
+        composed_loss += self.elec_loss.forward(output, target)
+        composed_loss += self.lapl_loss.forward(output, target, data)
+        return composed_loss

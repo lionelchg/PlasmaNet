@@ -52,10 +52,14 @@ class Trainer(BaseTrainer):
 
             self.optimizer.zero_grad()
             output = self.model(data)
-            loss = self.criterion(output, target)
+            if self.criterion.require_input_data():
+                loss = self.criterion(output, target, data)
+            else:
+                loss = self.criterion(output, target)
             loss.backward()
             self.optimizer.step()
 
+            # Update log
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
             self.train_metrics.update('loss', loss.item())
             for metric in self.metric_ftns:

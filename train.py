@@ -38,7 +38,7 @@ def main(config):
     logger.info(model)
 
     # Get function handles of loss and metrics
-    criterion = getattr(module_loss, config['loss'])
+    criterion = config.init_obj('loss', module_loss)
     metrics = [getattr(module_metric, metric) for metric in config['metrics']]
 
     # Build optimizer, learning rate scheduler
