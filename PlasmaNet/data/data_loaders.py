@@ -6,14 +6,17 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-from torchvision import datasets, transforms
+import torch
+import numpy as np
+from torch.utils.data import TensorDataset
 from ..base import BaseDataLoader
 
 
-class MnistDataLoader(BaseDataLoader):
-    """ Example MNIST dataloader using the BaseDataLoader class. """
-    def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1, training=True):
-        trsfm = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307, ), (0.3081, ))])
+class PoissonDataLoader(BaseDataLoader):
+    """ Loads a set of charge distribution and the associated potential. """
+    def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1):
         self.data_dir = data_dir
-        self.dataset = datasets.MNIST(self.data_dir, train=training, download=True, transform=trsfm)
+        physical_rhs = torch.from_numpy(np.load(data_dir / 'physical_rhs.npy'))
+        potential = torch.from_numpy(np.load(data_dir / 'potential.npy'))
+        self.dataset = TensorDataset(physical_rhs, potential)
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)

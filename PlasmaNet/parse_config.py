@@ -97,8 +97,8 @@ class ConfigParser:
 
     def init_obj(self, name, module, *args, **kwargs):
         """
-        Finds a function handle with the name given as 'type' in config, and returns the instance initialized with
-        the corresponding arguments given.
+        Finds a function handle with the name given in the [name]['type'] field in the config file, in the given module,
+        and returns the instance initialized with the corresponding arguments given.
 
         `object = config.init_obj('name', module, a, b=1)`
         is equivalent to
@@ -112,8 +112,8 @@ class ConfigParser:
 
     def init_ftn(self, name, module, *args, **kwargs):
         """
-        Finds a function handle with the name given as 'type' in config, and returns the
-        function with given arguments fixed with functools.partial
+        Finds a function handle with the name given in the [name]['type'] field in the config file, in the given module,
+        and returns the function with given arguments fixed with functools.partial
 
         `function = config.init_ftn('name', module, a, b=1)`
         is equivalent to
