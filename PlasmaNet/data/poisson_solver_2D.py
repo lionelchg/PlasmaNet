@@ -6,14 +6,15 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-from scipy.sparse.linalg import spsolve, inv
-from scipy import sparse
 import numpy as np
-import matplotlib.pyplot as plt
+from scipy import sparse
+from scipy.sparse.linalg import spsolve
 import scipy.constants as co
-import sys
 import matplotlib
+import matplotlib.pyplot as plt
+from tqdm import tqdm
 import time
+
 
 def laplace_square_matrix(n_points):
 	diags = np.zeros((5, n_points * n_points))
@@ -27,7 +28,7 @@ def laplace_square_matrix(n_points):
 
 	# Correcting the diagonal to take into account dirichlet boundary conditions
 	for i in range(n_points**2):
-		if i < n_points or i >= (n_points - 1) * n_points or i % n_points == 0 or i % n_points == n_points -1: 
+		if i < n_points or i >= (n_points - 1) * n_points or i % n_points == 0 or i % n_points == n_points - 1:
 			diags[0, i] = 1
 			diags[1, min(i + 1, n_points**2 - 1)] = 0
 			diags[2, max(i - 1, 0)] = 0
@@ -37,22 +38,24 @@ def laplace_square_matrix(n_points):
 	# Creating the matrix
 	return sparse.csc_matrix(sparse.dia_matrix((diags, [0, 1, -1, n_points, -n_points]), shape=(n_points**2, n_points**2)))
 
+
 def dirichlet_bc(rhs, n_points, up, down, left, right):
 	rhs[:n_points] = up * np.zeros(n_points)
 	rhs[n_points*(n_points - 1):] = down * np.zeros(n_points)
 	rhs[:n_points*(n_points - 1) + 1:n_points] = left * np.zeros(n_points)
 	rhs[n_points-1::n_points] = right * np.zeros(n_points)
 
+
 def plot_fig(X, Y, potential, physical_rhs, save=False, name='potential_2D', nit=0):
 	# Plotting the potential
 	matplotlib.rcParams['contour.negative_linestyle'] = 'solid'
 	fig, [ax1, ax2] = plt.subplots(ncols=2, figsize=(14, 7))
 	CS1 = ax1.contourf(X, Y, physical_rhs, 100, cmap='jet')
-	cbar1 = fig.colorbar(CS1, pad = 0.05, fraction=0.08, ax=ax1, aspect=5)
+	cbar1 = fig.colorbar(CS1, pad=0.05, fraction=0.08, ax=ax1, aspect=5)
 	cbar1.ax.set_ylabel(r'$\rho/\epsilon_0$ [V.m$^{-2}$]')
 	ax1.set_aspect("equal")
 	CS2 = ax2.contourf(X, Y, potential, 100, cmap='jet')
-	cbar2 = fig.colorbar(CS2, pad = 0.05, fraction=0.08, ax=ax2, aspect=5)
+	cbar2 = fig.colorbar(CS2, pad=0.05, fraction=0.08, ax=ax2, aspect=5)
 	cbar2.ax.set_ylabel('Potential [V]')
 	ax2.set_aspect("equal")
 
@@ -64,6 +67,7 @@ def plot_fig(X, Y, potential, physical_rhs, save=False, name='potential_2D', nit
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
 	return amplitude * np.exp(-((x - x0)/sigma_x)**2 - ((y - y0)/sigma_y)**2)
+
 
 if __name__ == '__main__':
 
@@ -86,14 +90,13 @@ if __name__ == '__main__':
 	physical_rhs_list = np.zeros((nits, n_points, n_points))
 
 	time_start = time.time()
-	for nit in range(nits):
-		# creating the rhs
+	for nit in tqdm(range(nits)):
+		# Creating the rhs
 		ni0 = 1e16
 		sigma_x, sigma_y = 1e-3, 1e-3
 		x0, y0 = 0.3e-2 * (1 + nit/nits), 0.3e-2 * (1 + nit/nits)
-		rhs = np.zeros(n_points**2)
 
-		#interior rhs
+		# Interior rhs
 		physical_rhs = gaussian(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
 		rhs = - physical_rhs * dx**2
 
