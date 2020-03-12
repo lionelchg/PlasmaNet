@@ -55,7 +55,7 @@ class Trainer(BaseTrainer):
             output = self.model(data)
             if self.criterion.require_input_data():
                 if self.data_loader.normalize:
-                    loss = self.criterion(output, target, data, data_norm, target_norm)
+                    loss = self.criterion(output, target, data, target_norm, data_norm)
                 else:
                     loss = self.criterion(output, target, data)
             else:
@@ -107,7 +107,7 @@ class Trainer(BaseTrainer):
                 output = self.model(data)
                 if self.criterion.require_input_data():
                     if self.data_loader.normalize:
-                        loss = self.criterion(output, target, data, data_norm, target_norm)
+                        loss = self.criterion(output, target, data, target_norm, data_norm)
                     else:
                         loss = self.criterion(output, target, data)
                 else:
