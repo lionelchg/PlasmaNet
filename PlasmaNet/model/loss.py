@@ -29,6 +29,9 @@ class LaplacianLoss(BaseLoss):
         self.weight = lapl_weight
         self.dx = dx
         self.dy = dy
+        if isinstance(self.dx, str) or isinstance(self.dy, str):
+            self.dx = eval(dx)
+            self.dy = eval(dy)
         self._require_input_data = True  # Need rhs for computation
 
     def forward(self, output, target, data=None, **kwargs):
@@ -43,6 +46,9 @@ class ElectricLoss(BaseLoss):
         self.weight = elec_weight
         self.dx = dx
         self.dy = dy
+        if isinstance(self.dx, str) or isinstance(self.dy, str):
+            self.dx = eval(dx)
+            self.dy = eval(dy)
         self._require_input_data = False
 
     def forward(self, output, target, **kwargs):
@@ -72,6 +78,9 @@ class NeumannBoundaryLoss(BaseLoss):
         self.weight = bound_weight
         self.dx = dx
         self.dy = dy
+        if isinstance(self.dx, str) or isinstance(self.dy, str):
+            self.dx = eval(dx)
+            self.dy = eval(dy)
 
     def forward(self, output, target, **kwargs):
         # Compute electric field

@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'PlasmaNet'                           # Experience name
+name: 'sliding_gaussian_013'                           # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 arch:
@@ -47,9 +47,9 @@ loss:
         inside_weight: 1.                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.                    # Weighting of the loss on the boundaries
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
-        lapl_weight: 1.                     # Weighting of the loss on the Laplacian (float)
-        dx: 0.01                            # Domain sizes, required for gradient and laplacian computation
-        dy: 0.01
+        lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
+        dx: 1/63                            # Domain sizes, required for gradient and laplacian computation
+        dy: 1/63
 
 metrics:
     - 'residual'
@@ -68,8 +68,8 @@ lr_scheduler:
 trainer:
     epochs: 1000
     save_dir: 'outputs/'
-    save_period: 1
+    save_period: 50
     verbosity: 2
     monitor: min val_loss                   # Definition of the best model to save (here minimum loss)
-    early_stop: 50                          # Training is stopped if model performance does not increase for 50 epochs
+    early_stop: 0                           # Training is stopped if model performance does not increase for 50 epochs
     tensorboard: true
