@@ -26,7 +26,8 @@ class PoissonDataLoader(BaseDataLoader):
         potential = np.load(self.data_dir / 'potential.npy')
 
         # Normalization
-        if normalize:
+        self.normalize = normalize
+        if self.normalize:
             self.data_norm = physical_rhs.max()
             self.target_norm = potential.max()
             physical_rhs /= self.data_norm
