@@ -49,8 +49,8 @@ loss:
         bound_weight: 1.                    # Weighting of the loss on the boundaries
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
         lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
-        dx: 1/63                            # Domain sizes, required for gradient and laplacian computation
-        dy: 1/63
+        dx: 0.01/63                         # Domain sizes, required for gradient and laplacian computation
+        dy: 0.01/63
 
 metrics:
     - 'residual'

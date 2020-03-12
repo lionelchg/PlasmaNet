@@ -47,15 +47,14 @@ class Trainer(BaseTrainer):
         """
         self.model.train()
         self.train_metrics.reset()
-        for batch_idx, (data, target) in enumerate(self.data_loader):
+        for batch_idx, (data, target, data_norm, target_norm) in enumerate(self.data_loader):
             data, target = data.to(self.device), target.to(self.device)
 
             self.optimizer.zero_grad()
             output = self.model(data)
             if self.criterion.require_input_data():
                 if self.data_loader.normalize:
-                    loss = self.criterion(output, target, data,
-                                          self.data_loader.data_norm, self.data_loader.target_norm)
+                    loss = self.criterion(output, target, data, data_norm, target_norm)
                 else:
                     loss = self.criterion(output, target, data)
             else:
@@ -100,14 +99,13 @@ class Trainer(BaseTrainer):
         self.valid_metrics.reset()
 
         with torch.no_grad():
-            for batch_idx, (data, target) in enumerate(self.valid_data_loader):
+            for batch_idx, (data, target), data_norm, target_norm in enumerate(self.valid_data_loader):
                 data, target = data.to(self.device), target.to(self.device)
 
                 output = self.model(data)
                 if self.criterion.require_input_data():
                     if self.data_loader.normalize:
-                        loss = self.criterion(output, target, data,
-                                              self.data_loader.data_norm, self.data_loader.target_norm)
+                        loss = self.criterion(output, target, data, data_norm, target_norm)
                     else:
                         loss = self.criterion(output, target, data)
                 else:

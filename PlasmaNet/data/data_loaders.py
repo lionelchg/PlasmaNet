@@ -42,5 +42,5 @@ class PoissonDataLoader(BaseDataLoader):
         potential = potential.type(torch.float32)
 
         # Create Dataset from Tensor
-        self.dataset = TensorDataset(physical_rhs, potential)
+        self.dataset = TensorDataset(physical_rhs, potential, self.data_norm, self.target_norm)
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
