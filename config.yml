@@ -71,5 +71,5 @@ trainer:
     save_period: 50
     verbosity: 2
     monitor: min val_loss                   # Definition of the best model to save (here minimum loss)
-    early_stop: 0                           # Training is stopped if model performance does not increase for 50 epochs
+    early_stop: 200                           # Training is stopped if model performance does not increase for 50 epochs
     tensorboard: true
