@@ -55,7 +55,7 @@ class Trainer(BaseTrainer):
             if self.criterion.require_input_data():
                 if self.data_loader.normalize:
                     loss = self.criterion(output, target, data,
-                                          self.data_loader.data_norm, self.data_loader.target_norms)
+                                          self.data_loader.data_norm, self.data_loader.target_norm)
                 else:
                     loss = self.criterion(output, target, data)
             else:
@@ -107,7 +107,7 @@ class Trainer(BaseTrainer):
                 if self.criterion.require_input_data():
                     if self.data_loader.normalize:
                         loss = self.criterion(output, target, data,
-                                              self.data_loader.output_max, self.data_loader.target_max)
+                                              self.data_loader.data_norm, self.data_loader.target_norm)
                     else:
                         loss = self.criterion(output, target, data)
                 else:
@@ -117,7 +117,11 @@ class Trainer(BaseTrainer):
                 self.valid_metrics.update('loss', loss.item())
                 for metric in self.metric_ftns:
                     self.valid_metrics.update(metric.__name__, metric(output, target))
-                self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
+                # Figure output after the 1st batch of each epoch
+                if batch_idx == 0:
+                    self.writer.add_image('val_input', make_grid(data[:10].cpu(), nrow=1, normalize=True))
+                    self.writer.add_image('val_output', make_grid(output[:10].cpu(), nrow=1, normalize=True))
+                    self.writer.add_image('val_target', make_grid(target[:10].cpu(), nrow=1, normalize=True))
 
         # Add histogram of model parameters to the TensorBoard
         for name, p in self.model.named_parameters():
