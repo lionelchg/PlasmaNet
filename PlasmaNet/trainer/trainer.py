@@ -11,6 +11,7 @@ import torch
 from torchvision.utils import make_grid
 from ..base import BaseTrainer
 from ..utils import inf_loop, MetricTracker
+import matplotlib.pyplot as plt
 
 
 class Trainer(BaseTrainer):
@@ -76,9 +77,10 @@ class Trainer(BaseTrainer):
                     loss.item()))
             # Figure output after the 1st batch of each epoch
             if batch_idx == 0:
-                self.writer.add_image('input', make_grid(data[:10].cpu(), nrow=1, normalize=True))
-                self.writer.add_image('output', make_grid(output[:10].cpu(), nrow=1, normalize=True))
-                self.writer.add_image('target', make_grid(target[:10].cpu(), nrow=1, normalize=True))
+                # self.writer.add_image('input', make_grid(data[:10].cpu(), nrow=1, normalize=True))
+                # self.writer.add_image('output', make_grid(output[:10].cpu(), nrow=1, normalize=True))
+                # self.writer.add_image('target', make_grid(target[:10].cpu(), nrow=1, normalize=True))
+                self.writer.add_figure('train', plot_numpy(output, target, data, epoch, batch_idx))
 
             if batch_idx == self.len_epoch:
                 break
@@ -119,9 +121,10 @@ class Trainer(BaseTrainer):
                     self.valid_metrics.update(metric.__name__, metric(output, target))
                 # Figure output after the 1st batch of each epoch
                 if batch_idx == 0:
-                    self.writer.add_image('val_input', make_grid(data[:10].cpu(), nrow=1, normalize=True))
-                    self.writer.add_image('val_output', make_grid(output[:10].cpu(), nrow=1, normalize=True))
-                    self.writer.add_image('val_target', make_grid(target[:10].cpu(), nrow=1, normalize=True))
+                    # self.writer.add_image('val_input', make_grid(data[:10].cpu(), nrow=1, normalize=True))
+                    # self.writer.add_image('val_output', make_grid(output[:10].cpu(), nrow=1, normalize=True))
+                    # self.writer.add_image('val_target', make_grid(target[:10].cpu(), nrow=1, normalize=True))
+                    self.writer.add_figure('valid',plot_numpy(output, target, data, epoch, batch_idx))
 
         # Add histogram of model parameters to the TensorBoard
         for name, p in self.model.named_parameters():
@@ -139,3 +142,32 @@ class Trainer(BaseTrainer):
             current = batch_idx
             total = self.len_epoch
         return base.format(current, total, 100.0 * current / total)
+
+
+def plot_numpy(output, target, data, epoch, batch_idx):
+    """ Matplotlib plots. """
+    # Detach tensors and send them to cpu as numpy
+    data_np = data.detach().cpu().numpy()
+    target_np = target.detach().cpu().numpy()
+    output_np = output.detach().cpu().numpy()
+
+    # Lots of plots
+    fig, axes = plt.subplots(figsize=(12, 25), nrows=5, ncols=3)
+    fig.suptitle(' Model {} for epoch {}'.format(batch_idx, epoch))
+
+    for k in range(5):
+        tt = axes[k, 0].imshow(data_np[batch_idx + k, 0], origin='lower')
+        axes[k, 0].set_title('rhs')
+        axes[k, 0].axis('off')
+        fig.colorbar(tt, ax=axes[k, 0])
+
+        tt = axes[k, 1].imshow(output_np[batch_idx + k, 0], origin='lower')
+        axes[k, 1].set_title('predicted potential')
+        axes[k, 1].axis('off')
+        fig.colorbar(tt, ax=axes[k, 1])
+
+        tt = axes[k, 2].imshow(target_np[batch_idx + k, 0], origin='lower')
+        axes[k, 2].set_title('target potential')
+        axes[k, 2].axis('off')
+        fig.colorbar(tt, ax=axes[k, 2])
+    return fig
