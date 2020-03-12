@@ -49,6 +49,7 @@ class Trainer(BaseTrainer):
         self.train_metrics.reset()
         for batch_idx, (data, target, data_norm, target_norm) in enumerate(self.data_loader):
             data, target = data.to(self.device), target.to(self.device)
+            data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
 
             self.optimizer.zero_grad()
             output = self.model(data)
@@ -101,6 +102,7 @@ class Trainer(BaseTrainer):
         with torch.no_grad():
             for batch_idx, (data, target), data_norm, target_norm in enumerate(self.valid_data_loader):
                 data, target = data.to(self.device), target.to(self.device)
+                data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
 
                 output = self.model(data)
                 if self.criterion.require_input_data():
