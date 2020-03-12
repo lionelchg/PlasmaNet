@@ -55,7 +55,7 @@ class Trainer(BaseTrainer):
             if self.criterion.require_input_data():
                 if self.data_loader.normalize:
                     loss = self.criterion(output, target, data,
-                                          self.data_loader.output_max, self.data_loader.target_max)
+                                          self.data_loader.data_norm, self.data_loader.target_norms)
                 else:
                     loss = self.criterion(output, target, data)
             else:
