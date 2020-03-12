@@ -38,8 +38,8 @@ class PoissonDataLoader(BaseDataLoader):
             potential /= self.target_norm
 
         # Convert to torch.float32
-        physical_rhs.type(torch.float32)
-        potential.type(torch.float32)
+        physical_rhs = physical_rhs.type(torch.float32)
+        potential = potential.type(torch.float32)
 
         # Create Dataset from Tensor
         self.dataset = TensorDataset(physical_rhs, potential)
