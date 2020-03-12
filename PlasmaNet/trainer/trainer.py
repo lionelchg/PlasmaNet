@@ -126,7 +126,7 @@ class Trainer(BaseTrainer):
                     # self.writer.add_image('val_input', make_grid(data[:10].cpu(), nrow=1, normalize=True))
                     # self.writer.add_image('val_output', make_grid(output[:10].cpu(), nrow=1, normalize=True))
                     # self.writer.add_image('val_target', make_grid(target[:10].cpu(), nrow=1, normalize=True))
-                    self.writer.add_figure('valid',plot_numpy(output, target, data, epoch, batch_idx))
+                    self.writer.add_figure('valid', plot_numpy(output, target, data, epoch, batch_idx))
 
         # Add histogram of model parameters to the TensorBoard
         for name, p in self.model.named_parameters():
@@ -154,8 +154,8 @@ def plot_numpy(output, target, data, epoch, batch_idx):
     output_np = output.detach().cpu().numpy()
 
     # Lots of plots
-    fig, axes = plt.subplots(figsize=(12, 25), nrows=5, ncols=3)
-    fig.suptitle(' Model {} for epoch {}'.format(batch_idx, epoch))
+    fig, axes = plt.subplots(figsize=(12, 25), nrows=5, ncols=4)
+    fig.suptitle(' Epoch {} batch_idx {}'.format(epoch, batch_idx))
 
     for k in range(5):
         tt = axes[k, 0].imshow(data_np[batch_idx + k, 0], origin='lower')
@@ -172,4 +172,9 @@ def plot_numpy(output, target, data, epoch, batch_idx):
         axes[k, 2].set_title('target potential')
         axes[k, 2].axis('off')
         fig.colorbar(tt, ax=axes[k, 2])
+
+        tt = axes[k, 3].imshow(np.abs(target_np[batch_idx + k, 0] - output_np[batch_idx + k, 0]), origin='lower')
+        axes[k, 3].set_title('residual')
+        axes[k, 3].axis('off')
+        fig.colorbar(tt, ax=axes[k, 3])
     return fig
