@@ -34,8 +34,8 @@ class LaplacianLoss(BaseLoss):
             self.dy = eval(dy)
         self._require_input_data = True  # Need rhs for computation
 
-    def forward(self, output, target, data=None, output_max=1., target_max=1., **kwargs):
-        laplacian = lapl(output * output_max / target_max, self.dx, self.dy)
+    def forward(self, output, target, data=None, target_norm=1., data_norm=1., **kwargs):
+        laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy)
         return F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
 
 
@@ -107,9 +107,9 @@ class ComposedLoss(BaseLoss):
         self.lapl_loss = LaplacianLoss(lapl_weight, dx, dy)
         self._require_input_data = True
 
-    def forward(self, output, target, data=None, **kwargs):
+    def forward(self, output, target, data=None, target_norm=1., data_norm=1.,  **kwargs):
         composed_loss = self.inside_loss.forward(output, target)
         composed_loss += self.bound_loss.forward(output, target)
         composed_loss += self.elec_loss.forward(output, target)
-        composed_loss += self.lapl_loss.forward(output, target, data)
+        composed_loss += self.lapl_loss.forward(output, target, data, target_norm, data_norm)
         return composed_loss
