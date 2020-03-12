@@ -100,7 +100,7 @@ class Trainer(BaseTrainer):
         self.valid_metrics.reset()
 
         with torch.no_grad():
-            for batch_idx, (data, target), data_norm, target_norm in enumerate(self.valid_data_loader):
+            for batch_idx, (data, target, data_norm, target_norm) in enumerate(self.valid_data_loader):
                 data, target = data.to(self.device), target.to(self.device)
                 data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
 

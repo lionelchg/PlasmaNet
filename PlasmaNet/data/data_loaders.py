@@ -36,13 +36,15 @@ class PoissonDataLoader(BaseDataLoader):
             self.target_norm = torch.max(torch.max(potential, 3, keepdim=True)[0], 2, keepdim=True)[0]
             physical_rhs /= self.data_norm
             potential /= self.target_norm
+        else:
+            self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1)))
+            self.target_norm = torch.ones((potential.size(0), potential.size(1)))
 
         # Convert to torch.float32
         physical_rhs = physical_rhs.type(torch.float32)
         potential = potential.type(torch.float32)
-        if normalize:
-            self.data_norm = self.data_norm.type(torch.float32)
-            self.target_norm = self.target_norm.type(torch.float32)
+        self.data_norm = self.data_norm.type(torch.float32)
+        self.target_norm = self.target_norm.type(torch.float32)
 
         # Create Dataset from Tensor
         self.dataset = TensorDataset(physical_rhs, potential, self.data_norm, self.target_norm)
