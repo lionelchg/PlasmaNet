@@ -53,7 +53,11 @@ class Trainer(BaseTrainer):
             self.optimizer.zero_grad()
             output = self.model(data)
             if self.criterion.require_input_data():
-                loss = self.criterion(output, target, data)
+                if self.data_loader.normalize:
+                    loss = self.criterion(output, target, data,
+                                          self.data_loader.output_max, self.data_loader.target_max)
+                else:
+                    loss = self.criterion(output, target, data)
             else:
                 loss = self.criterion(output, target)
             loss.backward()
@@ -70,7 +74,11 @@ class Trainer(BaseTrainer):
                     epoch,
                     self._progress(batch_idx),
                     loss.item()))
-                self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
+            # Figure output after the 1st batch of each epoch
+            if batch_idx == 0:
+                self.writer.add_image('input', make_grid(data[:10].cpu(), nrow=1, normalize=True))
+                self.writer.add_image('output', make_grid(output[:10].cpu(), nrow=1, normalize=True))
+                self.writer.add_image('target', make_grid(target[:10].cpu(), nrow=1, normalize=True))
 
             if batch_idx == self.len_epoch:
                 break
@@ -97,7 +105,11 @@ class Trainer(BaseTrainer):
 
                 output = self.model(data)
                 if self.criterion.require_input_data():
-                    loss = self.criterion(output, target, data)
+                    if self.data_loader.normalize:
+                        loss = self.criterion(output, target, data,
+                                              self.data_loader.output_max, self.data_loader.target_max)
+                    else:
+                        loss = self.criterion(output, target, data)
                 else:
                     loss = self.criterion(output, target)
 
