@@ -6,17 +6,18 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import numpy as np
-from scipy import sparse
-from scipy.sparse.linalg import spsolve
-import scipy.constants as co
-import matplotlib
-import matplotlib.pyplot as plt
-from tqdm import tqdm
-import time
 import os
+import sys
+import time
 from multiprocessing import Pool
 
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.constants as co
+from scipy import sparse
+from scipy.sparse.linalg import spsolve
+from tqdm import tqdm
 
 # Disable multithreading for OpenBlas, which might kill vectorisation in some cases.
 # Moreover, the matrix size is not too big, so the overhead will no be negligible.
@@ -122,8 +123,13 @@ if __name__ == '__main__':
 	nits = 1000
 	n_points = 128
 
+	if len(sys.argv) == 2:
+		processes = int(sys.argv[1])
+	else:
+		processes = 2
+
 	time_start = time.time()
-	with Pool(processes=2) as p:
+	with Pool(processes=processes) as p:
 		results = list(tqdm(p.imap(compute, params(nits, n_points), chunksize=50), total=nits))
 
 	# Extract results to numpy arrays for saving
