@@ -37,8 +37,8 @@ class PoissonDataLoader(BaseDataLoader):
             physical_rhs /= self.data_norm
             potential /= self.target_norm
         else:
-            self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1)))
-            self.target_norm = torch.ones((potential.size(0), potential.size(1)))
+            self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))
+            self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
 
         # Convert to torch.float32
         physical_rhs = physical_rhs.type(torch.float32)
