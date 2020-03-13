@@ -45,8 +45,12 @@ optimizer:
 loss:
     type: 'ComposedLoss'
     args:
+        loss_list:                          # List of the losses to compose if ComposedLoss is used
+            - InsideLoss
+            - DirichletBoundaryLoss
+            - LaplacianLoss
         inside_weight: 1.                   # Weighting of the loss inside the domain, excluding boundaries (float)
-        bound_weight: 1.                    # Weighting of the loss on the boundaries
+        bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
         lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
         dx: 0.01/63                         # Domain sizes, required for gradient and laplacian computation
