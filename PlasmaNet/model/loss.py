@@ -128,4 +128,4 @@ class ComposedLoss(BaseLoss):
 
     def log(self):
         """ Returns log of each loss independently as a dict() with loss names keys and the associated torch values. """
-        return {loss_name: result.item() for loss_name, result in zip(self.loss_list, self.results)}
+        return {loss_name: result for loss_name, result in zip(self.loss_list, self.results)}
