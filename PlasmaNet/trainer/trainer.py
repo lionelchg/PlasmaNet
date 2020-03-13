@@ -59,7 +59,7 @@ class Trainer(BaseTrainer):
             self.optimizer.zero_grad()
             output = self.model(data)
             if self.criterion.require_input_data():
-                loss = self.criterion(output, target, data, target_norm, data_norm)
+                loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
             else:
                 loss = self.criterion(output, target)
             loss.backward()
@@ -113,7 +113,7 @@ class Trainer(BaseTrainer):
 
                 output = self.model(data)
                 if self.criterion.require_input_data():
-                    loss = self.criterion(output, target, data, target_norm, data_norm)
+                    loss = loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
                 else:
                     loss = self.criterion(output, target)
 
