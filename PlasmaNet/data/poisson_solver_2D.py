@@ -14,6 +14,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import time
+import os
+from multiprocessing import Pool
+
+
+# Disable multithreading for OpenBlas, which might kill vectorisation in some cases.
+# Moreover, the matrix size is not too big, so the overhead will no be negligible.
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 
 def laplace_square_matrix(n_points):
@@ -69,11 +76,8 @@ def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
 	return amplitude * np.exp(-((x - x0)/sigma_x)**2 - ((y - y0)/sigma_y)**2)
 
 
-if __name__ == '__main__':
-
-	plot = False
-
-	n_points = 128
+def params(nits, n_points):
+	""" Generator for the parameters. """
 	xmin, xmax = 0, 0.01
 	ymin, ymax = 0, 0.01
 	dx = (xmax - xmin) / (n_points - 1)
@@ -85,29 +89,53 @@ if __name__ == '__main__':
 
 	A = laplace_square_matrix(n_points)
 
-	nits = 100
-	potential = np.zeros((nits, n_points, n_points))
-	physical_rhs_list = np.zeros((nits, n_points, n_points))
+	# Creating the rhs
+	ni0 = 1e16
+	sigma_x, sigma_y = 1e-3, 1e-3
+	for nit in range(nits):
+		x0, y0 = 0.3e-2 * (1 + nit / nits), 0.3e-2 * (1 + nit / nits)
+		yield (ni0, sigma_x, sigma_y, x0, y0, X, Y, dx, A, n_points)
+
+
+def compute(args):
+	""" Compute the solution for the given parameters. """
+	ni0, sigma_x, sigma_y, x0, y0, X, Y, dx, A, n_points = args
+
+	# Interior rhs
+	physical_rhs = gaussian(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
+	rhs = - physical_rhs * dx ** 2
+
+	# Imposing Dirichlet boundary conditions
+	dirichlet_bc(rhs, n_points, 0, 0, 0, 0)
+
+	# Solving the sparse linear system
+	tmp_pot = spsolve(A, rhs).reshape(n_points, n_points)
+	tmp_rhs = physical_rhs.reshape(n_points, n_points)
+
+	return (tmp_pot, tmp_rhs)
+
+
+if __name__ == '__main__':
+
+	plot = False
+
+	nits = 1000
+	n_points = 128
 
 	time_start = time.time()
-	for nit in tqdm(range(nits)):
-		# Creating the rhs
-		ni0 = 1e16
-		sigma_x, sigma_y = 1e-3, 1e-3
-		x0, y0 = 0.3e-2 * (1 + nit/nits), 0.3e-2 * (1 + nit/nits)
+	with Pool(processes=2) as p:
+		results = list(tqdm(p.imap(compute, params(nits, n_points), chunksize=40), total=nits))
 
-		# Interior rhs
-		physical_rhs = gaussian(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
-		rhs = - physical_rhs * dx**2
+	# Extract results to numpy arrays for saving
+	potential = np.zeros((nits, n_points, n_points))
+	physical_rhs_list = np.zeros((nits, n_points, n_points))
+	for i, (pot, rhs) in enumerate(results):
+		potential[i, :, :] = pot
+		physical_rhs_list[i, :, :] = rhs
 
-		# Imposing Dirichlet boundary conditions
-		dirichlet_bc(rhs, n_points, 0, 0, 0, 0)
-
-		# Solving the sparse linear system
-		potential[nit, :, :] = spsolve(A, rhs).reshape(n_points, n_points)
-		physical_rhs_list[nit, :, :] = physical_rhs.reshape(n_points, n_points)
-		if nit % 20 == 0 and plot:
-			plot_fig(X, Y, potential[nit, :, :], physical_rhs_list[nit, :, :], save=True, name='potential_2D_gauss', nit=nit)
+		if i % 20 == 0 and plot:
+			_, _, _, _, _, X, Y, _, _, _ = list(params(1, n_points))[0]
+			plot_fig(X, Y, potential[i, :, :], physical_rhs_list[i, :, :], save=True, name='potential_2D_gauss', nit=i)
 
 	time_stop = time.time()
 	np.save('potential.npy', potential)
