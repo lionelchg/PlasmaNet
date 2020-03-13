@@ -36,7 +36,7 @@ def inf_loop(data_loader):
 class MetricTracker:
     """
     Track metrics from the network by storing them in a pandas.DataFrame and sending them to TensorBoard if a writer
-    is specified.
+    is specified (deactivated functionality)
     """
     def __init__(self, *keys, writer=None):
         self.writer = writer
@@ -49,9 +49,9 @@ class MetricTracker:
             self._data[col].values[:] = 0
 
     def update(self, key, value, n=1):
-        """ Update key to TensorBoard and in DataFrame with the given value and a count if specified. """
-        if self.writer is not None:
-            self.writer.add_scalar(key, value)
+        """ Update key in DataFrame with the given value and a count if specified. """
+        # if self.writer is not None:
+        #     self.writer.add_scalar(key, value)
         self._data.total[key] += value * n
         self._data.counts[key] += n
         self._data.average[key] = self._data.total[key] / self._data.counts[key]

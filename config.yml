@@ -73,8 +73,9 @@ lr_scheduler:
 trainer:
     epochs: 1000
     save_dir: 'outputs/'
-    save_period: 50
+    save_period: 10
+    plot_period: 10                         # Period to send plots to TensorBoard
     verbosity: 2
-    monitor: min val_loss                   # Definition of the best model to save (here minimum loss)
-    early_stop: 200                           # Training is stopped if model performance does not increase for 50 epochs
+    monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
+    early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
     tensorboard: true

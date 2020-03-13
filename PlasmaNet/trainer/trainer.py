@@ -40,8 +40,10 @@ class Trainer(BaseTrainer):
         self.lr_scheduler = lr_scheduler
         self.log_step = int(np.sqrt(data_loader.batch_size))
 
-        self.train_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
-        self.valid_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
+        self.train_metrics = MetricTracker('loss', *self.criterion.loss_list,
+                                           *[m.__name__ for m in self.metric_ftns], writer=self.writer)
+        self.valid_metrics = MetricTracker('loss', *self.criterion.loss_list,
+                                           *[m.__name__ for m in self.metric_ftns], writer=self.writer)
 
     def _train_epoch(self, epoch):
         """
@@ -57,18 +59,15 @@ class Trainer(BaseTrainer):
             self.optimizer.zero_grad()
             output = self.model(data)
             if self.criterion.require_input_data():
-                if self.data_loader.normalize:
-                    loss = self.criterion(output, target, data, target_norm, data_norm)
-                else:
-                    loss = self.criterion(output, target, data)
+                loss = self.criterion(output, target, data, target_norm, data_norm)
             else:
                 loss = self.criterion(output, target)
             loss.backward()
             self.optimizer.step()
 
-            # Update log
-            self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
-            self.train_metrics.update('loss', loss.item())
+            # Update MetricTracker
+            for key, value in self.criterion.log().items():
+                self.train_metrics.update(key, value.item())
             for metric in self.metric_ftns:
                 self.train_metrics.update(metric.__name__, metric(output, target))
 
@@ -78,20 +77,24 @@ class Trainer(BaseTrainer):
                     self._progress(batch_idx),
                     loss.item()))
             # Figure output after the 1st batch of each epoch
-            if batch_idx == 0:
-                # self.writer.add_image('input', make_grid(data[:10].cpu(), nrow=1, normalize=True))
-                # self.writer.add_image('output', make_grid(output[:10].cpu(), nrow=1, normalize=True))
-                # self.writer.add_image('target', make_grid(target[:10].cpu(), nrow=1, normalize=True))
+            if epoch % self.config['trainer']['plot_period'] == 0:
+                self.writer.set_step(epoch - 1)
                 self.writer.add_figure('train', plot_numpy(output, target, data, epoch, batch_idx))
 
-            if batch_idx == self.len_epoch:
+            if batch_idx == self.len_epoch:  # Break iteration-based training
                 break
 
+        # Extract averages and send TensorBoard
         log = self.train_metrics.result()
+        self.writer.add_scalar('loss', log['loss'])
+        self.writer.add_scalars('composed_loss',
+                                {key: value for key, value in log.items() if key in self.criterion.loss_list})
+        for metric in self.metric_ftns:
+            self.writer.add_scalar(metric.__name__, log[metric.__name__])
 
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
-            log.update(**{'val_' + k : v for k, v in val_log.items()})
+            log.update(**{'val_' + k: v for k, v in val_log.items()})
 
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
@@ -110,29 +113,33 @@ class Trainer(BaseTrainer):
 
                 output = self.model(data)
                 if self.criterion.require_input_data():
-                    if self.data_loader.normalize:
-                        loss = self.criterion(output, target, data, target_norm, data_norm)
-                    else:
-                        loss = self.criterion(output, target, data)
+                    loss = self.criterion(output, target, data, target_norm, data_norm)
                 else:
                     loss = self.criterion(output, target)
 
-                self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')
-                self.valid_metrics.update('loss', loss.item())
+                # Update MetricTracker
+                for key, value in self.criterion.log().items():
+                    self.train_metrics.update(key, value.item())
                 for metric in self.metric_ftns:
                     self.valid_metrics.update(metric.__name__, metric(output, target))
                 # Figure output after the 1st batch of each epoch
-                if batch_idx == 0:
-                    # self.writer.add_image('val_input', make_grid(data[:10].cpu(), nrow=1, normalize=True))
-                    # self.writer.add_image('val_output', make_grid(output[:10].cpu(), nrow=1, normalize=True))
-                    # self.writer.add_image('val_target', make_grid(target[:10].cpu(), nrow=1, normalize=True))
+                if epoch % self.config['trainer']['plot_period'] == 0:
+                    self.writer.set_step(epoch - 1, 'valid')
                     self.writer.add_figure('valid', plot_numpy(output, target, data, epoch, batch_idx))
 
         # Add histogram of model parameters to the TensorBoard
         for name, p in self.model.named_parameters():
             self.writer.add_histogram(name, p, bins='auto')
 
-        return self.valid_metrics.result()
+        # Extract averages and send to TensorBoard
+        val_log = self.valid_metrics.result()
+        self.writer.add_scalar('loss', val_log['loss'])
+        self.writer.add_scalars('composed_loss',
+                                {key: value for key, value in val_log.items() if key in self.criterion.loss_list})
+        for metric in self.metric_ftns:
+            self.writer.add_scalar(metric._name__, val_log[metric.__name__])
+
+        return val_log
 
     def _progress(self, batch_idx):
         """ A simple progress meter. """
