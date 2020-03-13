@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
 	time_start = time.time()
 	with Pool(processes=2) as p:
-		results = list(tqdm(p.imap(compute, params(nits, n_points), chunksize=40), total=nits))
+		results = list(tqdm(p.imap(compute, params(nits, n_points), chunksize=50), total=nits))
 
 	# Extract results to numpy arrays for saving
 	potential = np.zeros((nits, n_points, n_points))
