@@ -122,9 +122,14 @@ class ComposedLoss(BaseLoss):
         self.results = torch.zeros(len(self.loss_list))  # Use numpy to ensure floating-point sum
 
     def _forward(self, output, target, **kwargs):
-        for i, loss in enumerate(self.losses):
-            self.results[i] = loss(output, target, **kwargs)
-        return self.results.sum()
+        out = self.losses[0](output, target, **kwargs)
+        with torch.no_grad():
+            self.results[0] = self.losses[0](output, target, **kwargs)
+        for i, loss in enumerate(self.losses[1:]):
+            out += loss(output, target, **kwargs)
+            with torch.no_grad():
+                self.results[i] = loss(output, target, **kwargs)
+        return out
 
     def log(self):
         """ Returns log of each loss independently as a dict() with loss names keys and the associated torch values. """
