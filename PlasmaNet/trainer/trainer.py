@@ -77,7 +77,7 @@ class Trainer(BaseTrainer):
                     self._progress(batch_idx),
                     loss.item()))
             # Figure output after the 1st batch of each epoch
-            if epoch % self.config['trainer']['plot_period'] == 0:
+            if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
                 self.writer.set_step(epoch - 1)
                 self.writer.add_figure('train', plot_numpy(output, target, data, epoch, batch_idx))
 
@@ -123,7 +123,7 @@ class Trainer(BaseTrainer):
                 for metric in self.metric_ftns:
                     self.valid_metrics.update(metric.__name__, metric(output, target))
                 # Figure output after the 1st batch of each epoch
-                if epoch % self.config['trainer']['plot_period'] == 0:
+                if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
                     self.writer.set_step(epoch - 1, 'valid')
                     self.writer.add_figure('valid', plot_numpy(output, target, data, epoch, batch_idx))
 
@@ -137,7 +137,7 @@ class Trainer(BaseTrainer):
         self.writer.add_scalars('composed_loss',
                                 {key: value for key, value in val_log.items() if key in self.criterion.loss_list})
         for metric in self.metric_ftns:
-            self.writer.add_scalar(metric._name__, val_log[metric.__name__])
+            self.writer.add_scalar(metric.__name__, val_log[metric.__name__])
 
         return val_log
 
@@ -164,7 +164,7 @@ def plot_numpy(output, target, data, epoch, batch_idx):
     fig, axes = plt.subplots(figsize=(12, 25), nrows=5, ncols=4)
     fig.suptitle(' Epoch {} batch_idx {}'.format(epoch, batch_idx))
 
-    for k in range(5):
+    for k in range(5):  # First 5 items of the batch
         tt = axes[k, 0].imshow(data_np[batch_idx + k, 0], origin='lower')
         axes[k, 0].set_title('rhs')
         axes[k, 0].axis('off')

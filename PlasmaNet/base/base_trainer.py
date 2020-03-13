@@ -71,7 +71,7 @@ class BaseTrainer:
 
             # Print logged information to the screen
             for key, value in log.items():
-                self.logger.info('    {:15s}: {}'.format(str(key), value))
+                self.logger.info('    {:23s}: {}'.format(str(key), value))
 
             # Evaluate model performance according to configured metric, save best checkpoint as model_best
             best = False
