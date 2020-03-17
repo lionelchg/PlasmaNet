@@ -69,28 +69,27 @@ class Trainer(BaseTrainer):
             for key, value in self.criterion.log().items():
                 self.train_metrics.update(key, value.item())
             for metric in self.metric_ftns:
-                self.train_metrics.update(metric.__name__, metric(output, target))
+                self.train_metrics.update(metric.__name__, metric(output, target).item())
 
             if batch_idx % self.log_step == 0:
                 self.logger.debug('Train Epoch: {} {} Loss: {:06f}'.format(
                     epoch,
                     self._progress(batch_idx),
                     loss.item()))
+            # Set writer step with epoch
+            if batch_idx == 0:
+                self.writer.set_step(epoch - 1)
             # Figure output after the 1st batch of each epoch
             if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
-                self.writer.set_step(epoch - 1)
-                self.writer.add_figure('train', plot_numpy(output, target, data, epoch, batch_idx))
+                self.writer.add_figure('ComparisonWithResiduals', plot_numpy(output, target, data, epoch, batch_idx))
 
             if batch_idx == self.len_epoch:  # Break iteration-based training
                 break
 
         # Extract averages and send TensorBoard
         log = self.train_metrics.result()
-        self.writer.add_scalar('loss', log['loss'])
-        self.writer.add_scalars('composed_loss',
-                                {key: value for key, value in log.items() if key in self.criterion.loss_list})
-        for metric in self.metric_ftns:
-            self.writer.add_scalar(metric.__name__, log[metric.__name__])
+        for key, value in log.items():
+            self.writer.add_scalar(key, value)
 
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
@@ -113,7 +112,7 @@ class Trainer(BaseTrainer):
 
                 output = self.model(data)
                 if self.criterion.require_input_data():
-                    loss = loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
+                    loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
                 else:
                     loss = self.criterion(output, target)
 
@@ -121,11 +120,13 @@ class Trainer(BaseTrainer):
                 for key, value in self.criterion.log().items():
                     self.train_metrics.update(key, value.item())
                 for metric in self.metric_ftns:
-                    self.valid_metrics.update(metric.__name__, metric(output, target))
+                    self.valid_metrics.update(metric.__name__, metric(output, target).item())
+                # Set writer step with epoch
+                if batch_idx == 0:
+                    self.writer.set_step(epoch - 1, 'valid')
                 # Figure output after the 1st batch of each epoch
                 if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
-                    self.writer.set_step(epoch - 1, 'valid')
-                    self.writer.add_figure('valid', plot_numpy(output, target, data, epoch, batch_idx))
+                    self.writer.add_figure('ComparisonWithResiduals', plot_numpy(output, target, data, epoch, batch_idx))
 
         # Add histogram of model parameters to the TensorBoard
         for name, p in self.model.named_parameters():
@@ -133,11 +134,8 @@ class Trainer(BaseTrainer):
 
         # Extract averages and send to TensorBoard
         val_log = self.valid_metrics.result()
-        self.writer.add_scalar('loss', val_log['loss'])
-        self.writer.add_scalars('composed_loss',
-                                {key: value for key, value in val_log.items() if key in self.criterion.loss_list})
-        for metric in self.metric_ftns:
-            self.writer.add_scalar(metric.__name__, val_log[metric.__name__])
+        for key, value in val_log.items():
+            self.writer.add_scalar(key, value)
 
         return val_log
 

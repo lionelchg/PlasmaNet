@@ -46,13 +46,17 @@ class TensorboardWriter:
             self.timer = datetime.now()
 
     def set_step(self, step, mode='train'):
+        """
+        Set the current TensorBoard step. Compute epoch per second timer (ie. waits for the next update
+        in 'train' mode).
+        """
         self.mode = mode
         self.step = step
         if step == 0:
             self.timer = datetime.now()
-        else:
+        elif mode == 'train':
             duration = datetime.now() - self.timer
-            self.add_scalar('steps_per_sec', 1 / duration.total_seconds())
+            self.add_scalar('epochs_per_sec', 1 / duration.total_seconds())
             self.timer = datetime.now()
 
     def __getattr__(self, name):
