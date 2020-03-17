@@ -2,7 +2,7 @@
 #                                                                                                                      #
 #                                            2D Poisson solver using numpy                                             #
 #                                                                                                                      #
-#                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
+#                               Lionel Cheng, Guillaume Bogopolsky, CERFACS, 10.03.2020                                #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -11,6 +11,10 @@ import sys
 import time
 from multiprocessing import Pool
 
+# Disable multithreading for OpenBlas, which might kill vectorisation in some cases.
+# Moreover, the matrix size is not too big, so the overhead will no be negligible.
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,10 +22,6 @@ import scipy.constants as co
 from scipy import sparse
 from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
-
-# Disable multithreading for OpenBlas, which might kill vectorisation in some cases.
-# Moreover, the matrix size is not too big, so the overhead will no be negligible.
-os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 
 def laplace_square_matrix(n_points):
@@ -130,7 +130,10 @@ if __name__ == '__main__':
 
 	time_start = time.time()
 	with Pool(processes=processes) as p:
-		results = list(tqdm(p.imap(compute, params(nits, n_points), chunksize=50), total=nits))
+        # Performance is very sensitive to chunksize, which depends on the machine.
+        # On kraken, use chunksize=5 and processes=36 or 72
+        # On MacBookAir, chunksize=50 and processes=2
+		results = list(tqdm(p.imap(compute, params(nits, n_points), chunksize=5), total=nits))
 
 	# Extract results to numpy arrays for saving
 	potential = np.zeros((nits, n_points, n_points))
