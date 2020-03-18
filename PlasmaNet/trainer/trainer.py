@@ -71,8 +71,9 @@ class Trainer(BaseTrainer):
             for metric in self.metric_ftns:
                 self.train_metrics.update(metric.__name__, metric(output, target).item())
 
+            # Writer logger output
             if batch_idx % self.log_step == 0:
-                self.logger.debug('Train Epoch: {} {} Loss: {:06f}'.format(
+                self.logger.debug('Train Epoch: {} {} Loss: {:06e}'.format(
                     epoch,
                     self._progress(batch_idx),
                     loss.item()))
@@ -89,7 +90,12 @@ class Trainer(BaseTrainer):
         # Extract averages and send TensorBoard
         log = self.train_metrics.result()
         for key, value in log.items():
-            self.writer.add_scalar(key, value)
+            if key in self.criterion.loss_list:
+                self.writer.add_scalar('ComposedLosses/' + key, value)
+            elif key in [metric.__name__ for metric in self.metric_ftns]:
+                self.writer.add_scalar('Metrics/' + key, value)
+            else:
+                self.writer.add_scalar(key, value)
 
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
@@ -118,7 +124,7 @@ class Trainer(BaseTrainer):
 
                 # Update MetricTracker
                 for key, value in self.criterion.log().items():
-                    self.train_metrics.update(key, value.item())
+                    self.valid_metrics.update(key, value.item())
                 for metric in self.metric_ftns:
                     self.valid_metrics.update(metric.__name__, metric(output, target).item())
                 # Set writer step with epoch
@@ -135,7 +141,12 @@ class Trainer(BaseTrainer):
         # Extract averages and send to TensorBoard
         val_log = self.valid_metrics.result()
         for key, value in val_log.items():
-            self.writer.add_scalar(key, value)
+            if key in self.criterion.loss_list:
+                self.writer.add_scalar('ComposedLosses/' + key, value)
+            elif key in [metric.__name__ for metric in self.metric_ftns]:
+                self.writer.add_scalar('Metrics/' + key, value)
+            else:
+                self.writer.add_scalar(key, value)
 
         return val_log
 
