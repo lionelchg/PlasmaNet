@@ -110,7 +110,6 @@ class ComposedLoss(BaseLoss):
         # Initializes all losses in a list
         self.loss_list = loss_list
         self.losses = list()
-        self.final_loss = None
         for loss in self.loss_list:
             try:
                 self.losses.append(getattr(sys.modules[__name__], loss)(**kwargs))  # Look for classes in this module
@@ -124,17 +123,15 @@ class ComposedLoss(BaseLoss):
 
     def _forward(self, output, target, **kwargs):
         out = self.losses[0](output, target, **kwargs)
-        with torch.no_grad():
-            self.results[0] = self.losses[0](output, target, **kwargs)
+        self.results[0].copy_(out)
         for i, loss in enumerate(self.losses[1:]):
-            out += loss(output, target, **kwargs)
-            with torch.no_grad():
-                self.results[i + 1] = loss(output, target, **kwargs)
-        self.final_loss = out
+            tmp = loss(output, target, **kwargs)
+            out += tmp
+            self.results[i + 1].copy_(tmp)
         return out
 
     def log(self):
         """ Returns log of each loss independently as a dict() with loss names keys and the associated torch values. """
         out = {loss_name: result for loss_name, result in zip(self.loss_list, self.results)}
-        out.update({'loss': self.final_loss})
+        out.update({'loss': self.result})
         return out
