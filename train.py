@@ -38,10 +38,9 @@ def main(config):
     logger.info(model)
 
     # Initialize model weights
-    print(f"{config['initializer']['type']=} {config['initializer']['args']=}")
     def init_weights(m):
         if type(m) == torch.nn.Conv2d:
-            getattr(torch.nn.init, config['initializer']['type'])(m, **config['initializer']['args'])
+            getattr(torch.nn.init, config['initializer']['type'])(m.weight, **config['initializer']['args'])
     model.apply(init_weights)
 
     # Get function handles of loss and metrics

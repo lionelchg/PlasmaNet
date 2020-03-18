@@ -38,6 +38,9 @@ data_loader:
 initializer:
     type: 'kaiming_uniform_'
     args:
+        mode: 'fan_in'
+        nonlinearity: 'leaky_relu'
+
 
 optimizer:
     type: 'Adam'
