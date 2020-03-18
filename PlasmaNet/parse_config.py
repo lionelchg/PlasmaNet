@@ -25,7 +25,7 @@ class ConfigParser:
         Parameters
         ----------
         config : dict()
-            Dictionary containing configurations and hyperparameters for training. E.g. ontents of `config.yml` file.
+            Dictionary containing configurations and hyperparameters for training. E.g. contents of `config.yml` file.
 
         resume : str()
             Path to the checkpoint to load to resume training.
@@ -58,6 +58,14 @@ class ConfigParser:
 
         # Save updated config file to the checkpoint directory
         write_yaml(self.config, self.save_dir / 'config.yml')
+
+        # Declare global parameters attributes
+        self.size = self.config['globals']['size']
+        self.length = self.config['globals']['length']
+        self.dx = self.length / (self.size - 1)
+        self.dy = self.dx
+        self.ds = self.dx * self.dy
+        self.surface = self.length**2
 
         # Configure logging module
         setup_logging(self.log_dir)
@@ -110,7 +118,10 @@ class ConfigParser:
         module_args = dict(self[name]['args'])
         assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
         module_args.update(kwargs)
-        return getattr(module, module_name)(*args, **module_args)
+        if 'pipe_config' in self[name] and self[name]['pipe_config']:  # Object requires config at instantiation
+            return getattr(module, module_name)(self, *args, **module_args)
+        else:
+            return getattr(module, module_name)(*args, **module_args)
 
     def init_ftn(self, name, module, *args, **kwargs):
         """

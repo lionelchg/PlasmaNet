@@ -16,7 +16,7 @@ import sys
 
 class InsideLoss(BaseLoss):
     """ Computes the weighted MSELoss of the interior of the domain (excluding boundaries). """
-    def __init__(self, inside_weight, **_):
+    def __init__(self, config, inside_weight, **_):
         super().__init__()
         self.weight = inside_weight
 
@@ -26,14 +26,11 @@ class InsideLoss(BaseLoss):
 
 class LaplacianLoss(BaseLoss):
     """ A Laplacian loss function on the inside of the domain (excluding boundaries). """
-    def __init__(self, lapl_weight, dx, dy, **_):
+    def __init__(self, config, lapl_weight, **_):
         super().__init__()
         self.weight = lapl_weight
-        self.dx = dx
-        self.dy = dy
-        if isinstance(self.dx, str) or isinstance(self.dy, str):
-            self.dx = eval(dx)
-            self.dy = eval(dy)
+        self.dx = config.dx
+        self.dy = config.dy
         self._require_input_data = True  # Need rhs for computation
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
@@ -43,14 +40,11 @@ class LaplacianLoss(BaseLoss):
 
 class ElectricLoss(BaseLoss):
     """ Loss function on the electric field. """
-    def __init__(self, elec_weight, dx, dy, **_):
+    def __init__(self, config, elec_weight, **_):
         super().__init__()
         self.weight = elec_weight
-        self.dx = dx
-        self.dy = dy
-        if isinstance(self.dx, str) or isinstance(self.dy, str):
-            self.dx = eval(dx)
-            self.dy = eval(dy)
+        self.dx = config.dx
+        self.dy = config.dy
         self._require_input_data = False
 
     def _forward(self, output, target, **_):
@@ -61,7 +55,7 @@ class ElectricLoss(BaseLoss):
 
 class DirichletBoundaryLoss(BaseLoss):
     """ Loss for Dirichlet boundaries. """
-    def __init__(self, bound_weight, **_):
+    def __init__(self, config, bound_weight, **_):
         super().__init__()
         self.weight = bound_weight
 
@@ -75,14 +69,11 @@ class DirichletBoundaryLoss(BaseLoss):
 
 class NeumannBoundaryLoss(BaseLoss):
     """ Loss for Neumann boundaries. """
-    def __init__(self, bound_weight, dx, dy, **_):
+    def __init__(self, config, bound_weight, **_):
         super().__init__()
         self.weight = bound_weight
-        self.dx = dx
-        self.dy = dy
-        if isinstance(self.dx, str) or isinstance(self.dy, str):
-            self.dx = eval(dx)
-            self.dy = eval(dy)
+        self.dx = config.dx
+        self.dy = config.dy
 
     def _forward(self, output, target, **_):
         # Compute electric field
@@ -100,7 +91,7 @@ class ComposedLoss(BaseLoss):
     """
     Class for loss composition, with list of losses to compose as argument.
     """
-    def __init__(self, loss_list, **kwargs):
+    def __init__(self, config, loss_list, **kwargs):
         """
         Initializes the ComposedLoss with the loss specified in loss_list, and pass the arguments by dictionary
         from the input file.
@@ -112,7 +103,7 @@ class ComposedLoss(BaseLoss):
         self.losses = list()
         for loss in self.loss_list:
             try:
-                self.losses.append(getattr(sys.modules[__name__], loss)(**kwargs))  # Look for classes in this module
+                self.losses.append(getattr(sys.modules[__name__], loss)(config, **kwargs))  # Look for classes in this module
             except TypeError as err:
                 print('while initializing {} class:'.format(loss))
                 raise type(err)('{} while initializing {} class.'.format(err, loss))

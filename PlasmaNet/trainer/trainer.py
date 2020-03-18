@@ -69,7 +69,7 @@ class Trainer(BaseTrainer):
             for key, value in self.criterion.log().items():
                 self.train_metrics.update(key, value.item())
             for metric in self.metric_ftns:
-                self.train_metrics.update(metric.__name__, metric(output, target).item())
+                self.train_metrics.update(metric.__name__, metric(output, target, self.config).item())
 
             # Writer logger output
             if batch_idx % self.log_step == 0:
@@ -128,7 +128,7 @@ class Trainer(BaseTrainer):
                 for key, value in self.criterion.log().items():
                     self.valid_metrics.update(key, value.item())
                 for metric in self.metric_ftns:
-                    self.valid_metrics.update(metric.__name__, metric(output, target).item())
+                    self.valid_metrics.update(metric.__name__, metric(output, target, self.config).item())
                 # Set writer step with epoch
                 if batch_idx == 0:
                     self.writer.set_step(epoch - 1, 'valid')

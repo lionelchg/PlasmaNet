@@ -17,8 +17,13 @@
 # `config.init_obj` method.
 
 
-name: 'gauss_64'                           # Experience name
+name: 'gauss_64'                            # Experience name
 n_gpu: 1                                    # Number of GPUs to use
+
+globals:                                    # Domain sizes and others, used to compute global attributes
+    size: 64.
+    length: 0.01
+
 
 arch:
     type: 'MultiSimpleNet'
@@ -37,7 +42,6 @@ data_loader:
 
 initializer: 'off'
 
-
 optimizer:
     type: 'Adam'
     args:
@@ -47,6 +51,7 @@ optimizer:
 
 loss:
     type: 'ComposedLoss'
+    pipe_config: True                       # Object initialization require config as first argument
     args:
         loss_list:                          # List of the losses to compose if ComposedLoss is used
             - InsideLoss
@@ -56,12 +61,11 @@ loss:
         bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
         lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
-        dx: 0.01/63                         # Domain sizes, required for gradient and laplacian computation
-        dy: 0.01/63
 
 metrics:
     - 'residual'
     - 'l2_norm'
+    - 'inf_norm'
 
 lr_scheduler:
     type: 'ReduceLROnPlateau'
