@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'sliding_gaussian_013'                           # Experience name
+name: 'gauss_64'                           # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 arch:
@@ -28,18 +28,14 @@ arch:
 data_loader:
     type: 'PoissonDataLoader'
     args:
-        data_dir: 'datasets/64x64/sliding_gaussian_zerofield'
+        data_dir: 'datasets/64x64/rhs/gauss'
         batch_size: 128
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
         normalize: True
 
-initializer:
-    type: 'kaiming_uniform_'
-    args:
-        mode: 'fan_in'
-        nonlinearity: 'leaky_relu'
+initializer: 'off'
 
 
 optimizer:

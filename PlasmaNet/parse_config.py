@@ -54,6 +54,7 @@ class ConfigParser:
         exist_ok = run_id == ''  # if True, mkdir ignores FilesExistsError (similar to `mkdir -p`)
         self.save_dir.mkdir(parents=True, exist_ok=exist_ok)
         self.log_dir.mkdir(parents=True, exist_ok=exist_ok)
+        self.fig_dir.mkdir(parents=True, exist_ok=exist_ok)
 
         # Save updated config file to the checkpoint directory
         write_yaml(self.config, self.save_dir / 'config.yml')

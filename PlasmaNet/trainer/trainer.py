@@ -174,10 +174,10 @@ def plot(output, target, data, epoch, batch_idx):
     output_np = output.detach().cpu().numpy()
 
     # Lots of plots
-    fig, axes = plt.subplots(figsize=(12, 25), nrows=5, ncols=4)
+    fig, axes = plt.subplots(figsize=(20, 25), nrows=4, ncols=4)
     fig.suptitle(' Epoch {} batch_idx {}'.format(epoch, batch_idx))
 
-    for k in range(5):  # First 5 items of the batch
+    for k in range(4):  # First 4 items of the batch
         tt = axes[k, 0].imshow(data_np[batch_idx + k, 0], origin='lower')
         axes[k, 0].set_title('rhs')
         axes[k, 0].axis('off')
