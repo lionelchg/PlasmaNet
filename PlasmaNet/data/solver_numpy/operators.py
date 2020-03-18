@@ -1,60 +1,68 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import numpy as np
 
+
 def L1_error(y, y_th, ds, S):
   return np.sum(ds / S * abs(y - y_th))
+
 
 def L2_error(y, y_th, ds, S):
   return np.sqrt(ds / S * np.sum((y - y_th)**2))
 
+
 def Linf_error(y, y_th):
     return np.max(np.abs(y - y_th))
+
 
 def errors(y, y_th, ds, S):
     return L1_error(y, y_th, ds, S), L2_error(y, y_th, ds, S), Linf_error(y, y_th)
 
+
 def print_error(computed, analytical, ds, S, name):
-    print('%s L1 error = %.2e - L2 error = %.2e - Linf error = ' % \
-        (name, L1_error(computed, analytical, ds, S), L2_error(computed, analytical, ds, S), Linf_error(computed, analytical)))
+    print('{} L1 error = {:.2e} - L2 error = {:.2e} - Linf error = {:.2e}'.format(name,
+                                                                                  L1_error(computed, analytical, ds, S),
+                                                                                  L2_error(computed, analytical, ds, S),
+                                                                                  Linf_error(computed, analytical)))
+
 
 def div(field, dx, dy, nx, ny, order=2):
 
     divergence = np.zeros((ny, nx))
 
-    if order==2:
+    if order == 2:
+        divergence[1:-1, 1:-1] = (field[0, 1:-1, 2:] - field[0, 1:-1, :-2]) / (2 * dx) + \
+                                 (field[1, 2:, 1:-1] - field[1, :-2, 1:-1]) / (2 * dy)
+    elif order == 4:
         divergence[1:-1, 1:-1] = (field[0, 1:-1, 2:] - field[0, 1:-1, :-2]) / (2 * dx) + \
                                        (field[1, 2:, 1:-1] - field[1, :-2, 1:-1]) / (2 * dy)
-    elif order==4:
-        divergence[1:-1, 1:-1] = (field[0, 1:-1, 2:] - field[0, 1:-1, :-2]) / (2 * dx) + \
-                                       (field[1, 2:, 1:-1] - field[1, :-2, 1:-1]) / (2 * dy)
-        divergence[2:-2, 2:-2] = (- field[0, 2:-2, 4:] + 8 * field[0, 2:-2, 3:-1]\
-                                        - 8 * field[0, 2:-2, 1:-3] + field[0, 2:-2, :-4]) / (12 * dx) + \
-                                       (- field[1, 4:, 2:-2] + 8 * field[1, 3:-1, 2:-2]\
-                                        - 8 * field[1, 1:-3, 2:-2] + field[1, :-4, 2:-2]) / (12 * dy)
+        divergence[2:-2, 2:-2] = (- field[0, 2:-2, 4:] + 8 * field[0, 2:-2, 3:-1]
+                                  - 8 * field[0, 2:-2, 1:-3] + field[0, 2:-2, :-4]) / (12 * dx) + \
+                                 (- field[1, 4:, 2:-2] + 8 * field[1, 3:-1, 2:-2]
+                                  - 8 * field[1, 1:-3, 2:-2] + field[1, :-4, 2:-2]) / (12 * dy)
 
     # array sides except corners (respectively upper, lower, left and right sides)
     divergence[0, 1:-1] = (field[0, 0, 2:] - field[0, 0, :-2]) / (2 * dx) + \
-                                (4 * field[1, 1, 1:-1] - 3 * field[1, 0, 1:-1] - field[1, 2, 1:-1]) / (2 * dy)
+                          (4 * field[1, 1, 1:-1] - 3 * field[1, 0, 1:-1] - field[1, 2, 1:-1]) / (2 * dy)
     divergence[-1, 1:-1] = (field[0, -1, 2:] - field[0, -1, :-2]) / (2 * dx) + \
-                                 (3 * field[1, -1, 1:-1] - 4 * field[1, -2, 1:-1] + field[1, -3, 1:-1]) / \
-                                 (2 * dy)
+                           (3 * field[1, -1, 1:-1] - 4 * field[1, -2, 1:-1] + field[1, -3, 1:-1]) / (2 * dy)
     divergence[1:-1, 0] = (4 * field[0, 1:-1, 1] - 3 * field[0, 1:-1, 0] - field[0, 1:-1, 2]) / \
-                                (2 * dx) + (field[1, 2:, 0] - field[1, :-2, 0]) / (2 * dy)
+                          (2 * dx) + (field[1, 2:, 0] - field[1, :-2, 0]) / (2 * dy)
     divergence[1:-1, -1] = (3 * field[0, 1:-1, -1] - 4 * field[0, 1:-1, -2] + field[0, 1:-1, -3]) / \
-                                 (2 * dx) + (field[1, 2:, -1] - field[1, :-2, -1]) / (2 * dy)
+                           (2 * dx) + (field[1, 2:, -1] - field[1, :-2, -1]) / (2 * dy)
 
     # corners (respectively upper left, upper right, lower left and lower right)
     divergence[0, 0] = (4 * field[0, 0, 1] - 3 * field[0, 0, 0] - field[0, 0, 2]) / (2 * dx) + \
-                             (4 * field[0, 1, 0] - 3 * field[0, 0, 0] - field[0, 2, 0]) / (2 * dy)
+                       (4 * field[0, 1, 0] - 3 * field[0, 0, 0] - field[0, 2, 0]) / (2 * dy)
     divergence[-1, 0] = (4 * field[0, -1, 1] - 3 * field[0, -1, 0] - field[0, -1, 2]) / (2 * dx) + \
-                              (3 * field[1, -1, 0] - 4 * field[1, -2, 0] + field[1, -3, 0]) / (2 * dy)
+                        (3 * field[1, -1, 0] - 4 * field[1, -2, 0] + field[1, -3, 0]) / (2 * dy)
     divergence[0, -1] = (3 * field[0, 0, -1] - 4 * field[0, 0, -2] + field[0, 0, -3]) / (2 * dx) +\
-                              (4 * field[1, 1, -1] - 3 * field[1, 0, -1] - field[1, 2, -1]) / (2 * dy)
+                        (4 * field[1, 1, -1] - 3 * field[1, 0, -1] - field[1, 2, -1]) / (2 * dy)
     divergence[-1, -1] = (3 * field[0, -1, -1] - 4 * field[0, -1, -2] + field[0, -1, -3]) / (2 * dx) + \
-                               (3 * field[1, -1, -1] - 4 * field[1, -2, -1] + field[1, -3, -1]) / (2 * dy)
+                         (3 * field[1, -1, -1] - 4 * field[1, -2, -1] + field[1, -3, -1]) / (2 * dy)
     return divergence
+
 
 def lapl(field, dx, dy, nx, ny, order=2, b=0):
 
@@ -62,24 +70,24 @@ def lapl(field, dx, dy, nx, ny, order=2, b=0):
 
     laplacian[1:-1, 1:-1] = (field[2:, 1:-1] + field[:-2, 1:-1] - 2 * field[1:-1, 1:-1]) / dy**2 + \
                             (field[1:-1, 2:] + field[1:-1, :-2] - 2 * field[1:-1, 1:-1]) / dx**2
-    if order==2:
-        laplacian[1:-1, 1:-1] = (1 - b) * ((field[2:, 1:-1] + field[:-2, 1:-1] - 2 * field[1:-1, 1:-1]) / dy**2 + \
+    if order == 2:
+        laplacian[1:-1, 1:-1] = (1 - b) * ((field[2:, 1:-1] + field[:-2, 1:-1] - 2 * field[1:-1, 1:-1]) / dy**2 +
                             (field[1:-1, 2:] + field[1:-1, :-2] - 2 * field[1:-1, 1:-1]) / dx**2) + \
                             b * (field[2:, 2:] + field[2:, :-2] + field[:-2, :-2] + field[:-2, 2:] - 4 * field[1:-1, 1:-1]) \
                             / (2 * dx**2)
-    elif order==4:
-        laplacian[2:-2, 2:-2] = (- field[4:, 2:-2] + 16 * field[3:-1, 2:-2] - 30 * field[2:-2, 2:-2] + 16 * field[1:-3, 2:-2] \
-                                    - field[:-4, 2:-2]) / (12 * dy**2) + \
-                                    (- field[2:-2, 4:] + 16 * field[2:-2, 3:-1] - 30 * field[2:-2, 2:-2] + 16 * field[2:-2, 1:-3] \
-                                    - field[2:-2, :-4]) / (12 * dx**2)
-        laplacian[1, 1:-1] = ((field[2, 1:-1] + field[0, 1:-1] - 2 * field[1, 1:-1]) / dy**2 + \
-                            (field[1, 2:] + field[1, :-2] - 2 * field[1, 1:-1]) / dx**2) 
-        laplacian[-2, 1:-1] = ((field[-1, 1:-1] + field[-3, 1:-1] - 2 * field[-2, 1:-1]) / dy**2 + \
-                            (field[-2, 2:] + field[-2, :-2] - 2 * field[-2, 1:-1]) / dx**2) 
+    elif order == 4:
+        laplacian[2:-2, 2:-2] = (- field[4:, 2:-2] + 16 * field[3:-1, 2:-2] - 30 * field[2:-2, 2:-2] + 16 * field[1:-3, 2:-2]
+                                 - field[:-4, 2:-2]) / (12 * dy**2) + \
+                                (- field[2:-2, 4:] + 16 * field[2:-2, 3:-1] - 30 * field[2:-2, 2:-2] + 16 * field[2:-2, 1:-3]
+                                 - field[2:-2, :-4]) / (12 * dx**2)
+        laplacian[1, 1:-1] = ((field[2, 1:-1] + field[0, 1:-1] - 2 * field[1, 1:-1]) / dy**2 +
+                             (field[1, 2:] + field[1, :-2] - 2 * field[1, 1:-1]) / dx**2)
+        laplacian[-2, 1:-1] = ((field[-1, 1:-1] + field[-3, 1:-1] - 2 * field[-2, 1:-1]) / dy**2 +
+                              (field[-2, 2:] + field[-2, :-2] - 2 * field[-2, 1:-1]) / dx**2)
         laplacian[1:-1, 1] = (field[2:, 1] + field[:-2, 1] - 2 * field[1:-1, 1]) / dy**2 + \
-                            (field[1:-1, 2] + field[1:-1, 0] - 2 * field[1:-1, 1]) / dx**2
+                             (field[1:-1, 2] + field[1:-1, 0] - 2 * field[1:-1, 1]) / dx**2
         laplacian[1:-1, -2] = (field[2:, -2] + field[:-2, -2] - 2 * field[1:-1, -2]) / dy**2 + \
-                            (field[1:-1, -1] + field[1:-1, -3] - 2 * field[1:-1, -2]) / dx**2
+                              (field[1:-1, -1] + field[1:-1, -3] - 2 * field[1:-1, -2]) / dx**2
 
     laplacian[0, 1:-1] = \
         (2 * field[0, 1:-1] - 5 * field[1, 1:-1] + 4 * field[2, 1:-1] - field[3, 1:-1]) / dy**2 + \
@@ -109,6 +117,7 @@ def lapl(field, dx, dy, nx, ny, order=2, b=0):
         (2 * field[0, -1] - 5 * field[0, -2] + 4 * field[0, -3] - field[0, -4]) / dx**2
 
     return laplacian
+
 
 def grad(field, dx, dy, nx, ny):
     gradient = np.zeros((2, ny, nx))

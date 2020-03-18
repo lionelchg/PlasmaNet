@@ -6,21 +6,21 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.constants as co
-from scipy.sparse.linalg import spsolve, inv
-from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
-from plot import plot_fig, plot_fig_scalar, plot_ax
-from operators import lapl, print_error
-import matplotlib.pyplot as plt
+
+from .operators import lapl, print_error
+from .plot import plot_fig, plot_ax
+from .poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
+from scipy.sparse.linalg import spsolve
 
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
-    return amplitude * np.exp(-((x - x0)/sigma_x)**2 - ((y - y0)/sigma_y)**2)
+    return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
 
 
 if __name__ == '__main__':
-
     n_points = 128
     xmin, xmax = 0, 0.01
     ymin, ymax = 0, 0.01
@@ -43,12 +43,12 @@ if __name__ == '__main__':
     ni0 = 1e16
     sigma_x, sigma_y = 1e-3, 1e-3
     x0, y0 = 0.8e-2, 0.8e-2
-    rhs = np.zeros(n_points**2)
+    rhs = np.zeros(n_points ** 2)
 
     # ZERO DIRICHLET
-    #interior rhs
+    # interior rhs
     physical_rhs = gaussian(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
-    rhs = - physical_rhs * dx**2
+    rhs = - physical_rhs * dx ** 2
 
     # Imposing Dirichlet boundary conditions
     zeros_bc = np.zeros(n_points)
@@ -63,11 +63,11 @@ if __name__ == '__main__':
     # dirichlet only #
     ##################
 
-    #interior rhs
-    physical_rhs = np.zeros(n_points**2)
-    rhs = - physical_rhs * dx**2
+    # interior rhs
+    physical_rhs = np.zeros(n_points ** 2)
+    rhs = - physical_rhs * dx ** 2
 
-    #dirichlet boundary conditions
+    # dirichlet boundary conditions
     V = 1000
     ones_bc = np.ones(n_points)
     linear_bc = np.linspace(0, V, n_points)
@@ -85,11 +85,11 @@ if __name__ == '__main__':
     # full problem #
     ################
 
-    #interior rhs
+    # interior rhs
     physical_rhs = gaussian(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
-    rhs = - physical_rhs * dx**2
+    rhs = - physical_rhs * dx ** 2
 
-    #dirichlet boundary conditions
+    # dirichlet boundary conditions
     V = 1000
     ones_bc = np.ones(n_points)
     linear_bc = np.linspace(0, V, n_points)
