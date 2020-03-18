@@ -22,7 +22,7 @@ class BaseTrainer:
         self.device, device_ids = self._prepare_device(config['n_gpu'])
         self.model = model.to(self.device)
         if len(device_ids) > 1:
-            self.model = torch.nn.DataParallel(mode, device_ids=device_ids)
+            self.model = torch.nn.DataParallel(model, device_ids=device_ids)
 
         self.criterion = criterion
         self.metric_ftns = metric_ftns

@@ -37,6 +37,13 @@ def main(config):
     model = config.init_obj('arch', module_arch)
     logger.info(model)
 
+    # Initialize model weights
+    print(f"{config['initializer']['type']=} {config['initializer']['args']=}")
+    def init_weights(m):
+        if type(m) == torch.nn.Conv2d:
+            getattr(torch.nn.init, config['initializer']['type'])(m, **config['initializer']['args'])
+    model.apply(init_weights)
+
     # Get function handles of loss and metrics
     criterion = config.init_obj('loss', module_loss)
     metrics = [getattr(module_metric, metric) for metric in config['metrics']]

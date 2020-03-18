@@ -17,7 +17,7 @@ def residual(output, target):
 
 
 def l2_norm(output, target):
-    """ Computes the L2 norm of the residual of the currend epoch. """
+    """ Computes the L2 norm of the residual of the current epoch. """
     with torch.no_grad():
         res = torch.sum((output - target) ** 2)
     return res

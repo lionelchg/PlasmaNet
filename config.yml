@@ -35,6 +35,10 @@ data_loader:
         num_workers: 4
         normalize: True
 
+initializer:
+    type: 'kaiming_uniform_'
+    args:
+
 optimizer:
     type: 'Adam'
     args:
