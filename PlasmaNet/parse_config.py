@@ -48,6 +48,7 @@ class ConfigParser:
             run_id = datetime.now().strftime(r'%m%d_%H%M%S')
         self._save_dir = save_dir / 'models' / exper_name / run_id
         self._log_dir = save_dir / 'log' / exper_name / run_id
+        self._fig_dir = save_dir / 'figures' / exper_name / run_id
 
         # Make directories for checkpoints saving and logs
         exist_ok = run_id == ''  # if True, mkdir ignores FilesExistsError (similar to `mkdir -p`)
@@ -148,6 +149,10 @@ class ConfigParser:
     @property
     def log_dir(self):
         return self._log_dir
+
+    @property
+    def fig_dir(self):
+        return self._fig_dir
 
 
 # Helper functions to update config dict with custom CLI options

@@ -82,7 +82,9 @@ class Trainer(BaseTrainer):
                 self.writer.set_step(epoch - 1)
             # Figure output after the 1st batch of each epoch
             if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
-                self.writer.add_figure('ComparisonWithResiduals', plot_numpy(output, target, data, epoch, batch_idx))
+                fig = plot(output, target, data, epoch, batch_idx)
+                fig.savefig(self.config.fig_dir / 'train_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
+                self.writer.add_figure('ComparisonWithResiduals', fig)
 
             if batch_idx == self.len_epoch:  # Break iteration-based training
                 break
@@ -132,7 +134,9 @@ class Trainer(BaseTrainer):
                     self.writer.set_step(epoch - 1, 'valid')
                 # Figure output after the 1st batch of each epoch
                 if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
-                    self.writer.add_figure('ComparisonWithResiduals', plot_numpy(output, target, data, epoch, batch_idx))
+                    fig = plot(output, target, data, epoch, batch_idx)
+                    fig.savefig(self.config.fig_dir / 'valid_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
+                    self.writer.add_figure('ComparisonWithResiduals', fig)
 
         # Add histogram of model parameters to the TensorBoard
         for name, p in self.model.named_parameters():
@@ -162,7 +166,7 @@ class Trainer(BaseTrainer):
         return base.format(current, total, 100.0 * current / total)
 
 
-def plot_numpy(output, target, data, epoch, batch_idx):
+def plot(output, target, data, epoch, batch_idx):
     """ Matplotlib plots. """
     # Detach tensors and send them to cpu as numpy
     data_np = data.detach().cpu().numpy()
