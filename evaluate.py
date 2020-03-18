@@ -9,11 +9,13 @@
 import argparse
 import torch
 from tqdm import tqdm
+from pathlib import Path
 import PlasmaNet.data.data_loaders as module_data
 import PlasmaNet.model.loss as module_loss
 import PlasmaNet.model.metric as module_metric
 import PlasmaNet.model.multiscalenet as module_arch
 from PlasmaNet.parse_config import ConfigParser
+from PlasmaNet.trainer.trainer import plot as plot_residual
 
 
 def main(config):
@@ -51,6 +53,10 @@ def main(config):
     total_loss = 0.0
     total_metrics = torch.zeros(len(metric_fns))
 
+    # Output configuration
+    out_dir = Path('./outputs/eval')
+    out_dir.mkdir(parents=True, exist_ok=True)
+
     with torch.no_grad():
         for i, (data, target, data_norm, target_norm) in enumerate(tqdm(data_loader)):
             data, target = data.to(device), target.to(device)
@@ -60,6 +66,9 @@ def main(config):
             #
             # save sample images, or do something with output here
             #
+
+            fig = plot_residual(output, target, data, 0, i)
+            fig.figsave(out_dir / config['name'] / 'batch_{:05f}.png'.format(i), dpi=150, bbox_inches='tight')
 
             # Computing loss, metrics on test set
             if loss_fn.require_input_data():
