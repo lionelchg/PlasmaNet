@@ -32,13 +32,14 @@ arch:
 
 data_loader:
     type: 'PoissonDataLoader'
+    pipe_config: True
     args:
         data_dir: 'datasets/64x64/rhs/gauss'
         batch_size: 128
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
-        normalize: True
+        normalize: 'max'                    # max, physical or no for normalization types
 
 initializer: 'off'
 
