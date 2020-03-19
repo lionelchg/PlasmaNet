@@ -64,15 +64,14 @@ class ConfigParser:
         self.length = self.config['globals']['length']
         # dx and dy change depending on normalization
         self.normalization = self.config['data_loader']['args']['normalize']
-
         if self.normalization == 'physical':
             self.dx_norm = self.length
         else:
             self.dx_norm = 1.0
-        self.dx = self.length / ((self.size - 1)*self.dx_norm)
+        self.dx = self.length / ((self.size - 1) * self.dx_norm)
         self.dy = self.dx
         self.ds = self.dx * self.dy
-        self.surface = self.length**2
+        self.surface = self.length ** 2
 
         # Configure logging module
         setup_logging(self.log_dir)
