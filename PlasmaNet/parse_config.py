@@ -62,10 +62,20 @@ class ConfigParser:
         # Declare global parameters attributes
         self.size = self.config['globals']['size']
         self.length = self.config['globals']['length']
-        self.dx = self.length / (self.size - 1)
-        self.dy = self.dx
-        self.ds = self.dx * self.dy
-        self.surface = self.length**2
+        
+        # dx and fy cha,ge depending on normalization
+        self.normalization = self.config['data_loader']['args']['normalize']
+
+        if self.normalization == 'physical':
+            self.dx = 1. / (self.size - 1)
+            self.dy = self.dx
+            self.ds = self.dx * self.dy
+            self.surface = self.length**2
+        else:
+            self.dx = self.length / (self.size - 1)
+            self.dy = self.dx
+            self.ds = self.dx * self.dy
+            self.surface = self.length**2
 
         # Configure logging module
         setup_logging(self.log_dir)
