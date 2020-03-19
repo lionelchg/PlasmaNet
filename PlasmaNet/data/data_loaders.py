@@ -18,7 +18,7 @@ class PoissonDataLoader(BaseDataLoader):
     Loads a set of charge distribution and the associated potential.
     Automatically shuffles the dataset before the validation split (see BaseDataLoader class).
     """
-    def __init__(self, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0, num_workers=1):
+    def __init__(self, config, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0, num_workers=1):
         self.data_dir = Path(data_dir)
 
         # Load numpy files of shape (batch_size, H, W)
@@ -29,14 +29,28 @@ class PoissonDataLoader(BaseDataLoader):
         physical_rhs = torch.from_numpy(physical_rhs[:, np.newaxis, :, :])
         potential = torch.from_numpy(potential[:, np.newaxis, :, :])
 
-        # Normalization
+        # Normalization and length
         self.normalize = normalize
-        if self.normalize:
+        length = config.length
+
+        if self.normalize == 'max':
+            print("Max Normalization")
             self.data_norm = torch.max(torch.max(physical_rhs, 3, keepdim=True)[0], 2, keepdim=True)[0]
             self.target_norm = torch.max(torch.max(potential, 3, keepdim=True)[0], 2, keepdim=True)[0]
             physical_rhs /= self.data_norm
             potential /= self.target_norm
+        elif self.normalize == 'physical':
+            # For the Physical normalization we propose the following:
+            # d2(pot/pot0) / d(x/L)2 = (L2 rhs0 / pot0)* rhs/rhs0
+            # If mod(pot0) == 1 the normalization sums up to rhs * L2
+            # Where L = Physical lenght of the domain
+            print("Physical Normalization")
+            self.data_norm = (torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1)))/(length**2)
+            self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
+            physical_rhs /= self.data_norm
+            potential /= self.target_norm
         else:
+            print("No normalization")
             self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
 
