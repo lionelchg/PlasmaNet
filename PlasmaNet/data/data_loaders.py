@@ -18,7 +18,7 @@ class PoissonDataLoader(BaseDataLoader):
     Loads a set of charge distribution and the associated potential.
     Automatically shuffles the dataset before the validation split (see BaseDataLoader class).
     """
-    def __init__(self, config, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0, num_workers=1):
+    def __init__(self, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0, num_workers=1):
         self.data_dir = Path(data_dir)
 
         # Load numpy files of shape (batch_size, H, W)
@@ -31,7 +31,7 @@ class PoissonDataLoader(BaseDataLoader):
 
         # Normalization and length
         self.normalize = normalize
-        length = config.length
+        length = config.length          #TODO Import config?????
 
         if self.normalize == 'max':
             print("Max Normalization")
