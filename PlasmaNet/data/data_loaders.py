@@ -18,8 +18,9 @@ class PoissonDataLoader(BaseDataLoader):
     Loads a set of charge distribution and the associated potential.
     Automatically shuffles the dataset before the validation split (see BaseDataLoader class).
     """
-    def __init__(self, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0, num_workers=1):
+    def __init__(self, config, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0, num_workers=1):
         self.data_dir = Path(data_dir)
+        self.logger = config.get_logger('PoissonDataLoader', config['trainer']['verbosity'])
 
         # Load numpy files of shape (batch_size, H, W)
         physical_rhs = np.load(self.data_dir / 'physical_rhs.npy')
@@ -31,10 +32,10 @@ class PoissonDataLoader(BaseDataLoader):
 
         # Normalization and length
         self.normalize = normalize
-        length = config.length          #TODO Import config?????
+        self.length = config.length
 
         if self.normalize == 'max':
-            print("Max Normalization")
+            self.logger.info("Using max normalization")
             self.data_norm = torch.max(torch.max(physical_rhs, 3, keepdim=True)[0], 2, keepdim=True)[0]
             self.target_norm = torch.max(torch.max(potential, 3, keepdim=True)[0], 2, keepdim=True)[0]
             physical_rhs /= self.data_norm
@@ -42,15 +43,15 @@ class PoissonDataLoader(BaseDataLoader):
         elif self.normalize == 'physical':
             # For the Physical normalization we propose the following:
             # d2(pot/pot0) / d(x/L)2 = (L2 rhs0 / pot0)* rhs/rhs0
-            # If mod(pot0) == 1 the normalization sums up to rhs * L2
-            # Where L = Physical lenght of the domain
-            print("Physical Normalization")
-            self.data_norm = (torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1)))/(length**2)
+            # If mod(pot0) == 1 the normalization sums up to rhs * L**2
+            # where L = physical length of the domain
+            self.logger.info("Using physical mormalization")
+            self.data_norm = (torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))) / (self.length**2)
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
             physical_rhs /= self.data_norm
             potential /= self.target_norm
         else:
-            print("No normalization")
+            self.logger.info("No normalization")
             self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
 
