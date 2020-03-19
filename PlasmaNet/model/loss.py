@@ -31,6 +31,7 @@ class LaplacianLoss(BaseLoss):
         self.weight = lapl_weight
         self.dx = config.dx
         self.dy = config.dy
+        self.dx_norm = config.dx_norm
         self._require_input_data = True  # Need rhs for computation
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1.,dx_norm=1., **_):
