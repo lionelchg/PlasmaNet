@@ -6,17 +6,17 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import os
+import numpy as np
+import scipy.constants as co
 import time
+from scipy.sparse.linalg import spsolve, inv
+from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
+from plot import plot_fig
+import os
 from multiprocessing import Pool
+from tqdm import tqdm
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
-
-import numpy as np
-from .plot import plot_fig
-from .poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
-from .scipy.sparse.linalg import spsolve
-from tqdm import tqdm
 
 # Global variables
 n_points = 64
@@ -42,6 +42,7 @@ linear_xy = x
 
 
 def params_rotation(nrot):
+
     # rotated linear potential
 
     thetas = np.linspace(0, 2 * np.pi, nrot)
@@ -53,13 +54,13 @@ def params_rotation(nrot):
 
         yield up, down, left, right
 
-
 def params_dirichlet(n1, n2):
+
     # Constant per branch up
     for comb in range(6):
         for i in range(0, n_points, n1):
             for j in range(0, n_points, n2):
-
+                
                 up = np.zeros(n_points)
                 down = np.zeros(n_points)
                 left = np.zeros(n_points)
@@ -89,7 +90,7 @@ def params_dirichlet(n1, n2):
 def compute(args):
     up, down, left, right = args
 
-    rhs = np.zeros(n_points ** 2)
+    rhs = np.zeros(n_points**2)
 
     # Imposing Dirichlet boundary conditions
     zeros_bc = np.zeros(n_points)
@@ -99,7 +100,6 @@ def compute(args):
     tmp_potential = spsolve(A, rhs).reshape(n_points, n_points)
 
     return tmp_potential
-
 
 if __name__ == '__main__':
 
@@ -135,6 +135,7 @@ if __name__ == '__main__':
         potential[i + nit_train, :, :] = pot
         if i % 50 == 0 and plot:
             plot_fig(X, Y, pot, pot, name='dirichlet/dataset_1/val_', nit=i, no_rhs=True)
+
 
     time_stop = time.time()
     np.save('datasets/dirichlet/%dx%d/potential.npy' % (n_points, n_points), potential)
