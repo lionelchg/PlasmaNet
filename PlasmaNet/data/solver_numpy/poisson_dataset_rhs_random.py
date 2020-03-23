@@ -5,17 +5,20 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
-import os
-os.environ['OPENBLAS_NUM_THREADS'] = '1'
-import scipy.constants as co
+
 import time
-from scipy.sparse.linalg import spsolve, inv
-from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
-from plot import plot_fig
 from multiprocessing import Pool
-from tqdm import tqdm
+
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
 import numpy as np
+import scipy.constants as co
+from .plot import plot_fig
+from .poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
 from scipy import interpolate
+from scipy.sparse.linalg import spsolve
+from tqdm import tqdm
+
 # Global variables
 n_points = 64
 xmin, xmax = 0, 0.01
@@ -37,18 +40,20 @@ A = laplace_square_matrix(n_points)
 # Parameters for the rhs
 ni0 = 1e16
 
+
 def params(nits):
     for i in range(nits):
         z_lower = 2 * np.random.random((n_lower, n_lower)) - 1
         f = interpolate.interp2d(x_lower, y_lower, z_lower, kind='cubic')
         yield f(x, y)
 
+
 def compute(args):
     z = args
-    #interior rhs
+    # interior rhs
     physical_rhs = ni0 * z.reshape(-1) * co.e / co.epsilon_0
 
-    rhs = - physical_rhs * dx**2
+    rhs = - physical_rhs * dx ** 2
 
     # Imposing Dirichlet boundary conditions
     zeros_bc = np.zeros(n_points)
@@ -59,6 +64,7 @@ def compute(args):
     tmp_rhs = physical_rhs.reshape(n_points, n_points)
 
     return tmp_potential, tmp_rhs
+
 
 if __name__ == '__main__':
 
@@ -82,7 +88,6 @@ if __name__ == '__main__':
         physical_rhs_random[i, :, :] = rhs
         if i % 10 == 0 and plot:
             plot_fig(X, Y, pot, rhs, name='random/dataset_1/intput_', nit=i)
-
 
     time_stop = time.time()
     np.save('datasets/rhs/%dx%d/potential_random.npy' % (n_points, n_points), potential_random)

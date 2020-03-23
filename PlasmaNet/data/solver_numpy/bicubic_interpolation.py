@@ -6,23 +6,23 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.constants as co
-from scipy.sparse.linalg import spsolve, inv
-from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
-from plot import plot_fig, plot_fig_scalar
-from operators import lapl
+from .operators import lapl
+from .plot import plot_fig, plot_fig_scalar
+from .poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
 from scipy import interpolate
-import matplotlib.pyplot as plt
+from scipy.sparse.linalg import spsolve
 
 colormap = 'RdBu'
 
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
-    return amplitude * np.exp(-((x - x0)/sigma_x)**2 - ((y - y0)/sigma_y)**2)
+    return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
+
 
 if __name__ == '__main__':
-
     n_points = 64
     xmin, xmax = 0, 0.01
     ymin, ymax = 0, 0.01
@@ -46,22 +46,22 @@ if __name__ == '__main__':
 
     fig, [ax1, ax2] = plt.subplots(ncols=2, figsize=(14, 7))
     CS1 = ax1.contourf(X_lower, Y_lower, z_lower, 100, cmap=colormap)
-    cbar1 = fig.colorbar(CS1, pad = 0.05, fraction=0.08, ax=ax1, aspect=5)
+    cbar1 = fig.colorbar(CS1, pad=0.05, fraction=0.08, ax=ax1, aspect=5)
     cbar1.ax.set_ylabel('Under-resolved')
     ax1.set_aspect("equal")
     CS2 = ax2.contourf(X, Y, z, 100, cmap=colormap)
-    cbar2 = fig.colorbar(CS2, pad = 0.05, fraction=0.08, ax=ax2, aspect=5)
+    cbar2 = fig.colorbar(CS2, pad=0.05, fraction=0.08, ax=ax2, aspect=5)
     cbar2.ax.set_ylabel('Bicubic interpolation')
     ax2.set_aspect("equal")
     plt.savefig('figures/interpolation/bicubic', bbox_inches='tight')
 
     # creating the rhs
     ni0 = 1e16
-    rhs = np.zeros(n_points**2)
+    rhs = np.zeros(n_points ** 2)
 
-    #interior rhs
+    # interior rhs
     physical_rhs = ni0 * z.reshape(-1) * co.e / co.epsilon_0
-    rhs = - physical_rhs * dx**2
+    rhs = - physical_rhs * dx ** 2
 
     # Imposing Dirichlet boundary conditions
     zeros_bc = np.zeros(n_points)
@@ -72,4 +72,5 @@ if __name__ == '__main__':
     physical_rhs = physical_rhs.reshape(n_points, n_points)
     plot_fig(X, Y, potential, physical_rhs, name='interpolation/test_', nit=1)
     plot_fig(X, Y, - lapl(potential, dx, dy, n_points, n_points), physical_rhs, name='interpolation/comparison_', nit=1)
-    plot_fig_scalar(X, Y, abs(lapl(potential, dx, dy, n_points, n_points) + physical_rhs), 'Absolute difference', 'interpolation/abs_diff')
+    plot_fig_scalar(X, Y, abs(lapl(potential, dx, dy, n_points, n_points) + physical_rhs), 'Absolute difference',
+                    'interpolation/abs_diff')

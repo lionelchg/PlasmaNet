@@ -5,15 +5,18 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
+
 import os
+
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
-import numpy as np
-import scipy.constants as co
-from scipy.sparse.linalg import spsolve, inv
-from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
-from plot import plot_fig, plot_fig_scalar
-from operators import lapl, print_error, errors
+
 import matplotlib.pyplot as plt
+import numpy as np
+from .operators import errors
+from .plot import plot_fig
+from .poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
+from scipy.sparse.linalg import spsolve
+
 
 def run_poisson(n_points, kx=2, ky=2, plot=False):
     xmin, xmax = 0, 1
@@ -30,12 +33,12 @@ def run_poisson(n_points, kx=2, ky=2, plot=False):
     physical_rhs = np.zeros((n_points, n_points))
 
     # creating the rhs
-    rhs = np.zeros(n_points**2)
+    rhs = np.zeros(n_points ** 2)
 
-    #interior rhs
-    physical_rhs = (2 * kx * np.pi / Lx)**2 * np.cos(kx * 2 * np.pi * X.reshape(-1) / Lx) \
-                    + (2 * ky * np.pi / Ly)**2 * np.cos(ky * 2 * np.pi * Y.reshape(-1) / Ly)
-    rhs = physical_rhs * dx**2
+    # interior rhs
+    physical_rhs = (2 * kx * np.pi / Lx) ** 2 * np.cos(kx * 2 * np.pi * X.reshape(-1) / Lx) \
+                   + (2 * ky * np.pi / Ly) ** 2 * np.cos(ky * 2 * np.pi * Y.reshape(-1) / Ly)
+    rhs = physical_rhs * dx ** 2
 
     # Imposing Dirichlet boundary conditions
     tgv_boundary_x = - (np.cos(kx * 2 * np.pi * x / Lx) + 1)
@@ -50,7 +53,8 @@ def run_poisson(n_points, kx=2, ky=2, plot=False):
     if plot:
         plot_fig(X, Y, potential, physical_rhs, name='tgv/n_%d_kx_%d_ky_%d' % (n_points, kx, ky), nit=0)
 
-    return errors(potential, analytical_pot, dx*dy, Lx*Ly)
+    return errors(potential, analytical_pot, dx * dy, Lx * Ly)
+
 
 if __name__ == '__main__':
 
