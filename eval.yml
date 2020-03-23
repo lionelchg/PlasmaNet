@@ -34,10 +34,10 @@ data_loader:
     type: 'PoissonDataLoader'
     args:
         data_dir: 'datasets/64x64/rhs/coshill'
-        batch_size: 128
+        batch_size: 512
         shuffle: True
-        validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
-        num_workers: 4
+        validation_split: 0.0               # if float, fraction of the full dataset, if int, length of validation portion
+        num_workers: 2
         normalize: True
 
 initializer: 'off'

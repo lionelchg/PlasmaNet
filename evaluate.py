@@ -22,14 +22,7 @@ def main(config):
     logger = config.get_logger('test')
 
     # Setup data_loader instances
-    data_loader = getattr(module_data, config['data_loader']['type'])(
-        config['data_loader']['args']['data_dir'],
-        batch_size=512,
-        shuffle=False,
-        validation_split=0.0,
-        training=False,
-        num_workers=2
-    )
+    data_loader = config.init_obj('data_loader', module_data)
 
     # Build model architecture
     model = config.init_obj('arch', module_arch)
@@ -54,8 +47,9 @@ def main(config):
     total_metrics = torch.zeros(len(metric_fns))
 
     # Output configuration
-    out_dir = Path('./outputs/eval')
-    out_dir.mkdir(parents=True, exist_ok=True)
+    # out_dir = Path('./outputs/eval')
+    # out_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = config.fig_dir
 
     with torch.no_grad():
         for i, (data, target, data_norm, target_norm) in enumerate(tqdm(data_loader)):
@@ -68,7 +62,7 @@ def main(config):
             #
 
             fig = plot_residual(output, target, data, 0, i)
-            fig.figsave(out_dir / config['name'] / 'batch_{:05f}.png'.format(i), dpi=150, bbox_inches='tight')
+            fig.savefig(out_dir / 'batch_{:05d}.png'.format(i), dpi=150, bbox_inches='tight')
 
             # Computing loss, metrics on test set
             if loss_fn.require_input_data():

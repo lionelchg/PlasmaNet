@@ -17,11 +17,11 @@
 # `config.init_obj` method.
 
 
-name: 'gauss_64'                            # Experience name
+name: 'gauss_64_physNorm'                   # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
-    size: 64.
+    size: 64
     length: 0.01
 
 
@@ -39,7 +39,7 @@ data_loader:
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
-        normalize: 'max'                    # max, physical or no for normalization types
+        normalize: 'physical'               # max, physical or no for normalization types
 
 initializer: 'off'
 
