@@ -18,6 +18,8 @@ from .plot import plot_fig
 from .poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
 from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
+from pathlib import Path
+
 
 # Global variables
 n_points = 64
@@ -34,8 +36,18 @@ X, Y = np.meshgrid(x, y)
 
 A = laplace_square_matrix(n_points)
 
+# Path variables
+case_name = 'ampl'
+data_dir = Path('./datasets')
+save_dir = data_dir / '{0}x{0}'.format(n_points) / 'rhs'
+save_dir_gauss = save_dir / 'gauss_{}'.format(case_name)
+save_dir_coshill = save_dir / 'coshill_{}'.format(case_name)
+save_dir_gauss.mkdir(exist_ok=True)
+save_dir_coshill.mkdir(exist_ok=True)
+
 # Parameters for the rhs
-ni0 = 1e16
+# ni0 = 1e16
+ampl_min, ampl_max = 1e16, 5e16
 x0_min, x0_max = 4e-3, 6e-3
 sigma_min, sigma_max = 1e-3, 3e-3
 pow_min, pow_max = 3, 7
@@ -57,41 +69,45 @@ def triangle(x, y, L):
     return (1 - abs((x - L / 2) / (L / 2))) * (1 - abs((y - L / 2) / (L / 2)))
 
 
-def params_gauss(n_x0, n_sigma, n_points):
+def params_gauss(n_ampl, n_x0, n_sigma):
+    ampl_range = np.linspace(ampl_min, ampl_max, n_ampl)
     x_range = np.linspace(x0_min, x0_max, n_x0)
     sigma_range = np.linspace(sigma_min, sigma_max, n_sigma)
 
     # Training set made out of gaussians
-    for x0 in x_range:
-        for y0 in x_range:
-            for sigma_x in sigma_range:
-                for sigma_y in sigma_range:
-                    yield x0, y0, sigma_x, sigma_y, 0
+    for ampl in ampl_range:
+        for x0 in x_range:
+            for y0 in x_range:
+                for sigma_x in sigma_range:
+                    for sigma_y in sigma_range:
+                        yield ampl, x0, y0, sigma_x, sigma_y, 0
 
 
-def params_cosine(n_x0, n_sigma, n_points):
+def params_cosine(n_ampl, n_x0, n_sigma):
+    ampl_range = np.linspace(ampl_min, ampl_max, n_ampl)
     x_range = np.linspace(x0_min, x0_max, n_x0)
     pow_range = np.linspace(pow_min, pow_max, n_pow)
 
-    # Training set made out of gaussians
-    for x0 in x_range:
-        for y0 in x_range:
-            for powx in pow_range:
-                for powy in pow_range:
-                    yield x0, y0, powx, powy, 1
+    # Training set made out of cosines
+    for ampl in ampl_range:
+        for x0 in x_range:
+            for y0 in x_range:
+                for powx in pow_range:
+                    for powy in pow_range:
+                        yield ampl, x0, y0, powx, powy, 1
 
 
 def compute(args):
-    x0, y0, param_x, param_y, which_set = args
+    ampl, x0, y0, param_x, param_y, which_set = args
     # interior rhs
     # Gaussian case
     if which_set == 0:
-        physical_rhs = gaussian(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, param_x, param_y) * co.e / co.epsilon_0
+        physical_rhs = gaussian(X.reshape(-1), Y.reshape(-1), ampl, x0, y0, param_x, param_y) * co.e / co.epsilon_0
     # Cosine hill case
     elif which_set == 1:
         L = xmax - xmin
-        physical_rhs = ni0 * co.e / co.epsilon_0 \
-                       * cosine_hill(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, param_x, param_y,
+        physical_rhs = ampl * co.e / co.epsilon_0 \
+                       * cosine_hill(X.reshape(-1), Y.reshape(-1), ampl, x0, y0, param_x, param_y,
                                      L) * co.e / co.epsilon_0
     rhs = - physical_rhs * dx ** 2
 
@@ -108,10 +124,10 @@ def compute(args):
 
 if __name__ == '__main__':
 
-    plot = False
+    plot = True
     n_procs = 36
     chunksize = 10
-    n_x0, n_sigma, n_pow = 25, 5, 3
+    n_ampl, n_x0, n_sigma, n_pow = 5, 12, 5, 3  # 5 * 12 * 12 * 5 * 5 = 18 000 for the gaussian set
 
     # test for sliding gaussian
     nit_gauss = n_x0 ** 2 * n_sigma ** 2
@@ -128,12 +144,12 @@ if __name__ == '__main__':
 
     with Pool(processes=n_procs) as p:
         results_train = list(
-            tqdm(p.imap(compute, params_gauss(n_x0, n_sigma, n_points), chunksize=chunksize), total=nit_gauss))
+            tqdm(p.imap(compute, params_gauss(n_ampl, n_x0, n_sigma), chunksize=chunksize), total=nit_gauss))
 
     for i, (pot, rhs) in enumerate(results_train):
         potential_gauss[i, :, :] = pot
         physical_rhs_gauss[i, :, :] = rhs
-        if i % 50 == 0 and plot:
+        if plot and i % 50 == 0 :
             plot_fig(X, Y, pot, rhs, name='hills/dataset_1/gauss_', nit=i)
 
     potential_coshill = np.zeros((nit_coshill, n_points, n_points))
@@ -141,17 +157,17 @@ if __name__ == '__main__':
 
     with Pool(processes=n_procs) as p:
         results_val = list(
-            tqdm(p.imap(compute, params_cosine(n_x0, n_pow, n_points), chunksize=chunksize), total=nit_coshill))
+            tqdm(p.imap(compute, params_cosine(n_ampl, n_x0, n_pow), chunksize=chunksize), total=nit_coshill))
 
     for i, (pot, rhs) in enumerate(results_val):
         potential_coshill[i, :, :] = pot
         physical_rhs_coshill[i, :, :] = rhs
-        if i % 50 == 0 and plot:
+        if plot and i % 50 == 0:
             plot_fig(X, Y, pot, rhs, name='hills/dataset_1/coshill_', nit=i)
 
     time_stop = time.time()
-    np.save('datasets/rhs/%dx%d/potential_gauss.npy' % (n_points, n_points), potential_gauss)
-    np.save('datasets/rhs/%dx%d/physical_rhs_gauss.npy' % (n_points, n_points), physical_rhs_gauss)
-    np.save('datasets/rhs/%dx%d/potential_coshill.npy' % (n_points, n_points), potential_coshill)
-    np.save('datasets/rhs/%dx%d/physical_rhs_coshill.npy' % (n_points, n_points), physical_rhs_coshill)
+    np.save(save_dir_gauss / 'potential.npy', potential_gauss)
+    np.save(save_dir_gauss / 'physical_rhs.npy', physical_rhs_gauss)
+    np.save(save_dir_coshill / 'potential.npy', potential_coshill)
+    np.save(save_dir_coshill / 'physical_rhs.npy', physical_rhs_coshill)
     print('Elapsed time (s) : %.2e' % (time_stop - time_start))
