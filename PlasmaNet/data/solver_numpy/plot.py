@@ -2,7 +2,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 matplotlib.rcParams['contour.negative_linestyle'] = 'solid'
-default_cmap = 'RdBu'
+default_cmap = 'viridis'  # 'RdBu'
 
 
 def plot_fig_scalar(X, Y, field, name, fig_name, colormap=default_cmap):
@@ -11,7 +11,8 @@ def plot_fig_scalar(X, Y, field, name, fig_name, colormap=default_cmap):
     cbar = fig.colorbar(CS, pad=0.05, fraction=0.05, ax=ax, aspect=5)
     ax.set_aspect("equal")
 
-    plt.savefig('figures/' + fig_name, bbox_inches='tight')
+    fig.savefig('figures/' + fig_name, bbox_inches='tight')
+    plt.close(fig)
 
 
 def plot_fig_vector(X, Y, field, name, fig_name, colormap=default_cmap):
@@ -23,7 +24,8 @@ def plot_fig_vector(X, Y, field, name, fig_name, colormap=default_cmap):
     cbar1 = fig.colorbar(CS1, pad=0.05, fraction=0.05, ax=axes[1], aspect=5)
     axes[1].set_aspect("equal")
 
-    plt.savefig('figures/' + fig_name, bbox_inches='tight')
+    fig.savefig('figures/' + fig_name, bbox_inches='tight')
+    plt.close(fig)
 
 
 def plot_fig(X, Y, potential, physical_rhs, name='potential_2D', nit=None, no_rhs=False, colormap=default_cmap):
@@ -42,9 +44,10 @@ def plot_fig(X, Y, potential, physical_rhs, name='potential_2D', nit=None, no_rh
     ax2.set_aspect("equal")
 
     if nit == None:
-        plt.savefig('figures/' + name, bbox_inches='tight')
+        fig.savefig('figures/' + name, bbox_inches='tight')
     else:
-        plt.savefig('figures/' + name + str(nit), bbox_inches='tight')
+        fig.savefig('figures/{}{:06d}'.format(name, nit), bbox_inches='tight')
+    plt.close(fig)
 
 
 def plot_ax(fig, axes, X, Y, potential, physical_rhs, colormap=default_cmap, levels=100, npot=None):

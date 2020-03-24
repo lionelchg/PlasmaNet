@@ -14,8 +14,8 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import numpy as np
 import scipy.constants as co
-from .plot import plot_fig
-from .poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
+from plot import plot_fig
+from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
 from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
 from pathlib import Path
@@ -42,12 +42,13 @@ data_dir = Path('./datasets')
 save_dir = data_dir / '{0}x{0}'.format(n_points) / 'rhs'
 save_dir_gauss = save_dir / 'gauss_{}'.format(case_name)
 save_dir_coshill = save_dir / 'coshill_{}'.format(case_name)
-save_dir_gauss.mkdir(exist_ok=True)
-save_dir_coshill.mkdir(exist_ok=True)
+save_dir_gauss.mkdir(parents=True, exist_ok=True)
+save_dir_coshill.mkdir(parents=True, exist_ok=True)
 
 # Parameters for the rhs
 # ni0 = 1e16
 ampl_min, ampl_max = 1e16, 5e16
+# ampl_min, ampl_max = -0.5e16, 7.5e16  # test dataset
 x0_min, x0_max = 4e-3, 6e-3
 sigma_min, sigma_max = 1e-3, 3e-3
 pow_min, pow_max = 3, 7
@@ -124,46 +125,49 @@ def compute(args):
 
 if __name__ == '__main__':
 
-    plot = True
+    plot = False
     n_procs = 36
     chunksize = 10
-    n_ampl, n_x0, n_sigma, n_pow = 5, 12, 5, 3  # 5 * 12 * 12 * 5 * 5 = 18 000 for the gaussian set
+    n_ampl, n_x0, n_sigma, n_pow = 1, 12, 5, 3  # 5 * 12 * 12 * 5 * 5 = 18 000 for the gaussian set
+    # n_ampl, n_x0, n_sigma, n_pow = 5, 4, 4, 3  # test dataset
 
     # test for sliding gaussian
-    nit_gauss = n_x0 ** 2 * n_sigma ** 2
-    nit_coshill = n_x0 ** 2 * n_pow ** 2
+    nit_gauss = n_ampl *  n_x0 ** 2 * n_sigma ** 2
+    nit_coshill = n_ampl * n_x0 ** 2 * n_pow ** 2
     nits = nit_gauss + nit_coshill
     print('Number of gauss inputs: %d' % nit_gauss)
     print('Number of coshill inputs: %d' % nit_coshill)
     print('Total number of inputs: %d' % nits)
 
+    if plot:
+        os.makedirs('figures/dataset_{}'.format(case_name), exist_ok=True)
+
     potential_gauss = np.zeros((nit_gauss, n_points, n_points))
     physical_rhs_gauss = np.zeros((nit_gauss, n_points, n_points))
+    potential_coshill = np.zeros((nit_coshill, n_points, n_points))
+    physical_rhs_coshill = np.zeros((nit_coshill, n_points, n_points))
 
     time_start = time.time()
 
     with Pool(processes=n_procs) as p:
         results_train = list(
-            tqdm(p.imap(compute, params_gauss(n_ampl, n_x0, n_sigma), chunksize=chunksize), total=nit_gauss))
+            tqdm(p.imap(compute, params_gauss(n_ampl, n_x0, n_sigma), chunksize=chunksize), total=nit_gauss,
+                 desc='Compute gauss'))
+        results_val = list(
+            tqdm(p.imap(compute, params_cosine(n_ampl, n_x0, n_pow), chunksize=chunksize), total=nit_coshill,
+                 desc='Compute coshill'))
 
-    for i, (pot, rhs) in enumerate(results_train):
+    for i, (pot, rhs) in tqdm(enumerate(results_train), total=nit_gauss, desc='Save gauss'):
         potential_gauss[i, :, :] = pot
         physical_rhs_gauss[i, :, :] = rhs
-        if plot and i % 50 == 0 :
-            plot_fig(X, Y, pot, rhs, name='hills/dataset_1/gauss_', nit=i)
+        if plot and i % 200 == 0 :
+            plot_fig(X, Y, pot, rhs, name='dataset_{}/gauss_'.format(case_name), nit=i)
 
-    potential_coshill = np.zeros((nit_coshill, n_points, n_points))
-    physical_rhs_coshill = np.zeros((nit_coshill, n_points, n_points))
-
-    with Pool(processes=n_procs) as p:
-        results_val = list(
-            tqdm(p.imap(compute, params_cosine(n_ampl, n_x0, n_pow), chunksize=chunksize), total=nit_coshill))
-
-    for i, (pot, rhs) in enumerate(results_val):
+    for i, (pot, rhs) in tqdm(enumerate(results_val), total=nit_coshill, desc='Save coshill'):
         potential_coshill[i, :, :] = pot
         physical_rhs_coshill[i, :, :] = rhs
-        if plot and i % 50 == 0:
-            plot_fig(X, Y, pot, rhs, name='hills/dataset_1/coshill_', nit=i)
+        if plot and i % 200 == 0:
+            plot_fig(X, Y, pot, rhs, name='dataset_{}/coshill_'.format(case_name), nit=i)
 
     time_stop = time.time()
     np.save(save_dir_gauss / 'potential.npy', potential_gauss)
