@@ -2,6 +2,7 @@
 .DS_Store
 .idea
 __pychache__/
+*.egg-info/
 *.pyc
 .pytest_cache/
 *.png

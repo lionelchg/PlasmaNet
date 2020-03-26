@@ -19,11 +19,10 @@ from PlasmaNet.trainer import Trainer
 
 
 # Fix random seeds for reproducibility
-SEED = 123
-torch.manual_seed(SEED)
+torch.manual_seed(0)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
-np.random.seed(SEED)
+np.random.seed(0)
 
 
 def main(config):

@@ -7,6 +7,7 @@
 ########################################################################################################################
 
 import argparse
+import collections
 import torch
 from tqdm import tqdm
 from pathlib import Path
@@ -91,5 +92,12 @@ if __name__ == '__main__':
     args.add_argument('-d', '--device', default=None, type=str,
                       help='indices of GPUs to enable (default: all)')
 
-    config = ConfigParser.from_args(args)
+    # Custom CLI options to modify configuration from default values given in yaml file
+    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
+    options = [
+        CustomArgs(['-ds', '--dataset'], type=str, target='data_loader;args;data_dir'),
+        CustomArgs(['-n', '--name'], type=str, target='name')
+
+    ]
+    config = ConfigParser.from_args(args, options)
     main(config)
