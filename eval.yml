@@ -32,6 +32,7 @@ arch:
 
 data_loader:
     type: 'PoissonDataLoader'
+    pipe_config: True
     args:
         data_dir: 'datasets/64x64/rhs/coshill'
         batch_size: 128

@@ -6,15 +6,17 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+import os
 import logging
 import logging.config
 from pathlib import Path
 from ..utils import read_yaml
 
 
-def setup_logging(save_dir, log_config='PlasmaNet/logger/logger_config.yml', default_level=logging.INFO):
+def setup_logging(save_dir, log_config=os.path.abspath(__file__), default_level=logging.INFO):
     """ Setup logging configuration. """
     log_config = Path(log_config)
+    log_config = log_config.parent / 'logger_config.yml'
     if log_config.is_file():
         config = read_yaml(log_config)
         # modify logging paths based on run config
