@@ -10,6 +10,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from ..base import BaseModel
 
 
 class _ConvBlock1(nn.Module):
@@ -106,7 +107,7 @@ class _ConvBlock3(nn.Module):
         return self.encode(x)
 
 
-class MultiSimpleNet(nn.Module):
+class MultiSimpleNet(BaseModel):
     """
     Define the network. The only input needed is the number of data (input) channels.
     Procedure:
@@ -128,11 +129,11 @@ class MultiSimpleNet(nn.Module):
         quarter_size = [int(i * 0.25) for i in list(x.size()[2:])]
         half_size = [int(i * 0.5) for i in list(x.size()[2:])]
         conv_4_out = self.conv_4(F.interpolate(x, quarter_size, mode='bilinear'))
-        conv_2_out = self.conv_2(torch.cat((F.interpolate(x, half_size, mode='bilinear'),
-                                            F.interpolate(conv_4_out, half_size, mode='bilinear')),
+        conv_2_out = self.conv_2(torch.cat((F.interpolate(x, half_size, mode='bilinear', align_corners=False),
+                                            F.interpolate(conv_4_out, half_size, mode='bilinear', align_corners=False)),
                                            dim=1))
-        conv_1_out = self.conv_1(torch.cat((F.interpolate(x, x.size()[2:], mode='bilinear'),
-                                            F.interpolate(conv_2_out, x.size()[2:], mode='bilinear')),
+        conv_1_out = self.conv_1(torch.cat((F.interpolate(x, x.size()[2:], mode='bilinear', align_corners=False),
+                                            F.interpolate(conv_2_out, x.size()[2:], mode='bilinear', align_corners=False)),
                                            dim=1))
         final_out = self.final(conv_1_out)
         return final_out

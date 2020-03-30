@@ -3,7 +3,7 @@
 # The ssh hostname `kraken` must be resolvable
 
 # Datasets local directory
-DATA_DIR="../../datasets"
+DATA_DIR="../datasets"
 
 # Distant subdirs to download
 DISTANT_DIRS="50x50 64x64"
