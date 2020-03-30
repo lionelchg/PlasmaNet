@@ -11,25 +11,33 @@ Solving the electrostatic Poisson equation for plasma simulations using a deep l
 First set up the correct Python environment. If you are working on Kraken, you may use the already prepared
 environment `/scratch/cfd/bogopolsky/DL/dl_env` by using:
 
-`source /scratch/cfd/bogopolsky/DL/dl_env/bin/activate`
+```
+source /scratch/cfd/bogopolsky/DL/dl_env/bin/activate
+```
 
 To use your own environment, follow the above instructions to activate a Python 3.8 environment, create a new 
 Python 3.8 venv and activate it:
 
-`python -m venv path/to/your/env`  
-`source path/to/your/env/bin/activate`
+```
+python -m venv path/to/your/env  
+source path/to/your/env/bin/activate
+```
 
 Install the required packages:
 
-`pip install -r requirements.txt`
+```
+pip install -r requirements.txt
+```
 
 #### Install PlasmaNet
 
 Clone and install the repository:
 
-`git clone https://nitrox.cerfacs.fr/cfd-apps/plasmanet`  
-`cd plasmanet`  
-`pip install -e .`
+```
+git clone https://nitrox.cerfacs.fr/cfd-apps/plasmanet
+cd plasmanet  
+pip install -e .
+```
 
 You are now ready!
 
@@ -45,7 +53,9 @@ To train a model, create a working directory. You simply need:
 Similar to the training, using the `evaluate.py` and `eval.yml` files.
 You will want to set the `-r` option in the batch file to specify the trained model you want to use.
 
-### Configuration file
+## Configuration file
+
+### Organisation
 
 The configuration file is organised in sections for each element of the network, with the following keys:
 - `type`, the name of the object that will be used (e.g. `Adam` as optimizer)
@@ -62,9 +72,27 @@ import PlasmaNet.model.loss as module_loss
 criterion = config.init_obj('loss', module_loss)
 ```
 
+### Custom CLI arguments
+
+Any field from the configuration file may be overriden by a command line argument. 
+One simply need to specify them to the `ConfigParser.from_args` class method using the following template:
+
+```python
+CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
+options = [
+    CustomArgs(['-lr', '--learning_rate'], type=float, target='optimizer;args;lr'),
+    CustomArgs(['-bs', '--batch_size'], type=int, target='data_loader;args;batch_size')
+]
+config = ConfigParser.from_args(args, options)
+```
+
+It follows the logic of `argparse.ArgumentParser.add_argument()` by requiring the short and long option name, its type, 
+and simply adding the target field in the configuration file given by its path.
+
+### More information
+
 More information about the configuration file and its use can be found in the README of the template project
 [here](https://github.com/victoresque/pytorch-template).
-
 
 ## Credits
 
