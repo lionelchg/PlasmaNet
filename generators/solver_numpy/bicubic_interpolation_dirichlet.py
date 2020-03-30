@@ -6,16 +6,12 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-from scipy.sparse.linalg import spsolve, inv
 import numpy as np
-import matplotlib.pyplot as plt
-import scipy.constants as co
-import sys
-import time
-from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
-from plot import plot_fig
 from scipy import interpolate
+from scipy.sparse.linalg import spsolve
 
+from plot import plot_fig
+from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
 
 if __name__ == '__main__':
 

@@ -7,15 +7,16 @@
 ########################################################################################################################
 
 import os
+import matplotlib.pyplot as plt
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
-import matplotlib.pyplot as plt
 import numpy as np
-from .operators import errors
-from .plot import plot_fig
-from .poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
 from scipy.sparse.linalg import spsolve
+
+from operators import errors
+from plot import plot_fig
+from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
 
 
 def run_poisson(n_points, kx=2, ky=2, plot=False):

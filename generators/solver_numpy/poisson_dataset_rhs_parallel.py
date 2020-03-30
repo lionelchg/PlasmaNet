@@ -9,17 +9,17 @@
 import os
 import time
 from multiprocessing import Pool
+from pathlib import Path
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import numpy as np
 import scipy.constants as co
-from plot import plot_fig
-from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
 from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
-from pathlib import Path
 
+from plot import plot_fig
+from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
 
 # Global variables
 n_points = 64

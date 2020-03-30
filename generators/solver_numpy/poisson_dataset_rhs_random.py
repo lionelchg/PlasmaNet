@@ -5,17 +5,22 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
+
 import os
-os.environ['OPENBLAS_NUM_THREADS'] = '1'
-import scipy.constants as co
 import time
-from scipy.sparse.linalg import spsolve, inv
-from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
-from plot import plot_fig
 from multiprocessing import Pool
-from tqdm import tqdm
+
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
 import numpy as np
+import scipy.constants as co
 from scipy import interpolate
+from scipy.sparse.linalg import spsolve
+from tqdm import tqdm
+
+from plot import plot_fig
+from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
+
 # Global variables
 n_points = 64
 xmin, xmax = 0, 0.01
