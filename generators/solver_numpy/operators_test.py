@@ -100,5 +100,4 @@ if __name__ == '__main__':
     plt.savefig('figures/operators/vector_field_test', bbox_inches='tight')
 
     rotational = scalar_rot(vector_field, dx, dy, nx, ny)
-    print(rotational)
     plot_fig_scalar(X, Y, rotational, "Rotational", "rotational_test")
