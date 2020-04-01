@@ -5,7 +5,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .operators import grad, div, lapl, print_error
+from operators import grad, div, lapl, scalar_rot, print_error
 
 
 def plot_fig_scalar(X, Y, field, name, fig_name):
@@ -51,8 +51,8 @@ if __name__ == '__main__':
     gradient_th = np.zeros((2, ny, nx))
     gradient_th[0, :] = 2 * X
     gradient_th[1, :] = 2 * Y
-    print_error(gradient, gradient_th, 'Gradient')
-    plot_fig_vector(X, Y, gradient, "Gradient", "operators/gradient_test")
+    print_error(gradient, gradient_th, dx**2, Lx*Ly, 'Gradient')
+    plot_fig_vector(X, Y, gradient, "Gradient", "gradient_test")
 
     # Divergence test
 
@@ -67,9 +67,9 @@ if __name__ == '__main__':
     divergence_th = 2 * X + 2 * Y
     # divergence_th = np.cos(X) - np.sin(Y)
 
-    print_error(divergence_2, divergence_th, 'Div 2nd order')
-    print_error(divergence_4, divergence_th, 'Div 4th order')
-    plot_fig_scalar(X, Y, divergence_2, "Divergence", "operators/divergence_test")
+    print_error(divergence_2, divergence_th, dx**2, Lx*Ly, 'Div 2nd order')
+    print_error(divergence_4, divergence_th, dx**2, Lx*Ly, 'Div 4th order')
+    plot_fig_scalar(X, Y, divergence_2, "Divergence", "divergence_test")
 
     # Laplacian test
 
@@ -83,5 +83,22 @@ if __name__ == '__main__':
     print_error(laplacian_2, laplacian_th, dx*dy, Lx*Ly, 'Lapl 2nd order')
     print_error(laplacian_2_eq, laplacian_th, dx*dy, Lx*Ly, 'Lapl from div grad 2nd order')
     print_error(laplacian_4, laplacian_th, dx*dy, Lx*Ly, 'Lapl 4th order')
-    plot_fig_scalar(X, Y, laplacian_2, "Laplacian", "operators/laplacian_test")
-    plot_fig_scalar(X, Y, laplacian_2_eq, "Laplacian", "operators/laplacian_test_eq")
+    plot_fig_scalar(X, Y, laplacian_2, "Laplacian", "laplacian_test")
+    plot_fig_scalar(X, Y, laplacian_2_eq, "Laplacian", "laplacian_test_eq")
+
+    # Rotational test
+    vector_field = np.zeros((2, ny, nx))
+    vector_field[0, :] = -Y**2
+    vector_field[1, :] = X**2
+
+    arrow_step = 5
+    fig, ax = plt.subplots()
+    q = ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
+                vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
+    ax.quiverkey(q, X=0.3, Y=1.1, U=10,
+                 label='Quiver key, length = 10', labelpos='E')
+    plt.savefig('figures/operators/vector_field_test', bbox_inches='tight')
+
+    rotational = scalar_rot(vector_field, dx, dy, nx, ny)
+    print(rotational)
+    plot_fig_scalar(X, Y, rotational, "Rotational", "rotational_test")
