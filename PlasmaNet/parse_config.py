@@ -6,12 +6,15 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import os
 import logging
-from pathlib import Path
+import os
+from datetime import datetime
 from functools import reduce, partial
 from operator import getitem
-from datetime import datetime
+from pathlib import Path
+
+import torch
+
 from .logger import setup_logging
 from .utils import read_yaml, write_yaml
 
@@ -72,6 +75,12 @@ class ConfigParser:
         self.dy = self.dx
         self.ds = self.dx * self.dy
         self.surface = self.length ** 2
+        # Define nodal volumes
+        self.voln = torch.ones((1, 1, self.size, self.size)) * self.ds
+        self.voln[:, :, 0, :], self.voln[:, :, -1, :], self.voln[:, :, :, 0], self.voln[:, :, :, -1] = \
+            self.ds / 2, self.ds / 2, self.ds / 2, self.ds / 2
+        self.voln[:, :, 0, 0], self.voln[:, :, -1, 0], self.voln[:, :, 0, -1], self.voln[:, :, -1, -1] = \
+            self.ds / 4, self.ds / 4, self.ds / 4, self.ds / 4
 
         # Configure logging module
         setup_logging(self.log_dir)

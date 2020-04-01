@@ -6,8 +6,9 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-from torch.nn.modules.loss import _Loss
 from abc import abstractmethod
+
+from torch.nn.modules.loss import _Loss
 
 
 class BaseLoss(_Loss):

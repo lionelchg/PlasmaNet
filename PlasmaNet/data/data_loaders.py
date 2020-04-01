@@ -6,10 +6,12 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import torch
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+import torch
 from torch.utils.data import TensorDataset
+
 from ..base import BaseDataLoader
 
 
@@ -45,8 +47,8 @@ class PoissonDataLoader(BaseDataLoader):
             # d2(pot/pot0) / d(x/L)2 = (L2 rhs0 / pot0)* rhs/rhs0
             # If mod(pot0) == 1 the normalization sums up to rhs * L**2
             # where L = physical length of the domain
-            self.logger.info("Using physical mormalization")
-            self.data_norm = (torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))) / (self.length**2)
+            self.logger.info("Using physical normalization")
+            self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1)) / self.length**2
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
             physical_rhs /= self.data_norm
             potential /= self.target_norm

@@ -6,12 +6,14 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import torch
-from ..base.base_loss import BaseLoss
-import torch.nn.functional as F
-from ..operators.laplacian import laplacian as lapl
-from ..operators.gradient import gradient_scalar
 import sys
+
+import torch
+import torch.nn.functional as F
+
+from ..base.base_loss import BaseLoss
+from ..operators.gradient import gradient_scalar
+from ..operators.laplacian import laplacian as lapl
 
 
 class InsideLoss(BaseLoss):
