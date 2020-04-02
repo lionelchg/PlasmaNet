@@ -7,6 +7,8 @@
 ########################################################################################################################
 
 import torch
+from ..operators.rotational import scalar_rot
+from ..operators.gradient import gradient_scalar
 
 
 def residual(output, target, config):
@@ -44,3 +46,11 @@ def pearsonr(output, target, config):
         r_num = torch.sum(out_centered * tar_centered)
         r_den = torch.sqrt(torch.sum(out_centered ** 2) * torch.sum(tar_centered ** 2))
         return r_num / r_den
+
+
+def rotational(output, target, config):
+    """ Computes the rotational of the electric field computed from the solution of the current batch. """
+    with torch.no_grad():
+        elec = gradient_scalar(output, config.dx, config.dy)
+        res = torch.sum(scalar_rot(elec, config.dx, config.dy))
+    return res

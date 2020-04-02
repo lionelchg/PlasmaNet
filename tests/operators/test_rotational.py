@@ -27,7 +27,7 @@ def test_scalar_rotational():
         analytical[channel, 0, :, :] = 2 * X + 2 * Y
 
     # Compute rotational
-    computed = rot(field, dx, dy, nx, ny)
+    computed = rot(field, dx, dy)
 
     assert torch.allclose(computed, analytical)
     return X, Y, computed, analytical, field

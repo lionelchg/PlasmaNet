@@ -9,7 +9,7 @@
 import torch
 
 
-def scalar_rot(field, dx, dy, nx, ny):
+def scalar_rot(field, dx, dy):
     """
     Calculates the scalar rotational of a 2D vector field (second order accurate).
     The output shape is the same as the input shape.
