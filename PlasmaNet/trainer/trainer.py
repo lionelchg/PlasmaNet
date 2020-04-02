@@ -6,15 +6,12 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
 from ..base import BaseTrainer
+from .plot import plot_batch, plot_distrib
 from ..utils import inf_loop, MetricTracker
-
-matplotlib.use('Agg')
 
 
 class Trainer(BaseTrainer):
@@ -83,8 +80,10 @@ class Trainer(BaseTrainer):
                 self.writer.set_step(epoch - 1)
             # Figure output after the 1st batch of each epoch
             if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
-                fig = plot(output, target, data, epoch, batch_idx)
+                fig = plot_batch(output, target, data, epoch, batch_idx)
+                fig2 = plot_distrib(output, target, epoch, batch_idx)
                 fig.savefig(self.config.fig_dir / 'train_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
+                fig2.savefig(self.config.fig_dir / 'train_distrib_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
                 self.writer.add_figure('ComparisonWithResiduals', fig)
 
             if batch_idx == self.len_epoch:  # Break iteration-based training
@@ -135,8 +134,10 @@ class Trainer(BaseTrainer):
                     self.writer.set_step(epoch - 1, 'valid')
                 # Figure output after the 1st batch of each epoch
                 if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
-                    fig = plot(output, target, data, epoch, batch_idx)
+                    fig = plot_batch(output, target, data, epoch, batch_idx)
+                    fig2 = plot_distrib(output, target, epoch, batch_idx)
                     fig.savefig(self.config.fig_dir / 'valid_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
+                    fig2.savefig(self.config.fig_dir / 'valid_distrib_{:05d}'.format(epoch), dpi=150, bbox_inches='tight')
                     self.writer.add_figure('ComparisonWithResiduals', fig)
 
         # Add histogram of model parameters to the TensorBoard
@@ -165,37 +166,3 @@ class Trainer(BaseTrainer):
             current = batch_idx
             total = self.len_epoch
         return base.format(current, total, 100.0 * current / total)
-
-
-def plot(output, target, data, epoch, batch_idx):
-    """ Matplotlib plots. """
-    # Detach tensors and send them to cpu as numpy
-    data_np = data.detach().cpu().numpy()
-    target_np = target.detach().cpu().numpy()
-    output_np = output.detach().cpu().numpy()
-
-    # Lots of plots
-    fig, axes = plt.subplots(figsize=(20, 25), nrows=4, ncols=4)
-    fig.suptitle(' Epoch {} batch_idx {}'.format(epoch, batch_idx))
-
-    for k in range(4):  # First 4 items of the batch
-        tt = axes[k, 0].imshow(data_np[batch_idx + k, 0], origin='lower')
-        axes[k, 0].set_title('rhs')
-        axes[k, 0].axis('off')
-        fig.colorbar(tt, ax=axes[k, 0])
-
-        tt = axes[k, 1].imshow(output_np[batch_idx + k, 0], origin='lower')
-        axes[k, 1].set_title('predicted potential')
-        axes[k, 1].axis('off')
-        fig.colorbar(tt, ax=axes[k, 1])
-
-        tt = axes[k, 2].imshow(target_np[batch_idx + k, 0], origin='lower')
-        axes[k, 2].set_title('target potential')
-        axes[k, 2].axis('off')
-        fig.colorbar(tt, ax=axes[k, 2])
-
-        tt = axes[k, 3].imshow(np.abs(target_np[batch_idx + k, 0] - output_np[batch_idx + k, 0]), origin='lower')
-        axes[k, 3].set_title('residual')
-        axes[k, 3].axis('off')
-        fig.colorbar(tt, ax=axes[k, 3])
-    return fig
