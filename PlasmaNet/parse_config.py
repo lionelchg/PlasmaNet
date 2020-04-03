@@ -75,12 +75,6 @@ class ConfigParser:
         self.dy = self.dx
         self.ds = self.dx * self.dy
         self.surface = self.length ** 2
-        # Define nodal volumes
-        self.voln = torch.ones((1, 1, self.size, self.size)) * self.ds
-        self.voln[:, :, 0, :], self.voln[:, :, -1, :], self.voln[:, :, :, 0], self.voln[:, :, :, -1] = \
-            self.ds / 2, self.ds / 2, self.ds / 2, self.ds / 2
-        self.voln[:, :, 0, 0], self.voln[:, :, -1, 0], self.voln[:, :, 0, -1], self.voln[:, :, -1, -1] = \
-            self.ds / 4, self.ds / 4, self.ds / 4, self.ds / 4
 
         # Configure logging module
         setup_logging(self.log_dir)
