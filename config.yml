@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'gauss_64_physNorm'                   # Experience name
+name: 'high_field_64_5channel_1'            # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -28,13 +28,13 @@ globals:                                    # Domain sizes and others, used to c
 arch:
     type: 'MultiSimpleNet'
     args:
-        data_channels: 1
+        data_channels: 5
 
 data_loader:
     type: 'PoissonDataLoader'
     pipe_config: True
     args:
-        data_dir: 'datasets/64x64/rhs/gauss'
+        data_dir: 'datasets/64x64/sliding_gaussian_highfield/'
         batch_size: 128
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
