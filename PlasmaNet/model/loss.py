@@ -35,7 +35,7 @@ class LaplacianLoss(BaseLoss):
         self._require_input_data = True  # Need rhs for computation
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
-        laplacian = lapl(output * target_norm / data_norm, self.dx * self.dx_norm, self.dy * self.dx_norm)
+        laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy)
         return F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
 
 

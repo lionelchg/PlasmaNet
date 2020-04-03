@@ -169,6 +169,7 @@ class Trainer(BaseTrainer):
 def plot(output, target, data, epoch, batch_idx):
     """ Matplotlib plots. """
     # Detach tensors and send them to cpu as numpy
+    colormap = 'RdBu'
     data_np = data.detach().cpu().numpy()
     target_np = target.detach().cpu().numpy()
     output_np = output.detach().cpu().numpy()
@@ -178,22 +179,22 @@ def plot(output, target, data, epoch, batch_idx):
     fig.suptitle(' Epoch {} batch_idx {}'.format(epoch, batch_idx))
 
     for k in range(4):  # First 4 items of the batch
-        tt = axes[k, 0].imshow(data_np[batch_idx + k, 0], origin='lower')
+        tt = axes[k, 0].imshow(data_np[batch_idx + k, 0], origin='lower', cmap=colormap)
         axes[k, 0].set_title('rhs')
         axes[k, 0].axis('off')
         fig.colorbar(tt, ax=axes[k, 0])
 
-        tt = axes[k, 1].imshow(output_np[batch_idx + k, 0], origin='lower')
+        tt = axes[k, 1].imshow(output_np[batch_idx + k, 0], origin='lower', cmap=colormap)
         axes[k, 1].set_title('predicted potential')
         axes[k, 1].axis('off')
         fig.colorbar(tt, ax=axes[k, 1])
 
-        tt = axes[k, 2].imshow(target_np[batch_idx + k, 0], origin='lower')
+        tt = axes[k, 2].imshow(target_np[batch_idx + k, 0], origin='lower', cmap=colormap)
         axes[k, 2].set_title('target potential')
         axes[k, 2].axis('off')
         fig.colorbar(tt, ax=axes[k, 2])
 
-        tt = axes[k, 3].imshow(np.abs(target_np[batch_idx + k, 0] - output_np[batch_idx + k, 0]), origin='lower')
+        tt = axes[k, 3].imshow(np.abs(target_np[batch_idx + k, 0] - output_np[batch_idx + k, 0]), origin='lower', cmap='Blues')
         axes[k, 3].set_title('residual')
         axes[k, 3].axis('off')
         fig.colorbar(tt, ax=axes[k, 3])

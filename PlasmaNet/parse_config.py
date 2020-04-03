@@ -68,7 +68,7 @@ class ConfigParser:
             self.dx_norm = self.length
         else:
             self.dx_norm = 1.0
-        self.dx = self.length / ((self.size - 1) * self.dx_norm)
+        self.dx = self.length / (self.size - 1)
         self.dy = self.dx
         self.ds = self.dx * self.dy
         self.surface = self.length ** 2

@@ -50,6 +50,13 @@ class PoissonDataLoader(BaseDataLoader):
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
             physical_rhs /= self.data_norm
             potential /= self.target_norm
+        elif self.normalize == 'empirical':
+            # Value that is approximately the max of the rhs
+            self.logger.info("Using empiric mormalization")
+            self.data_norm = (torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))) * 2e6
+            self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
+            physical_rhs /= self.data_norm
+            potential /= self.target_norm
         else:
             self.logger.info("No normalization")
             self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))

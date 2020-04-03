@@ -137,12 +137,12 @@ def scalar_rot(field, dx, dy, nx, ny):
 
     # first compute dfield_y / dx
     rotational[:, 1:-1] = (field[1, :, 2:] - field[1, :, :-2]) / (2 * dx)
-    rotational[:, 0] = (4 * field[1, 0, 1] - 3 * field[1, 0, 0] - field[1, 0, 2]) / (2 * dx)
-    rotational[:, -1] = (3 * field[1, 0, -1] - 4 * field[1, 0, -2] + field[1, 0, -3]) / (2 * dx)
+    rotational[:, 0] = (4 * field[1, :, 1] - 3 * field[1, :, 0] - field[1, :, 2]) / (2 * dx)
+    rotational[:, -1] = (3 * field[1, :, -1] - 4 * field[1, :, -2] + field[1, :, -3]) / (2 * dx)
 
     # second compute dfield_x / dy
     rotational[1:-1, :] -= (field[0, 2:, :] - field[0, :-2, :]) / (2 * dy)
-    rotational[0, :] -= (4 * field[0, 1, 0] - 3 * field[0, 0, 0] - field[0, 2, 0]) / (2 * dy)
-    rotational[-1, :] -= (3 * field[0, -1, 0] - 4 * field[0, -2, 0] + field[0, -3, 0]) / (2 * dy)
+    rotational[0, :] -= (4 * field[0, 1, :] - 3 * field[0, 0, :] - field[0, 2, :]) / (2 * dy)
+    rotational[-1, :] -= (3 * field[0, -1, :] - 4 * field[0, -2, :] + field[0, -3, :]) / (2 * dy)
 
     return rotational

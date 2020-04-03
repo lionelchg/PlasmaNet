@@ -23,6 +23,7 @@ from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
 
 # Global variables
 n_points = 64
+n_res = 8
 xmin, xmax = 0, 0.01
 ymin, ymax = 0, 0.01
 dx = (xmax - xmin) / (n_points - 1)
@@ -30,7 +31,7 @@ dy = (ymax - ymin) / (n_points - 1)
 x = np.linspace(xmin, xmax, n_points)
 y = np.linspace(ymin, ymax, n_points)
 
-n_lower = int(n_points / 4)
+n_lower = int(n_points / n_res)
 x_lower, y_lower = np.linspace(xmin, xmax, n_lower), np.linspace(ymin, ymax, n_lower)
 
 L = xmax - xmin
@@ -71,7 +72,7 @@ if __name__ == '__main__':
     n_procs = 36
     chunksize = 10
 
-    nits = 10000
+    nits = 15000
     print('Total number of inputs: %d' % nits)
 
     potential_random = np.zeros((nits, n_points, n_points))
@@ -86,10 +87,10 @@ if __name__ == '__main__':
         potential_random[i, :, :] = pot
         physical_rhs_random[i, :, :] = rhs
         if i % 10 == 0 and plot:
-            plot_fig(X, Y, pot, rhs, name='random/dataset_1/intput_', nit=i)
+            plot_fig(X, Y, pot, rhs, name='datasets/rhs/random_%d_%d/input_' % (n_points, n_res), nit=i, colormap='RdBu')
 
 
     time_stop = time.time()
-    np.save('datasets/rhs/%dx%d/potential_random.npy' % (n_points, n_points), potential_random)
-    np.save('datasets/rhs/%dx%d/physical_rhs_random.npy' % (n_points, n_points), physical_rhs_random)
+    np.save('/home/cfd/cheng/scratch/DL/datasets/rhs/random_%d_%d/potential.npy' % (n_points, n_res), potential_random)
+    np.save('/home/cfd/cheng/scratch/DL/datasets/rhs/random_%d_%d/physical_rhs.npy' % (n_points, n_res), physical_rhs_random)
     print('Elapsed time (s) : %.2e' % (time_stop - time_start))

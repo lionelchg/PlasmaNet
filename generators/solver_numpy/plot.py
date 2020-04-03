@@ -1,9 +1,13 @@
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 
 matplotlib.rcParams['contour.negative_linestyle'] = 'solid'
 default_cmap = 'viridis'  # 'RdBu'
 
+def round_up(n, decimals=0): 
+    multiplier = 10 ** decimals 
+    return np.ceil(n * multiplier) / multiplier
 
 def plot_fig_scalar(X, Y, field, name, fig_name, colormap=default_cmap):
     fig, ax = plt.subplots(figsize=(10, 5))
@@ -28,17 +32,24 @@ def plot_fig_vector(X, Y, field, name, fig_name, colormap=default_cmap):
     plt.close(fig)
 
 
-def plot_fig(X, Y, potential, physical_rhs, name='potential_2D', nit=None, no_rhs=False, colormap=default_cmap):
+def plot_fig(X, Y, potential, physical_rhs, name='potential_2D', nit=None, no_rhs=False, colormap=default_cmap, cbar_centered=True):
     # Plotting the potential
+    levels = 101
     if no_rhs:
-        fig, ax2 = plt.subplots(figsize=(7, 7))
+        fig, ax2 = plt.subplots(figsize=(9, 7))
     else:
+        if cbar_centered: 
+            max_value = round_up(np.max(np.abs(physical_rhs)), decimals=1)
+            levels = np.linspace(-max_value, max_value, 101)
         fig, [ax1, ax2] = plt.subplots(ncols=2, figsize=(14, 7))
-        CS1 = ax1.contourf(X, Y, physical_rhs, 100, cmap=colormap)
+        CS1 = ax1.contourf(X, Y, physical_rhs, levels, cmap=colormap)
         cbar1 = fig.colorbar(CS1, pad=0.05, fraction=0.08, ax=ax1, aspect=5)
         cbar1.ax.set_ylabel(r'$\rho/\epsilon_0$ [V.m$^{-2}$]')
         ax1.set_aspect("equal")
-    CS2 = ax2.contourf(X, Y, potential, 100, cmap=colormap)
+    if cbar_centered: 
+        max_value =  round_up(np.max(np.abs(potential)), decimals=1)
+        levels = np.linspace(-max_value, max_value, 101)
+    CS2 = ax2.contourf(X, Y, potential, levels, cmap=colormap)
     cbar2 = fig.colorbar(CS2, pad=0.05, fraction=0.08, ax=ax2, aspect=5)
     cbar2.ax.set_ylabel('Potential [V]')
     ax2.set_aspect("equal")
