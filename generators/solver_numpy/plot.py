@@ -9,6 +9,21 @@ def round_up(n, decimals=0):
     multiplier = 10 ** decimals 
     return np.ceil(n * multiplier) / multiplier
 
+def plot_fig_list(X, Y, field_list, name_list, fig_name, colormap=default_cmap):
+    n_fields = len(field_list)
+    nfig_x, nfig_y = n_fields * 6, 6
+    fig, axes = plt.subplots(ncols=n_fields, figsize=(nfig_x, nfig_y))
+    for i, field in enumerate(field_list):
+        max_value = round_up(np.max(np.abs(field)), decimals=2)
+        levels = np.linspace(-max_value, max_value, 101)
+        CS = axes[i].contourf(X, Y, field, levels, cmap=colormap)
+        cbar = fig.colorbar(CS, pad=0.05, fraction=0.1, ax=axes[i], aspect=5)
+        axes[i].set_aspect("equal")
+        axes[i].set_title(name_list[i])
+
+    fig.savefig('figures/' + fig_name, bbox_inches='tight')
+    plt.close(fig)
+
 def plot_fig_scalar(X, Y, field, name, fig_name, colormap=default_cmap):
     fig, ax = plt.subplots(figsize=(10, 5))
     CS = ax.contourf(X, Y, field, 100, cmap=colormap)

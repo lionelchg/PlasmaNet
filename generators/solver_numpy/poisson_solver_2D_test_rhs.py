@@ -11,7 +11,7 @@ import scipy.constants as co
 from scipy.sparse.linalg import spsolve
 
 from operators import lapl, grad
-from plot import plot_fig, plot_fig_scalar, plot_vector_arrow
+from plot import plot_fig, plot_fig_scalar, plot_vector_arrow, plot_fig_list
 from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
 
 
@@ -55,4 +55,8 @@ if __name__ == '__main__':
     plot_fig(X, Y, - lapl(potential, dx, dy, n_points, n_points), physical_rhs, name='tests/gauss_comparison_', nit=1)
     plot_fig_scalar(X, Y, abs(lapl(potential, dx, dy, n_points, n_points) + physical_rhs), 'Absolute difference',
                     'tests/gauss_abs_diff')
+    field_energy = co.epsilon_0 / 2 * (electric_field[0]**2 + electric_field[1]**2)
+    potential_energy = physical_rhs * co.epsilon_0 * potential
+    plot_fig_list(X, Y, [field_energy, potential_energy, field_energy - potential_energy],
+     ['Field Energy', 'Potential Energy', 'Difference'], 'tests/gauss_energies')
     plot_vector_arrow(X, Y, electric_field, "Electric field", "tests/gauss_electric_field")
