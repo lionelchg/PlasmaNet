@@ -69,11 +69,11 @@ class PoissonDataLoader(BaseDataLoader):
         if config.channels == 5:
             # Create distance tensors
             #         4
-            #     - - - - -                        
+            #     - - - - -
             #    |         |
             #  1 |         | 3
             #    |         |
-            #     - - - - - 
+            #     - - - - -
             #         2
             assert (physical_rhs.size(1) == 1), "Size must be (batch_size, 1, H, W)"
 
@@ -92,7 +92,7 @@ class PoissonDataLoader(BaseDataLoader):
             # Auxiliary plot
             plot_dataloader_complete(d_1, d_2, d_3, d_4, potential, physical_rhs, x_tensor, y_tensor, config.fig_dir)
 
-            # Final data == concatenation 
+            # Final data == concatenation
             self.data = torch.cat((physical_rhs, d_1, d_2, d_3, d_4), dim=1).type(torch.float32)
 
         else:

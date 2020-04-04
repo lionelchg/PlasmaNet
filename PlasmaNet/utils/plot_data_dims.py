@@ -16,11 +16,11 @@ def plot_dataloader_complete(d_1, d_2, d_3, d_4, potential, physical_rhs, x_tens
 
     - 4 boundary channels, which follow:
                      4
-                 - - - - -                        
+                 - - - - -
                 |         |
               1 |         | 3
                 |         |
-                 - - - - - 
+                 - - - - -
                      2
     - Potential field
     - rhs
