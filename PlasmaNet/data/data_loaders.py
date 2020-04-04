@@ -13,12 +13,15 @@ from torch.utils.data import TensorDataset
 from ..base import BaseDataLoader
 from ..utils import plot_dataloader_complete
 
+
 class PoissonDataLoader(BaseDataLoader):
     """
     Loads a set of charge distribution and the associated potential.
     Automatically shuffles the dataset before the validation split (see BaseDataLoader class).
     """
-    def __init__(self, config, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0, num_workers=1):
+
+    def __init__(self, config, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0,
+                 num_workers=1):
         self.data_dir = Path(data_dir)
         self.logger = config.get_logger('PoissonDataLoader', config['trainer']['verbosity'])
 
@@ -46,7 +49,7 @@ class PoissonDataLoader(BaseDataLoader):
             # If mod(pot0) == 1 the normalization sums up to rhs * L**2
             # where L = physical length of the domain
             self.logger.info("Using physical mormalization")
-            self.data_norm = (torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))) / (self.length**2)
+            self.data_norm = (torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))) / (self.length ** 2)
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
             physical_rhs /= self.data_norm
             potential /= self.target_norm
@@ -78,23 +81,22 @@ class PoissonDataLoader(BaseDataLoader):
             resX = physical_rhs.size(3)
             resY = physical_rhs.size(2)
 
-            x_tensor = torch.arange(resX, dtype=torch.float).view((1,resX)).expand((bsz, 1,resY, resX))
-            y_tensor = torch.arange(resY, dtype=torch.float).view((1,resY,1)).expand((bsz, 1,resY, resX))
+            x_tensor = torch.arange(resX, dtype=torch.float).view((1, resX)).expand((bsz, 1, resY, resX))
+            y_tensor = torch.arange(resY, dtype=torch.float).view((1, resY, 1)).expand((bsz, 1, resY, resX))
 
-            d_1 = (potential[0,0,:,0].expand((bsz, 1,resY, resX))* (resX - x_tensor)/resX).type(torch.float32)
-            d_2 = (potential[0,0,0,:].expand((bsz, 1,resY, resX))* (resY - y_tensor)/resY).type(torch.float32)
-            d_3 = (potential[0,0,:,-1].expand((bsz, 1,resY, resX))*(x_tensor)/resX).type(torch.float32)
-            d_4 = (potential[0,0,-1,:].expand((bsz, 1,resY, resX))*(y_tensor)/resY).type(torch.float32)
+            d_1 = (potential[0, 0, :, 0].expand((bsz, 1, resY, resX)) * (resX - x_tensor) / resX).type(torch.float32)
+            d_2 = (potential[0, 0, 0, :].expand((bsz, 1, resY, resX)) * (resY - y_tensor) / resY).type(torch.float32)
+            d_3 = (potential[0, 0, :, -1].expand((bsz, 1, resY, resX)) * (x_tensor) / resX).type(torch.float32)
+            d_4 = (potential[0, 0, -1, :].expand((bsz, 1, resY, resX)) * (y_tensor) / resY).type(torch.float32)
 
             # Auxiliary plot
-            plot_dataloader_complete(d_1,d_2,d_3,d_4,potential,physical_rhs,x_tensor, y_tensor, config.fig_dir)
+            plot_dataloader_complete(d_1, d_2, d_3, d_4, potential, physical_rhs, x_tensor, y_tensor, config.fig_dir)
 
             # Final data == concatenation 
-            self.data = torch.cat((physical_rhs,d_1,d_2,d_3,d_4),dim=1).type(torch.float32)
+            self.data = torch.cat((physical_rhs, d_1, d_2, d_3, d_4), dim=1).type(torch.float32)
 
         else:
             self.data = physical_rhs
-        
 
         # Create Dataset from Tensor
         self.dataset = TensorDataset(self.data, potential, self.data_norm, self.target_norm)
