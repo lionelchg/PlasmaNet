@@ -8,15 +8,16 @@
 
 import argparse
 import collections
-import torch
+
 import numpy as np
+import torch
+
 import PlasmaNet.data.data_loaders as module_data
 import PlasmaNet.model.loss as module_loss
 import PlasmaNet.model.metric as module_metric
 import PlasmaNet.model.multiscalenet as module_arch
 from PlasmaNet.parse_config import ConfigParser
 from PlasmaNet.trainer import Trainer
-
 
 # Fix random seeds for reproducibility
 torch.manual_seed(0)

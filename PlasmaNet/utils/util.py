@@ -6,11 +6,11 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import yaml
-import pandas as pd
-from pathlib import Path
 from itertools import repeat
-from collections import OrderedDict
+from pathlib import Path
+
+import pandas as pd
+import yaml
 
 
 def read_yaml(fname):

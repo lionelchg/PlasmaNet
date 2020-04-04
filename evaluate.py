@@ -8,15 +8,16 @@
 
 import argparse
 import collections
+
 import torch
 from tqdm import tqdm
-from pathlib import Path
+
 import PlasmaNet.data.data_loaders as module_data
 import PlasmaNet.model.loss as module_loss
 import PlasmaNet.model.metric as module_metric
 import PlasmaNet.model.multiscalenet as module_arch
 from PlasmaNet.parse_config import ConfigParser
-from PlasmaNet.trainer.trainer import plot as plot_residual
+from PlasmaNet.trainer.trainer import plot_batch
 
 
 def main(config):
@@ -62,7 +63,7 @@ def main(config):
             # save sample images, or do something with output here
             #
 
-            fig = plot_residual(output, target, data, 0, i)
+            fig = plot_batch(output, target, data, 0, i)
             fig.savefig(out_dir / 'batch_{:05d}.png'.format(i), dpi=150, bbox_inches='tight')
 
             # Computing loss, metrics on test set

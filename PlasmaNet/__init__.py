@@ -9,10 +9,16 @@ __author__ = 'Guillaume Bogopolsky, Lionel Cheng, Ekhi Ajuria'
 __mail__ = ''
 __version__ = '0.1'
 
-from .model.multiscalenet import MultiSimpleNet
-from .utils import *
-from .operators import *
+from .data import data_loaders
+from .model import loss, metric, multiscalenet
+from .trainer.trainer import Trainer
+from .parse_config import ConfigParser
 
 __ALL__ = [
-    MultiSimpleNet
+    data_loaders,
+    loss,
+    metric,
+    multiscalenet,
+    Trainer,
+    ConfigParser
 ]
