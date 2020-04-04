@@ -199,3 +199,40 @@ def plot(output, target, data, epoch, batch_idx):
         axes[k, 3].axis('off')
         fig.colorbar(tt, ax=axes[k, 3])
     return fig
+
+def round_up(n, decimals=0): 
+    multiplier = 10 ** decimals 
+    return np.ceil(n * multiplier) / multiplier
+
+def plot_ax_scalar(ax, X, Y, field, title, colormap='RdBu'):
+    if colormap == 'RdBu':
+        max_value = round_up(np.max(np.abs(field)), decimals=1)
+        levels = np.linspace(-max_value, max_value, 101)
+    else:
+        levels = 101
+    CS1 = ax.contourf(X, Y, field, levels, cmap=colormap)
+    cbar = fig.colorbar(CS1, pad=0.05, fraction=0.08, ax=ax, aspect=5)
+    ax.set_aspect("equal")
+    ax.set_title(title)
+
+def plot_tmp(output, target, data, epoch, batch_idx, config):
+    """ Matplotlib plots. """
+    # Detach tensors and send them to cpu as numpy
+    data_np = data.detach().cpu().numpy()
+    target_np = target.detach().cpu().numpy()
+    output_np = output.detach().cpu().numpy()
+
+    # Lots of plots
+    fig, axes = plt.subplots(figsize=(20, 25), nrows=4, ncols=4)
+    fig.suptitle(' Epoch {} batch_idx {}'.format(epoch, batch_idx))
+
+    for k in range(4):  # First 4 items of the batch
+        data_tmp = data_np[batch_idx + k, 0]
+        target_tmp = target_np[batch_idx + k, 0]
+        output_tmp = output_np[batch_idx + k, 0]
+        plot_ax_scalar(axes[k, 0], config.X, config.Y, data_tmp, 'Rhs')
+        plot_ax_scalar(axes[k, 1], config.X, config.Y, output_tmp, 'Prediced potential')
+        plot_ax_scalar(axes[k, 1], config.X, config.Y, target_tmp, 'Target potential')
+        plot_ax_scalar(axes[k, 1], config.X, config.Y, np.abs(target_tmp - output_tmp), 'Residual', colormap='Blues')
+        
+    return fig

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 matplotlib.rcParams['contour.negative_linestyle'] = 'solid'
-default_cmap = 'viridis'  # 'RdBu'
+default_cmap = 'RdBu'  # 'RdBu'
 
 def round_up(n, decimals=0): 
     multiplier = 10 ** decimals 
@@ -30,6 +30,19 @@ def plot_fig_vector(X, Y, field, name, fig_name, colormap=default_cmap):
 
     fig.savefig('figures/' + fig_name, bbox_inches='tight')
     plt.close(fig)
+
+def plot_vector_arrow(X, Y, vector_field, name, fig_name, colormap='Blues'):
+    norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
+    arrow_step = 5
+    fig, ax = plt.subplots(figsize=(10, 10))
+    CS = ax.contourf(X, Y, norm_field, 100, cmap=colormap)
+    cbar = fig.colorbar(CS, pad=0.05, fraction=0.05, ax=ax, aspect=5)
+    q = ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
+                vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
+    ax.quiverkey(q, X=0.3, Y=1.1, U=10,
+                 label='Quiver key, length = 10', labelpos='E')
+    ax.set_title(name)
+    plt.savefig('figures/' + fig_name, bbox_inches='tight')
 
 
 def plot_fig(X, Y, potential, physical_rhs, name='potential_2D', nit=None, no_rhs=False, colormap=default_cmap, cbar_centered=True):

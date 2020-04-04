@@ -38,6 +38,21 @@ class LaplacianLoss(BaseLoss):
         laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy)
         return F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
 
+class EnergyLoss(BaseLoss):
+    """ An Energy loss that is minimum for Poisson's equation (Variational approach). """
+    def __init__(self, config, energy_weight, **_):
+        super().__init__()
+        self.weight = energy_weight
+        self.dx = config.dx
+        self.dy = config.dy
+        self.n_inputs = config['globals']['size']**2 * config['data_loader']['args']['batch_size']
+        self._require_input_data = True # Need rhs for computation
+
+    def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
+        elec_output = gradient_scalar(output, self.dx, self.dy)
+        norm_elec_output = (elec_output[:, 0, :, :]**2 + elec_output[:, 1, :, :]**2).unsqueeze(1)
+        return (0.5 * norm_elec_output - output * data) / self.n_inputs * self.weight
+
 
 class ElectricLoss(BaseLoss):
     """ Loss function on the electric field. """

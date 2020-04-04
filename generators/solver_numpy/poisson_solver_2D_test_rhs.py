@@ -10,8 +10,8 @@ import numpy as np
 import scipy.constants as co
 from scipy.sparse.linalg import spsolve
 
-from operators import lapl
-from plot import plot_fig, plot_fig_scalar
+from operators import lapl, grad
+from plot import plot_fig, plot_fig_scalar, plot_vector_arrow
 from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
 
 
@@ -50,7 +50,9 @@ if __name__ == '__main__':
     # Solving the sparse linear system
     potential = spsolve(A, rhs).reshape(n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
-    plot_fig(X, Y, potential, physical_rhs, name='gauss/test_', nit=1)
-    plot_fig(X, Y, - lapl(potential, dx, dy, n_points, n_points), physical_rhs, name='gauss/comparison_', nit=1)
+    electric_field = grad(potential, dx, dy, n_points, n_points)
+    plot_fig(X, Y, potential, physical_rhs, name='tests/gauss_', nit=1)
+    plot_fig(X, Y, - lapl(potential, dx, dy, n_points, n_points), physical_rhs, name='tests/gauss_comparison_', nit=1)
     plot_fig_scalar(X, Y, abs(lapl(potential, dx, dy, n_points, n_points) + physical_rhs), 'Absolute difference',
-                    'gauss/abs_diff')
+                    'tests/gauss_abs_diff')
+    plot_vector_arrow(X, Y, electric_field, "Electric field", "tests/gauss_electric_field")

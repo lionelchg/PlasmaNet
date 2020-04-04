@@ -30,6 +30,19 @@ def plot_fig_vector(X, Y, field, name, fig_name):
 
     plt.savefig('figures/operators/' + fig_name, bbox_inches='tight')
 
+def plot_vector_arrow(X, Y, vector_field, name, fig_name):
+    norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
+    arrow_step = 5
+    fig, ax = plt.subplots(figsize=(10, 10))
+    CS = ax.contourf(X, Y, norm_field, 101)
+    cbar = fig.colorbar(CS, pad=0.05, fraction=0.05, ax=ax, aspect=5)
+    q = ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
+                vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
+    ax.quiverkey(q, X=0.3, Y=1.1, U=10,
+                 label='Quiver key, length = 10', labelpos='E')
+    ax.set_title(name)
+    plt.savefig('figures/operators/' + fig_name, bbox_inches='tight')
+
 
 if __name__ == '__main__':
     xmin, xmax = 0, 1
@@ -91,13 +104,7 @@ if __name__ == '__main__':
     vector_field[0, :] = -Y**2
     vector_field[1, :] = X**2
 
-    arrow_step = 5
-    fig, ax = plt.subplots()
-    q = ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
-                vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
-    ax.quiverkey(q, X=0.3, Y=1.1, U=10,
-                 label='Quiver key, length = 10', labelpos='E')
-    plt.savefig('figures/operators/vector_field_test', bbox_inches='tight')
+    plot_vector_arrow(X, Y, vector_field, "Electric field", 'vector_field_test')
 
     rotational = scalar_rot(vector_field, dx, dy, nx, ny)
     plot_fig_scalar(X, Y, rotational, "Rotational", "rotational_test")
