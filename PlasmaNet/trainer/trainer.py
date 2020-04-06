@@ -82,7 +82,8 @@ class Trainer(BaseTrainer):
                 self.writer.set_step(epoch - 1)
             # Figure output after the 1st batch of each epoch
             if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
-                fig = plot(output, target, data, epoch, batch_idx)
+                # fig = plot(output, target, data, epoch, batch_idx)
+                fig = plot_tmp(output, target, data, epoch, batch_idx, self.config)
                 fig.savefig(self.config.fig_dir / 'train_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
                 self.writer.add_figure('ComparisonWithResiduals', fig)
 
@@ -134,7 +135,8 @@ class Trainer(BaseTrainer):
                     self.writer.set_step(epoch - 1, 'valid')
                 # Figure output after the 1st batch of each epoch
                 if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
-                    fig = plot(output, target, data, epoch, batch_idx)
+                    # fig = plot(output, target, data, epoch, batch_idx)
+                    fig = plot_tmp(output, target, data, epoch, batch_idx, self.config)
                     fig.savefig(self.config.fig_dir / 'valid_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
                     self.writer.add_figure('ComparisonWithResiduals', fig)
 
@@ -166,45 +168,11 @@ class Trainer(BaseTrainer):
         return base.format(current, total, 100.0 * current / total)
 
 
-def plot(output, target, data, epoch, batch_idx):
-    """ Matplotlib plots. """
-    # Detach tensors and send them to cpu as numpy
-    colormap = 'RdBu'
-    data_np = data.detach().cpu().numpy()
-    target_np = target.detach().cpu().numpy()
-    output_np = output.detach().cpu().numpy()
-
-    # Lots of plots
-    fig, axes = plt.subplots(figsize=(20, 25), nrows=4, ncols=4)
-    fig.suptitle(' Epoch {} batch_idx {}'.format(epoch, batch_idx))
-
-    for k in range(4):  # First 4 items of the batch
-        tt = axes[k, 0].imshow(data_np[batch_idx + k, 0], origin='lower', cmap=colormap)
-        axes[k, 0].set_title('rhs')
-        axes[k, 0].axis('off')
-        fig.colorbar(tt, ax=axes[k, 0])
-
-        tt = axes[k, 1].imshow(output_np[batch_idx + k, 0], origin='lower', cmap=colormap)
-        axes[k, 1].set_title('predicted potential')
-        axes[k, 1].axis('off')
-        fig.colorbar(tt, ax=axes[k, 1])
-
-        tt = axes[k, 2].imshow(target_np[batch_idx + k, 0], origin='lower', cmap=colormap)
-        axes[k, 2].set_title('target potential')
-        axes[k, 2].axis('off')
-        fig.colorbar(tt, ax=axes[k, 2])
-
-        tt = axes[k, 3].imshow(np.abs(target_np[batch_idx + k, 0] - output_np[batch_idx + k, 0]), origin='lower', cmap='Blues')
-        axes[k, 3].set_title('residual')
-        axes[k, 3].axis('off')
-        fig.colorbar(tt, ax=axes[k, 3])
-    return fig
-
 def round_up(n, decimals=0): 
     multiplier = 10 ** decimals 
     return np.ceil(n * multiplier) / multiplier
 
-def plot_ax_scalar(ax, X, Y, field, title, colormap='RdBu'):
+def plot_ax_scalar(fig, ax, X, Y, field, title, colormap='RdBu'):
     if colormap == 'RdBu':
         max_value = round_up(np.max(np.abs(field)), decimals=1)
         levels = np.linspace(-max_value, max_value, 101)
@@ -230,9 +198,9 @@ def plot_tmp(output, target, data, epoch, batch_idx, config):
         data_tmp = data_np[batch_idx + k, 0]
         target_tmp = target_np[batch_idx + k, 0]
         output_tmp = output_np[batch_idx + k, 0]
-        plot_ax_scalar(axes[k, 0], config.X, config.Y, data_tmp, 'Rhs')
-        plot_ax_scalar(axes[k, 1], config.X, config.Y, output_tmp, 'Prediced potential')
-        plot_ax_scalar(axes[k, 1], config.X, config.Y, target_tmp, 'Target potential')
-        plot_ax_scalar(axes[k, 1], config.X, config.Y, np.abs(target_tmp - output_tmp), 'Residual', colormap='Blues')
-        
+        plot_ax_scalar(fig, axes[k, 0], config.X, config.Y, data_tmp, 'Rhs')
+        plot_ax_scalar(fig, axes[k, 1], config.X, config.Y, output_tmp, 'Prediced potential')
+        plot_ax_scalar(fig, axes[k, 2], config.X, config.Y, target_tmp, 'Target potential')
+        plot_ax_scalar(fig, axes[k, 3], config.X, config.Y, np.abs(target_tmp - output_tmp), 'Residual', colormap='Blues')
+
     return fig

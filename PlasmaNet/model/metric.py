@@ -23,7 +23,7 @@ def l2_norm(output, target, config):
     batch_size = config['data_loader']['args']['batch_size']
     n_x = config['globals']['size']
     with torch.no_grad():
-        res = torch.sqrt(torch.sum((output - target) ** 2) / n_x**2 / batch_size)
+        res = torch.sqrt(torch.sum((output - target) ** 2)) / n_x**2 / batch_size
     return res
 
 

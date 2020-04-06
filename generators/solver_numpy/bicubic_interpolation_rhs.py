@@ -14,7 +14,7 @@ from scipy.sparse.linalg import spsolve
 
 from operators import lapl
 from plot import plot_fig, plot_fig_scalar
-from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
+from poisson_2D_FD import laplace_square_matrix, dirichlet_bc
 
 colormap = 'RdBu'
 
