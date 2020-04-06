@@ -19,6 +19,7 @@ import PlasmaNet.model.multiscalenet as module_arch
 from PlasmaNet.parse_config import ConfigParser
 from PlasmaNet.trainer import Trainer
 
+
 # Fix random seeds for reproducibility
 torch.manual_seed(0)
 torch.backends.cudnn.deterministic = True
@@ -53,7 +54,10 @@ def main(config):
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
 
-    lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer)
+    if config['lr_scheduler'] != 'off':
+        lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer)
+    else:
+        lr_scheduler = None
 
     trainer = Trainer(model, criterion, metrics, optimizer,
                       config=config,

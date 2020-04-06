@@ -96,11 +96,12 @@ class Trainer(BaseTrainer):
             val_log = self._valid_epoch(epoch)
             log.update(**{'val_' + k: v for k, v in val_log.items()})
 
-        if self.lr_scheduler is not None and 'ReduceLROnPlateau' in str(self.lr_scheduler.__class__):
-            # ReduceLROnPlateau needs a metric for each step
-            self.lr_scheduler.step(log[self.config['lr_scheduler']['plateau_metric']])
-        else:
-            self.lr_scheduler.step()
+        if self.lr_scheduler is not None:
+            if 'ReduceLROnPlateau' in str(self.lr_scheduler.__class__):
+                # ReduceLROnPlateau needs a metric for each step
+                self.lr_scheduler.step(log[self.config['lr_scheduler']['plateau_metric']])
+            else:
+                self.lr_scheduler.step()
 
         return log
 
