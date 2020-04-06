@@ -70,6 +70,7 @@ metrics:
 
 lr_scheduler:
     type: 'ReduceLROnPlateau'
+    plateau_metric: loss                    # monitoring metric for ReduceLROnPlateau step()
     args:
         mode: 'min'
         factor: 0.99                        # Amount scheduler reduces LR by (float)

@@ -77,8 +77,8 @@ if __name__ == '__main__':
     # Custom CLI options to modify configuration from default values given in yaml file
     CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
     options = [
-        CustomArgs(['--lr', '--learning_rate'], type=float, target='optimizer;args;lr'),
-        CustomArgs(['--bs', '--batch_size'], type=int, target='data_loader;args;batch_size')
+        CustomArgs(['-lr', '--learning_rate'], type=float, target='optimizer;args;lr'),
+        CustomArgs(['-bs', '--batch_size'], type=int, target='data_loader;args;batch_size')
     ]
     config = ConfigParser.from_args(args, options)
     main(config)

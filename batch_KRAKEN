@@ -8,4 +8,4 @@
 
 source /scratch/cfd/bogopolsky/DL/dl_env/bin/activate
 
-/scratch/cfd/bogopolsky/DL/dl_env/bin/python train.py -c config.yml
+python train.py -c config.yml
