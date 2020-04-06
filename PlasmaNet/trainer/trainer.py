@@ -80,24 +80,14 @@ class Trainer(BaseTrainer):
                 self.writer.set_step(epoch - 1)
             # Figure output after the 1st batch of each epoch
             if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
-                fig = plot_batch(output, target, data, epoch, batch_idx)
-                fig2 = plot_distrib(output, target, epoch, batch_idx)
-                fig.savefig(self.config.fig_dir / 'train_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
-                fig2.savefig(self.config.fig_dir / 'train_distrib_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
-                self.writer.add_figure('ComparisonWithResiduals', fig)
+                self._batch_plots(output, target, data, epoch, batch_idx)
 
             if batch_idx == self.len_epoch:  # Break iteration-based training
                 break
 
         # Extract averages and send TensorBoard
         log = self.train_metrics.result()
-        for key, value in log.items():
-            if key in self.criterion.loss_list:
-                self.writer.add_scalar('ComposedLosses/' + key, value)
-            elif key in [metric.__name__ for metric in self.metric_ftns]:
-                self.writer.add_scalar('Metrics/' + key, value)
-            else:
-                self.writer.add_scalar(key, value)
+        self._send_log_to_tb(log)
 
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
@@ -137,11 +127,7 @@ class Trainer(BaseTrainer):
                     self.writer.set_step(epoch - 1, 'valid')
                 # Figure output after the 1st batch of each epoch
                 if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
-                    fig = plot_batch(output, target, data, epoch, batch_idx)
-                    fig2 = plot_distrib(output, target, epoch, batch_idx)
-                    fig.savefig(self.config.fig_dir / 'valid_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
-                    fig2.savefig(self.config.fig_dir / 'valid_distrib_{:05d}'.format(epoch), dpi=150, bbox_inches='tight')
-                    self.writer.add_figure('ComparisonWithResiduals', fig)
+                    self._batch_plots(output, target, data, epoch, batch_idx, 'valid')
 
         # Add histogram of model parameters to the TensorBoard
         for name, p in self.model.named_parameters():
@@ -149,15 +135,32 @@ class Trainer(BaseTrainer):
 
         # Extract averages and send to TensorBoard
         val_log = self.valid_metrics.result()
-        for key, value in val_log.items():
+        self._send_log_to_tb(val_log)
+
+        return val_log
+
+    def _batch_plots(self, output, target, data, epoch, batch_idx, mode='train'):
+        """ Plots to realise during training and validation loops. File and TensorBoard output. """
+        # Plot input, target, output and residual
+        fig = plot_batch(output, target, data, epoch, batch_idx)
+        fig.savefig(self.config.fig_dir / '{}_{:05d}.png'.format(mode, epoch), dpi=150, bbox_inches='tight')
+        self.writer.add_figure('ComparisonWithResiduals', fig)
+        # Plot output vs target distribution
+        fig = plot_distrib(output, target, epoch, batch_idx)
+        fig.savefig(self.config.fig_dir / '{}_distrib_{:05d}.png'.format(mode, epoch), dpi=150, bbox_inches='tight')
+        self.writer.add_figure('OutputTargetDistribution', fig)
+
+    def _send_log_to_tb(self, log):
+        """ Send log to TensorBoard. """
+        # Adding train or valid to tag is managed by the TensorboardWriter class based on the last set_step() specified
+        # mode ('train' by default, or 'valid')
+        for key, value in log.items():
             if key in self.criterion.loss_list:
                 self.writer.add_scalar('ComposedLosses/' + key, value)
             elif key in [metric.__name__ for metric in self.metric_ftns]:
                 self.writer.add_scalar('Metrics/' + key, value)
             else:
                 self.writer.add_scalar(key, value)
-
-        return val_log
 
     def _progress(self, batch_idx):
         """ A simple progress meter. """
