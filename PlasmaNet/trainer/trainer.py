@@ -87,6 +87,9 @@ class Trainer(BaseTrainer):
 
         # Extract averages and send TensorBoard
         log = self.train_metrics.result()
+        # Add current learning rate to log
+        for group in self.optimizer.param_groups:
+            log['LearningRate'] = group['lr']
         self._send_log_to_tb(log)
 
         if self.do_validation:
