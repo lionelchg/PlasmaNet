@@ -50,11 +50,11 @@ class _ConvBlock2(nn.Module):
     Optional dropout before the final Conv2d layer.
     ReLU after the first two Conv2d layers, LeakyReLU(0.1) at the third and nothing after the last - predictions can be positive or negative.
     """
-    def __init__(self, channels1, channels2, channels3, out_channels, dropout=False):
+    def __init__(self, init, channels1, channels2, channels3, out_channels, dropout=False):
         super(_ConvBlock2, self).__init__()
         layers = [
             nn.ReplicationPad2d(1),
-            nn.Conv2d(1, channels1, kernel_size=3, padding=0),
+            nn.Conv2d(init, channels1, kernel_size=3, padding=0),
             nn.ReLU(inplace=True),
             nn.ReplicationPad2d(1),
             nn.Conv2d(channels1,channels2, kernel_size=3, padding=0),
@@ -90,13 +90,20 @@ class DirichletNet(BaseModel):
         super(DirichletNet, self).__init__()
         self.conv_2 = _ConvBlock1(32, 64, 128, 64)
         self.conv_1 = _ConvBlock2(1, 16, 32, 16, 1)
+        self.conv_3 = _ConvBlock2(data_channels, 16, 32, 16, 1)
+        self.data_channels = data_channels
+
 
     def forward(self, x):
 
-        assert x.size(1) == 1 and x.size(2) == 1, "Input array does not have the size (bsz,1,1,N)"
-        N = x.size(3)
-        conv_2_out = self.conv_2(x[:,:,0,:]).transpose(1,2).unsqueeze(1)
-        final_input = F.interpolate(conv_2_out, size=[N,N], mode='bilinear', align_corners=False)
-        final_out = self.conv_1(final_input)
+        if self.data_channels == 2:
+            assert x.size(1) == 2, "Input array does not have the size (bsz,2,N,N)"
+            final_out = self.conv_3(x)
+        else:
+            assert x.size(1) == 1 and x.size(2) == 1, "Input array does not have the size (bsz,1,1,N)"
+            N = x.size(3)
+            conv_2_out = self.conv_2(x[:,:,0,:]).transpose(1,2).unsqueeze(1)
+            final_input = F.interpolate(conv_2_out, size=[N,N], mode='bilinear', align_corners=False)
+            final_out = self.conv_1(final_input)
 
         return final_out

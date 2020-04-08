@@ -65,7 +65,7 @@ class ConfigParser:
         # Declare global parameters attributes
         self.size = self.config['globals']['size']
         self.length = self.config['globals']['length']
-        self.channels = 1
+        self.channels = self.config['arch']['args']['data_channels']
         # dx and dy change depending on normalization
         self.normalization = self.config['data_loader']['args']['normalize']
         if self.normalization == 'physical':
