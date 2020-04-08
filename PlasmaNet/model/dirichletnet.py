@@ -90,8 +90,7 @@ class DirichletNet(BaseModel):
 
         assert x.size(1) == 1 and x.size(2) == 1, "Input array does not have the size (bsz,1,1,N)"
         N = x.size(3)
-
-        conv_2_out = self.conv_2(x[:,:,0,:]).unsqueeze(1)
+        conv_2_out = self.conv_2(x[:,:,0,:]).transpose(1,2).unsqueeze(1)
         final_input = F.interpolate(conv_2_out, size=[N,N], mode='bilinear', align_corners=False)
         final_out = self.conv_1(final_input)
 

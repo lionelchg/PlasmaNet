@@ -61,7 +61,6 @@ def main(config):
 
 
     if config['trainer']['type'] == 'TrainerDirichlet':
-        print("dirichletnettrainer ")
         trainer = TrainerDirichlet(model, criterion, metrics, optimizer,
                       config=config,
                       data_loader=data_loader,

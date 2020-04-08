@@ -118,14 +118,11 @@ class DirichletDataLoader(BaseDataLoader):
 
         # Load numpy file of shape (batch_size, H, W) 
         potential = np.load(self.data_dir / 'potential.npy')
-
-        # Convert to torch.Tensor of shape (batch_size, 1, H, W)
+        potential_boundary = np.load(self.data_dir / 'potential_boundary.npy')
+ 
+        # Convert to torch.Tensor of shape (batch_size, 1, H, W) and (batch_size, 1, 1, W) respectively
         potential = torch.from_numpy(potential[:, np.newaxis, :, :])
-        bsz  = potential.size(0)
-        resX = potential.size(3)
-        resY = potential.size(2)
-
-        BC_in = (potential[:, 0, :, 0].unsqueeze(1).unsqueeze(1)).type(torch.float32)
+        BC_in = torch.from_numpy(potential_boundary[:, np.newaxis, np.newaxis, :]).type(torch.float32)
         
         # Normalization and length
         self.normalize = normalize
