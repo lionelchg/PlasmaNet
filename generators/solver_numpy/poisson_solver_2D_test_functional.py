@@ -30,6 +30,10 @@ def cosine_hill(x, y, amplitude, x0, L, power):
     r = np.sqrt((x - x0)**2 + (y - x0)**2)
     return amplitude * (np.cos(2 * np.pi / L * r))
 
+def torch_cosine_hill(x, y, x0, L):
+    r = torch.sqrt((x - x0)**2 + (y - x0)**2)
+    return torch.cos(2 * np.pi / L * r)
+
 if __name__ == '__main__':
     fig_dir = 'functional/'
     n_points = 128
@@ -113,58 +117,103 @@ if __name__ == '__main__':
     # plt.savefig('figures/' + fig_dir + '1D_cut_gausscos', bbox_inches='tight')
 
 
-    # # Map the 2D energy functional
-    # ampl_potential_range = np.linspace(140, 170, 31)
-    # sigma_pot_range = np.linspace(2e-3, 4e-3, 21)  
-    # # print(ampl_potential_range)
-    # # print(sigma_pot_range) 
-    # count = 0
-    # list_energy = []
-    # for ampl_potential in ampl_potential_range:
-    #     for sigma_pot in sigma_pot_range:
-    #         potential = gaussian(X, Y, ampl_potential, x0, y0, sigma_pot, sigma_pot) * cosine_hill(X, Y, 1, x0, 2 * L, 1)
-    #         electric_field = grad(potential, dx, dy, n_points, n_points)
-    #         functional_energy = func_energy(potential, electric_field, physical_rhs, voln)
-    #         list_energy.append([ampl_potential, sigma_pot, functional_energy])
-    #         print('A = %.2e, sigma = %.2e - energy = %.4e' % (ampl_potential, sigma_pot, functional_energy))
-    #         count += 1
-    # energy_2D = np.array(list_energy)
+    # Map the 2D energy functional
+    ampl_potential_range = np.linspace(140, 170, 31)
+    sigma_pot_range = np.linspace(1e-3, 5e-3, 41)  
+    # print(ampl_potential_range)
+    # print(sigma_pot_range) 
+    count = 0
+    list_energy = []
+    for ampl_potential in ampl_potential_range:
+        for sigma_pot in sigma_pot_range:
+            potential = gaussian(X, Y, ampl_potential, x0, y0, sigma_pot, sigma_pot) * cosine_hill(X, Y, 1, x0, 2 * L, 1)
+            electric_field = grad(potential, dx, dy, n_points, n_points)
+            electric_field_norm = np.sqrt(electric_field[0]**2 + electric_field[1]**2)
+            functional_energy = func_energy(potential, electric_field, physical_rhs, voln)
+            mse_loss = np.sum((potential - potential_target)**2) / n_points**2
+            interior_diff = lapl_diff(potential, physical_rhs, dx, dy, n_points, n_points)
+            lapl_loss = np.sum(interior_diff**2) / n_points**2
+            elec_loss = np.sum((electric_field_norm - electric_field_norm_target)**2) / n_points**2
+            list_energy.append([ampl_potential, sigma_pot, functional_energy, mse_loss, lapl_loss, elec_loss])
+            # print('A = %.2e, sigma = %.2e - energy = %.4e' % (ampl_potential, sigma_pot, functional_energy))
+            count += 1
+    energy_2D = np.array(list_energy)
 
-    # index_min = np.argmin(energy_2D[:, 2])
-    # # print(energy_2D[index_min, :])
-    # print('Min A = %.2e, sigma = %.2e - energy = %.4e' % (energy_2D[index_min, 0], energy_2D[index_min, 1], energy_2D[index_min, 2]))
-    # fig = plt.figure(figsize=(8, 8))
-    # ax = fig.add_subplot(111, projection='3d')
+    loss_list = ['Energy func', 'Points', 'Lapl', 'Elec']
+    index_min_list = [np.argmin(energy_2D[:, 2]), np.argmin(energy_2D[:, 3]), np.argmin(energy_2D[:, 4]), np.argmin(energy_2D[:, 5])]
+    for i in range(4):
+        loss = loss_list[i]
+        index_min = index_min_list[i]
+        print('%s A = %.2e, sigma = %.2e - energy = %.4e - points_loss = %.4e - lapl_loss = %.4e - elec_loss = %.4e' 
+            % (loss, energy_2D[index_min, 0], energy_2D[index_min, 1], energy_2D[index_min, 2], energy_2D[index_min, 3], 
+                energy_2D[index_min, 4], energy_2D[index_min, 5]))
 
-    # ax.scatter(energy_2D[:, 0], energy_2D[:, 1], energy_2D[:, 2])
-    # ax.set_xlabel('Amplitude')
-    # ax.set_ylabel('Sigma')
-    # ax.set_zlabel('Energy')
-    # plt.savefig('figures/' + fig_dir + '2D_energy', bbox_inches='tight')
-    # plt.show()
 
-    #Conversion to torch tensors
-    physical_rhs = torch.from_numpy(physical_rhs)
-    X, Y, voln = torch.from_numpy(X), torch.from_numpy(Y), torch.from_numpy(voln)
+    # # Try iteration to see the best fitting gaussian
+    # fig, axes = plt.subplots(ncols=2, figsize=(10, 7))
+    # axes[0].plot(x, potential_target[int(n_points / 2), :], label='True potential')
+    # axes[1].plot(x, electric_field_norm_target[int(n_points / 2), :], label='True E_field')
+    # axes[0].plot(x, potential[int(n_points / 2), :])
+    # axes[0].legend()
+    # axes[1].plot(x, electric_field_norm[int(n_points / 2), :])
+    # axes[1].legend()
+    # plt.suptitle('A = %.2e, sigma = %.2e, E = %.4e' %(ampl_potential, sigma_pot, functional_energy))
+    # plt.savefig('figures/' + fig_dir + '1D_cut_gausscos', bbox_inches='tight')
+    
+    
+    fig = plt.figure(figsize=(14, 14))
+    ax = fig.add_subplot(221, projection='3d')
 
-    ampl_potential = torch.tensor([160])
-    sigma_pot = torch.tensor([2e-3])
-    eta = 1e-7
-    for i in range(5):
-        print('Step %d' % (i + 1))
-        v = torch.tensor([ampl_potential, sigma_pot], requires_grad=True)
-        potential = torch_gaussian(X, Y, v)
-        potential[:, 0], potential[0, :], potential[:, -1], potential[-1, :] = 0, 0, 0 ,0
-        electric_field = optorch.grad(potential, dx, dy, n_points, n_points)
-        functional_energy = func_energy_torch(potential, electric_field, physical_rhs, voln)
-        functional_energy.backward()
-        print(potential.grad_fn)
-        print(electric_field.grad_fn)
-        print(functional_energy.grad_fn)
-        print(v.grad[0])
-        print(v.grad[1])
-        print('A = %.2e, sigma = %.2e I(phi) = %.4e' % (ampl_potential, sigma_pot, functional_energy))
-        v = v - eta * v.grad
-        ampl_potential -= eta * v.grad[0]
-        sigma_pot -= eta * v.grad[1]
+    ax.scatter(energy_2D[:, 0], energy_2D[:, 1], energy_2D[:, 2])
+    ax.set_xlabel('Amplitude')
+    ax.set_ylabel('Sigma')
+    ax.set_zlabel('Energy')
+    ax.set_title('Energy functional')
+
+    ax = fig.add_subplot(222, projection='3d')
+
+    ax.scatter(energy_2D[:, 0], energy_2D[:, 1], energy_2D[:, 3])
+    ax.set_xlabel('Amplitude')
+    ax.set_ylabel('Sigma')
+    ax.set_zlabel('Points Loss')
+    ax.set_title('Points Loss')
+
+    ax = fig.add_subplot(223, projection='3d')
+
+    ax.scatter(energy_2D[:, 0], energy_2D[:, 1], energy_2D[:, 4])
+    ax.set_xlabel('Amplitude')
+    ax.set_ylabel('Sigma')
+    ax.set_zlabel('Lapl Loss')
+    ax.set_title('Laplacian Loss')
+
+    ax = fig.add_subplot(224, projection='3d')
+
+    ax.scatter(energy_2D[:, 0], energy_2D[:, 1], energy_2D[:, 5])
+    ax.set_xlabel('Amplitude')
+    ax.set_ylabel('Sigma')
+    ax.set_zlabel('Elec Loss')
+    ax.set_title('Electric Loss')
+
+    plt.savefig('figures/' + fig_dir + '2D_losses', bbox_inches='tight')
+
+    # #Conversion to torch tensors
+    # physical_rhs = torch.from_numpy(physical_rhs)
+    # X, Y, voln = torch.from_numpy(X), torch.from_numpy(Y), torch.from_numpy(voln)
+
+    # ampl_potential = 160
+    # sigma_pot = 2e-3
+    # eta = 1e-7
+    # for i in range(5):
+    #     print('Step %d' % (i + 1))
+    #     v = torch.tensor([ampl_potential, sigma_pot], requires_grad=True)
+    #     potential = torch_gaussian(X, Y, v) * torch_cosine_hill(X, Y, x0, 2 * L)
+    #     electric_field = optorch.grad(potential, dx, dy, n_points, n_points)
+    #     functional_energy = func_energy_torch(potential, electric_field, physical_rhs, voln)
+    #     functional_energy.backward()
+    #     print(potential.grad_fn)
+    #     print(electric_field.grad_fn)
+    #     print(functional_energy.grad_fn)
+    #     print('A = %.2e, sigma = %.2e I(phi) = %.4e' % (ampl_potential, sigma_pot, functional_energy))
+    #     ampl_potential -= eta * v.grad.data[0]
+    #     sigma_pot -= eta * v.grad.data[1]
 

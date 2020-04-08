@@ -28,7 +28,7 @@ def l2_norm(output, target, config):
 def inf_norm(output, target, config):
     """ Computes the infinity norm of the residual of the current batch. """
     with torch.no_grad():
-        res = torch.max(torch.abs(output - target)) * config.ds / config.surface
+        res = torch.max(torch.abs(output - target))
     return res
 
 
