@@ -45,7 +45,8 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, colormap='RdBu'):
         levels = 101
     cs1 = ax.contourf(X, Y, field, levels, cmap=colormap)
     fig.colorbar(cs1, ax=ax)
-    ax.set_aspect("equal")
+    ax.set_aspect('equal')
+    ax.axis('off')
     ax.set_title(title)
 
 

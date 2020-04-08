@@ -49,7 +49,7 @@ class EnergyLoss(BaseLoss):
         self.dx = config.dx
         self.dy = config.dy
         self.n_inputs = config.size ** 2 * config.batch_size
-        self._require_input_data = True # Need rhs for computation
+        self._require_input_data = True  # Need rhs for computation
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         elec_output = gradient_scalar(output, self.dx, self.dy)
