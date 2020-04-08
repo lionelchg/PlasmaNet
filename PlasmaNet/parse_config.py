@@ -62,12 +62,14 @@ class ConfigParser:
         # Save updated config file to the checkpoint directory
         write_yaml(self.config, self.save_dir / 'config.yml')
 
-        # Declare global parameters attributes
+        # Declare global runtime parameters attributes
         self.size = self.config['globals']['size']
         self.length = self.config['globals']['length']
+        self.batch_size = self.config['data_loader']['args']['batch_size']
         self.channels = self.config['arch']['args']['data_channels']
-        # dx and dy change depending on normalization
         self.normalization = self.config['data_loader']['args']['normalize']
+
+        # Declare global physical parameters attributes
         self.dx = self.length / (self.size - 1)
         self.dy = self.dx
         self.ds = self.dx * self.dy

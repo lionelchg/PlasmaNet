@@ -48,15 +48,15 @@ class EnergyLoss(BaseLoss):
         self.weight = energy_weight
         self.dx = config.dx
         self.dy = config.dy
-        self.n_inputs = config['globals']['size']**2 * config['data_loader']['args']['batch_size']
+        self.n_inputs = config.size ** 2 * config.batch_size
         self._require_input_data = True # Need rhs for computation
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         elec_output = gradient_scalar(output, self.dx, self.dy)
-        norm_elec_output = (elec_output[:, 0, :, :]**2 + elec_output[:, 1, :, :]**2).unsqueeze(1)
+        norm_elec_output = (elec_output[:, 0, :, :] ** 2 + elec_output[:, 1, :, :] ** 2).unsqueeze(1)
         energy_output = (0.5 * norm_elec_output - output * data)
         elec_target = gradient_scalar(target, self.dx, self.dy)
-        norm_elec_target = (elec_target[:, 0, :, :]**2 + elec_target[:, 1, :, :]**2).unsqueeze(1)
+        norm_elec_target = (elec_target[:, 0, :, :] ** 2 + elec_target[:, 1, :, :] ** 2).unsqueeze(1)
         energy_target = (0.5 * norm_elec_target - target * data)
         return co.epsilon_0 * torch.sum(energy_output - energy_target) / self.n_inputs * self.weight
         # return co.epsilon_0 * F.mse_loss(energy_output, energy_target) * self.weight

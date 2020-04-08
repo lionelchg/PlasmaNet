@@ -13,7 +13,7 @@ import numpy as np
 matplotlib.use('Agg')
 
 
-def plot_batch(output, target, data, epoch, batch_idx):
+def plot_batch(output, target, data, epoch, batch_idx, config):
     """ Matplotlib plots. """
     # Detach tensors and send them to cpu as numpy
     data_np = data.detach().cpu().numpy()
@@ -22,29 +22,36 @@ def plot_batch(output, target, data, epoch, batch_idx):
 
     # Lots of plots
     fig, axes = plt.subplots(figsize=(20, 16), nrows=4, ncols=4)
-    fig.suptitle(f'Epoch {epoch} batch {batch_idx}', fontsize=16, y=0.95)
+    fig.suptitle('Epoch {} batch {}'.format(epoch, batch_idx), fontsize=16, y=0.95)
 
     for k in range(4):  # First 4 items of the batch
-        tt = axes[k, 0].imshow(data_np[batch_idx + k, 0], origin='lower')
-        axes[k, 0].set_title('rhs')
-        axes[k, 0].axis('off')
-        fig.colorbar(tt, ax=axes[k, 0])
+        data_tmp = data_np[batch_idx + k, 0]
+        target_tmp = target_np[batch_idx + k, 0]
+        output_tmp = output_np[batch_idx + k, 0]
+        plot_ax_scalar(fig, axes[k, 0], config.X, config.Y, data_tmp, 'rhs')
+        plot_ax_scalar(fig, axes[k, 1], config.X, config.Y, output_tmp, 'predicted potential')
+        plot_ax_scalar(fig, axes[k, 2], config.X, config.Y, target_tmp, 'target potential')
+        plot_ax_scalar(fig, axes[k, 3], config.X, config.Y, np.abs(target_tmp - output_tmp), 'residual',
+                       colormap='Blues')
 
-        tt = axes[k, 1].imshow(output_np[batch_idx + k, 0], origin='lower')
-        axes[k, 1].set_title('predicted potential')
-        axes[k, 1].axis('off')
-        fig.colorbar(tt, ax=axes[k, 1])
-
-        tt = axes[k, 2].imshow(target_np[batch_idx + k, 0], origin='lower')
-        axes[k, 2].set_title('target potential')
-        axes[k, 2].axis('off')
-        fig.colorbar(tt, ax=axes[k, 2])
-
-        tt = axes[k, 3].imshow(np.abs(target_np[batch_idx + k, 0] - output_np[batch_idx + k, 0]), origin='lower')
-        axes[k, 3].set_title('residual')
-        axes[k, 3].axis('off')
-        fig.colorbar(tt, ax=axes[k, 3])
     return fig
+
+
+def plot_ax_scalar(fig, ax, X, Y, field, title, colormap='RdBu'):
+    if colormap == 'RdBu':
+        max_value = round_up(np.max(np.abs(field)), decimals=1)
+        levels = np.linspace(- max_value, max_value, 101)
+    else:
+        levels = 101
+    cs1 = ax.contourf(X, Y, field, levels, cmap=colormap)
+    fig.colorbar(cs1, ax=ax)
+    ax.set_aspect("equal")
+    ax.set_title(title)
+
+
+def round_up(n, decimals=0):
+    multiplier = 10 ** decimals
+    return np.ceil(n * multiplier) / multiplier
 
 
 def plot_distrib(output, target, epoch, batch_idx):
