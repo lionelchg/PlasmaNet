@@ -93,10 +93,10 @@ class PoissonDataLoader(BaseDataLoader):
             x_tensor = torch.arange(resX, dtype=torch.float).view((1, resX)).expand((bsz, 1, resY, resX))
             y_tensor = torch.arange(resY, dtype=torch.float).view((1, resY, 1)).expand((bsz, 1, resY, resX))
 
-            d_1 = (potential[0, 0, :, 0].expand((bsz, 1, resY, resX)) * (resX - x_tensor) / resX).type(torch.float32)
-            d_2 = (potential[0, 0, 0, :].expand((bsz, 1, resY, resX)) * (resY - y_tensor) / resY).type(torch.float32)
-            d_3 = (potential[0, 0, :, -1].expand((bsz, 1, resY, resX)) * (x_tensor) / resX).type(torch.float32)
-            d_4 = (potential[0, 0, -1, :].expand((bsz, 1, resY, resX)) * (y_tensor) / resY).type(torch.float32)
+            d_1 = (potential[:, :, :, 0].unsqueeze(3).expand((bsz, 1, resY, resX)) * (resX - x_tensor) / resX).type(torch.float32)
+            d_2 = (potential[:, :, 0, :].unsqueeze(2).expand((bsz, 1, resY, resX)) * (resY - y_tensor) / resY).type(torch.float32)
+            d_3 = (potential[:, :, :, -1].unsqueeze(3).expand((bsz, 1, resY, resX)) * (x_tensor) / resX).type(torch.float32)
+            d_4 = (potential[:, :, -1, :].unsqueeze(2).expand((bsz, 1, resY, resX)) * (y_tensor) / resY).type(torch.float32)
 
             # Auxiliary plot
             plot_dataloader_complete(d_1, d_2, d_3, d_4, potential, physical_rhs, x_tensor, y_tensor, config.fig_dir)
