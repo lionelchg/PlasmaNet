@@ -160,7 +160,7 @@ if __name__ == '__main__':
     for i, (pot, rhs) in tqdm(enumerate(results_train), total=nit_gauss, desc='Save gauss'):
         potential_gauss[i, :, :] = pot
         physical_rhs_gauss[i, :, :] = rhs
-        if plot and i % 10 == 0 :
+        if plot and i % 10 == 0:
             plot_fig(X, Y, pot, rhs, name='datasets/rhs/gauss/input_', nit=i)
 
     for i, (pot, rhs) in tqdm(enumerate(results_val), total=nit_coshill, desc='Save coshill'):
