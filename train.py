@@ -17,7 +17,7 @@ import PlasmaNet.model.loss as module_loss
 import PlasmaNet.model.metric as module_metric
 import PlasmaNet.model.dirichletnet as module_arch
 from PlasmaNet.parse_config import ConfigParser
-from PlasmaNet.trainer import Trainer, TrainerDirichlet
+from PlasmaNet.trainer import Trainer
 
 
 # Fix random seeds for reproducibility
@@ -59,19 +59,11 @@ def main(config):
     else:
         lr_scheduler = None
 
-
-    if config['trainer']['type'] == 'TrainerDirichlet':
-        trainer = TrainerDirichlet(model, criterion, metrics, optimizer,
-                      config=config,
-                      data_loader=data_loader,
-                      valid_data_loader=valid_data_loader,
-                      lr_scheduler=lr_scheduler)
-    else:
-        trainer = Trainer(model, criterion, metrics, optimizer,
-                      config=config,
-                      data_loader=data_loader,
-                      valid_data_loader=valid_data_loader,
-                      lr_scheduler=lr_scheduler)
+    trainer = Trainer(model, criterion, metrics, optimizer,
+                  config=config,
+                  data_loader=data_loader,
+                  valid_data_loader=valid_data_loader,
+                  lr_scheduler=lr_scheduler)
 
     trainer.train()
 

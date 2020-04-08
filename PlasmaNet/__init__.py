@@ -11,7 +11,7 @@ __version__ = '0.1'
 
 from .data import data_loaders
 from .model import loss, metric, multiscalenet, dirichletnet
-from .trainer.trainer import Trainer, TrainerDirichlet
+from .trainer.trainer import Trainer
 from .parse_config import ConfigParser
 
 __ALL__ = [
@@ -21,6 +21,5 @@ __ALL__ = [
     multiscalenet,
     dirichletnet,
     Trainer,
-    TrainerDirichlet,
     ConfigParser
 ]

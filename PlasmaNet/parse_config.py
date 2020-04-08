@@ -77,6 +77,9 @@ class ConfigParser:
         self.ds = self.dx * self.dy
         self.surface = self.length ** 2
 
+        # Trainer type
+        self.trainertype = self.config['trainer'].get('type',) 
+
         # Configure logging module
         setup_logging(self.log_dir)
         self.log_levels = {

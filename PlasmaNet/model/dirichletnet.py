@@ -73,12 +73,17 @@ class _ConvBlock2(nn.Module):
 class DirichletNet(BaseModel):
     """
     Define the network. Takes data_channels as input, although not used (easier object initialization)
-    TODO change this
-    Takes two inputs, x (BC tensor) and y (int for the length of opposite direction)
+    TODO, take away the data_channels
+    Note that this network assumes that the dataset is a SQUARE of size (N,N). A generalization to a
+    rectangular shape (x,y) needs further modifications
+    Takes one input, x (BC tensor) of size [bsz,1,1,N]    
     Procedure:
         - Make a series of 1D convolutions on the BC input (array of lenght [bsz, 1, 1, N])
-        - Transform [bsz, 64, 1, N] into [bsz, 1, 64, N]
-        - Interpolate into size [ bsz, 1, y, N]
+        - Output of 1D arrays is [bsz,64,N]
+        - Transpose the output to [bsz, N, 64]. This changes stack the channels in a way that gives
+            a priori better results.
+        - Unsqueeze to size [bsz, 1, N, 64] so that it can be used on the 2D convs 
+        - Interpolate into size [ bsz, 1, N, N] (useless for the 64x64 case, but useful if
         - Perform a series of 2D Convolution until the final output is reached [bsz,1, N, N])
     """
     def __init__(self,data_channels):
