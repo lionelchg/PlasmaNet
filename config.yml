@@ -26,12 +26,12 @@ globals:                                    # Domain sizes and others, used to c
 
 
 arch:
-    type: 'MultiSimpleNet'
+    type: 'DirichletNet'
     args:
         data_channels: 1
 
 data_loader:
-    type: 'PoissonDataLoader'
+    type: 'DirichletDataLoader'
     pipe_config: True
     args:
         data_dir: 'datasets/64x64/rhs/gauss'
@@ -80,6 +80,7 @@ lr_scheduler:
         verbose: False
 
 trainer:
+    type: 'TrainerDirichlet'                # Depending if you want to train the dirichlet or regular model.
     epochs: 1000
     save_dir: 'outputs/'
     save_period: 10

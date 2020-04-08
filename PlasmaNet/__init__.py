@@ -10,8 +10,8 @@ __mail__ = ''
 __version__ = '0.1'
 
 from .data import data_loaders
-from .model import loss, metric, multiscalenet
-from .trainer.trainer import Trainer
+from .model import loss, metric, multiscalenet, dirichletnet
+from .trainer.trainer import Trainer, TrainerDirichlet
 from .parse_config import ConfigParser
 
 __ALL__ = [
@@ -19,6 +19,8 @@ __ALL__ = [
     loss,
     metric,
     multiscalenet,
+    dirichletnet,
     Trainer,
+    TrainerDirichlet,
     ConfigParser
 ]

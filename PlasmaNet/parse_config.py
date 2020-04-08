@@ -65,7 +65,7 @@ class ConfigParser:
         # Declare global parameters attributes
         self.size = self.config['globals']['size']
         self.length = self.config['globals']['length']
-        self.channels = self.config['arch']['args']['data_channels']
+        self.channels = 1
         # dx and dy change depending on normalization
         self.normalization = self.config['data_loader']['args']['normalize']
         if self.normalization == 'physical':
@@ -143,7 +143,7 @@ class ConfigParser:
         `function = lambda *args, **kwargs: module.name(a, *args, b=1, **kwargs)`.
         """
         module_name = self[name]['type']
-        module_args = dict(self[name]['args'])
+        module_args = dict(self[name])
         assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
         module_args.update(kwargs)
         return partial(getattr(module, module_name), *args, **module_args)

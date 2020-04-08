@@ -86,10 +86,10 @@ class PoissonDataLoader(BaseDataLoader):
             x_tensor = torch.arange(resX, dtype=torch.float).view((1, resX)).expand((bsz, 1, resY, resX))
             y_tensor = torch.arange(resY, dtype=torch.float).view((1, resY, 1)).expand((bsz, 1, resY, resX))
 
-            d_1 = (potential[0, 0, :, 0].expand((bsz, 1, resY, resX)) * (resX - x_tensor) / resX).type(torch.float32)
-            d_2 = (potential[0, 0, 0, :].expand((bsz, 1, resY, resX)) * (resY - y_tensor) / resY).type(torch.float32)
-            d_3 = (potential[0, 0, :, -1].expand((bsz, 1, resY, resX)) * (x_tensor) / resX).type(torch.float32)
-            d_4 = (potential[0, 0, -1, :].expand((bsz, 1, resY, resX)) * (y_tensor) / resY).type(torch.float32)
+            d_1 = (potential[:, 0, :, 0].expand((bsz, 1, resY, resX)) * (resX - x_tensor) / resX).type(torch.float32)
+            d_2 = (potential[:, 0, 0, :].expand((bsz, 1, resY, resX)) * (resY - y_tensor) / resY).type(torch.float32)
+            d_3 = (potential[:, 0, :, -1].expand((bsz, 1, resY, resX)) * (x_tensor) / resX).type(torch.float32)
+            d_4 = (potential[:, 0, -1, :].expand((bsz, 1, resY, resX)) * (y_tensor) / resY).type(torch.float32)
 
             # Auxiliary plot
             plot_dataloader_complete(d_1, d_2, d_3, d_4, potential, physical_rhs, x_tensor, y_tensor, config.fig_dir)
@@ -103,3 +103,64 @@ class PoissonDataLoader(BaseDataLoader):
         # Create Dataset from Tensor
         self.dataset = TensorDataset(self.data, potential, self.data_norm, self.target_norm)
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
+
+
+class DirichletDataLoader(BaseDataLoader):
+    """
+    Loads a set of Dirichlet BC and the associated result to the BC problem.
+    Automatically shuffles the dataset before the validation split (see BaseDataLoader class).
+    """
+
+    def __init__(self, config, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0,
+                 num_workers=1):
+        self.data_dir = Path(data_dir)
+        self.logger = config.get_logger('DirichletDataLoader', config['trainer']['verbosity'])
+
+        # Load numpy file of shape (batch_size, H, W) 
+        potential = np.load(self.data_dir / 'potential.npy')
+
+        # Convert to torch.Tensor of shape (batch_size, 1, H, W)
+        potential = torch.from_numpy(potential[:, np.newaxis, :, :])
+        bsz  = potential.size(0)
+        resX = potential.size(3)
+        resY = potential.size(2)
+
+        BC_in = (potential[:, 0, :, 0].unsqueeze(1).unsqueeze(1)).type(torch.float32)
+        
+        # Normalization and length
+        self.normalize = normalize
+        self.length = config.length
+
+        if self.normalize == 'max':
+            self.logger.info("Using max normalization")
+            self.data_norm = torch.max(torch.max(BC_in, 3, keepdim=True)[0], 2, keepdim=True)[0]
+            self.target_norm = torch.max(torch.max(potential, 3, keepdim=True)[0], 2, keepdim=True)[0]
+            BC_in /= self.data_norm
+            potential /= self.target_norm
+        elif self.normalize == 'physical':
+            # For the Physical normalization we propose the following:
+            # d2(pot/pot0) / d(x/L)2 = (L2 rhs0 / pot0)* rhs/rhs0
+            # If mod(pot0) == 1 the normalization sums up to rhs * L**2
+            # where L = physical length of the domain
+            self.logger.info("Using physical normalization")
+            self.data_norm = torch.ones((BC_in.size(0), BC_in.size(1), 1, 1)) / self.length**2
+            self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
+            BC_in /= self.data_norm
+            potential /= self.target_norm
+        else:
+            self.logger.info("No normalization")
+            self.data_norm = torch.ones((BC_in.size(0), BC_in.size(1), 1, 1))
+            self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
+
+        # Convert to torch.float32
+        BC_in = BC_in.type(torch.float32)
+        potential = potential.type(torch.float32)
+        self.data_norm = self.data_norm.type(torch.float32)
+        self.target_norm = self.target_norm.type(torch.float32)
+
+        self.data = BC_in
+        # Create Dataset from Tensor
+        self.dataset = TensorDataset(self.data, potential, self.data_norm, self.target_norm)
+        super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
+
+
