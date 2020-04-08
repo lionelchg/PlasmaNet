@@ -13,7 +13,7 @@ from functools import reduce, partial
 from operator import getitem
 from pathlib import Path
 
-import torch
+import numpy as np
 
 from .logger import setup_logging
 from .utils import read_yaml, write_yaml
@@ -68,14 +68,12 @@ class ConfigParser:
         self.channels = self.config['arch']['args']['data_channels']
         # dx and dy change depending on normalization
         self.normalization = self.config['data_loader']['args']['normalize']
-        if self.normalization == 'physical':
-            self.dx_norm = self.length
-        else:
-            self.dx_norm = 1.0
-        self.dx = self.length / ((self.size - 1) * self.dx_norm)
+        self.dx = self.length / (self.size - 1)
         self.dy = self.dx
         self.ds = self.dx * self.dy
         self.surface = self.length ** 2
+        x, y = np.linspace(0, self.length, self.size), np.linspace(0, self.length, self.size)
+        self.X, self.Y = np.meshgrid(x, y)
 
         # Configure logging module
         setup_logging(self.log_dir)

@@ -19,7 +19,7 @@ from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
 
 from plot import plot_fig
-from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
+from poisson_2D_FD import laplace_square_matrix, dirichlet_bc
 
 # Global variables
 n_points = 64
@@ -125,10 +125,10 @@ def compute(args):
 
 if __name__ == '__main__':
 
-    plot = False
-    n_procs = 36
+    plot = True
+    n_procs = 2
     chunksize = 10
-    n_ampl, n_x0, n_sigma, n_pow = 1, 12, 5, 3  # 5 * 12 * 12 * 5 * 5 = 18 000 for the gaussian set
+    n_ampl, n_x0, n_sigma, n_pow = 1, 3, 3, 3  # 5 * 12 * 12 * 5 * 5 = 18 000 for the gaussian set
     # n_ampl, n_x0, n_sigma, n_pow = 5, 4, 4, 3  # test dataset
 
     # test for sliding gaussian
@@ -160,14 +160,14 @@ if __name__ == '__main__':
     for i, (pot, rhs) in tqdm(enumerate(results_train), total=nit_gauss, desc='Save gauss'):
         potential_gauss[i, :, :] = pot
         physical_rhs_gauss[i, :, :] = rhs
-        if plot and i % 200 == 0 :
-            plot_fig(X, Y, pot, rhs, name='dataset_{}/gauss_'.format(case_name), nit=i)
+        if plot and i % 10 == 0 :
+            plot_fig(X, Y, pot, rhs, name='datasets/rhs/gauss/input_', nit=i)
 
     for i, (pot, rhs) in tqdm(enumerate(results_val), total=nit_coshill, desc='Save coshill'):
         potential_coshill[i, :, :] = pot
         physical_rhs_coshill[i, :, :] = rhs
-        if plot and i % 200 == 0:
-            plot_fig(X, Y, pot, rhs, name='dataset_{}/coshill_'.format(case_name), nit=i)
+        if plot and i % 10 == 0:
+            plot_fig(X, Y, pot, rhs, name='datasets/rhs/coshill/input_', nit=i)
 
     time_stop = time.time()
     np.save(save_dir_gauss / 'potential.npy', potential_gauss)

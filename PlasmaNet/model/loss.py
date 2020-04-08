@@ -8,6 +8,7 @@
 
 import sys
 
+import scipy.constants as co
 import torch
 import torch.nn.functional as F
 
@@ -33,12 +34,32 @@ class LaplacianLoss(BaseLoss):
         self.weight = lapl_weight
         self.dx = config.dx
         self.dy = config.dy
-        self.dx_norm = config.dx_norm
         self._require_input_data = True  # Need rhs for computation
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
-        laplacian = lapl(output * target_norm / data_norm, self.dx * self.dx_norm, self.dy * self.dx_norm)
+        laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy)
         return F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
+
+
+class EnergyLoss(BaseLoss):
+    """ An Energy loss that is minimum for Poisson's equation (Variational approach). """
+    def __init__(self, config, energy_weight, **_):
+        super().__init__()
+        self.weight = energy_weight
+        self.dx = config.dx
+        self.dy = config.dy
+        self.n_inputs = config['globals']['size']**2 * config['data_loader']['args']['batch_size']
+        self._require_input_data = True # Need rhs for computation
+
+    def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
+        elec_output = gradient_scalar(output, self.dx, self.dy)
+        norm_elec_output = (elec_output[:, 0, :, :]**2 + elec_output[:, 1, :, :]**2).unsqueeze(1)
+        energy_output = (0.5 * norm_elec_output - output * data)
+        elec_target = gradient_scalar(target, self.dx, self.dy)
+        norm_elec_target = (elec_target[:, 0, :, :]**2 + elec_target[:, 1, :, :]**2).unsqueeze(1)
+        energy_target = (0.5 * norm_elec_target - target * data)
+        return co.epsilon_0 * torch.sum(energy_output - energy_target) / self.n_inputs * self.weight
+        # return co.epsilon_0 * F.mse_loss(energy_output, energy_target) * self.weight
 
 
 class ElectricLoss(BaseLoss):
