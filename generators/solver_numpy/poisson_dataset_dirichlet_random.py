@@ -48,19 +48,6 @@ linear_bc = np.linspace(0, V, n_points)
 linear_xy = x
 
 
-def params_rotation(nrot):
-    # rotated linear potential
-
-    thetas = np.linspace(0, 2 * np.pi, nrot)
-    for index, theta in enumerate(thetas):
-        up = V * (np.cos(theta) * linear_xy - np.sin(theta) * ymax)
-        down = V * np.cos(theta) * linear_xy
-        left = - V * np.sin(theta) * linear_xy
-        right = V * (np.cos(theta) * xmax - np.sin(theta) * linear_xy)
-
-        yield up, down, left, right
-
-
 def params_random(nits):
     # Constant per branch up
     up = zeros_bc
