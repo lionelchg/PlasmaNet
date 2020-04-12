@@ -5,14 +5,14 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
-
+import os
 import numpy as np
 import scipy.constants as co
 from scipy.sparse.linalg import spsolve
 
-from operators import lapl, grad
-from plot import plot_fig, plot_fig_scalar, plot_vector_arrow, plot_fig_list
-from poisson_2D_FD import laplace_square_matrix, dirichlet_bc, lapl_diff
+from poissonsolver.operators import lapl, grad
+from poissonsolver.plot import plot_set_2D
+from poissonsolver.poisson_2D_FD import laplace_square_matrix, dirichlet_bc, lapl_diff
 
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
@@ -55,11 +55,12 @@ if __name__ == '__main__':
     potential_energy = physical_rhs * co.epsilon_0 * potential
     interior_diff = lapl_diff(potential, physical_rhs, dx, dy, n_points, n_points)
 
-    # Plots
-    plot_fig(X, Y, potential, physical_rhs, name='tests/gauss_', nit=1)
-    plot_fig_scalar(X, Y, interior_diff, 'Absolute difference',
-                    'tests/gauss_abs_diff', colormap='Blues')
-    plot_fig_list(X, Y, [field_energy, potential_energy, field_energy - potential_energy],
-     ['Field Energy', 'Potential Energy', 'Difference'], 'tests/gauss_energies')
-    plot_vector_arrow(X, Y, electric_field, "Electric field", "tests/gauss_electric_field")
+    casename = 'gaussian_rhs'
+    fig_dir = 'figures/test_rhs/'
+    figname = fig_dir + casename
 
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
+
+    # Plots
+    plot_set_2D(X, Y, physical_rhs, potential, electric_field, 'Gaussian rhs', figname)

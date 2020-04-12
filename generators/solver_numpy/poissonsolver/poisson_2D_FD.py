@@ -9,7 +9,7 @@
 import numpy as np
 from scipy import sparse
 import scipy.constants as co
-from operators import lapl
+from .operators import lapl
 import torch
 
 def laplace_square_matrix(n_points):

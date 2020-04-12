@@ -30,7 +30,7 @@ def sum_series(x, y, M):
     return 4 / np.pi**3 * series
 
 if __name__ == '__main__':
-    n_points = 201
+    n_points = 101
     xmin, xmax = 0, 1
     ymin, ymax = 0, 1
     dx, dy = (xmax - xmin) / (n_points - 1), (ymax - ymin) / (n_points - 1)
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     n_middle = int(n_points / 2)
     axes[0].plot(x, physical_rhs[n_middle, :], label=r'$\rho / \epsilon_0$')
     # Trying the analytical solution
-    for M in range(1, 11, 2):
+    for M in range(1, 21, 4):
         potential_th = ni0 * sum_series(X, Y, M)
         E_field_th = grad(potential_th, dx, dy, n_points, n_points)
         E_field_norm_th = np.sqrt(E_field_th[0]**2 + E_field_th[1]**2)
