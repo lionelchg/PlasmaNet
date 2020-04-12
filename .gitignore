@@ -10,6 +10,5 @@ __pychache__/
 *.out
 
 # Storage directories
-datasets
 models
 outputs
