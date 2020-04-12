@@ -6,17 +6,22 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.constants as co
 from scipy import interpolate
 from scipy.sparse.linalg import spsolve
 
-from operators import lapl
-from plot import plot_fig, plot_fig_scalar
-from poisson_2D_FD import laplace_square_matrix, dirichlet_bc
+from poissonsolver.operators import lapl, grad
+from poissonsolver.plot import plot_set_2D
+from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 
 colormap = 'RdBu'
+
+fig_dir = 'figures/random_rhs/'
+if not os.path.exists(fig_dir):
+    os.makedirs(fig_dir)
 
 
 if __name__ == '__main__':
@@ -52,7 +57,7 @@ if __name__ == '__main__':
     cbar2 = fig.colorbar(CS2, pad = 0.05, fraction=0.08, ax=ax2, aspect=5)
     cbar2.ax.set_ylabel('Bicubic random')
     ax2.set_aspect("equal")
-    plt.savefig('figures/random/bicubic', bbox_inches='tight')
+    plt.savefig(fig_dir + 'bicubic', bbox_inches='tight')
 
     # creating the rhs
     ni0 = 1e18
@@ -68,7 +73,7 @@ if __name__ == '__main__':
 
     # Solving the sparse linear system
     potential = spsolve(A, rhs).reshape(n_points, n_points)
+    E_field = grad(potential, dx, dy, n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
-    plot_fig(X, Y, potential, physical_rhs, name='random/test_', nit=1, colormap=colormap)
-    plot_fig(X, Y, - lapl(potential, dx, dy, n_points, n_points), physical_rhs, name='random/comparison_', nit=1, colormap=colormap)
-    plot_fig_scalar(X, Y, abs(lapl(potential, dx, dy, n_points, n_points) + physical_rhs), 'Absolute difference', 'random/abs_diff', colormap=colormap)
+    figname = fig_dir + 'random_2D'
+    plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Random RHS', figname)

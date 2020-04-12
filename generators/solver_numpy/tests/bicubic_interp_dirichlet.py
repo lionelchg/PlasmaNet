@@ -5,13 +5,18 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
-
+import os
 import numpy as np
 from scipy import interpolate
 from scipy.sparse.linalg import spsolve
 
-from poissonsolver.plot import plot_fig
+from poissonsolver.operators import grad
+from poissonsolver.plot import plot_set_2D
 from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
+
+fig_dir = 'figures/random_dirichlet/'
+if not os.path.exists(fig_dir):
+    os.makedirs(fig_dir)
 
 if __name__ == '__main__':
 
@@ -57,5 +62,9 @@ if __name__ == '__main__':
 
     dirichlet_bc(rhs, n_points, down, up, left, right)
     potential = spsolve(A, rhs).reshape(n_points, n_points)
-    plot_fig(X, Y, potential, physical_rhs.reshape(n_points, n_points), name='dirichlet/random_', nit=0, no_rhs=True)
+    physical_rhs = physical_rhs.reshape(n_points, n_points)
+    E_field = grad(potential, dx, dy, n_points, n_points)
 
+    figname = fig_dir + 'random_2D'
+
+    plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Dirichlet random', figname, no_rhs=True)

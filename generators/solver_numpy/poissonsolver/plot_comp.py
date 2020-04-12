@@ -31,7 +31,7 @@ def plot_set_1D(x, pot_target, E_field_norm_target, lapl_target, pot, E_field_no
 
 def plot_set_2D(X, Y, physical_rhs, test_pot, target_pot, E_test, E_target, figtitle, figname):
     """ Matplotlib plots. """
-    fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(25, 12))
+    fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(21, 10))
     plot_ax_scalar(fig, axes[0, 0], X, Y, physical_rhs, r'$\rho / \epsilon_0$')
     plot_ax_scalar(fig, axes[0, 1], X, Y, test_pot, r'$\phi$ test')
     plot_ax_scalar(fig, axes[0, 2], X, Y, target_pot, r'$\phi$ target')

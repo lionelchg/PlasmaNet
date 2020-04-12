@@ -10,17 +10,21 @@ import numpy as np
 import scipy.constants as co
 from scipy.sparse.linalg import spsolve
 import os
-from operators import lapl, grad
-import operators_torch as optorch
-from plot import plot_fig, plot_fig_scalar, plot_vector_arrow, plot_fig_list
-from poisson_2D_FD import laplace_square_matrix, dirichlet_bc, lapl_diff, compute_voln,\
-                        func_energy, func_energy_torch
 import matplotlib.pyplot as plt
 import torch
-
 from mpl_toolkits.mplot3d import Axes3D
 
-import plot_comp
+# Imports from poissonsolver
+from poissonsolver.operators import lapl, grad
+import poissonsolver.operators_torch as optorch
+from poissonsolver.plot import plot_fig, plot_fig_scalar, plot_vector_arrow, plot_fig_list, plot_set_2D
+from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
+from poissonsolver.postproc import lapl_diff, compute_voln, func_energy, func_energy_torch
+import poissonsolver.plot_comp as plot_comp
+
+fig_dir = 'figures/'
+if not os.path.exists(fig_dir):
+    os.makedirs(fig_dir)
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
@@ -57,16 +61,13 @@ def plot_test(ampl_potential, sigma_pot, test_name):
     # Single test
     potential, E_field, E_field_norm, lapl_pot, functional_energy, points_loss, lapl_loss, elec_loss, info_test = \
                 compute_values(ampl_potential, sigma_pot, print_bool=True)
-    test_dir = 'figures/' + fig_dir + test_name
-    if not os.path.exists(test_dir):
-        os.makedirs(test_dir)
+
     # 1D plots
-    plot_comp.plot_set_1D(x, potential_target, E_field_norm_target, lapl_target, potential, E_field_norm, lapl_pot, n_points, info_test, test_dir + 'comp_1D')
+    plot_comp.plot_set_1D(x, potential_target, E_field_norm_target, lapl_target, potential, E_field_norm, lapl_pot, n_points, info_test, fig_dir + test_name + 'comp_1D')
     # 2D plots
-    plot_comp.plot_set_2D(X, Y, physical_rhs, potential, potential_target, E_field, E_field_target, info_test, test_dir + 'comp_2D')
+    plot_comp.plot_set_2D(X, Y, physical_rhs, potential, potential_target, E_field, E_field_target, info_test, fig_dir + test_name + 'comp_2D')
 
 if __name__ == '__main__':
-    fig_dir = 'functional/'
     n_points = 128
     xmin, xmax = 0, 0.01
     ymin, ymax = 0, 0.01
@@ -109,11 +110,10 @@ if __name__ == '__main__':
     functional_energy_target = func_energy(potential_target, E_field_target, physical_rhs, voln)
 
     # Plots of the target
-    plot_fig(X, Y, potential_target, physical_rhs, name=fig_dir + 'target/gauss_', nit=1)
-    plot_vector_arrow(X, Y, E_field_target, "Electric field", fig_dir + "target/gauss_E_field")
+    plot_set_2D(X, Y, physical_rhs, potential_target, E_field_target, 'Target values', fig_dir + 'target')
 
     # Plot of one test
-    plot_test(146, 3.5e-3, 'test_1/')
+    plot_test(146, 3.5e-3, 'test_1_')
 
     # Map the 2D energy functional
     ampl_potential_range = np.linspace(130, 180, 51)
@@ -136,7 +136,7 @@ if __name__ == '__main__':
         print('%s A = %.2e, sigma = %.2e - energy = %.4e - points_loss = %.4e - lapl_loss = %.4e - elec_loss = %.4e' 
             % (loss, losses_2D[index_min, 0], losses_2D[index_min, 1], losses_2D[index_min, 2], losses_2D[index_min, 3], 
                 losses_2D[index_min, 4], losses_2D[index_min, 5]))
-        plot_test(losses_2D[index_min, 0], losses_2D[index_min, 1], 'test_' + loss + '/')
+        plot_test(losses_2D[index_min, 0], losses_2D[index_min, 1], 'test_%d_' % i)
     
     
     fig = plt.figure(figsize=(14, 14))
@@ -172,7 +172,7 @@ if __name__ == '__main__':
     ax.set_zlabel('Elec Loss')
     ax.set_title('Electric Loss')
 
-    plt.savefig('figures/' + fig_dir + '2D_losses', bbox_inches='tight')
+    plt.savefig(fig_dir + '2D_losses', bbox_inches='tight')
 
     # #Conversion to torch tensors
     # physical_rhs = torch.from_numpy(physical_rhs)

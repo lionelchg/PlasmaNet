@@ -10,12 +10,17 @@ import os
 import numpy as np
 import scipy.constants as co
 from scipy.sparse.linalg import spsolve
-
-from operators import lapl, grad
-from plot import plot_set_1D, plot_set_2D, plot_ax_set_1D
-from poisson_2D_FD import laplace_square_matrix, dirichlet_bc, lapl_diff
 import matplotlib.pyplot as plt
 
+from poissonsolver.operators import lapl, grad
+from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_ax_set_1D
+from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
+from poissonsolver.postproc import lapl_diff
+
+fig_dir = 'figures/'
+
+if not os.path.exists(fig_dir):
+    os.makedirs(fig_dir)
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
@@ -65,13 +70,9 @@ if __name__ == '__main__':
     E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
     lapl_pot = lapl(potential, dx, dy, n_points, n_points)
 
-    fig_dir = 'figures/analytical/'
-    figname = fig_dir + 'solver_solution'
-
-    if not os.path.exists(fig_dir):
-        os.makedirs(fig_dir)
 
     # Plots
+    figname = fig_dir + 'solver_solution'
     plot_set_1D(x, physical_rhs, potential, E_field_norm, lapl_pot, n_points, 'Solver solution 1D', figname + '_1D')
     plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Solver solution 2D', figname + '_2D')
 
