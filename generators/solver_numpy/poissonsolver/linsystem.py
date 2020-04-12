@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                            2D Poisson solver using numpy                                             #
+#                                        Routines concerning the linear system                                         #
 #                                                                                                                      #
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
@@ -9,8 +9,6 @@
 import numpy as np
 from scipy import sparse
 import scipy.constants as co
-from .operators import lapl
-import torch
 
 def laplace_square_matrix(n_points):
     diags = np.zeros((5, n_points * n_points))

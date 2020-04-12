@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import os
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+from poissonsolver.operators import grad, div, lapl, scalar_rot, print_error
 
-from operators import grad, div, lapl, scalar_rot, print_error
-
+fig_dir = 'figures/operators/'
+if not os.path.exists(fig_dir):
+    os.makedirs(fig_dir)
 
 def plot_fig_scalar(X, Y, field, name, fig_name):
     matplotlib.rcParams['contour.negative_linestyle'] = 'solid'
@@ -15,7 +17,7 @@ def plot_fig_scalar(X, Y, field, name, fig_name):
     cbar = fig.colorbar(CS, pad=0.05, fraction=0.05, ax=ax, aspect=5)
     ax.set_aspect("equal")
 
-    plt.savefig('figures/operators/' + fig_name, bbox_inches='tight')
+    plt.savefig(fig_dir + fig_name, bbox_inches='tight')
 
 
 def plot_fig_vector(X, Y, field, name, fig_name):
@@ -28,7 +30,7 @@ def plot_fig_vector(X, Y, field, name, fig_name):
     cbar1 = fig.colorbar(CS1, pad=0.05, fraction=0.05, ax=axes[1], aspect=5)
     axes[1].set_aspect("equal")
 
-    plt.savefig('figures/operators/' + fig_name, bbox_inches='tight')
+    plt.savefig(fig_dir + fig_name, bbox_inches='tight')
 
 def plot_vector_arrow(X, Y, vector_field, name, fig_name):
     norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
@@ -41,7 +43,7 @@ def plot_vector_arrow(X, Y, vector_field, name, fig_name):
     ax.quiverkey(q, X=0.3, Y=1.1, U=10,
                  label='Quiver key, length = 10', labelpos='E')
     ax.set_title(name)
-    plt.savefig('figures/operators/' + fig_name, bbox_inches='tight')
+    plt.savefig(fig_dir + fig_name, bbox_inches='tight')
 
 
 if __name__ == '__main__':

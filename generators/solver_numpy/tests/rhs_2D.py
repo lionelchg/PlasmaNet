@@ -9,11 +9,14 @@ import os
 import numpy as np
 import scipy.constants as co
 from scipy.sparse.linalg import spsolve
-
 from poissonsolver.operators import lapl, grad
 from poissonsolver.plot import plot_set_2D
-from poissonsolver.poisson_2D_FD import laplace_square_matrix, dirichlet_bc, lapl_diff
+from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
+from poissonsolver.postproc import lapl_diff
 
+fig_dir = 'figures/rhs_2D/'
+if not os.path.exists(fig_dir):
+    os.makedirs(fig_dir)
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
@@ -56,11 +59,7 @@ if __name__ == '__main__':
     interior_diff = lapl_diff(potential, physical_rhs, dx, dy, n_points, n_points)
 
     casename = 'gaussian_rhs'
-    fig_dir = 'figures/test_rhs/'
     figname = fig_dir + casename
-
-    if not os.path.exists(fig_dir):
-        os.makedirs(fig_dir)
 
     # Plots
     plot_set_2D(X, Y, physical_rhs, potential, electric_field, 'Gaussian rhs', figname)

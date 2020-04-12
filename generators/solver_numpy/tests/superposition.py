@@ -5,15 +5,18 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
-
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.constants as co
 from scipy.sparse.linalg import spsolve
+from poissonsolver.operators import print_error, grad
+from poissonsolver.plot import plot_set_2D
+from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 
-from operators import print_error
-from plot import plot_fig, plot_ax
-from poisson_2D_FD import laplace_square_matrix, dirichlet_bc
+fig_dir = 'figures/superposition/'
+if not os.path.exists(fig_dir):
+    os.makedirs(fig_dir)
 
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
@@ -56,8 +59,10 @@ if __name__ == '__main__':
 
     # Solving the sparse linear system
     potential_0 = spsolve(A, rhs).reshape(n_points, n_points)
+    electric_field_0 = grad(potential_0, dx, dy, n_points, n_points)
     physical_rhs_0 = physical_rhs.reshape(n_points, n_points)
-    plot_fig(X, Y, potential_0, physical_rhs_0, name='superposition/potential_', nit=0)
+    figname = fig_dir + 'rhs'
+    plot_set_2D(X, Y, physical_rhs_0, potential_0, electric_field_0, 'RHS', figname)
 
     ##################
     # dirichlet only #
@@ -78,8 +83,10 @@ if __name__ == '__main__':
 
     dirichlet_bc(rhs, n_points, down, up, left, right)
     potential_dirichlet = spsolve(A, rhs).reshape(n_points, n_points)
+    electric_field_dirichlet = grad(potential_dirichlet, dx, dy, n_points, n_points)
     physical_rhs_dirichlet = physical_rhs.reshape(n_points, n_points)
-    plot_fig(X, Y, potential_dirichlet, physical_rhs_dirichlet, name='superposition/potential_', nit=1)
+    figname = fig_dir + 'dirichlet'
+    plot_set_2D(X, Y, potential_dirichlet, potential_dirichlet, electric_field_dirichlet, 'Dirichlet', figname, no_rhs=True)
 
     ################
     # full problem #
@@ -100,16 +107,15 @@ if __name__ == '__main__':
 
     dirichlet_bc(rhs, n_points, down, up, left, right)
     potential = spsolve(A, rhs).reshape(n_points, n_points)
+    electric_field = grad(potential, dx, dy, n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
-    plot_fig(X, Y, potential, physical_rhs, name='superposition/potential_', nit=2)
+    figname = fig_dir + 'full'
+    plot_set_2D(X, Y, physical_rhs, potential, electric_field, 'Full',figname)
 
     potential_super = potential_0 + potential_dirichlet
-    plot_fig(X, Y, potential_super, physical_rhs.reshape(n_points, n_points), name='superposition/potential_', nit=3)
+    electric_field_super = grad(potential_super, dx, dy, n_points, n_points)
+    figname = fig_dir + 'superposition'
+    plot_set_2D(X, Y, physical_rhs_0, potential_0, electric_field_0, 'Superposition', figname)
 
     print_error(potential_super, potential, dx*dy, Lx*Ly, "Error from superposition")
 
-    fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(12, 15))
-    levels = plot_ax(fig, axes[0], X, Y, potential_0, physical_rhs_0, npot=1)
-    plot_ax(fig, axes[1], X, Y, potential_dirichlet, physical_rhs_dirichlet, levels=levels, npot=2)
-    plot_ax(fig, axes[2], X, Y, potential, physical_rhs)
-    plt.savefig('figures/superposition/superposition', bbox_inches='tight')

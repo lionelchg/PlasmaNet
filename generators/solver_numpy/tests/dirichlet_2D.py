@@ -6,12 +6,17 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+import os
 import numpy as np
 from scipy.sparse.linalg import spsolve
+from poissonsolver.plot import plot_set_2D
+from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
+from poissonsolver.operators import grad
 
-from plot import plot_fig
-from poisson_2D_FD import laplace_square_matrix, dirichlet_bc
-
+# Creation of directories
+fig_dir = 'figures/dirichlet_2D/'
+if not os.path.exists(fig_dir):
+    os.makedirs(fig_dir)
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
@@ -55,21 +60,14 @@ if __name__ == '__main__':
 
     dirichlet_bc(rhs, n_points, down, up, left, right)
     potential = spsolve(A, rhs).reshape(n_points, n_points)
-    plot_fig(X, Y, potential, physical_rhs.reshape(n_points, n_points), name='dirichlet/linear_', nit=0, no_rhs=True)
+    physical_rhs = physical_rhs.reshape(n_points, n_points)
+    electric_field = grad(potential, dx, dy, n_points, n_points)
 
-    # rotated linear potential
+    casename = 'linear_potential'
+    figname = fig_dir + casename
+    # Plots
+    plot_set_2D(X, Y, physical_rhs, potential, electric_field, 'Linear potential', figname, no_rhs=True)
 
-    thetas = np.linspace(-np.pi / 2, np.pi / 2, 20)
-    for index, theta in enumerate(thetas):
-        up = V * (np.cos(theta) * linear_xy - np.sin(theta) * ymax)
-        down = V * np.cos(theta) * linear_xy
-        left = - V * np.sin(theta) * linear_xy
-        right = V * (np.cos(theta) * xmax - np.sin(theta) * linear_xy)
-        dirichlet_bc(rhs, n_points, down, up, left, right)
-        potential = spsolve(A, rhs).reshape(n_points, n_points)
-        if index % 2 == 0:
-            plot_fig(X, Y, potential, physical_rhs.reshape(n_points, n_points), name='dirichlet/linear_rot_', nit=index,
-                     no_rhs=True)
 
     # Constant up
     up = V * ones_bc
@@ -79,41 +77,9 @@ if __name__ == '__main__':
 
     dirichlet_bc(rhs, n_points, down, up, left, right)
     potential = spsolve(A, rhs).reshape(n_points, n_points)
-    plot_fig(X, Y, potential / V, physical_rhs.reshape(n_points, n_points), name='dirichlet/V_up_', nit=0, no_rhs=True)
+    physical_rhs = physical_rhs.reshape(n_points, n_points)
+    electric_field = grad(potential, dx, dy, n_points, n_points)
 
-    # Constant per branch up
-    tot = 0
-    for comb in range(6):
-        for i in range(0, n_points, 16):
-            for j in range(0, n_points, 16):
-
-                up = np.zeros(n_points)
-                down = np.zeros(n_points)
-                left = np.zeros(n_points)
-                right = np.zeros(n_points)
-
-                if comb == 0:
-                    down[:i] = V
-                    left[:j] = V
-                elif comb == 1:
-                    left[:i] = V
-                    up[:j] = V
-                elif comb == 2:
-                    up[:i] = V
-                    right[:j] = V
-                elif comb == 3:
-                    right[:i] = V
-                    down[:j] = V
-                elif comb == 4:
-                    down[:i] = V
-                    up[:j] = V
-                elif comb == 5:
-                    left[:i] = V
-                    right[:j] = V
-
-                dirichlet_bc(rhs, n_points, down, up, left, right)
-                potential = spsolve(A, rhs).reshape(n_points, n_points)
-                if tot % 10 == 0:
-                    plot_fig(X, Y, potential / V, physical_rhs.reshape(n_points, n_points), name='dirichlet/test_',
-                             nit=tot, no_rhs=True)
-                tot += 1
+    casename = 'constant_up'
+    figname = fig_dir + casename
+    plot_set_2D(X, Y, physical_rhs, potential, electric_field, 'Potential up', figname, no_rhs=True)

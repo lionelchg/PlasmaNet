@@ -137,12 +137,17 @@ def plot_set_1D(x, physical_rhs, pot, E_field_norm, lapl_pot, n_points, figtitle
     plt.tight_layout()
     plt.savefig(figname, bbox_inches='tight')
 
-def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname):
+def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False):
     """ Matplotlib plots. """
-    fig, axes = plt.subplots(ncols=3, figsize=(16, 5))
-    plot_ax_scalar(fig, axes[0], X, Y, physical_rhs, r'$\rho / \epsilon_0$')
-    plot_ax_scalar(fig, axes[1], X, Y, pot, r'$\phi$')
-    plot_ax_vector_arrow(fig, axes[2], X, Y, E, r'$\mathbf{E}$')
+    if no_rhs:
+        fig, axes = plt.subplots(ncols=2, figsize=(11, 5))
+        plot_ax_scalar(fig, axes[0], X, Y, pot, r'$\phi$')
+        plot_ax_vector_arrow(fig, axes[1], X, Y, E, r'$\mathbf{E}$')
+    else:
+        fig, axes = plt.subplots(ncols=3, figsize=(16, 5))
+        plot_ax_scalar(fig, axes[0], X, Y, physical_rhs, r'$\rho / \epsilon_0$')
+        plot_ax_scalar(fig, axes[1], X, Y, pot, r'$\phi$')
+        plot_ax_vector_arrow(fig, axes[2], X, Y, E, r'$\mathbf{E}$')
 
     plt.suptitle(figtitle)
     plt.tight_layout()
