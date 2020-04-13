@@ -49,8 +49,8 @@ def sum_series_exact(x, y, M):
 
 if __name__ == '__main__':
     n_points = 101
-    xmin, xmax = 0, 1
-    ymin, ymax = 0, 1
+    xmin, xmax = 0, 0.01
+    ymin, ymax = 0, 0.01
     Lx, Ly = xmax - xmin, ymax - ymin
     dx, dy = (xmax - xmin) / (n_points - 1), (ymax - ymin) / (n_points - 1)
     x, y = np.linspace(xmin, xmax, n_points), np.linspace(ymin, ymax, n_points)
@@ -65,11 +65,10 @@ if __name__ == '__main__':
     # creating the rhs
     ni0 = 1e16
     sigma_x, sigma_y = 1e-1, 1e-1
-    x0, y0 = 0.5, 0.5
+    x0, y0 = 0.5e-2, 0.5e-2
     rhs = np.zeros(n_points ** 2)
 
     # interior rhs
-    # physical_rhs = gaussian(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
     physical_rhs = ni0 * np.ones_like(X.reshape(-1)) * co.e / co.epsilon_0
     rhs = - physical_rhs * dx ** 2
 
@@ -90,18 +89,18 @@ if __name__ == '__main__':
     plot_set_1D(x, physical_rhs, potential, E_field_norm, lapl_pot, n_points, 'Solver solution 1D', figname + '_1D')
     plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Solver solution 2D', figname + '_2D')
 
-    # Analytical solution but with a quadrature formula for the Fourier coefficient
-    list_N = np.arange(1, 10, 2)
-    for N in list_N:
-        voln = compute_voln(X, dx, dy)
-        potential_th = physical_rhs[0] * sum_series_exact(X, Y, N)
-        E_field_th = grad(potential_th, dx, dy, n_points, n_points)
-        E_field_norm_th = np.sqrt(E_field_th[0]**2 + E_field_th[1]**2)
-        lapl_pot_th = lapl(potential_th, dx, dy, n_points, n_points)
-        casename = 'constant_up_series_exact_%d' % N
-        figname = fig_dir + casename
-        plot_set_1D(x, physical_rhs, potential_th, E_field_norm_th, lapl_pot_th, n_points, 'Potential up series N = %d' % N, figname + '_1D')
-        plot_set_2D(X, Y, physical_rhs, potential_th, E_field_th, 'Potential up series N = %d' % N, figname + '_2D')
+    # # Analytical solution but with a quadrature formula for the Fourier coefficient
+    # list_N = np.arange(1, 10, 2)
+    # for N in list_N:
+    #     voln = compute_voln(X, dx, dy)
+    #     potential_th = physical_rhs[0] * sum_series_exact(X, Y, N)
+    #     E_field_th = grad(potential_th, dx, dy, n_points, n_points)
+    #     E_field_norm_th = np.sqrt(E_field_th[0]**2 + E_field_th[1]**2)
+    #     lapl_pot_th = lapl(potential_th, dx, dy, n_points, n_points)
+    #     casename = 'constant_up_series_exact_%d' % N
+    #     figname = fig_dir + casename
+    #     plot_set_1D(x, physical_rhs, potential_th, E_field_norm_th, lapl_pot_th, n_points, 'Potential up series N = %d' % N, figname + '_1D')
+    #     plot_set_2D(X, Y, physical_rhs, potential_th, E_field_th, 'Potential up series N = %d' % N, figname + '_2D')
 
     # Analytical solution but with a quadrature formula for the Fourier coefficient
     list_N = [1, 3, 5, 9, 15]

@@ -22,7 +22,7 @@ from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from poissonsolver.postproc import lapl_diff, compute_voln, func_energy, func_energy_torch
 import poissonsolver.plot_comp as plot_comp
 
-fig_dir = 'figures/'
+fig_dir = 'figures/gauss_pot'
 if not os.path.exists(fig_dir):
     os.makedirs(fig_dir)
 
