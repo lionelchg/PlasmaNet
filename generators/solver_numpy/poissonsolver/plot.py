@@ -11,10 +11,9 @@ def round_up(n, decimals=0):
     return np.ceil(n * multiplier) / multiplier
 
 
-def plot_ax_set_1D(axes, x, pot, E_field_norm, lapl_pot, n_points, M):
+def plot_ax_set_1D(axes, x, pot, E_field_norm, lapl_pot, n_points, M, direction='x'):
     # 1D plot
     n_middle = int(n_points / 2)
-
     axes[0].plot(x, - lapl_pot[n_middle, :], '.', label='M = %d' % M)
     axes[0].legend()
     axes[1].plot(x, pot[n_middle, :])
@@ -23,19 +22,37 @@ def plot_ax_set_1D(axes, x, pot, E_field_norm, lapl_pot, n_points, M):
     axes[2].set_title(r'$\mathbf{E}$')
 
 
-def plot_set_1D(x, physical_rhs, pot, E_field_norm, lapl_pot, n_points, figtitle, figname):
+def plot_set_1D(x, physical_rhs, pot, E_field_norm, lapl_pot, n_points, figtitle, figname, no_rhs=False, direction='x'):
     # 1D plot
     n_middle = int(n_points / 2)
-    fig, axes = plt.subplots(ncols=3, figsize=(15, 7))
+    if no_rhs:
+        list_cut = [0, 0.25, 0.5, 0.75, 1]
+        fig, axes = plt.subplots(ncols=2, figsize=(10, 7))
+        for cut_pos in list_cut:
+            n = int(cut_pos * (n_points - 1))
+            axes[0].plot(x, pot[n, :], label='%s = %.2f %smax' % (direction, cut_pos, direction))
+            axes[1].plot(x, E_field_norm[n, :], label='%s = %.2f %smax' % (direction, cut_pos, direction))
+        axes[0].set_title(r'$\phi$')
+        axes[1].set_title(r'$\mathbf{E}$')
+    else:
+        list_cut = [0, 0.25, 0.5]
+        fig, axes = plt.subplots(ncols=3, figsize=(15, 7))
+        for cut_pos in list_cut:        
+            n = int(cut_pos * (n_points - 1))
+            axes[1].plot(x, pot[n, :], label='%s = %.2f %smax' % (direction, cut_pos, direction))
+            axes[2].plot(x, E_field_norm[n, :], label='%s = %.2f %smax' % (direction, cut_pos, direction))
 
-    axes[0].plot(x, - lapl_pot[n_middle, :], '.', label=r'$\nabla^2 \phi$')
-    axes[0].plot(x, physical_rhs[n_middle, :], label=r'$\rho / \epsilon_0$')
+        axes[0].plot(x, - lapl_pot[n_middle, :], '.', label=r'$\nabla^2 \phi$')
+        axes[0].plot(x, physical_rhs[n_middle, :], label=r'$\rho / \epsilon_0$')
+        axes[1].set_title(r'$\phi$')
+        axes[2].set_title(r'$\mathbf{E}$')
+        axes[2].grid()
+        axes[2].legend()
+
+    axes[0].grid()
+    axes[1].grid()
     axes[0].legend()
-    axes[1].plot(x, pot[n_middle, :])
-    axes[1].set_title(r'$\phi$')
-    axes[2].plot(x, E_field_norm[n_middle, :])
-    axes[2].set_title(r'$\mathbf{E}$')
-
+    axes[1].legend()
     plt.suptitle(figtitle, y=1)
     plt.tight_layout()
     plt.savefig(figname, bbox_inches='tight')
