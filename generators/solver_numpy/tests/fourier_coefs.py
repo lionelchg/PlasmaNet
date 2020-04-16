@@ -75,7 +75,7 @@ if __name__ == '__main__':
     # Solving the sparse linear system
     potential = spsolve(A, rhs).reshape(n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
-    E_field = grad(potential, dx, dy, n_points, n_points)
+    E_field = - grad(potential, dx, dy, n_points, n_points)
     interior_diff = lapl_diff(potential, physical_rhs, dx, dy, n_points, n_points)
 
     casename = 'solver'
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Fourier random', figname)
 
     potential_th = pot_series(X, Y, Lx, Ly, rhs_coefs, N, M)
-    E_field_th = grad(potential_th, dx, dy, n_points, n_points)
+    E_field_th = - grad(potential_th, dx, dy, n_points, n_points)
     interior_diff_th = lapl_diff(potential_th, physical_rhs, dx, dy, n_points, n_points)
 
     casename = 'th'

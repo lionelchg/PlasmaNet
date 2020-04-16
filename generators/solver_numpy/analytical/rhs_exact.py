@@ -79,7 +79,7 @@ if __name__ == '__main__':
     # Solving the sparse linear system
     potential = spsolve(A, rhs).reshape(n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
-    E_field = grad(potential, dx, dy, n_points, n_points)
+    E_field = - grad(potential, dx, dy, n_points, n_points)
     E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
     lapl_pot = lapl(potential, dx, dy, n_points, n_points)
 
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     # for N in list_N:
     #     voln = compute_voln(X, dx, dy)
     #     potential_th = physical_rhs[0] * sum_series_exact(X, Y, N)
-    #     E_field_th = grad(potential_th, dx, dy, n_points, n_points)
+    #     E_field_th = - grad(potential_th, dx, dy, n_points, n_points)
     #     E_field_norm_th = np.sqrt(E_field_th[0]**2 + E_field_th[1]**2)
     #     lapl_pot_th = lapl(potential_th, dx, dy, n_points, n_points)
     #     casename = 'constant_up_series_exact_%d' % N
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         M = N
         voln = compute_voln(X, dx, dy)
         potential_th = sum_series(X, Y, Lx, Ly, voln, physical_rhs, N, M)
-        E_field_th = grad(potential_th, dx, dy, n_points, n_points)
+        E_field_th = - grad(potential_th, dx, dy, n_points, n_points)
         E_field_norm_th = np.sqrt(E_field_th[0]**2 + E_field_th[1]**2)
         lapl_pot_th = lapl(potential_th, dx, dy, n_points, n_points)
         casename = 'constant_up_series_quadrature_%d_%d' % (N, M)

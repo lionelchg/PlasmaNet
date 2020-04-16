@@ -63,7 +63,7 @@ if __name__ == '__main__':
     dirichlet_bc(rhs, n_points, down, up, left, right)
     potential = spsolve(A, rhs).reshape(n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
-    E_field = grad(potential, dx, dy, n_points, n_points)
+    E_field = - grad(potential, dx, dy, n_points, n_points)
 
     figname = fig_dir + 'random_2D'
 

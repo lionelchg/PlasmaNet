@@ -108,7 +108,7 @@ if __name__ == '__main__':
         potential[i, :, :] = result[0]
         potential_boundary[i, :] = result[1]
         if i % 10 == 0 and plot:
-            E_field = grad(result[0], dx, dy, n_points, n_points)
+            E_field = - grad(result[0], dx, dy, n_points, n_points)
             plot_set_2D(X, Y, result[0], result[0], E_field, 'Input number %d' % i, fig_dir + 'input_%d' % i, no_rhs=True)
 
     time_stop = time.time()

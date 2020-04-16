@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # Gradient test
 
     scalar_field = X ** 3 + Y ** 3
-    gradient = grad(scalar_field, dx, dy, nx, ny)
+    gradient = - grad(scalar_field, dx, dy, nx, ny)
     gradient_th = np.zeros((2, ny, nx))
     gradient_th[0, :] = 2 * X
     gradient_th[1, :] = 2 * Y

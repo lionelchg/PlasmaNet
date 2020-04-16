@@ -149,7 +149,7 @@ if __name__ == '__main__':
         potential_list[i, :, :] = pot
         physical_rhs_list[i, :, :] = rhs
         if i % 10 == 0 and plot:
-            E_field = grad(pot, dx, dy, n_points, n_points)
+            E_field = - grad(pot, dx, dy, n_points, n_points)
             plot_set_2D(X, Y, rhs, pot, E_field, 'Input number %d' % i, fig_dir + 'input_%d' % i)
 
 

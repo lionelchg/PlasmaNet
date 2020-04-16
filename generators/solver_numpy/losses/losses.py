@@ -42,7 +42,7 @@ def torch_cosine_hill(x, y, x0, L):
 
 def compute_values(ampl_potential, sigma_pot, print_bool=False):
     potential = gaussian(X, Y, ampl_potential, x0, y0, sigma_pot, sigma_pot) * cosine_hill(X, Y, 1, x0, 2 * L, 1)
-    E_field = grad(potential, dx, dy, n_points, n_points)
+    E_field = - grad(potential, dx, dy, n_points, n_points)
     E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
     functional_energy = func_energy(potential, E_field, physical_rhs, voln) - functional_energy_target
     points_loss = np.sum((potential - potential_target)**2) / n_points**2
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     # Solving the sparse linear system
     potential_target = spsolve(A, rhs).reshape(n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
-    E_field_target = grad(potential_target, dx, dy, n_points, n_points)
+    E_field_target = - grad(potential_target, dx, dy, n_points, n_points)
     E_field_norm_target = np.sqrt(E_field_target[0]**2 + E_field_target[1]**2)
     lapl_target = lapl(potential_target, dx, dy, n_points, n_points)
     field_energy_target = co.epsilon_0 / 2 * (E_field_target[0]**2 + E_field_target[1]**2)
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     #     print('Step %d' % (i + 1))
     #     v = torch.tensor([ampl_potential, sigma_pot], requires_grad=True)
     #     potential = torch_gaussian(X, Y, v) * torch_cosine_hill(X, Y, x0, 2 * L)
-    #     E_field = optorch.grad(potential, dx, dy, n_points, n_points)
+    #     E_field = optorch.- grad(potential, dx, dy, n_points, n_points)
     #     functional_energy = func_energy_torch(potential, E_field, physical_rhs, voln)
     #     functional_energy.backward()
     #     print(potential.grad_fn)

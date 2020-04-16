@@ -32,7 +32,7 @@ mpl.rcParams['lines.linewidth'] = 2
 
 def compute_values(ampl_potential, trial_function, print_bool=False):
     potential = ampl_potential * trial_function
-    E_field = grad(potential, dx, dy, n_points, n_points)
+    E_field = - grad(potential, dx, dy, n_points, n_points)
     E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
     functional_energy = func_energy(potential, E_field, physical_rhs, voln) - functional_energy_target
     points_loss = np.sum((potential - potential_target)**2) / n_points**2
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     # Solving the sparse linear system
     potential_target = spsolve(A, rhs).reshape(n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
-    E_field_target = grad(potential_target, dx, dy, n_points, n_points)
+    E_field_target = - grad(potential_target, dx, dy, n_points, n_points)
     E_field_norm_target = np.sqrt(E_field_target[0]**2 + E_field_target[1]**2)
     lapl_pot_target = lapl(potential_target, dx, dy, n_points, n_points)
     functional_energy_target = func_energy(potential_target, E_field_target, physical_rhs, voln)
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     N = 1
     M = N
     potential_th = sum_series(X, Y, Lx, Ly, voln, physical_rhs, N, M)
-    E_field_th = grad(potential_th, dx, dy, n_points, n_points)
+    E_field_th = - grad(potential_th, dx, dy, n_points, n_points)
     E_field_norm_th = np.sqrt(E_field_th[0]**2 + E_field_th[1]**2)
     functional_energy_th = func_energy(potential_th, E_field_th, physical_rhs, voln)
     lapl_pot_th = lapl(potential_th, dx, dy, n_points, n_points)

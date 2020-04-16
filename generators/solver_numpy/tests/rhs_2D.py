@@ -53,7 +53,7 @@ if __name__ == '__main__':
     # Solving the sparse linear system
     potential = spsolve(A, rhs).reshape(n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
-    electric_field = grad(potential, dx, dy, n_points, n_points)
+    electric_field = - grad(potential, dx, dy, n_points, n_points)
     field_energy = co.epsilon_0 / 2 * (electric_field[0]**2 + electric_field[1]**2)
     potential_energy = physical_rhs * co.epsilon_0 * potential
     interior_diff = lapl_diff(potential, physical_rhs, dx, dy, n_points, n_points)

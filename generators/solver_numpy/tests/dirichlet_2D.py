@@ -61,7 +61,7 @@ if __name__ == '__main__':
     dirichlet_bc(rhs, n_points, down, up, left, right)
     potential = spsolve(A, rhs).reshape(n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
-    electric_field = grad(potential, dx, dy, n_points, n_points)
+    electric_field = - grad(potential, dx, dy, n_points, n_points)
 
     casename = 'linear_potential'
     figname = fig_dir + casename
@@ -78,7 +78,7 @@ if __name__ == '__main__':
     dirichlet_bc(rhs, n_points, down, up, left, right)
     potential = spsolve(A, rhs).reshape(n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
-    electric_field = grad(potential, dx, dy, n_points, n_points)
+    electric_field = - grad(potential, dx, dy, n_points, n_points)
 
     casename = 'constant_up'
     figname = fig_dir + casename

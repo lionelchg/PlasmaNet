@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     # Solving the sparse linear system
     potential = spsolve(A, rhs).reshape(n_points, n_points)
-    E_field = grad(potential, dx, dy, n_points, n_points)
+    E_field = - grad(potential, dx, dy, n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
     figname = fig_dir + 'random_2D'
     plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Random RHS', figname)

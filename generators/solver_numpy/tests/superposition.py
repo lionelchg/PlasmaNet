@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     # Solving the sparse linear system
     potential_0 = spsolve(A, rhs).reshape(n_points, n_points)
-    electric_field_0 = grad(potential_0, dx, dy, n_points, n_points)
+    electric_field_0 = - grad(potential_0, dx, dy, n_points, n_points)
     physical_rhs_0 = physical_rhs.reshape(n_points, n_points)
     figname = fig_dir + 'rhs'
     plot_set_2D(X, Y, physical_rhs_0, potential_0, electric_field_0, 'RHS', figname)
@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     dirichlet_bc(rhs, n_points, down, up, left, right)
     potential_dirichlet = spsolve(A, rhs).reshape(n_points, n_points)
-    electric_field_dirichlet = grad(potential_dirichlet, dx, dy, n_points, n_points)
+    electric_field_dirichlet = - grad(potential_dirichlet, dx, dy, n_points, n_points)
     physical_rhs_dirichlet = physical_rhs.reshape(n_points, n_points)
     figname = fig_dir + 'dirichlet'
     plot_set_2D(X, Y, potential_dirichlet, potential_dirichlet, electric_field_dirichlet, 'Dirichlet', figname, no_rhs=True)
@@ -107,13 +107,13 @@ if __name__ == '__main__':
 
     dirichlet_bc(rhs, n_points, down, up, left, right)
     potential = spsolve(A, rhs).reshape(n_points, n_points)
-    electric_field = grad(potential, dx, dy, n_points, n_points)
+    electric_field = - grad(potential, dx, dy, n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
     figname = fig_dir + 'full'
     plot_set_2D(X, Y, physical_rhs, potential, electric_field, 'Full',figname)
 
     potential_super = potential_0 + potential_dirichlet
-    electric_field_super = grad(potential_super, dx, dy, n_points, n_points)
+    electric_field_super = - grad(potential_super, dx, dy, n_points, n_points)
     figname = fig_dir + 'superposition'
     plot_set_2D(X, Y, physical_rhs_0, potential_0, electric_field_0, 'Superposition', figname)
 
