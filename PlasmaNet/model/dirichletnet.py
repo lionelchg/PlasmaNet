@@ -88,16 +88,18 @@ class DirichletNet(BaseModel):
     """
     def __init__(self,data_channels):
         super(DirichletNet, self).__init__()
-        self.conv_2 = _ConvBlock1(32, 64, 128, 64)
-        self.conv_1 = _ConvBlock2(1, 16, 32, 16, 1)
-        self.conv_3 = _ConvBlock2(data_channels, 16, 32, 16, 1)
         self.data_channels = data_channels
-
+        if self.data_channels == 2:
+            self.conv_3 = _ConvBlock2(1, 64, 128, 64, 1)
+        else:
+            self.conv_2 = _ConvBlock1(32, 64, 128, 64)
+            self.conv_1 = _ConvBlock2(1, 64, 128, 64, 1)
+       
 
     def forward(self, x):
 
         if self.data_channels == 2:
-            assert x.size(1) == 2, "Input array does not have the size (bsz,2,N,N)"
+            assert x.size(1) == 1, "Input array does not have the size (bsz,2,N,N)"
             final_out = self.conv_3(x)
         else:
             assert x.size(1) == 1 and x.size(2) == 1, "Input array does not have the size (bsz,1,1,N)"

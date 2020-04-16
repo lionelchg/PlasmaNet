@@ -162,7 +162,8 @@ class DirichletDataLoader(BaseDataLoader):
             d = (BC_in.transpose(2,3).expand((bsz, 1, resY, resX)) * torch.exp(-10.0*(x_tensor) / resX)).type(torch.float32)
 
             # Final data == concatenation
-            self.data = torch.cat((d,BC_in.transpose(2,3).expand((bsz, 1, resY, resX))),dim=1).type(torch.float32)
+            self.data =d.type(torch.float32)
+            #self.data = torch.cat((BC_in.transpose(2,3).expand((bsz, 1, resY, resX)),BC_in.transpose(2,3).expand((bsz, 1, resY, resX))),dim=1).type(torch.float32)
 
         else:
             self.data = BC_in.type(torch.float32)
