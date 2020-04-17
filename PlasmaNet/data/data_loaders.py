@@ -110,3 +110,81 @@ class PoissonDataLoader(BaseDataLoader):
         # Create Dataset from Tensor
         self.dataset = TensorDataset(self.data, potential, self.data_norm, self.target_norm)
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
+
+
+class DirichletDataLoader(BaseDataLoader):
+    """
+    Loads a set of Dirichlet BC and the associated result to the BC problem.
+    Automatically shuffles the dataset before the validation split (see BaseDataLoader class).
+    """
+
+    def __init__(self, config, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0,
+                 num_workers=1):
+        self.data_dir = Path(data_dir)
+        self.logger = config.get_logger('DirichletDataLoader', config['trainer']['verbosity'])
+
+        # Load numpy file of shape (batch_size, H, W)
+        potential = np.load(self.data_dir / 'potential.npy')
+        BC_channel = np.zeros_like(potential)
+        BC_channel[:, :, 0] = np.load(self.data_dir / 'potential_boundary.npy')
+
+        # Convert to torch.Tensor of shape (batch_size, 1, H, W) and (batch_size, 1, 1, W) respectively
+        potential = torch.from_numpy(potential[:, np.newaxis, :, :]).type(torch.float32)
+        BC_channel = torch.from_numpy(BC_channel[:, np.newaxis, :, :]).type(torch.float32)
+        rhs = torch.zeros_like(potential)
+
+        # Normalization and length
+        self.normalize = normalize
+        self.length = config.length
+
+        if self.normalize == 'max':
+            self.logger.info("Using max normalization")
+            self.data_norm = torch.max(torch.max(BC_channel, 3, keepdim=True)[0], 2, keepdim=True)[0]
+            self.target_norm = torch.max(torch.max(potential, 3, keepdim=True)[0], 2, keepdim=True)[0]
+            BC_channel /= self.data_norm
+            potential /= self.target_norm
+        elif self.normalize == 'physical':
+            # For the Physical normalization we propose the following:
+            # d2(pot/pot0) / d(x/L)2 = (L2 rhs0 / pot0)* rhs/rhs0
+            # If mod(pot0) == 1 the normalization sums up to rhs * L**2
+            # where L = physical length of the domain
+            self.logger.info("Using physical normalization")
+            self.data_norm = torch.ones((BC_channel.size(0), BC_channel.size(1), 1, 1)) / self.length**2
+            self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
+            BC_channel /= self.data_norm
+            potential /= self.target_norm
+        else:
+            self.logger.info("No normalization")
+            self.data_norm = torch.ones((BC_channel.size(0), BC_channel.size(1), 1, 1))
+            self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
+
+        if config.channels == 3:
+            # Create distance tensor
+
+            assert BC_channel.size(1) == 1, "Size must be (batch_size, 1, H, W)"
+
+            bsz  = BC_channel.size(0)
+            resY = BC_channel.size(2)
+            resX = BC_channel.size(3)
+
+            x_tensor = torch.arange(resX, dtype=torch.float).view((1, resX)).expand((bsz, 1, resY, resX))
+            # Exponential guess of the potential from the BC data
+            potential_guess = (BC_channel[:, :, :, 0].unsqueeze(3).expand((bsz, 1, resY, resX))
+                               * torch.exp(-10.0 * x_tensor / resX)).type(torch.float32)
+
+            # Final data: concatenation of rhs and BC information on respective channels
+            self.data = torch.cat((rhs, BC_channel, potential_guess), dim=1).type(torch.float32)
+
+        else:
+            self.data = torch.cat((rhs, BC_channel), dim=1).type(torch.float32)
+
+        # Convert to torch.float32
+        potential = potential.type(torch.float32)
+        self.data_norm = self.data_norm.type(torch.float32)
+        self.target_norm = self.target_norm.type(torch.float32)
+
+        # Create Dataset from Tensor
+        self.dataset = TensorDataset(self.data, potential, self.data_norm, self.target_norm)
+        super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
+
+
