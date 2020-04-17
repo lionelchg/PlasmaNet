@@ -71,9 +71,9 @@ class ElectricLoss(BaseLoss):
         self.dy = config.dy
         self._require_input_data = False
 
-    def _forward(self, output, target, **_):
-        elec_output = gradient_scalar(output, self.dx, self.dy)
-        elec_target = gradient_scalar(target, self.dx, self.dy)
+    def _forward(self, output, target, target_norm=1., data_norm=1.,  **_):
+        elec_output = gradient_scalar(output * target_norm / data_norm, self.dx, self.dy)
+        elec_target = gradient_scalar(target * target_norm / data_norm, self.dx, self.dy)
         return F.mse_loss(elec_output, elec_target) * self.weight
 
 
