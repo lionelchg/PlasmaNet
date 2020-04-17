@@ -60,10 +60,10 @@ def main(config):
         lr_scheduler = None
 
     trainer = Trainer(model, criterion, metrics, optimizer,
-                  config=config,
-                  data_loader=data_loader,
-                  valid_data_loader=valid_data_loader,
-                  lr_scheduler=lr_scheduler)
+                      config=config,
+                      data_loader=data_loader,
+                      valid_data_loader=valid_data_loader,
+                      lr_scheduler=lr_scheduler)
 
     trainer.train()
 
