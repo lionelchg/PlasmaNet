@@ -13,7 +13,7 @@ import scipy.constants as co
 from scipy.sparse.linalg import spsolve
 
 from plot import plot_fig
-from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
+from poisson_2D_FD import laplace_square_matrix, dirichlet_bc
 
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):

@@ -8,7 +8,9 @@
 
 import numpy as np
 from scipy import sparse
-
+import scipy.constants as co
+from operators import lapl
+import torch
 
 def laplace_square_matrix(n_points):
     diags = np.zeros((5, n_points * n_points))
@@ -45,3 +47,31 @@ def dirichlet_bc(rhs, n_points, up, down, left, right):
     rhs[n_points - 1] = 0.5 * (up[-1] + right[1])
     rhs[-n_points] = 0.5 * (left[-1] + down[0])
     rhs[-1] = 0.5 * (right[-1] + down[-1])
+
+def lapl_diff(potential, physical_rhs, dx, dy, nx, ny):
+    interior_diff = abs(lapl(potential, dx, dy, nx, ny) + physical_rhs)
+    interior_diff[0, :] = 0
+    interior_diff[-1, :] = 0
+    interior_diff[:, 0] = 0
+    interior_diff[:, -1] = 0
+    return interior_diff
+
+def func_energy(potential, electric_field, physical_rhs, voln):
+    field_energy = 1 / 2 * (electric_field[0]**2 + electric_field[1]**2)
+    potential_energy = physical_rhs * potential
+    energy = np.sum((field_energy - potential_energy) * voln)
+    return energy
+
+def func_energy_torch(potential, electric_field, physical_rhs, voln):
+    field_energy = 1 / 2 * (electric_field[0]**2 + electric_field[1]**2)
+    potential_energy = physical_rhs * potential
+    energy = torch.sum((field_energy - potential_energy) * voln)
+    return energy
+
+def compute_voln(X, dx, dy):
+    voln = np.ones_like(X) * dx * dy
+    voln[:, 0], voln[:, -1], voln[0, :], voln[-1, :] = \
+        dx * dy / 2, dx * dy / 2, dx * dy / 2, dx * dy / 2
+    voln[0, 0], voln[-1, 0], voln[0, -1], voln[-1, -1] = \
+        dx * dy / 4, dx * dy / 4, dx * dy / 4, dx * dy / 4
+    return voln

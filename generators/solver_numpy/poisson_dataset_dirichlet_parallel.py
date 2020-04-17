@@ -17,7 +17,7 @@ from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
 
 from plot import plot_fig
-from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
+from poisson_2D_FD import laplace_square_matrix, dirichlet_bc
 
 
 # Global variables

@@ -55,6 +55,13 @@ class PoissonDataLoader(BaseDataLoader):
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
             physical_rhs /= self.data_norm
             potential /= self.target_norm
+        elif self.normalize == 'empirical':
+            # Value that is approximately the max of the rhs
+            self.logger.info("Using empiric normalization")
+            self.data_norm = (torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))) * 2e6
+            self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
+            physical_rhs /= self.data_norm
+            potential /= self.target_norm
         else:
             self.logger.info("No normalization")
             self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))
@@ -86,10 +93,10 @@ class PoissonDataLoader(BaseDataLoader):
             x_tensor = torch.arange(resX, dtype=torch.float).view((1, resX)).expand((bsz, 1, resY, resX))
             y_tensor = torch.arange(resY, dtype=torch.float).view((1, resY, 1)).expand((bsz, 1, resY, resX))
 
-            d_1 = (potential[:, 0, :, 0].expand((bsz, 1, resY, resX)) * (resX - x_tensor) / resX).type(torch.float32)
-            d_2 = (potential[:, 0, 0, :].expand((bsz, 1, resY, resX)) * (resY - y_tensor) / resY).type(torch.float32)
-            d_3 = (potential[:, 0, :, -1].expand((bsz, 1, resY, resX)) * (x_tensor) / resX).type(torch.float32)
-            d_4 = (potential[:, 0, -1, :].expand((bsz, 1, resY, resX)) * (y_tensor) / resY).type(torch.float32)
+            d_1 = (potential[:, :, :, 0].unsqueeze(3).expand((bsz, 1, resY, resX)) * (resX - x_tensor) / resX).type(torch.float32)
+            d_2 = (potential[:, :, 0, :].unsqueeze(2).expand((bsz, 1, resY, resX)) * (resY - y_tensor) / resY).type(torch.float32)
+            d_3 = (potential[:, :, :, -1].unsqueeze(3).expand((bsz, 1, resY, resX)) * (x_tensor) / resX).type(torch.float32)
+            d_4 = (potential[:, :, -1, :].unsqueeze(2).expand((bsz, 1, resY, resX)) * (y_tensor) / resY).type(torch.float32)
 
             # Auxiliary plot
             plot_dataloader_complete(d_1, d_2, d_3, d_4, potential, physical_rhs, x_tensor, y_tensor, config.fig_dir)

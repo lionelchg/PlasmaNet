@@ -146,7 +146,7 @@ class Trainer(BaseTrainer):
     def _batch_plots(self, output, target, data, epoch, batch_idx, mode='train'):
         """ Plots to realise during training and validation loops. File and TensorBoard output. """
         # Plot input, target, output and residual
-        fig = plot_batch(output, target, data, epoch, batch_idx)
+        fig = plot_batch(output, target, data, epoch, batch_idx, self.config)
         fig.savefig(self.config.fig_dir / '{}_{:05d}.png'.format(mode, epoch), dpi=150, bbox_inches='tight')
         self.writer.add_figure('ComparisonWithResiduals', fig)
         # Plot output vs target distribution

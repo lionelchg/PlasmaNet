@@ -14,7 +14,7 @@ from scipy.sparse.linalg import spsolve
 
 from operators import lapl
 from plot import plot_fig, plot_fig_scalar
-from poisson_setup_2D_FD import laplace_square_matrix, dirichlet_bc
+from poisson_2D_FD import laplace_square_matrix, dirichlet_bc
 
 colormap = 'RdBu'
 
@@ -22,11 +22,12 @@ colormap = 'RdBu'
 if __name__ == '__main__':
 
     n_points = 64
-    xmin, xmax = 0, 0.01
-    ymin, ymax = 0, 0.01
+    n_res = 8
+    xmin, xmax = 0, 1
+    ymin, ymax = 0, 1
     dx, dy = (xmax - xmin) / (n_points - 1), (ymax - ymin) / (n_points - 1)
 
-    n_lower = int(n_points / 4)
+    n_lower = int(n_points / n_res)
     x_lower, y_lower = np.linspace(xmin, xmax, n_lower), np.linspace(ymin, ymax, n_lower)
     X_lower, Y_lower = np.meshgrid(x_lower, y_lower)
     z_lower = 2 * np.random.random((n_lower, n_lower)) - 1
@@ -54,7 +55,7 @@ if __name__ == '__main__':
     plt.savefig('figures/random/bicubic', bbox_inches='tight')
 
     # creating the rhs
-    ni0 = 1e16
+    ni0 = 1e18
     rhs = np.zeros(n_points**2)
 
     #interior rhs
@@ -68,6 +69,6 @@ if __name__ == '__main__':
     # Solving the sparse linear system
     potential = spsolve(A, rhs).reshape(n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
-    plot_fig(X, Y, potential, physical_rhs, name='random/test_', nit=1)
-    plot_fig(X, Y, - lapl(potential, dx, dy, n_points, n_points), physical_rhs, name='random/comparison_', nit=1)
-    plot_fig_scalar(X, Y, abs(lapl(potential, dx, dy, n_points, n_points) + physical_rhs), 'Absolute difference', 'random/abs_diff')
+    plot_fig(X, Y, potential, physical_rhs, name='random/test_', nit=1, colormap=colormap)
+    plot_fig(X, Y, - lapl(potential, dx, dy, n_points, n_points), physical_rhs, name='random/comparison_', nit=1, colormap=colormap)
+    plot_fig_scalar(X, Y, abs(lapl(potential, dx, dy, n_points, n_points) + physical_rhs), 'Absolute difference', 'random/abs_diff', colormap=colormap)
