@@ -77,20 +77,20 @@ class DirichletNet(BaseModel):
     TODO, take away the data_channels
     Note that this network assumes that the dataset is a SQUARE of size (N,N). A generalization to a
     rectangular shape (x,y) needs further modifications
-    Takes one input, x (BC tensor) of size [bsz,1,1,N]    
+    Takes one input, x (BC tensor) of size [bsz,1,1,N]
     Procedure:
         - Make a series of 1D convolutions on the BC input (array of lenght [bsz, 1, 1, N])
         - Output of 1D arrays is [bsz,64,N]
         - Transpose the output to [bsz, N, 64]. This changes stack the channels in a way that gives
             a priori better results.
-        - Unsqueeze to size [bsz, 1, N, 64] so that it can be used on the 2D convs 
+        - Unsqueeze to size [bsz, 1, N, 64] so that it can be used on the 2D convs
         - Interpolate into size [ bsz, 1, N, N] (useless for the 64x64 case, but useful if
         - Perform a series of 2D Convolution until the final output is reached [bsz,1, N, N])
     """
     def __init__(self, data_channels):
         super(DirichletNet, self).__init__()
         self.data_channels = data_channels
-        if self.data_channels == 2:
+        if self.data_channels == 3:
             self.conv_3 = _ConvBlock2(1, 64, 128, 64, 1)
         else:
             self.conv_2 = _ConvBlock1(32, 64, 128, 64)
@@ -103,7 +103,7 @@ class DirichletNet(BaseModel):
         else:
             assert x.size(1) == 2, "Input array does not have the size (bsz, 2, H, N)"
             N = x.size(3)
-            conv_2_out = self.conv_2(x[:, 1, 0, :].unsqueeze(1)).transpose(1, 2).unsqueeze(1)
+            conv_2_out = self.conv_2(x[:, 1, :, 0].unsqueeze(1)).transpose(1, 2).unsqueeze(1)
             final_input = F.interpolate(conv_2_out, size=[N, N], mode='bilinear', align_corners=False)
             final_out = self.conv_1(final_input)
 

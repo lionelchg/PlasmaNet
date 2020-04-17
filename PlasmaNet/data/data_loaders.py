@@ -116,21 +116,16 @@ class DirichletDataLoader(BaseDataLoader):
         self.data_dir = Path(data_dir)
         self.logger = config.get_logger('DirichletDataLoader', config['trainer']['verbosity'])
 
-        # Load numpy file of shape (batch_size, H, W) 
+        # Load numpy file of shape (batch_size, H, W)
         potential = np.load(self.data_dir / 'potential.npy')
-        # Extract Dirichlet boundaries conditions from potential
-        mask = np.zeros_like(potential)
-        mask[:, :, 0] = 1
-        mask[:, :, -1] = 1
-        mask[:, 0, :] = 1
-        mask[:, -1, :] = 1
-        BC_channel = potential * mask
+        BC_channel = np.zeros_like(potential)
+        BC_channel[:, :, 0] = np.load(self.data_dir / 'potential_boundary.npy')
 
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) and (batch_size, 1, 1, W) respectively
-        potential = torch.from_numpy(potential[:, np.newaxis, :, :])
+        potential = torch.from_numpy(potential[:, np.newaxis, :, :]).type(torch.float32)
         BC_channel = torch.from_numpy(BC_channel[:, np.newaxis, :, :]).type(torch.float32)
         rhs = torch.zeros_like(potential)
-        
+
         # Normalization and length
         self.normalize = normalize
         self.length = config.length
@@ -167,7 +162,7 @@ class DirichletDataLoader(BaseDataLoader):
 
             x_tensor = torch.arange(resX, dtype=torch.float).view((1, resX)).expand((bsz, 1, resY, resX))
             # Exponential guess of the potential from the BC data
-            potential_guess = (BC_channel[:, :, 0, :].unsqueeze(2).transpose(2, 3).expand((bsz, 1, resY, resX))
+            potential_guess = (BC_channel[:, :, :, 0].unsqueeze(3).expand((bsz, 1, resY, resX))
                                * torch.exp(-10.0 * x_tensor / resX)).type(torch.float32)
 
             # Final data: concatenation of rhs and BC information on respective channels
