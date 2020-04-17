@@ -70,6 +70,7 @@ class _ConvBlock2(nn.Module):
     def forward(self, x):
         return self.encode(x)
 
+
 class DirichletNet(BaseModel):
     """
     Define the network. Takes data_channels as input, although not used (easier object initialization)
@@ -86,7 +87,7 @@ class DirichletNet(BaseModel):
         - Interpolate into size [ bsz, 1, N, N] (useless for the 64x64 case, but useful if
         - Perform a series of 2D Convolution until the final output is reached [bsz,1, N, N])
     """
-    def __init__(self,data_channels):
+    def __init__(self, data_channels):
         super(DirichletNet, self).__init__()
         self.data_channels = data_channels
         if self.data_channels == 2:
@@ -94,18 +95,16 @@ class DirichletNet(BaseModel):
         else:
             self.conv_2 = _ConvBlock1(32, 64, 128, 64)
             self.conv_1 = _ConvBlock2(1, 64, 128, 64, 1)
-       
 
     def forward(self, x):
-
-        if self.data_channels == 2:
-            assert x.size(1) == 1, "Input array does not have the size (bsz,2,N,N)"
-            final_out = self.conv_3(x)
+        if self.data_channels == 3:
+            assert x.size(1) == 3, "Input array does not have the size (bsz, 3, N, N)"
+            final_out = self.conv_3(x[:, 2].unsqueeze(1))
         else:
-            assert x.size(1) == 1 and x.size(2) == 1, "Input array does not have the size (bsz,1,1,N)"
+            assert x.size(1) == 2, "Input array does not have the size (bsz, 2, H, N)"
             N = x.size(3)
-            conv_2_out = self.conv_2(x[:,:,0,:]).transpose(1,2).unsqueeze(1)
-            final_input = F.interpolate(conv_2_out, size=[N,N], mode='bilinear', align_corners=False)
+            conv_2_out = self.conv_2(x[:, 1, 0, :].unsqueeze(1)).transpose(1, 2).unsqueeze(1)
+            final_input = F.interpolate(conv_2_out, size=[N, N], mode='bilinear', align_corners=False)
             final_out = self.conv_1(final_input)
 
         return final_out

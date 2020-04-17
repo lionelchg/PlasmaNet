@@ -118,11 +118,18 @@ class DirichletDataLoader(BaseDataLoader):
 
         # Load numpy file of shape (batch_size, H, W) 
         potential = np.load(self.data_dir / 'potential.npy')
-        potential_boundary = np.load(self.data_dir / 'potential_boundary.npy')
- 
+        # Extract Dirichlet boundaries conditions from potential
+        mask = np.zeros_like(potential)
+        mask[:, :, 0] = 1
+        mask[:, :, -1] = 1
+        mask[:, 0, :] = 1
+        mask[:, -1, :] = 1
+        BC_channel = potential * mask
+
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) and (batch_size, 1, 1, W) respectively
         potential = torch.from_numpy(potential[:, np.newaxis, :, :])
-        BC_in = torch.from_numpy(potential_boundary[:, np.newaxis, np.newaxis, :]).type(torch.float32)
+        BC_channel = torch.from_numpy(BC_channel[:, np.newaxis, :, :]).type(torch.float32)
+        rhs = torch.zeros_like(potential)
         
         # Normalization and length
         self.normalize = normalize
@@ -130,9 +137,9 @@ class DirichletDataLoader(BaseDataLoader):
 
         if self.normalize == 'max':
             self.logger.info("Using max normalization")
-            self.data_norm = torch.max(torch.max(BC_in, 3, keepdim=True)[0], 2, keepdim=True)[0]
+            self.data_norm = torch.max(torch.max(BC_channel, 3, keepdim=True)[0], 2, keepdim=True)[0]
             self.target_norm = torch.max(torch.max(potential, 3, keepdim=True)[0], 2, keepdim=True)[0]
-            BC_in /= self.data_norm
+            BC_channel /= self.data_norm
             potential /= self.target_norm
         elif self.normalize == 'physical':
             # For the Physical normalization we propose the following:
@@ -140,33 +147,34 @@ class DirichletDataLoader(BaseDataLoader):
             # If mod(pot0) == 1 the normalization sums up to rhs * L**2
             # where L = physical length of the domain
             self.logger.info("Using physical normalization")
-            self.data_norm = torch.ones((BC_in.size(0), BC_in.size(1), 1, 1)) / self.length**2
+            self.data_norm = torch.ones((BC_channel.size(0), BC_channel.size(1), 1, 1)) / self.length**2
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
-            BC_in /= self.data_norm
+            BC_channel /= self.data_norm
             potential /= self.target_norm
         else:
             self.logger.info("No normalization")
-            self.data_norm = torch.ones((BC_in.size(0), BC_in.size(1), 1, 1))
+            self.data_norm = torch.ones((BC_channel.size(0), BC_channel.size(1), 1, 1))
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
 
-        if config.channels == 2:
+        if config.channels == 3:
             # Create distance tensor
 
-            assert (BC_in.size(1) == 1 and BC_in.size(2) == 1), "Size must be (batch_size, 1, 1, W)"
+            assert BC_channel.size(1) == 1, "Size must be (batch_size, 1, H, W)"
 
-            bsz  = BC_in.size(0)
-            resX = BC_in.size(3)
-            resY = BC_in.size(3)
+            bsz  = BC_channel.size(0)
+            resY = BC_channel.size(2)
+            resX = BC_channel.size(3)
 
             x_tensor = torch.arange(resX, dtype=torch.float).view((1, resX)).expand((bsz, 1, resY, resX))
-            d = (BC_in.transpose(2,3).expand((bsz, 1, resY, resX)) * torch.exp(-10.0*(x_tensor) / resX)).type(torch.float32)
+            # Exponential guess of the potential from the BC data
+            potential_guess = (BC_channel[:, :, 0, :].unsqueeze(2).transpose(2, 3).expand((bsz, 1, resY, resX))
+                               * torch.exp(-10.0 * x_tensor / resX)).type(torch.float32)
 
-            # Final data == concatenation
-            self.data =d.type(torch.float32)
-            #self.data = torch.cat((BC_in.transpose(2,3).expand((bsz, 1, resY, resX)),BC_in.transpose(2,3).expand((bsz, 1, resY, resX))),dim=1).type(torch.float32)
+            # Final data: concatenation of rhs and BC information on respective channels
+            self.data = torch.cat((rhs, BC_channel, potential_guess), dim=1).type(torch.float32)
 
         else:
-            self.data = BC_in.type(torch.float32)
+            self.data = torch.cat((rhs, BC_channel), dim=1).type(torch.float32)
 
         # Convert to torch.float32
         potential = potential.type(torch.float32)

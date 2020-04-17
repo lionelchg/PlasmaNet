@@ -80,7 +80,6 @@ lr_scheduler:
         verbose: False
 
 trainer:
-    type: 'DirichletModel'                  # If 'DirichletModel' is not selected, just uses the trainer normally
     epochs: 10000
     save_dir: 'outputs/'
     save_period: 10
