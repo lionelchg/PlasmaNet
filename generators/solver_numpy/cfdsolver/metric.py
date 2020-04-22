@@ -1,21 +1,17 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                               Scalar residual schemes                                                #
+#                                              Metric related functions                                                #
 #                                                                                                                      #
 #                                          Lionel Cheng, CERFACS, 22.04.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
-
 import numpy as np
 
-def edge_flux(res, a, u, diff_flux, sij, i1, j1, i2, j2, dim):
-    """ Convection-diffuion flux. Implemented with 1st order upwind scheme for convection 
-    and second order centered scheme for diffusion """
-    scalar_product = 0.5 * (a[dim, j1, i1] + a[dim, j2, i2]) * sij[dim]
-    if scalar_product >= 0:
-        flux = scalar_product * u[j1, i1]
-    else:
-        flux = scalar_product * u[j2, i2]
-    flux -= 0.5 * (diff_flux[dim, j1, i1] + diff_flux[dim, j2, i2]) * sij[dim]
-    res[j1, i1] += flux
-    res[j2, i2] -= flux
+def compute_voln(X, dx, dy):
+    """ Computes the nodal volume associated to each node (i, j) """
+    voln = np.ones_like(X) * dx * dy
+    voln[:, 0], voln[:, -1], voln[0, :], voln[-1, :] = \
+        dx * dy / 2, dx * dy / 2, dx * dy / 2, dx * dy / 2
+    voln[0, 0], voln[-1, 0], voln[0, -1], voln[-1, -1] = \
+        dx * dy / 4, dx * dy / 4, dx * dy / 4, dx * dy / 4
+    return voln

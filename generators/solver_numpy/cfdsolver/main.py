@@ -1,39 +1,27 @@
 import os
 import numpy as np
-import matplotlib.pyplot as plt
-import copy
+import yaml
 
-fig_dir = 'figures/'
+from operators import grad
+from boundary import outlet_x, outlet_y, perio_x, perio_y, full_perio
+from scheme import edge_flux
+from plot import plot_scalar
+from metric import compute_voln
 
-if not os.path.exists(fig_dir):
-    os.makedirs(fig_dir)
-
-def compute_voln(X, dx, dy):
-    voln = np.ones_like(X) * dx * dy
-    voln[:, 0], voln[:, -1], voln[0, :], voln[-1, :] = \
-        dx * dy / 2, dx * dy / 2, dx * dy / 2, dx * dy / 2
-    voln[0, 0], voln[-1, 0], voln[0, -1], voln[-1, -1] = \
-        dx * dy / 4, dx * dy / 4, dx * dy / 4, dx * dy / 4
-    return voln
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
 
-def plot_ax_scalar(fig, ax, X, Y, field, title):
-    levels = 101
-    cs1 = ax.contourf(X, Y, field, levels, cmap='RdBu')
-    fig.colorbar(cs1, ax=ax, pad=0.05, fraction=0.1, aspect=7)
-    ax.set_aspect("equal")
-    ax.set_title(title)
-
-
 if __name__ == '__main__':
 
+    with open('config.yml', 'r') as yaml_stream:
+        config = yaml.safe_load(yaml_stream)
+
     # Mesh properties
-    nnx, nny = 51, 51
+    nnx, nny = config['mesh']['nnx'], config['mesh']['nny']
     ncx, ncy = nnx - 1, nny - 1
-    xmin, xmax = 0, 1
-    ymin, ymax = 0, 1
+    xmin, xmax = config['mesh']['xmin'], config['mesh']['xmax']
+    ymin, ymax = config['mesh']['ymin'], config['mesh']['ymax']
     Lx, Ly = xmax - xmin, ymax - ymin
     dx = (xmax - xmin) / ncx
     dy = (ymax - ymin) / ncy
@@ -43,20 +31,41 @@ if __name__ == '__main__':
     # Grid construction
     X, Y = np.meshgrid(x, y)
     voln = compute_voln(X, dx, dy)
+    sij = np.array([dy / 2, dx / 2])
 
-    # Convection speed and timestep
-    a = np.zeros((nny, nnx, 2))
-    a[:, :, 0] = 1
-    norm_a = np.sqrt(a[:, :, 0]**2 + a[:, :, 1]**2)
-    print(norm_a)
+    # Boundary conditions
+    BC = config['BC']
+
+    # Convection speed
+    a = np.zeros((2, nny, nnx))
+    a[0, :, :] = config['transport']['convection_x']
+    a[1, :, :] = config['transport']['convection_y']
+    norm_a = np.sqrt(a[0, :, :]**2 + a[1, :, :]**2)
     max_speed = np.max(norm_a)
-    print('max speed = %.2e' % max_speed)
+
+    # Diffusion coefficient
+    D = np.zeros_like(X)
+    D = config['transport']['diffusion']
+    max_D = np.max(D)
+
+
+    # Creation of the figures directory and numbering of outputs
+    fig_dir = 'figures/' + config['casename'] 
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
+    number = 1
+    save_type = config['output']['save']
+    period = config['output']['period']
+
+    # Timestep calculation through cfl and fourier
     cfl = 0.5
-    dt = cfl * dx / max_speed
-    print('dx = %.2e - CFL = %.2e - Timestep = %.2e' % (dx, cfl, dt))
+    fourier = 0.15
+    dt = min(cfl * dx / max_speed, fourier * dx**2 / max_D)
+    dtsum = 0
 
     # Number of iterations
     nit = 100
+
 
     # Scalar and Residual declaration
     u, res = np.zeros_like(X), np.zeros_like(X)
@@ -64,77 +73,57 @@ if __name__ == '__main__':
     # Gaussian initialization
     u = gaussian(X, Y, 1, 0.5, 0.5, 1e-1, 1e-1)
 
-    for it in range(nit):
-        if it % 10 == 0 or it == nit - 1:
-            print('it = %d' % it)
+    # Print header to sum up the parameters
+    print('Number of nodes: nnx = %d - nny = %d' %(nnx, nny))
+    print('Bounding box: (%.1e, %.1e), (%.1e, %.1e)' % (xmin, ymin, xmax, ymax))
+    print('Transport: a = %.2e - D = %.2e' % (max_speed, max_D))
+    print('dx = %.2e - dy = %.2e CFL = %.2e - Fourier = %.2e - Timestep = %.2e' % (dx, dy, cfl, fourier, dt))
+    print('------------------------------------')
+    print('Start of simulation')
+    print('------------------------------------')
+    print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
+
+    # Iterations
+    for it in range(1, nit + 1):
+        dtsum += dt
+        # Calculation of diffusive flux
+        diff_flux = D * grad(u, dx, dy, nnx, nny)
+        # Update of the residual to zero
         res[:] = 0
-        # Loop on the cells
+        # Loop on the cells to compute the interior flux and update residuals
         for i in np.arange(ncx):
             for j in np.arange(ncy):
-                scalar_product = a[j, i, 0] * dy / 2
-                if scalar_product >= 0:
-                    flux = scalar_product * u[j, i]
-                else:
-                    flux = scalar_product * u[j, i + 1]
-                res[j, i] += flux
-                res[j, i + 1] -= flux
-
-
-                if scalar_product >= 0:
-                    flux = scalar_product * u[j + 1, i]
-                else:
-                    flux = scalar_product * u[j + 1, i + 1]
-                res[j + 1, i] += flux
-                res[j + 1, i + 1] -= flux
-
-                scalar_product = a[j, i, 1] * dx / 2
-                if scalar_product >= 0:
-                    flux = scalar_product * u[j, i]
-                else:
-                    flux = scalar_product * u[j + 1, i]
-                res[j, i] += flux
-                res[j + 1, i] -= flux
-
-
-                if scalar_product >= 0:
-                    flux = scalar_product * u[j, i + 1]
-                else:
-                    flux = scalar_product * u[j + 1, i + 1]
-                res[j, i + 1] += flux
-                res[j + 1, i + 1] -= flux
-
-        # # Corner (only for full periodic)
-        # res[0, 0] = res[0, 0] + res[0, -1] + res[-1, 0] + res[-1, -1]
-        # res[0, -1], res[-1, 0], res[-1, -1] = res[0, 0], res[0, 0], res[0, 0]
-
-        # # Periodic boundary conditions - Sides
-        res[1:-1, 0] += res[1:-1, -1]
-        res[1:-1, -1] = copy.deepcopy(res[1:-1, 0])
-        # res[0, 1:-1] += res[-1, 1:-1]
-        # res[-1, 1:-1] = copy.deepcopy(res[0, 1:-1])
-
-        flux = dx / 2 * (a[0, 1:, 1] * u[0, 1:] + a[0, :-1, 1] * u[0, :-1]) / 2
-        res[0, 1:] += flux
-        res[0, :-1] += flux
-
-        flux = dx / 2 * (a[-1, 1:, 1] * u[-1, 1:] + a[-1, :-1, 1] * u[-1, :-1]) / 2
-        res[-1, 1:] += flux
-        res[-1, :-1] += flux
-
-        # flux = a[:, 0] * dy / 2 * (u[1:, 0] + u[:-1, 0]) / 2
-        # res[1:, 0] += flux
-        # res[:-1, 0] += flux
-        
-        # flux = a[:, 0] * dy / 2 * (u[1:, -1] + u[:-1, -1]) / 2
-        # res[1:, -1] += flux
-        # res[:-1, -1] += flux
+                edge_flux(res, a, u, diff_flux, sij, i, j, i + 1, j, 0)
+                edge_flux(res, a, u, diff_flux, sij, i, j + 1, i + 1, j + 1, 0)
+                edge_flux(res, a, u, diff_flux, sij, i, j, i, j + 1, 1)
+                edge_flux(res, a, u, diff_flux, sij, i + 1, j, i + 1, j + 1, 1)
+        # Boundary conditions
+        if BC == 'full_perio':
+            full_perio(res)
+        elif BC == 'perio_x':
+            perio_x(res)
+            outlet_y(res, a, u, diff_flux, dx, 0)
+            outlet_y(res, a, u, diff_flux, dx, -1)
+        elif BC == 'perio_y':
+            perio_y(res)
+            outlet_x(res, a, u, diff_flux, dy, 0)
+            outlet_x(res, a, u, diff_flux, dy, -1) 
+        elif BC == 'full_out':
+            outlet_y(res, a, u, diff_flux, dx, 0)
+            outlet_y(res, a, u, diff_flux, dx, -1)
+            outlet_x(res, a, u, diff_flux, dy, 0)
+            outlet_x(res, a, u, diff_flux, dy, -1)
 
 
         u = u - res * dt / voln
 
-        if it % 10 == 0 or it == (nit - 1):
-            fig, axes = plt.subplots(ncols=2, figsize=(12, 6))
-            plot_ax_scalar(fig, axes[0], X, Y, u, "Scalar")
-            plot_ax_scalar(fig, axes[1], X, Y, res, "Residual")
-            plt.tight_layout()
-            plt.savefig(fig_dir + 'instant_%d' % it, bbox_inches='tight')
+        if save_type == 'iteration':
+            if it % period == 0 or it == nit:
+                print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, dt, dtsum, width=14))
+                plot_scalar(X, Y, u, res, dtsum, number, fig_dir)
+                number += 1
+        elif save_type == 'time':
+            if np.abs(dtsum - number * period) < 0.1 * dt or it == nit:
+                print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, dt, dtsum, width=14))
+                plot_scalar(X, Y, u, res, dtsum, number, fig_dir)
+                number += 1
