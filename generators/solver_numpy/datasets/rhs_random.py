@@ -8,7 +8,7 @@
 
 import os
 import time
-from multiprocessing import Pool
+from multiprocessing import get_context
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
@@ -25,7 +25,7 @@ from poissonsolver.operators import grad
 
 # Global variables
 n_points = 64
-n_res = 8
+n_res = 4
 xmin, xmax = 0, 0.01
 ymin, ymax = 0, 0.01
 dx = (xmax - xmin) / (n_points - 1)
@@ -55,6 +55,7 @@ if not os.path.exists(data_dir):
 if not os.path.exists(fig_dir):
     os.makedirs(fig_dir)
 
+
 def params(nits):
     for i in range(nits):
         z_lower = 2 * np.random.random((n_lower, n_lower)) - 1
@@ -83,10 +84,10 @@ def compute(args):
 if __name__ == '__main__':
 
     plot = True
-    n_procs = 2
-    chunksize = 10
+    n_procs = 36
+    chunksize = 5
 
-    nits = 100
+    nits = 15000
     print('Total number of inputs: %d' % nits)
 
     potential_random = np.zeros((nits, n_points, n_points))
@@ -94,13 +95,13 @@ if __name__ == '__main__':
 
     time_start = time.time()
 
-    with Pool(processes=n_procs) as p:
+    with get_context('spawn').Pool(processes=n_procs) as p:
         results_train = list(tqdm(p.imap(compute, params(nits), chunksize=chunksize), total=nits))
 
-    for i, (pot, rhs) in enumerate(results_train):
+    for i, (pot, rhs) in enumerate(tqdm(results_train)):
         potential_random[i, :, :] = pot
         physical_rhs_random[i, :, :] = rhs
-        if i % 10 == 0 and plot:
+        if i % 1000 == 0 and plot:
             E_field = - grad(pot, dx, dy, n_points, n_points)
             plot_set_2D(X, Y, rhs, pot, E_field, 'Input number %d' % i, fig_dir + 'input_%d' % i)
 

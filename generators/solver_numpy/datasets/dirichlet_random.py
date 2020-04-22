@@ -8,7 +8,7 @@
 
 import os
 import time
-from multiprocessing import Pool
+from multiprocessing import get_context
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
     time_start = time.time()
 
-    with Pool(processes=n_procs) as p:
+    with get_context('spawn').Pool(processes=n_procs) as p:
         results = list(tqdm(p.imap(compute, params_random(nits), chunksize=chunksize), total=nits))
 
     for i, result in enumerate(results):
