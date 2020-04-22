@@ -21,14 +21,45 @@ from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from poissonsolver.postproc import lapl_diff, compute_voln, func_energy, func_energy_torch
 import poissonsolver.operators_torch as optorch
 
-fig_dir = 'figures/rhs/gaussian/'
+from losses import plot_trial_function
 
-if not os.path.exists(fig_dir):
-    os.makedirs(fig_dir)
+figs_dir = 'figures/gaussian/'
+
+if not os.path.exists(figs_dir):
+    os.makedirs(figs_dir)
 
 print_bool = False
 
 mpl.rcParams['lines.linewidth'] = 2
+
+loss_list = ['Energy', 'Points', 'Lapl', 'Electric']
+grid_pos = [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+def triangle(x, L, p):
+    return (1 - np.abs(2 * (x - L/2) / L))**p
+
+def bell(x, L, p):
+    return (1 - np.abs((x - L/2) * 2 / L)**p)
+
+def losses_1D(trial_function, amplmin, amplmax, nampl, figname):
+
+    coef_range = np.linspace(amplmin, amplmax, nampl)
+    list_loss = []
+    for ampl_potential in coef_range:
+        potential, E_field, E_field_norm, lapl_pot, functional_energy, points_loss, \
+            lapl_loss, elec_loss, info_test = compute_values(ampl_potential, trial_function)
+        list_loss.append([functional_energy, points_loss, lapl_loss, elec_loss])
+    losses_1D = np.array(list_loss)
+
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 10))
+
+    for i in range(4):
+        i_ax, j_ax = grid_pos[i]
+        axes[i_ax][j_ax].plot(coef_range, losses_1D[:, i])
+        axes[i_ax][j_ax].set_title(loss_list[i])
+        axes[i_ax][j_ax].grid()
+    plt.tight_layout()
+    plt.savefig(figname, bbox_inches='tight')
 
 def compute_values(ampl_potential, trial_function, print_bool=False):
     potential = ampl_potential * trial_function
@@ -103,12 +134,22 @@ if __name__ == '__main__':
     functional_energy_target = func_energy(potential_target, E_field_target, physical_rhs, voln)
 
     # Plots
-    figname = fig_dir + 'solver_solution'
-    plot_set_1D(x, physical_rhs, potential_target, E_field_norm_target, lapl_pot_target, n_points, 'Solver solution 1D', figname + '_1D')
-    plot_set_2D(X, Y, physical_rhs, potential_target, E_field_target, 'Solver solution 2D', figname + '_2D')
+    figname = figs_dir + 'solver_solution'
+    plot_trial_function(X, Y, dx, dy, potential_target, n_points, figname)
+    
+    #######################
+    #
+    #    1D Loss study
+    #
+    #######################
+    typeloss = '1D/'
 
-
-    # Analytical solution but with a quadrature formula for the Fourier coefficient
+    # Type of the trial function
+    typetrial = 'fourier/'
+    fig_dir = figs_dir + typeloss + typetrial
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
+    # Analytical solution but with a quadrature formula for the Fourier coefficient (only first harmonic)
     N = 1
     M = N
     potential_th = sum_series(X, Y, Lx, Ly, voln, physical_rhs, N, M)
@@ -116,71 +157,111 @@ if __name__ == '__main__':
     E_field_norm_th = np.sqrt(E_field_th[0]**2 + E_field_th[1]**2)
     functional_energy_th = func_energy(potential_th, E_field_th, physical_rhs, voln)
     lapl_pot_th = lapl(potential_th, dx, dy, n_points, n_points)
-    casename = 'gaussian_series_quadrature_%d_%d' % (N, M)
+    casename = 'fourier_series_%d_%d' % (N, M)
     figname = fig_dir + casename
     plot_set_1D(x, physical_rhs, potential_th, E_field_norm_th, lapl_pot_th, n_points, 'Potential up series N = %d M = %d' % (N, M), figname + '_1D')
     plot_set_2D(X, Y, physical_rhs, potential_th, E_field_th, 'Potential up series N = %d M = %d' % (N, M), figname + '_2D')
 
     # Trial function (the first harmonic)
-    trial_function = np.sin(np.pi * X / Lx) * np.sin(np.pi * Y / Ly)
     coef_target = fourier_coef(X, Y, Lx, Ly, voln, physical_rhs, 1, 1) / ((1 / Lx)**2 + (1 / Ly)**2) / np.pi**2
     print('coef target = %.4e' % coef_target)
 
-    coef_range = np.linspace(1, 200, 200)
-    list_loss = []
-    for ampl_potential in coef_range:
-        potential, E_field, E_field_norm, lapl_pot, functional_energy, points_loss, \
-            lapl_loss, elec_loss, info_test = compute_values(ampl_potential, trial_function)
-        list_loss.append([functional_energy, points_loss, lapl_loss, elec_loss])
-    losses_1D = np.array(list_loss)
+    amplmin, amplmax, ampln = 1, 300, 300
+    trial_function = np.sin(np.pi * X / Lx) * np.sin(np.pi * Y / Ly)
+    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
+    losses_1D(trial_function, amplmin, amplmax, ampln, fig_dir + 'losses_1D')
 
-    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 10))
-    axes[0][0].plot(coef_range, losses_1D[:, 0])
-    axes[0][0].set_title('Energy')
-    axes[0][0].grid()
-    axes[0][1].plot(coef_range, losses_1D[:, 1])
-    axes[0][1].set_title('Points Loss')
-    axes[0][1].grid()
-    axes[1][0].plot(coef_range, losses_1D[:, 2])
-    axes[1][0].set_title('Lapl Loss')
-    axes[1][0].grid()
-    axes[1][1].plot(coef_range, losses_1D[:, 3])
-    axes[1][1].set_title('Electric Loss')
-    axes[1][1].grid()
-    plt.tight_layout()
-    plt.savefig(fig_dir + 'losses_1D', bbox_inches='tight')
+    # Triangle
+    amplmin, amplmax, ampln = 1, 300, 300
+    typetrial = 'triangle/'
+    fig_dir = figs_dir + typeloss + typetrial
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
+    trial_function = triangle(X, Lx, 1) * triangle(Y, Ly, 1)
+    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
+    losses_1D(trial_function, amplmin, amplmax, ampln,  fig_dir + 'losses_1D')
 
-    energy_derivative = derivative(losses_1D[:, 0], coef_range, 1)
-    f = interpolate.interp1d(coef_range, energy_derivative)
+    # Triangle**2
+    amplmin, amplmax, ampln = 1, 300, 300
+    typetrial = 'triangle_two/'
+    fig_dir = figs_dir + typeloss + typetrial
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
+    trial_function = triangle(X, Lx, 2) * triangle(Y, Ly, 2)
+    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
+    losses_1D(trial_function, amplmin, amplmax, ampln,  fig_dir + 'losses_1D')
 
-    #Conversion to torch tensors
-    physical_rhs = torch.from_numpy(physical_rhs)
-    X, Y, voln = torch.from_numpy(X), torch.from_numpy(Y), torch.from_numpy(voln)
-    trial_function = torch.sin(np.pi * X / Lx) * torch.sin(np.pi * Y / Ly)
+    # Triangle**0.5
+    amplmin, amplmax, ampln = 1, 300, 300
+    typetrial = 'triangle_half/'
+    fig_dir = figs_dir + typeloss + typetrial
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
+    trial_function = triangle(X, Lx, 0.5) * triangle(Y, Ly, 0.5)
+    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
+    losses_1D(trial_function, amplmin, amplmax, ampln,  fig_dir + 'losses_1D')
 
-    ampl_potential = 50.0
-    eta = 0.1
-    for i in range(10):
-        print('Step %d' % (i + 1))
-        v = torch.tensor([ampl_potential], requires_grad=True)
-        potential = v * trial_function
-        E_field = optorch.grad(potential, dx, dy, n_points, n_points)
-        functional_energy = func_energy_torch(potential, E_field, physical_rhs, voln) - functional_energy_target
-        functional_energy.backward()
-        print('target grad = %.2e - torch grad = %.2e - ratio = %.2e ' % (f(ampl_potential), v.grad.data, f(ampl_potential) / v.grad.data))
-        print('A = %.4e, I(phi) = %.4e' % (ampl_potential, functional_energy))
-        ampl_potential -= eta * v.grad.data
+    # Bell
+    amplmin, amplmax, ampln = 1, 300, 300
+    typetrial = 'bell/'
+    fig_dir = figs_dir + typeloss + typetrial
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
+    trial_function = bell(X, Lx, 1) * bell(Y, Ly, 1)
+    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
+    losses_1D(trial_function, amplmin, amplmax, ampln,  fig_dir + 'losses_1D')
 
-    ampl_potential = 200.0
-    eta = 0.1
-    for i in range(10):
-        print('Step %d' % (i + 1))
-        v = torch.tensor([ampl_potential], requires_grad=True)
-        potential = v * trial_function
-        E_field = optorch.grad(potential, dx, dy, n_points, n_points)
-        functional_energy = func_energy_torch(potential, E_field, physical_rhs, voln) - functional_energy_target
-        functional_energy.backward()
-        print('target grad = %.2e - torch grad = %.2e - ratio = %.2e ' % (f(ampl_potential), v.grad.data, f(ampl_potential) / v.grad.data))
-        print('A = %.4e, I(phi) = %.4e' % (ampl_potential, functional_energy))
-        ampl_potential -= eta * v.grad.data
+    # Bell
+    amplmin, amplmax, ampln = 1, 300, 300
+    typetrial = 'bell_two/'
+    fig_dir = figs_dir + typeloss + typetrial
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
+    trial_function = bell(X, Lx, 2) * bell(Y, Ly, 2)
+    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
+    losses_1D(trial_function, amplmin, amplmax, ampln,  fig_dir + 'losses_1D')
+
+    # Bell
+    amplmin, amplmax, ampln = 1, 300, 300
+    typetrial = 'bell_half/'
+    fig_dir = figs_dir + typeloss + typetrial
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
+    trial_function = bell(X, Lx, 0.5) * bell(Y, Ly, 0.5)
+    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
+    losses_1D(trial_function, amplmin, amplmax, ampln,  fig_dir + 'losses_1D')
+
+    # energy_derivative = derivative(losses_1D[:, 0], coef_range, 1)
+    # f = interpolate.interp1d(coef_range, energy_derivative)
+
+    # #Conversion to torch tensors
+    # physical_rhs = torch.from_numpy(physical_rhs)
+    # X, Y, voln = torch.from_numpy(X), torch.from_numpy(Y), torch.from_numpy(voln)
+    # trial_function = torch.sin(np.pi * X / Lx) * torch.sin(np.pi * Y / Ly)
+
+    # ampl_potential = 50.0
+    # eta = 0.1
+    # for i in range(10):
+    #     print('Step %d' % (i + 1))
+    #     v = torch.tensor([ampl_potential], requires_grad=True)
+    #     potential = v * trial_function
+    #     E_field = optorch.grad(potential, dx, dy, n_points, n_points)
+    #     functional_energy = func_energy_torch(potential, E_field, physical_rhs, voln) - functional_energy_target
+    #     functional_energy.backward()
+    #     print('target grad = %.2e - torch grad = %.2e - ratio = %.2e ' % (f(ampl_potential), v.grad.data, f(ampl_potential) / v.grad.data))
+    #     print('A = %.4e, I(phi) = %.4e' % (ampl_potential, functional_energy))
+    #     ampl_potential -= eta * v.grad.data
+
+    # ampl_potential = 200.0
+    # eta = 0.1
+    # for i in range(10):
+    #     print('Step %d' % (i + 1))
+    #     v = torch.tensor([ampl_potential], requires_grad=True)
+    #     potential = v * trial_function
+    #     E_field = optorch.grad(potential, dx, dy, n_points, n_points)
+    #     functional_energy = func_energy_torch(potential, E_field, physical_rhs, voln) - functional_energy_target
+    #     functional_energy.backward()
+    #     print('target grad = %.2e - torch grad = %.2e - ratio = %.2e ' % (f(ampl_potential), v.grad.data, f(ampl_potential) / v.grad.data))
+    #     print('A = %.4e, I(phi) = %.4e' % (ampl_potential, functional_energy))
+    #     ampl_potential -= eta * v.grad.data
 
