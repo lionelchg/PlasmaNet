@@ -21,7 +21,7 @@ from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from poissonsolver.postproc import lapl_diff, compute_voln, func_energy, func_energy_torch
 import poissonsolver.operators_torch as optorch
 
-from losses import plot_trial_function
+from losses import plot_potential
 
 figs_dir = 'figures/gaussian/'
 
@@ -47,7 +47,7 @@ def losses_1D(trial_function, amplmin, amplmax, nampl, figname):
     list_loss = []
     for ampl_potential in coef_range:
         potential, E_field, E_field_norm, lapl_pot, functional_energy, points_loss, \
-            lapl_loss, elec_loss, info_test = compute_values(ampl_potential, trial_function)
+            lapl_loss, elec_loss = compute_values(ampl_potential, trial_function)
         list_loss.append([functional_energy, points_loss, lapl_loss, elec_loss])
     losses_1D = np.array(list_loss)
 
@@ -61,6 +61,7 @@ def losses_1D(trial_function, amplmin, amplmax, nampl, figname):
     plt.tight_layout()
     plt.savefig(figname, bbox_inches='tight')
 
+
 def compute_values(ampl_potential, trial_function, print_bool=False):
     potential = ampl_potential * trial_function
     E_field = - grad(potential, dx, dy, n_points, n_points)
@@ -72,20 +73,19 @@ def compute_values(ampl_potential, trial_function, print_bool=False):
     lapl_loss = np.sum(interior_diff**2) / n_points**2
     elec_loss = np.sum((E_field_norm - E_field_norm_target)**2) / n_points**2
 
-    info_test = 'A = %.2e, energy = %.4e - points_loss = %.4e - lapl_loss = %.4e - elec_loss = %.4e' \
-            % (ampl_potential, functional_energy, points_loss, lapl_loss, elec_loss)
-    if print_bool: print(info_test)
-
-    return potential, E_field, E_field_norm, lapl_pot, functional_energy, points_loss, lapl_loss, elec_loss, info_test
+    return potential, E_field, E_field_norm, lapl_pot, functional_energy, points_loss, lapl_loss, elec_loss
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
 
-def fourier_coef(x, y, Lx, Ly, voln, rhs, n, m):
+def integral_term(x, y, Lx, Ly, voln, rhs, n, m):
     return 4 / Lx / Ly * np.sum(np.sin(n * np.pi * x / Lx) * np.sin(m * np.pi * y / Ly) * rhs * voln)
 
+def fourier_coef(x, y, Lx, Ly, voln, rhs, n, m):
+    return integral_term(x, y, Lx, Ly, voln, rhs, n, m) / ((n / Lx)**2 + (m / Ly)**2) / np.pi**2
+
 def series_term(x, y, Lx, Ly, voln, rhs, n, m):
-    return fourier_coef(x, y, Lx, Ly, voln, rhs, n, m) * np.sin(n * np.pi * x / Lx) * np.sin(m * np.pi * y / Ly) / ((n / Lx)**2 + (m / Ly)**2) / np.pi**2
+    return fourier_coef(x, y, Lx, Ly, voln, rhs, n, m) * np.sin(n * np.pi * x / Lx) * np.sin(m * np.pi * y / Ly)
 
 def sum_series(x, y, Lx, Ly, voln, rhs, N, M):
     series = np.zeros_like(x)
@@ -135,7 +135,7 @@ if __name__ == '__main__':
 
     # Plots
     figname = figs_dir + 'solver_solution'
-    plot_trial_function(X, Y, dx, dy, potential_target, n_points, figname)
+    plot_potential(X, Y, dx, dy, potential_target, n_points, figname)
     
     #######################
     #
@@ -153,23 +153,31 @@ if __name__ == '__main__':
     N = 1
     M = N
     potential_th = sum_series(X, Y, Lx, Ly, voln, physical_rhs, N, M)
-    E_field_th = - grad(potential_th, dx, dy, n_points, n_points)
-    E_field_norm_th = np.sqrt(E_field_th[0]**2 + E_field_th[1]**2)
-    functional_energy_th = func_energy(potential_th, E_field_th, physical_rhs, voln)
-    lapl_pot_th = lapl(potential_th, dx, dy, n_points, n_points)
     casename = 'fourier_series_%d_%d' % (N, M)
     figname = fig_dir + casename
-    plot_set_1D(x, physical_rhs, potential_th, E_field_norm_th, lapl_pot_th, n_points, 'Potential up series N = %d M = %d' % (N, M), figname + '_1D')
-    plot_set_2D(X, Y, physical_rhs, potential_th, E_field_th, 'Potential up series N = %d M = %d' % (N, M), figname + '_2D')
+    plot_potential(X, Y, dx, dy, potential_th, n_points, figname)
 
-    # Trial function (the first harmonic)
-    coef_target = fourier_coef(X, Y, Lx, Ly, voln, physical_rhs, 1, 1) / ((1 / Lx)**2 + (1 / Ly)**2) / np.pi**2
-    print('coef target = %.4e' % coef_target)
+    nrange, mrange = np.arange(1, 8), np.arange(1, 8)
+    N, M = np.meshgrid(nrange, mrange)
+    Coeff = np.zeros_like(N)
+    for i in nrange:
+        for j in nrange:
+            Coeff[j - 1, i - 1] = fourier_coef(X, Y, Lx, Ly, voln, physical_rhs, i, j)
+            print('%d %d %.2e' % (i, j, Coeff[j - 1, i - 1]))
+    fig = plt.figure(figsize=(8, 8))
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(N, M, Coeff, alpha=0.7)
+    ax.set_zlabel('Amplitude')
+    ax.set_ylabel('M')
+    ax.set_xlabel('N')
+    ax.set_title('Mode amplitudes')
+    ax.view_init(elev=20, azim=35)
+    plt.savefig(fig_dir + 'mode_amplitudes', bbox_inches='tight')
 
-    amplmin, amplmax, ampln = 1, 300, 300
-    trial_function = np.sin(np.pi * X / Lx) * np.sin(np.pi * Y / Ly)
-    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
-    losses_1D(trial_function, amplmin, amplmax, ampln, fig_dir + 'losses_1D')
+    # amplmin, amplmax, ampln = 1, 300, 300
+    # trial_function = np.sin(np.pi * X / Lx) * np.sin(np.pi * Y / Ly)
+    # plot_potential(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
+    # losses_1D(trial_function, amplmin, amplmax, ampln, fig_dir + 'losses_1D')
 
     # Triangle
     amplmin, amplmax, ampln = 1, 300, 300
@@ -178,8 +186,7 @@ if __name__ == '__main__':
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
     trial_function = triangle(X, Lx, 1) * triangle(Y, Ly, 1)
-    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
-    losses_1D(trial_function, amplmin, amplmax, ampln,  fig_dir + 'losses_1D')
+    plot_potential(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
 
     # Triangle**2
     amplmin, amplmax, ampln = 1, 300, 300
@@ -188,8 +195,7 @@ if __name__ == '__main__':
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
     trial_function = triangle(X, Lx, 2) * triangle(Y, Ly, 2)
-    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
-    losses_1D(trial_function, amplmin, amplmax, ampln,  fig_dir + 'losses_1D')
+    plot_potential(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
 
     # Triangle**0.5
     amplmin, amplmax, ampln = 1, 300, 300
@@ -198,8 +204,7 @@ if __name__ == '__main__':
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
     trial_function = triangle(X, Lx, 0.5) * triangle(Y, Ly, 0.5)
-    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
-    losses_1D(trial_function, amplmin, amplmax, ampln,  fig_dir + 'losses_1D')
+    plot_potential(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
 
     # Bell
     amplmin, amplmax, ampln = 1, 300, 300
@@ -208,8 +213,7 @@ if __name__ == '__main__':
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
     trial_function = bell(X, Lx, 1) * bell(Y, Ly, 1)
-    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
-    losses_1D(trial_function, amplmin, amplmax, ampln,  fig_dir + 'losses_1D')
+    plot_potential(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
 
     # Bell
     amplmin, amplmax, ampln = 1, 300, 300
@@ -218,8 +222,7 @@ if __name__ == '__main__':
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
     trial_function = bell(X, Lx, 2) * bell(Y, Ly, 2)
-    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
-    losses_1D(trial_function, amplmin, amplmax, ampln,  fig_dir + 'losses_1D')
+    plot_potential(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
 
     # Bell
     amplmin, amplmax, ampln = 1, 300, 300
@@ -228,8 +231,8 @@ if __name__ == '__main__':
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
     trial_function = bell(X, Lx, 0.5) * bell(Y, Ly, 0.5)
-    plot_trial_function(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
-    losses_1D(trial_function, amplmin, amplmax, ampln,  fig_dir + 'losses_1D')
+    plot_potential(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
+
 
     # energy_derivative = derivative(losses_1D[:, 0], coef_range, 1)
     # f = interpolate.interp1d(coef_range, energy_derivative)

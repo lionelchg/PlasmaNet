@@ -11,9 +11,10 @@ import numpy as np
 import scipy.constants as co
 from scipy.sparse.linalg import spsolve
 import matplotlib.pyplot as plt
+import mpl_toolkits.mplot3d.axes3d as axes3d
 
 from poissonsolver.operators import lapl, grad
-from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_ax_set_1D
+from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_ax_set_1D, plot_potential
 from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from poissonsolver.postproc import lapl_diff, compute_voln
 
@@ -25,18 +26,21 @@ if not os.path.exists(fig_dir):
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
 
-def fourier_coef(x, y, Lx, Ly, voln, rhs, n, m):
+def integral_term(x, y, Lx, Ly, voln, rhs, n, m):
     return 4 / Lx / Ly * np.sum(np.sin(n * np.pi * x / Lx) * np.sin(m * np.pi * y / Ly) * rhs * voln)
 
+def fourier_coef(x, y, Lx, Ly, voln, rhs, n, m):
+    return integral_term(x, y, Lx, Ly, voln, rhs, n, m) / ((n / Lx)**2 + (m / Ly)**2) / np.pi**2
+
 def series_term(x, y, Lx, Ly, voln, rhs, n, m):
-    return fourier_coef(x, y, Lx, Ly, voln, rhs, n, m) * np.sin(n * np.pi * x / Lx) * np.sin(m * np.pi * y / Ly) / ((n / Lx)**2 + (m / Ly)**2)
+    return fourier_coef(x, y, Lx, Ly, voln, rhs, n, m) * np.sin(n * np.pi * x / Lx) * np.sin(m * np.pi * y / Ly)
 
 def sum_series(x, y, Lx, Ly, voln, rhs, N, M):
     series = np.zeros_like(x)
     for n in range(1, N + 1):
         for m in range(1, M + 1):
             series += series_term(x, y, Lx, Ly, voln, rhs, n, m)
-    return series / np.pi**2
+    return series
 
 
 if __name__ == '__main__':
@@ -48,6 +52,7 @@ if __name__ == '__main__':
     x, y = np.linspace(xmin, xmax, n_points), np.linspace(ymin, ymax, n_points)
 
     X, Y = np.meshgrid(x, y)
+    voln = compute_voln(X, dx, dy)
 
     A = laplace_square_matrix(n_points)
 
@@ -78,20 +83,32 @@ if __name__ == '__main__':
 
     # Plots
     figname = fig_dir + 'solver_solution'
-    plot_set_1D(x, physical_rhs, potential, E_field_norm, lapl_pot, n_points, 'Solver solution 1D', figname + '_1D')
-    plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Solver solution 2D', figname + '_2D')
-
+    plot_potential(X, Y, dx, dy, potential, n_points, figname)
 
     # Analytical solution but with a quadrature formula for the Fourier coefficient
     list_N = [1, 3, 5, 9, 15]
     for N in list_N:
         M = N
-        voln = compute_voln(X, dx, dy)
         potential_th = sum_series(X, Y, Lx, Ly, voln, physical_rhs, N, M)
-        E_field_th = - grad(potential_th, dx, dy, n_points, n_points)
-        E_field_norm_th = np.sqrt(E_field_th[0]**2 + E_field_th[1]**2)
-        lapl_pot_th = lapl(potential_th, dx, dy, n_points, n_points)
-        casename = 'constant_up_series_quadrature_%d_%d' % (N, M)
+        casename = 'fourier_%d_%d' % (N, M)
         figname = fig_dir + casename
-        plot_set_1D(x, physical_rhs, potential_th, E_field_norm_th, lapl_pot_th, n_points, 'Potential up series N = %d M = %d' % (N, M), figname + '_1D')
-        plot_set_2D(X, Y, physical_rhs, potential_th, E_field_th, 'Potential up series N = %d M = %d' % (N, M), figname + '_2D')
+        plot_potential(X, Y, dx, dy, potential_th, n_points, figname)
+
+    # Plot of the modes
+    nrange, mrange = np.arange(1, 8), np.arange(1, 8)
+    N, M = np.meshgrid(nrange, mrange)
+    Coeff = np.zeros_like(N)
+    for i in nrange:
+        for j in nrange:
+            Coeff[j - 1, i - 1] = fourier_coef(X, Y, Lx, Ly, voln, physical_rhs, i, j)
+            # print('%d %d %.2e' % (i, j, Coeff[j - 1, i - 1]))
+    fig = plt.figure(figsize=(8, 8))
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(N, M, Coeff, alpha=0.7)
+    ax.set_zlabel('Amplitude')
+    ax.set_ylabel('M')
+    ax.set_xlabel('N')
+    ax.set_title('Mode amplitudes')
+    ax.view_init(elev=20, azim=35)
+    plt.tight_layout()
+    plt.savefig(fig_dir + 'mode_amplitudes', bbox_inches='tight')

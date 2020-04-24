@@ -29,7 +29,7 @@ def plot_trial_functions(x, L, p_range, trial, trial_d, trialname, figname):
     plt.savefig(fig_dir + figname, bbox_inches='tight')
 
 
-fig_dir = 'figures/rhs/gaussian/'
+fig_dir = 'figures/gaussian/1D_trialfunctions/'
 
 if not os.path.exists(fig_dir):
     os.makedirs(fig_dir)
@@ -41,5 +41,5 @@ if __name__ == '__main__':
     x = np.linspace(xmin, xmax, nx)
     p_range = [0.2, 0.5, 1, 2, 3]
     plot_trial_functions(x, Lx, p_range, triangle, triangle_derivative, 'Triangles', 'triangles_1D')
-    p_range = [0.1, 0.2, 0.5, 1, 2, 3, 4, 5, 6]
+    p_range = [0.1, 0.2, 0.5, 1, 2, 3, 5, 6]
     plot_trial_functions(x, Lx, p_range, bell, bell_derivative, 'Bells', 'bells_1D')
