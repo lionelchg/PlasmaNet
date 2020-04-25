@@ -8,8 +8,9 @@
 
 import numpy as np
 
+
 def edge_flux(res, a, u, diff_flux, sij, i1, j1, i2, j2, dim):
-    """ Convection-diffuion flux. Implemented with 1st order upwind scheme for convection 
+    """ Convection-diffusion flux. Implemented with 1st order upwind scheme for convection
     and second order centered scheme for diffusion """
     scalar_product = 0.5 * (a[dim, j1, i1] + a[dim, j2, i2]) * sij[dim]
     if scalar_product >= 0:

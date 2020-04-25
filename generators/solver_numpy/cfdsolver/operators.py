@@ -5,15 +5,16 @@
 #                                          Lionel Cheng, CERFACS, 22.04.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
+
 import numpy as np
 
 
 def L1_error(y, y_th, ds, S):
-  return np.sum(ds / S * abs(y - y_th))
+    return np.sum(ds / S * abs(y - y_th))
 
 
 def L2_error(y, y_th, ds, S):
-  return np.sqrt(ds / S * np.sum((y - y_th)**2))
+    return np.sqrt(ds / S * np.sum((y - y_th)**2))
 
 
 def Linf_error(y, y_th):
@@ -29,14 +30,19 @@ def print_error(computed, analytical, ds, S, name):
                                                                                   L1_error(computed, analytical, ds, S),
                                                                                   L2_error(computed, analytical, ds, S),
                                                                                   Linf_error(computed, analytical)))
+
+
 def derivative(y, x, dx):
+    """ Compute one dimensional second order derivative with extrapolation at the boundaries for order consistence. """
     dy = np.zeros_like(y)
     dy[1:-1] = (y[2:] - y[:-2]) / (2 * dx)
     dy[0] = 4 * y[1] - 3 * y[0] - y[2]
     dy[-1] = - (4 * y[-2] - 3 * y[-1] - y[-3])
     return dy
 
+
 def div(field, dx, dy, nx, ny, order=2):
+    """ Compute the divergence of the given field using 2nd or 4th order on the inside of the domain. """
 
     divergence = np.zeros((ny, nx))
 
@@ -74,6 +80,7 @@ def div(field, dx, dy, nx, ny, order=2):
 
 
 def lapl(field, dx, dy, nx, ny, order=2, b=0):
+    """ Compute the laplacian of the given field using 2nd or 4th order on the inside of the domain. """
 
     laplacian = np.zeros((ny, nx))
 
@@ -129,6 +136,7 @@ def lapl(field, dx, dy, nx, ny, order=2, b=0):
 
 
 def grad(field, dx, dy, nx, ny):
+    """ Compute 2nd order gradient of 2-dimensional field. """
     gradient = np.zeros((2, ny, nx))
 
     gradient[0, :, 1:-1] = (field[:, 2:] - field[:, :-2]) / (2 * dx)
@@ -141,7 +149,9 @@ def grad(field, dx, dy, nx, ny):
 
     return gradient
 
+
 def scalar_rot(field, dx, dy, nx, ny):
+    """ Compute scalar rotational of 2-dimensional field. """
     rotational = np.zeros((ny, nx))
 
     # first compute dfield_y / dx

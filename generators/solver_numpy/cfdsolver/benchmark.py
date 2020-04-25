@@ -1,19 +1,32 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                              Metric related functions                                                #
+#                                                Benchmarking routines                                                 #
 #                                                                                                                      #
 #                                          Lionel Cheng, CERFACS, 22.04.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
 
-import numpy as np
+import yaml
+from time import time
+from tqdm import tqdm
+
+from main import main
 
 
-def compute_voln(X, dx, dy):
-    """ Computes the nodal volume associated to each node (i, j) """
-    voln = np.ones_like(X) * dx * dy
-    voln[:, 0], voln[:, -1], voln[0, :], voln[-1, :] = \
-        dx * dy / 2, dx * dy / 2, dx * dy / 2, dx * dy / 2
-    voln[0, 0], voln[-1, 0], voln[0, -1], voln[-1, -1] = \
-        dx * dy / 4, dx * dy / 4, dx * dy / 4, dx * dy / 4
-    return voln
+if __name__ == '__main__':
+
+    with open('config.yml', 'r') as yaml_stream:
+        cfg = yaml.safe_load(yaml_stream)
+
+    cfg['output']['save'] = 'none'
+
+    ntests = 5
+    total_time = 0
+    for i in tqdm(range(ntests)):
+        elapsed_time = time()
+        main(cfg)
+        elapsed_time = time() - elapsed_time
+        total_time += elapsed_time
+
+    print('\nAveraged elapsed time: {:.6f} s'.format(total_time / ntests))
+    print('Time per iteration: {:.6e} it/s'.format(total_time / ntests / cfg['params']['nit']))
