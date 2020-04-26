@@ -25,14 +25,21 @@ def print_error(computed, analytical, ds, S, name):
                                                                                   L1_error(computed, analytical, ds, S),
                                                                                   L2_error(computed, analytical, ds, S),
                                                                                   Linf_error(computed, analytical)))
-def derivative(y, x, dx):
+def dv(y, x, dx):
     dy = np.zeros_like(y)
     dy[1:-1] = (y[2:] - y[:-2]) / (2 * dx)
     dy[0] = 4 * y[1] - 3 * y[0] - y[2]
     dy[-1] = - (4 * y[-2] - 3 * y[-1] - y[-3])
     return dy
 
-def div(field, dx, dy, nx, ny, order=2):
+def dv2(y, x, dx):
+    dy = np.zeros_like(y)
+    dy[1:-1] = (y[2:] + y[:-2] - 2 * y[1:-1]) / (2 * dx)
+    dy[0] = 4 * y[1] - 3 * y[0] - y[2]
+    dy[-1] = - (4 * y[-2] - 3 * y[-1] - y[-3])
+    return dy
+
+def div(field, dx, dy, nx, ny, order=2, r=None):
 
     divergence = np.zeros((ny, nx))
 
@@ -66,10 +73,14 @@ def div(field, dx, dy, nx, ny, order=2):
                         (4 * field[1, 1, -1] - 3 * field[1, 0, -1] - field[1, 2, -1]) / (2 * dy)
     divergence[-1, -1] = (3 * field[0, -1, -1] - 4 * field[0, -1, -2] + field[0, -1, -3]) / (2 * dx) + \
                          (3 * field[1, -1, -1] - 4 * field[1, -2, -1] + field[1, -3, -1]) / (2 * dy)
+
+    if r is not None:
+        divergence += field / r
+
     return divergence
 
 
-def lapl(field, dx, dy, nx, ny, order=2, b=0):
+def lapl(field, dx, dy, nx, ny, order=2, b=0, r=None):
 
     laplacian = np.zeros((ny, nx))
 
@@ -120,6 +131,11 @@ def lapl(field, dx, dy, nx, ny, order=2, b=0):
     laplacian[-1, -1] = \
         (2 * field[-1, -1] - 5 * field[-2, -1] + 4 * field[-3, -1] - field[-4, -1]) / dy**2 + \
         (2 * field[0, -1] - 5 * field[0, -2] + 4 * field[0, -3] - field[0, -4]) / dx**2
+
+    if r is not None:
+        laplacian[1:-1, :] += (field[2:, :] - field[:-2, :]) / (2 * dy) / r[1:-1, :]
+        laplacian[0, :] = (- 3 * field[0, :] + 4 * field[1, :] - field[2, :]) / (2 * dy) / r[0, :]
+        laplacian[-1, :] = (3 * field[-1, :] - 4 * field[-2, :] + field[-3, :]) / (2 * dy) / r[-1, :]
 
     return laplacian
 

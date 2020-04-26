@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import torch
 
-from poissonsolver.operators import lapl, grad, derivative
+from poissonsolver.operators import lapl, grad, dv
 from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_ax_set_1D
 from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from poissonsolver.postproc import lapl_diff, compute_voln, func_energy, func_energy_torch
@@ -234,7 +234,7 @@ if __name__ == '__main__':
     plot_potential(X, Y, dx, dy, trial_function, n_points, fig_dir + 'trial_function')
 
 
-    # energy_derivative = derivative(losses_1D[:, 0], coef_range, 1)
+    # energy_derivative = dv(losses_1D[:, 0], coef_range, 1)
     # f = interpolate.interp1d(coef_range, energy_derivative)
 
     # #Conversion to torch tensors
