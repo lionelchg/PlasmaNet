@@ -64,6 +64,7 @@ def main(config):
         os.makedirs(fig_dir)
     number = 1
     save_type = config['output']['save']
+    verbose = config['output']['verbose']
     period = config['output']['period']
 
     # Timestep calculation through cfl and fourier
@@ -82,11 +83,11 @@ def main(config):
     u = gaussian(X, Y, 1, 0.5, 0.5, 1e-1, 1e-1)
 
     # Print header to sum up the parameters
-    if save_type != 'none':
-        print('Number of nodes: nnx = %d -- nny = %d' % (nnx, nny))
-        print('Bounding box: (%.1e, %.1e), (%.1e, %.1e)' % (xmin, ymin, xmax, ymax))
-        print('Transport: a = %.2e -- D = %.2e' % (max_speed, max_D))
-        print('dx = %.2e -- dy = %.2e CFL = %.2e -- Fourier = %.2e -- Timestep = %.2e' % (dx, dy, cfl, fourier, dt))
+    if verbose:
+        print(f'Number of nodes: nnx = {nnx:d} -- nny = {nny:d}')
+        print(f'Bounding box: ({xmin:.1e}, {ymin:.1e}), ({xmax:.1e}, {ymax:.1e})')
+        print(f'Transport: a = {max_speed:.2e} -- D = {max_D:.2e}')
+        print(f'dx = {dx:.2e} -- dy = {dy:.2e} -- CFL = {cfl:.2e} -- Fourier = {fourier:.2e} -- Timestep = {dt:.2e}')
         print('------------------------------------')
         print('Start of simulation')
         print('------------------------------------')
@@ -125,14 +126,15 @@ def main(config):
 
         u = u - res * dt / voln
 
+        if verbose and (it % period == 0 or it == nit):
+            print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, dt, dtsum, width=14))
+
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
-                print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, dt, dtsum, width=14))
                 plot_scalar(X, Y, u, res, dtsum, number, fig_dir)
                 number += 1
         elif save_type == 'time':
             if np.abs(dtsum - number * period) < 0.1 * dt or it == nit:
-                print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, dt, dtsum, width=14))
                 plot_scalar(X, Y, u, res, dtsum, number, fig_dir)
                 number += 1
         elif save_type == 'none':

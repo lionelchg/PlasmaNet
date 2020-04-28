@@ -23,8 +23,8 @@ mesh:
   ymin: 0
   xmax: 1
   ymax: 1
-  nnx: 51
-  nny: 51
+  nnx: 501
+  nny: 501
 
 transport:
   convection_x: 1
@@ -34,5 +34,6 @@ transport:
 BC: 'perio_x'
 
 output:
-  save: 'iteration'
+  save: 'none'
+  verbose: True
   period: 10
