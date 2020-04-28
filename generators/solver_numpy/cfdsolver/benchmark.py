@@ -20,7 +20,7 @@ from main import main
 
 def tts_vs_nnodes(config):
     """ Parametric study of the time to solution vs. number of nodes in the domain. """
-    sizes = np.array([17, 33, 65, 101, 151, 201, 283, 501])
+    sizes = np.array([17, 33, 65, 101, 151, 201, 283, 501, 751, 1001, 1501, 2001])
     times = np.zeros_like(sizes)
 
     for i, size in enumerate(tqdm(sizes)):
