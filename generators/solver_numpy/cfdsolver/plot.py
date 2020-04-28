@@ -5,7 +5,12 @@
 #                                          Lionel Cheng, CERFACS, 22.04.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
+
+import matplotlib
+
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 
 def plot_ax_scalar(fig, ax, X, Y, field, title):
     levels = 101
@@ -13,6 +18,7 @@ def plot_ax_scalar(fig, ax, X, Y, field, title):
     fig.colorbar(cs1, ax=ax, pad=0.05, fraction=0.1, aspect=7)
     ax.set_aspect("equal")
     ax.set_title(title)
+
 
 def plot_scalar(X, Y, u, res, dtsum, number, fig_dir):
     fig, axes = plt.subplots(ncols=2, figsize=(12, 6))

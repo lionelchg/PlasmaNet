@@ -1,12 +1,13 @@
 # Common
 .DS_Store
 .idea
-__pychache__/
+__pycache__/
 *.egg-info/
 *.pyc
 .pytest_cache/
 *.png
 *.prof
+*.lprof
 *.out
 
 # Storage directories

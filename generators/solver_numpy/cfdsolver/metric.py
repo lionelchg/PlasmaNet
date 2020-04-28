@@ -5,7 +5,9 @@
 #                                          Lionel Cheng, CERFACS, 22.04.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
+
 import numpy as np
+
 
 def compute_voln(X, dx, dy):
     """ Computes the nodal volume associated to each node (i, j) """
