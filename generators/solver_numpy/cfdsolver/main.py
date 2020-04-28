@@ -17,7 +17,7 @@ from boundary import outlet_x, outlet_y, perio_x, perio_y, full_perio
 from metric import compute_voln
 from operators import grad
 from plot import plot_scalar
-from scheme import edge_flux
+from scheme import compute_flux
 
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
@@ -101,12 +101,7 @@ def main(config):
         # Update of the residual to zero
         res[:] = 0
         # Loop on the cells to compute the interior flux and update residuals
-        for i in np.arange(ncx):
-            for j in np.arange(ncy):
-                edge_flux(res, a, u, diff_flux, sij, i, j, i + 1, j, 0)
-                edge_flux(res, a, u, diff_flux, sij, i, j + 1, i + 1, j + 1, 0)
-                edge_flux(res, a, u, diff_flux, sij, i, j, i, j + 1, 1)
-                edge_flux(res, a, u, diff_flux, sij, i + 1, j, i + 1, j + 1, 1)
+        compute_flux(res, a, u, diff_flux, sij, ncx, ncy)
         # Boundary conditions
         if BC == 'full_perio':
             full_perio(res)
