@@ -39,7 +39,8 @@ data_loader:
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
-        normalize: 'None'               # max, physical or no for normalization types
+        normalize: 'None'                   # max, physical or no for normalization types
+        guess: 'fourier'                    # Exponential or fourier guess (depending on data channels)      
 
 initializer: 'off'
 

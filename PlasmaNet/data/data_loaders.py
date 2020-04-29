@@ -13,7 +13,7 @@ import torch
 from torch.utils.data import TensorDataset
 
 from ..base import BaseDataLoader
-from ..utils import plot_dataloader_complete
+from ..utils import plot_dataloader_complete, fourier_guess
 
 
 class PoissonDataLoader(BaseDataLoader):
@@ -153,6 +153,13 @@ class DirichletDataLoader(BaseDataLoader):
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
             BC_channel /= self.data_norm
             potential /= self.target_norm
+        elif self.normalize == 'empirical':
+            # Value that is approximately the max of the rhs
+            self.logger.info("Using empiric normalization")
+            self.data_norm = (torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))) * 2e6
+            self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
+            BC_channel /= self.data_norm
+            potential /= self.target_norm
         else:
             self.logger.info("No normalization")
             self.data_norm = torch.ones((BC_channel.size(0), BC_channel.size(1), 1, 1))
@@ -168,9 +175,17 @@ class DirichletDataLoader(BaseDataLoader):
             resX = BC_channel.size(3)
 
             x_tensor = torch.arange(resX, dtype=torch.float).view((1, resX)).expand((bsz, 1, resY, resX))
-            # Exponential guess of the potential from the BC data
-            potential_guess = (BC_channel[:, :, :, 0].unsqueeze(3).expand((bsz, 1, resY, resX))
-                               * torch.exp(-10.0 * x_tensor / resX)).type(torch.float32)
+
+            if config.guess == 'exponential':
+                # Exponential guess of the potential from the BC data
+                potential_guess = (BC_channel[:, :, :, 0].unsqueeze(3).expand((bsz, 1, resY, resX))
+                                   * torch.exp(-10.0 * x_tensor / resX)).type(torch.float32)
+            elif config.guess == 'fourier':
+                # Using the first fourier mode as an initial guess for 2D network. 
+                potential_guess = fourier_guess(BC_channel[:, :, :, 0], resX).type(torch.float32)
+            else:
+                raise Exception(' Guess Option ({}) is not yet implemented. Only use exponential or \
+                                    fourier'.format(config.guess))
 
             # Final data: concatenation of rhs and BC information on respective channels
             self.data = torch.cat((rhs, BC_channel, potential_guess), dim=1).type(torch.float32)

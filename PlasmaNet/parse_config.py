@@ -68,6 +68,7 @@ class ConfigParser:
         self.batch_size = self.config['data_loader']['args']['batch_size']
         self.channels = self.config['arch']['args']['data_channels']
         self.normalization = self.config['data_loader']['args']['normalize']
+        self.guess = self.config['data_loader']['args'].get('guess')
 
         # Declare global physical parameters attributes
         self.dx = self.length / (self.size - 1)
