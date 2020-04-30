@@ -99,7 +99,7 @@ class DirichletNet(BaseModel):
     def forward(self, x):
         if self.data_channels == 3:
             assert x.size(1) == 3, "Input array does not have the size (bsz, 3, N, N)"
-            final_out = self.conv_3(x[:, 1:3].unsqueeze(1))
+            final_out = self.conv_3(x[:, 1:3])
         else:
             assert x.size(1) == 2, "Input array does not have the size (bsz, 2, H, N)"
             N = x.size(3)
