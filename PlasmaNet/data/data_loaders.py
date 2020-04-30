@@ -119,7 +119,7 @@ class DirichletDataLoader(BaseDataLoader):
     """
 
     def __init__(self, config, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0,
-                 num_workers=1):
+                 num_workers=1, guess = None, modes = None):
         self.data_dir = Path(data_dir)
         self.logger = config.get_logger('DirichletDataLoader', config['trainer']['verbosity'])
 
@@ -181,8 +181,9 @@ class DirichletDataLoader(BaseDataLoader):
                 potential_guess = (BC_channel[:, :, :, 0].unsqueeze(3).expand((bsz, 1, resY, resX))
                                    * torch.exp(-10.0 * x_tensor / resX)).type(torch.float32)
             elif config.guess == 'fourier':
+                modes = config.modes
                 # Using the first fourier mode as an initial guess for 2D network. 
-                potential_guess = fourier_guess(BC_channel[:, :, :, 0], resX).type(torch.float32)
+                potential_guess = fourier_guess(BC_channel[:, :, :, 0], modes).type(torch.float32)
             else:
                 raise Exception(' Guess Option ({}) is not yet implemented. Only use exponential or \
                                     fourier'.format(config.guess))
