@@ -60,10 +60,11 @@ if __name__ == '__main__':
     rhs = np.zeros(n_points**2)
 
     # interior rhs
-    N, M = 3, 3
+    N, M = 15, 15
     # rhs_coefs = ni0 * np.ones((N, M))
     # rhs_coefs = ni0 * np.array([[0, 1], [0, 0]])
-    rhs_coefs = ni0 * (2 * np.random.random((N, M)) - 1)
+    random_array = np.random.random((N, M))
+    rhs_coefs = ni0 * (2 * random_array - 1)
     physical_rhs = sum_series(X, Y, Lx, Ly, rhs_coefs, N, M)
     physical_rhs = physical_rhs.reshape(n_points**2)
     rhs = - physical_rhs * dx ** 2
@@ -88,6 +89,26 @@ if __name__ == '__main__':
     interior_diff_th = lapl_diff(potential_th, physical_rhs, dx, dy, n_points, n_points)
 
     casename = 'th'
+    figname = fig_dir + casename
+    # Plots
+    plot_set_2D(X, Y, physical_rhs, potential_th, E_field_th, 'Fourier random', figname)
+
+    Nlow, Mlow = 3, 3
+    potential_th = pot_series(X, Y, Lx, Ly, rhs_coefs[:Nlow, :Mlow], Nlow, Mlow)
+    E_field_th = - grad(potential_th, dx, dy, n_points, n_points)
+    interior_diff_th = lapl_diff(potential_th, physical_rhs, dx, dy, n_points, n_points)
+
+    casename = 'th_low_%d' % Nlow
+    figname = fig_dir + casename
+    # Plots
+    plot_set_2D(X, Y, physical_rhs, potential_th, E_field_th, 'Fourier random', figname)
+
+    Nlow, Mlow = 7, 7
+    potential_th = pot_series(X, Y, Lx, Ly, rhs_coefs[:Nlow, :Mlow], Nlow, Mlow)
+    E_field_th = - grad(potential_th, dx, dy, n_points, n_points)
+    interior_diff_th = lapl_diff(potential_th, physical_rhs, dx, dy, n_points, n_points)
+
+    casename = 'th_low_%d' % Nlow
     figname = fig_dir + casename
     # Plots
     plot_set_2D(X, Y, physical_rhs, potential_th, E_field_th, 'Fourier random', figname)

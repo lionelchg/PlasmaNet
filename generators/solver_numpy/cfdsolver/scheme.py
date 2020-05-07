@@ -11,14 +11,20 @@ from numba import njit
 
 
 @njit(cache=True)
-def compute_flux(res, a, u, diff_flux, sij, ncx, ncy):
+def compute_flux(res, a, u, diff_flux, sij, ncx, ncy, r=None):
     """ Iterate over cells (their edges) to compute the flux and residual. """
     for i in range(ncx):
         for j in range(ncy):
-            edge_flux(res, a, u, diff_flux, sij, i, j, i + 1, j, 0)
-            edge_flux(res, a, u, diff_flux, sij, i, j + 1, i + 1, j + 1, 0)
-            edge_flux(res, a, u, diff_flux, sij, i, j, i, j + 1, 1)
-            edge_flux(res, a, u, diff_flux, sij, i + 1, j, i + 1, j + 1, 1)
+            if r is not None:
+                edge_flux(res, a, u, diff_flux, sij * (0.75 * r[j] + 0.25 * r[j + 1]), i, j, i + 1, j, 0)
+                edge_flux(res, a, u, diff_flux, sij * (0.25 * r[j] + 0.75 * r[j + 1]), i, j + 1, i + 1, j + 1, 0)
+                edge_flux(res, a, u, diff_flux, sij * (r[j] + r[j + 1]) / 2, i, j, i, j + 1, 1)
+                edge_flux(res, a, u, diff_flux, sij * (r[j] + r[j + 1]) / 2, i + 1, j, i + 1, j + 1, 1)
+            else:
+                edge_flux(res, a, u, diff_flux, sij, i, j, i + 1, j, 0)
+                edge_flux(res, a, u, diff_flux, sij, i, j + 1, i + 1, j + 1, 0)
+                edge_flux(res, a, u, diff_flux, sij, i, j, i, j + 1, 1)
+                edge_flux(res, a, u, diff_flux, sij, i + 1, j, i + 1, j + 1, 1)
 
 
 @njit(cache=True)

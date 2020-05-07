@@ -18,13 +18,25 @@ from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_ax_set_1D, plot_po
 from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from poissonsolver.postproc import lapl_diff, compute_voln
 
-fig_dir = 'figures/rhs/gaussian/'
+fig_dir = 'figures/rhs/triangle_offcenter/'
 
 if not os.path.exists(fig_dir):
     os.makedirs(fig_dir)
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
+
+def triangle(x, x0, sigma):
+    return np.maximum(0, 1 - np.abs((x - x0) / sigma))
+
+def triangle_2D(X, Y, ampl, x0, y0, sigma_x, sigma_y):
+    return ampl * triangle(X, x0, sigma_x) * triangle(Y, y0, sigma_y)
+
+def step(x, x0, sigma):
+    return (np.sign(1 - np.abs(2 * (x - x0) / sigma)) + 1) / 2
+
+def step_2D(X, Y, ampl, x0, y0, sigma_x, sigma_y):
+    return ampl * step(X, x0, sigma_x) * step(Y, y0, sigma_y)
 
 def integral_term(x, y, Lx, Ly, voln, rhs, n, m):
     return 4 / Lx / Ly * np.sum(np.sin(n * np.pi * x / Lx) * np.sin(m * np.pi * y / Ly) * rhs * voln)
@@ -61,12 +73,14 @@ if __name__ == '__main__':
 
     # creating the rhs
     ni0 = 1e16
-    sigma_x, sigma_y = 1e-3, 1e-3
-    x0, y0 = 0.5e-2, 0.5e-2
+    sigma_x, sigma_y = 2e-3, 2e-3
+    x0, y0 = 0.25e-2, 0.25e-2
     rhs = np.zeros(n_points ** 2)
 
     # interior rhs
-    physical_rhs = gaussian(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
+    # physical_rhs = gaussian(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
+    physical_rhs = triangle_2D(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
+    # physical_rhs = step_2D(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
     rhs = - physical_rhs * dx ** 2
 
     # Imposing Dirichlet boundary conditions
@@ -83,7 +97,7 @@ if __name__ == '__main__':
 
     # Plots
     figname = fig_dir + 'solver_solution'
-    plot_potential(X, Y, dx, dy, potential, n_points, figname)
+    plot_potential(X, Y, dx, dy, potential, n_points, n_points, figname)
 
     # Analytical solution but with a quadrature formula for the Fourier coefficient
     list_N = [1, 3, 5, 9, 15]
@@ -92,12 +106,12 @@ if __name__ == '__main__':
         potential_th = sum_series(X, Y, Lx, Ly, voln, physical_rhs, N, M)
         casename = 'fourier_%d_%d' % (N, M)
         figname = fig_dir + casename
-        plot_potential(X, Y, dx, dy, potential_th, n_points, figname)
+        plot_potential(X, Y, dx, dy, potential_th, n_points, n_points, figname)
 
     # Plot of the modes
     nrange, mrange = np.arange(1, 8), np.arange(1, 8)
     N, M = np.meshgrid(nrange, mrange)
-    Coeff = np.zeros_like(N)
+    Coeff = np.zeros(N.shape)
     for i in nrange:
         for j in nrange:
             Coeff[j - 1, i - 1] = fourier_coef(X, Y, Lx, Ly, voln, physical_rhs, i, j)

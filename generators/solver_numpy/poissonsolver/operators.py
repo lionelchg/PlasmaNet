@@ -34,9 +34,9 @@ def dv(y, x, dx):
 
 def dv2(y, x, dx):
     dy = np.zeros_like(y)
-    dy[1:-1] = (y[2:] + y[:-2] - 2 * y[1:-1]) / (2 * dx)
-    dy[0] = 4 * y[1] - 3 * y[0] - y[2]
-    dy[-1] = - (4 * y[-2] - 3 * y[-1] - y[-3])
+    dy[1:-1] = (y[2:] + y[:-2] - 2 * y[1:-1]) / dx**2
+    dy[0] = (y[2] - 2 * y[1] + y[0]) / dx**2
+    dy[-1] = (y[-3] - 2 * y[-2] + y[-1]) / dx**2
     return dy
 
 def div(field, dx, dy, nx, ny, order=2, r=None):
