@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'dirchlet_64_NoLapl'                  # Experience name
+name: 'dirchlet_64_NoLapl_Fourier_2channel' # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -28,7 +28,7 @@ globals:                                    # Domain sizes and others, used to c
 arch:
     type: 'DirichletNet'
     args:
-        data_channels: 1
+        data_channels: 3                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
 
 data_loader:
     type: 'DirichletDataLoader'
@@ -39,7 +39,9 @@ data_loader:
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
-        normalize: 'None'               # max, physical or no for normalization types
+        normalize: 'None'                   # max, physical or no for normalization types
+        guess: 'fourier'                    # Exponential or fourier guess (depending on data channels)      
+        modes: 10                           # Number of Fourier modes for the 2D guess
 
 initializer: 'off'
 

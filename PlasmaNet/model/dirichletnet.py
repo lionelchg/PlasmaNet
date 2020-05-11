@@ -91,20 +91,20 @@ class DirichletNet(BaseModel):
         super(DirichletNet, self).__init__()
         self.data_channels = data_channels
         if self.data_channels == 3:
-            self.conv_3 = _ConvBlock2(1, 64, 128, 64, 1)
+            self.conv_3 = _ConvBlock2(2, 64, 128, 64, 1)
         else:
             self.conv_2 = _ConvBlock1(32, 64, 128, 64)
-            self.conv_1 = _ConvBlock2(1, 64, 128, 64, 1)
+            self.conv_1 = _ConvBlock2(2, 64, 128, 64, 1)
 
     def forward(self, x):
         if self.data_channels == 3:
             assert x.size(1) == 3, "Input array does not have the size (bsz, 3, N, N)"
-            final_out = self.conv_3(x[:, 2].unsqueeze(1))
+            final_out = self.conv_3(x[:, 1:3])
         else:
             assert x.size(1) == 2, "Input array does not have the size (bsz, 2, H, N)"
             N = x.size(3)
             conv_2_out = self.conv_2(x[:, 1, :, 0].unsqueeze(1)).transpose(1, 2).unsqueeze(1)
             final_input = F.interpolate(conv_2_out, size=[N, N], mode='bilinear', align_corners=False)
-            final_out = self.conv_1(final_input)
+            final_out = self.conv_1(torch.cat((x[:, 1, :, :].unsqueeze(1),final_input),dim=1))
 
         return final_out

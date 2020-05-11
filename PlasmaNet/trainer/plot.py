@@ -20,12 +20,18 @@ def plot_batch(output, target, data, epoch, batch_idx, config):
     target_np = target.detach().cpu().numpy()
     output_np = output.detach().cpu().numpy()
 
+
     # Lots of plots
     fig, axes = plt.subplots(figsize=(20, 16), nrows=4, ncols=4)
     fig.suptitle('Epoch {} batch {}'.format(epoch, batch_idx), fontsize=16, y=0.95)
 
     for k in range(4):  # First 4 items of the batch
-        data_tmp = data_np[batch_idx + k, 0]
+        if config.channels ==3:
+            data_tmp = data_np[batch_idx + k, 2]
+        elif config.channels == 2:
+            data_tmp = data_np[batch_idx + k, 1]
+        else:
+            data_tmp = data_np[batch_idx + k, 0]
         output_tmp = output_np[batch_idx + k, 0]
         target_tmp = target_np[batch_idx + k, 0]
         # Same scale for output and target
