@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'gauss_64_physNorm'                   # Experience name
+name: 'dirchlet_64_NoLapl_Fourier_2channel' # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -26,20 +26,22 @@ globals:                                    # Domain sizes and others, used to c
 
 
 arch:
-    type: 'MultiSimpleNet'
+    type: 'DirichletNet'
     args:
-        data_channels: 1
+        data_channels: 3                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
 
 data_loader:
-    type: 'PoissonDataLoader'
+    type: 'DirichletDataLoader'
     pipe_config: True
     args:
-        data_dir: 'datasets/64x64/rhs/gauss'
+        data_dir: 'datasets/64x64/rhs/dirichlet/random_64_4/'
         batch_size: 128
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
-        normalize: 'physical'               # max, physical or no for normalization types
+        normalize: 'None'                   # max, physical or no for normalization types
+        guess: 'fourier'                    # Exponential or fourier guess (depending on data channels)      
+        modes: 10                           # Number of Fourier modes for the 2D guess
 
 initializer: 'off'
 
@@ -61,7 +63,7 @@ loss:
         inside_weight: 1.                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
-        lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
+        lapl_weight: 0.0                    # Weighting of the loss on the Laplacian (float)
 
 metrics:
     - 'residual'
@@ -73,14 +75,14 @@ lr_scheduler:
     plateau_metric: loss                    # monitoring metric for ReduceLROnPlateau step()
     args:
         mode: 'min'
-        factor: 0.99                        # Amount scheduler reduces LR by (float)
+        factor: 0.9                         # Amount scheduler reduces LR by (float)
         patience: 50                        # Number of epochs the scheduler waits (int)
         threshold: 3.e-4                    # Relative improvement the scheduler must see (float)
         threshold_mode: 'rel'
         verbose: False
 
 trainer:
-    epochs: 1000
+    epochs: 10000
     save_dir: 'outputs/'
     save_period: 10
     plot_period: 10                         # Period to send plots to TensorBoard
