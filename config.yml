@@ -28,7 +28,7 @@ globals:                                    # Domain sizes and others, used to c
 arch:
     type: 'MultiSimpleNet'
     args:
-        data_channels: 3                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
+        data_channels: 1                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
 
 data_loader:
     type: 'PoissonDataLoader'

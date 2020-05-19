@@ -55,12 +55,14 @@ class PoissonDataLoader(BaseDataLoader):
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
             physical_rhs /= self.data_norm
             potential /= self.target_norm
-        elif self.normalize == 'analyical':
+        elif self.normalize == 'analytical':
             # Value that is approximately the max of the rhs
             self.logger.info("Using analytical normalization from Fourier series solution")
             self.alpha = 0.1
             self.ratio_max = self.alpha / (np.pi**2 / 4)**2 / (2 / self.length**2)
-            physical_rhs *= self.ratio_max
+            self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1)) / self.ratio_max
+            self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
+            physical_rhs /= self.data_norm
         else:
             self.logger.info("No normalization")
             self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))
