@@ -42,7 +42,10 @@ data_loader:
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
-        normalize: 'none'             # max, physical or no for normalization types
+        normalize: 'None'                   # max, physical or no for normalization types
+        input_cutoff_frequency: None        # Low-pass filter of input (float, or None to deactivate)
+        guess: 'fourier'                    # Exponential or fourier guess (depending on data channels)      
+        modes: 10                           # Number of Fourier modes for the 2D guess
 
 initializer: 'off'
 

@@ -13,7 +13,7 @@ import torch
 from torch.utils.data import TensorDataset
 
 from ..base import BaseDataLoader
-from ..utils import plot_dataloader_complete, fourier_guess
+from ..utils import plot_dataloader_complete, fourier_guess, dataset_input_filter
 
 
 class PoissonDataLoader(BaseDataLoader):
@@ -23,13 +23,17 @@ class PoissonDataLoader(BaseDataLoader):
     """
 
     def __init__(self, config, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0,
-                 num_workers=1):
+                 input_cutoff_frequency=None, num_workers=1):
         self.data_dir = Path(data_dir)
         self.logger = config.get_logger('PoissonDataLoader', config['trainer']['verbosity'])
 
         # Load numpy files of shape (batch_size, H, W)
         physical_rhs = np.load(self.data_dir / 'physical_rhs.npy')
         potential = np.load(self.data_dir / 'potential.npy')
+
+        # Filter input potential if asked for
+        if input_cutoff_frequency is not None:
+            dataset_input_filter(physical_rhs, input_cutoff_frequency, config.size, config.length)
 
         # Convert to torch.Tensor of shape (batch_size, 1, H, W)
         physical_rhs = torch.from_numpy(physical_rhs[:, np.newaxis, :, :])
