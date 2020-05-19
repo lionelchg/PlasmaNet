@@ -5,11 +5,12 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
-
+import sys
 import os
 import numpy as np
 import scipy.constants as co
 from scipy.sparse.linalg import spsolve
+from scipy import interpolate
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as axes3d
 
@@ -17,11 +18,6 @@ from poissonsolver.operators import lapl, grad
 from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_ax_set_1D, plot_potential
 from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from poissonsolver.postproc import lapl_diff, compute_voln
-
-fig_dir = 'figures/rhs/triangle_offcenter/'
-
-if not os.path.exists(fig_dir):
-    os.makedirs(fig_dir)
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
@@ -56,6 +52,10 @@ def sum_series(x, y, Lx, Ly, voln, rhs, N, M):
 
 
 if __name__ == '__main__':
+    fig_dir = f'figures/rhs/{sys.argv[1]:s}/'
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
+
     n_points = 101
     xmin, xmax = 0, 0.01
     ymin, ymax = 0, 0.01
@@ -74,13 +74,25 @@ if __name__ == '__main__':
     # creating the rhs
     ni0 = 1e16
     sigma_x, sigma_y = 2e-3, 2e-3
-    x0, y0 = 0.25e-2, 0.25e-2
+    x0, y0 = 0.5e-2, 0.5e-2
     rhs = np.zeros(n_points ** 2)
 
     # interior rhs
-    # physical_rhs = gaussian(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
-    physical_rhs = triangle_2D(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
+    physical_rhs = gaussian(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
+    # physical_rhs = triangle_2D(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
     # physical_rhs = step_2D(X.reshape(-1), Y.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
+    # Random
+    # n_res = 4
+    # n_lower = int(n_points / n_res)
+    # x_lower, y_lower = np.linspace(xmin, xmax, n_lower), np.linspace(ymin, ymax, n_lower)
+    # X_lower, Y_lower = np.meshgrid(x_lower, y_lower)
+    # np.random.seed(10)
+    # z_lower = 2 * np.random.random((n_lower, n_lower)) - 1
+    # f = interpolate.interp2d(x_lower, y_lower, z_lower, kind='cubic')
+    # z = f(x, y)
+    # physical_rhs = ni0 * z.reshape(-1) * co.e / co.epsilon_0
+
+    # Scale the rhs
     rhs = - physical_rhs * dx ** 2
 
     # Imposing Dirichlet boundary conditions
@@ -109,7 +121,7 @@ if __name__ == '__main__':
         plot_potential(X, Y, dx, dy, potential_th, n_points, n_points, figname)
 
     # Plot of the modes
-    nrange, mrange = np.arange(1, 8), np.arange(1, 8)
+    nrange, mrange = np.arange(1, 16), np.arange(1, 16)
     N, M = np.meshgrid(nrange, mrange)
     Coeff = np.zeros(N.shape)
     for i in nrange:

@@ -72,31 +72,27 @@ def triangle(x, y, L):
 
 
 def params_gauss(n_ampl, n_x0, n_sigma):
-    ampl_range = np.linspace(ampl_min, ampl_max, n_ampl)
-    x_range = np.linspace(x0_min, x0_max, n_x0)
-    sigma_range = np.linspace(sigma_min, sigma_max, n_sigma)
-
-    # Training set made out of gaussians
-    for ampl in ampl_range:
-        for x0 in x_range:
-            for y0 in x_range:
-                for sigma_x in sigma_range:
-                    for sigma_y in sigma_range:
-                        yield ampl, x0, y0, sigma_x, sigma_y, 0
+    for i in range(n_ampl):
+        for j in range(n_x0**2):
+            for k in range(n_sigma**2):
+                coefs = np.random.random(5)
+                yield (ampl_max - ampl_min) * coefs[0] + ampl_min, \
+                      (x0_max - x0_min) * coefs[1] + x0_min, \
+                      (x0_max - x0_min) * coefs[2] + x0_min, \
+                      (sigma_max - sigma_min) * coefs[3] + sigma_min, \
+                      (sigma_max - sigma_min) * coefs[4] + sigma_min, 0
 
 
-def params_cosine(n_ampl, n_x0, n_sigma):
-    ampl_range = np.linspace(ampl_min, ampl_max, n_ampl)
-    x_range = np.linspace(x0_min, x0_max, n_x0)
-    pow_range = np.linspace(pow_min, pow_max, n_pow)
-
-    # Training set made out of cosines
-    for ampl in ampl_range:
-        for x0 in x_range:
-            for y0 in x_range:
-                for powx in pow_range:
-                    for powy in pow_range:
-                        yield ampl, x0, y0, powx, powy, 1
+def params_cosine(n_ampl, n_x0, n_pow):
+    for i in range(n_ampl):
+        for j in range(n_x0**2):
+            for k in range(n_sigma**2):
+                coefs = np.random.random(5)
+                yield (ampl_max - ampl_min) * coefs[0] + ampl_min, \
+                      (x0_max - x0_min) * coefs[1] + x0_min, \
+                      (x0_max - x0_min) * coefs[2] + x0_min, \
+                      (pow_max - pow_min) * coefs[3] + pow_min, \
+                      (pow_max - pow_min) * coefs[4] + pow_min, 1
 
 
 def compute(args):
@@ -127,10 +123,9 @@ def compute(args):
 if __name__ == '__main__':
 
     plot = True
-    n_procs = 36
+    n_procs = 2
     chunksize = 5
-    n_ampl, n_x0, n_sigma, n_pow = 5, 10, 5, 5  # 5 * 12 * 12 * 5 * 5 = 18 000 for the gaussian set
-    # n_ampl, n_x0, n_sigma, n_pow = 5, 4, 4, 3  # test dataset
+    n_ampl, n_x0, n_sigma, n_pow = 5, 5, 5, 5
 
     # test for sliding gaussian
     nits = n_ampl *  n_x0 ** 2 * n_sigma ** 2
@@ -149,7 +144,7 @@ if __name__ == '__main__':
         physical_rhs_list[i, :, :] = rhs
         if i % 500 == 0 and plot:
             E_field = - grad(pot, dx, dy, n_points, n_points)
-            plot_set_2D(X, Y, rhs, pot, E_field, 'Input number %d' % i, fig_dir + 'input_%d' % i)
+            plot_set_2D(X, Y, rhs, pot, E_field, 'Input number %d' % i, fig_dir + f'input_{i:04d}')
 
 
     time_stop = time.time()

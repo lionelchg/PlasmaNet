@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                            2D Poisson solver using numpy                                             #
+#                           1D Poisson solver using analytical solution from Fourier series                            #
 #                                                                                                                      #
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
@@ -83,7 +83,7 @@ def plot_potential(x, dx, pot, nx, figname):
 
 if __name__ == '__main__':
 
-    fig_dir = 'figures/rhs_1D/%s_offcenter/' % sys.argv[1]
+    fig_dir = 'figures/rhs_1D/%s/' % sys.argv[1]
 
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     voln[0], voln[-1] = dx / 2, dx / 2
 
     # creating the rhs
-    ni0, sigma_x, x0 = 1e16, 2e-3, 0.2e-2
+    ni0, sigma_x, x0 = 1e16, 2e-3, 0.5e-2
 
     # dictionnary of trial functions
     trial_function = dict([('triangle', triangle), ('step', step), ('gaussian', gaussian)])
@@ -127,8 +127,9 @@ if __name__ == '__main__':
             Coeff[index + 1] = fourier_coef(x, Lx, voln, physical_rhs, order)
             # print('%d %d %.2e' % (i, j, Coeff[j - 1, i - 1]))
     fig, ax = plt.subplots(figsize=(8, 8))
-    ax.plot(nrange, np.abs(Coeff), drawstyle='steps-mid')
+    ax.bar(nrange, np.abs(Coeff))
     ax.grid(True)
+    ax.set_axisbelow(True)
     ax.set_ylabel('Amplitude')
     ax.set_xlabel('N')
     ax.set_title('Mode amplitudes')
