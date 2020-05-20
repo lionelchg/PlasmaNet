@@ -43,8 +43,8 @@ A = laplace_square_matrix(n_points)
 potential = np.zeros((n_points, n_points))
 physical_rhs = np.zeros((n_points, n_points))
 
-# amplitude
-ni0 = 1e16
+# amplitude of the random modes
+rhs0 = 1e16 * co.e / co.epsilon_0
 
 # interior rhs
 M = N
@@ -109,7 +109,7 @@ def plot_mode_ampl(N_range, M_range, coefs, figname):
 def params(nits):
     for i in range(nits):
         random_array = np.random.random((N, M))
-        rhs_coefs = ni0 * (2 * random_array - 1)
+        rhs_coefs = rhs0 * (2 * random_array - 1)
         yield rhs_coefs / (N_range**2 + M_range**2)
 
 def compute(args):
