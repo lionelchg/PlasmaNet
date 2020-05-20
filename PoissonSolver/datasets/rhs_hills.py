@@ -41,7 +41,7 @@ X, Y = np.meshgrid(x, y)
 A = laplace_square_matrix(n_points)
 
 # Directories declaration and creation if necessary
-casename = f'{n_points:d}x{n_points:d}/gauss/'
+casename = f'{n_points:d}x{n_points:d}/gauss_val/'
 if device == 'mac':
     data_dir = 'rhs/' + casename
     plot = True
