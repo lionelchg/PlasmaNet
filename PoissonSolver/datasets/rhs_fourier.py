@@ -6,6 +6,7 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+import sys
 import os
 from multiprocessing import get_context
 
@@ -23,7 +24,12 @@ from poissonsolver.plot import plot_set_2D
 from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from poissonsolver.postproc import lapl_diff
 
-n_points = 64
+
+device = sys.argv[1]
+n_points, nits, N = sys.argv[2:5]
+n_points, nits, N = int(n_points), int(nits), int(N)
+
+
 xmin, xmax = 0, 0.01
 ymin, ymax = 0, 0.01
 Lx, Ly = xmax - xmin, ymax - ymin
@@ -41,17 +47,29 @@ physical_rhs = np.zeros((n_points, n_points))
 ni0 = 1e16
 
 # interior rhs
-N, M = 5, 5
+M = N
 n_range, m_range = np.arange(1, N +1), np.arange(1, M + 1)
 N_range, M_range = np.meshgrid(n_range, m_range)
 
-casename = 'rand_fou_%d_dec/' % N
+casename = f'{n_points:d}x{n_points:d}/rand_fou_{N:d}_dec/'
 
-data_dir = 'rhs/' + casename
+if device == 'mac':
+    data_dir = 'rhs/' + casename
+    plot = True
+    n_procs = 2
+    chunksize = 20
+    plot_period = 100
+elif device == 'kraken':
+    data_dir = '/scratch/cfd/cheng/DL/datasets/rhs/' + casename
+    plot = True
+    n_procs = 36
+    chunksize = 5
+    plot_period = 2000
+
 if not os.path.exists(data_dir):
     os.makedirs(data_dir)
 
-fig_dir = 'rhs/' + casename + 'figures/'
+fig_dir = data_dir + 'figures/'
 if not os.path.exists(fig_dir):
     os.makedirs(fig_dir)
 
@@ -103,12 +121,9 @@ def compute(args):
 
 if __name__ == '__main__':
 
-    plot = True
-    n_procs = 2
-    chunksize = 5
-
-    nits = 300
-    print('Total number of inputs: %d' % nits)
+    # Print header of dataset
+    print(f'Device : {device:s} - n_points = {n_points:d} - nits = {nits:d} - N (modes) = {N:d}')
+    print(f'Directory : {data_dir:s} - n_procs = {n_procs:d} - chunksize = {chunksize:d}')
 
     potential_random = np.zeros((nits, n_points, n_points))
     physical_rhs_random = np.zeros((nits, n_points, n_points))
@@ -121,10 +136,10 @@ if __name__ == '__main__':
     for i, (pot, rhs, coefs) in enumerate(tqdm(results_train)):
         potential_random[i, :, :] = pot
         physical_rhs_random[i, :, :] = rhs
-        if i % 100 == 0 and plot:
+        if i % plot_period == 0 and plot:
             E_field = - grad(potential_random[i, :, :], dx, dy, n_points, n_points)
-            plot_set_2D(X, Y, physical_rhs_random[i, :, :], potential_random[i, :, :], E_field, 'Fourier random', fig_dir + f'input_{i:04d}')
-            plot_mode_ampl(N_range, M_range, coefs, fig_dir + f'input_{i:04d}_mode_ampl')
+            plot_set_2D(X, Y, physical_rhs_random[i, :, :], potential_random[i, :, :], E_field, f'Fourier random {i:d}', fig_dir + f'input_{i:05d}')
+            plot_mode_ampl(N_range, M_range, coefs, fig_dir + f'input_{i:05d}_mode_ampl')
 
     time_stop = time.time()
     np.save(data_dir + 'potential.npy', potential_random)

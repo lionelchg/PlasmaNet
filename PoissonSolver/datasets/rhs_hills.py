@@ -6,6 +6,7 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+import sys
 import os
 import time
 from multiprocessing import get_context
@@ -21,8 +22,11 @@ from poissonsolver.plot import plot_set_2D
 from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from poissonsolver.operators import grad
 
+device = sys.argv[1]
+n_points, n_ampl, n_x0, n_width = sys.argv[2:6]
+n_points, n_ampl, n_x0, n_width = int(n_points), int(n_ampl), int(n_x0), int(n_width)
+
 # Global variables
-n_points = 64
 xmin, xmax = 0, 0.01
 ymin, ymax = 0, 0.01
 dx = (xmax - xmin) / (n_points - 1)
@@ -37,12 +41,24 @@ X, Y = np.meshgrid(x, y)
 A = laplace_square_matrix(n_points)
 
 # Directories declaration and creation if necessary
-# data_dir = '/home/cfd/cheng/scratch/DL/datasets/rhs/random_%d_%d/' % (n_points, n_res)
-data_dir = 'rhs/gauss_%d/' % n_points
-fig_dir = data_dir + 'figures/'
+casename = f'{n_points:d}x{n_points:d}/gauss/'
+if device == 'mac':
+    data_dir = 'rhs/' + casename
+    plot = True
+    n_procs = 2
+    chunksize = 20
+    plot_period = 100
+elif device == 'kraken':
+    data_dir = '/scratch/cfd/cheng/DL/datasets/rhs/' + casename
+    plot = True
+    n_procs = 36
+    chunksize = 5
+    plot_period = 2000
 
 if not os.path.exists(data_dir):
     os.makedirs(data_dir)
+
+fig_dir = data_dir + 'figures/'
 if not os.path.exists(fig_dir):
     os.makedirs(fig_dir)
 
@@ -71,10 +87,10 @@ def triangle(x, y, L):
     return (1 - abs((x - L / 2) / (L / 2))) * (1 - abs((y - L / 2) / (L / 2)))
 
 
-def params_gauss(n_ampl, n_x0, n_sigma):
+def params_gauss(n_ampl, n_x0, n_width):
     for i in range(n_ampl):
         for j in range(n_x0**2):
-            for k in range(n_sigma**2):
+            for k in range(n_width**2):
                 coefs = np.random.random(5)
                 yield (ampl_max - ampl_min) * coefs[0] + ampl_min, \
                       (x0_max - x0_min) * coefs[1] + x0_min, \
@@ -86,7 +102,7 @@ def params_gauss(n_ampl, n_x0, n_sigma):
 def params_cosine(n_ampl, n_x0, n_pow):
     for i in range(n_ampl):
         for j in range(n_x0**2):
-            for k in range(n_sigma**2):
+            for k in range(n_width**2):
                 coefs = np.random.random(5)
                 yield (ampl_max - ampl_min) * coefs[0] + ampl_min, \
                       (x0_max - x0_min) * coefs[1] + x0_min, \
@@ -122,14 +138,10 @@ def compute(args):
 
 if __name__ == '__main__':
 
-    plot = True
-    n_procs = 2
-    chunksize = 5
-    n_ampl, n_x0, n_sigma, n_pow = 5, 5, 5, 5
-
-    # test for sliding gaussian
-    nits = n_ampl *  n_x0 ** 2 * n_sigma ** 2
-    print('Total number of inputs: %d' % nits)
+    nits = n_ampl *  n_x0 ** 2 * n_width ** 2
+    # Print header of dataset
+    print(f'Device : {device:s} - n_points = {n_points:d} - nits = {nits:d} (n_ampl={n_ampl:d}/n_x0={n_x0:d}/n_width={n_width:d})')
+    print(f'Directory : {data_dir:s} - n_procs = {n_procs:d} - chunksize = {chunksize:d}')
 
     potential_list = np.zeros((nits, n_points, n_points))
     physical_rhs_list = np.zeros((nits, n_points, n_points))
@@ -137,14 +149,14 @@ if __name__ == '__main__':
     time_start = time.time()
 
     with get_context('spawn').Pool(processes=n_procs) as p:
-        results_train = list(tqdm(p.imap(compute, params_gauss(n_ampl, n_x0, n_sigma), chunksize=chunksize), total=nits))
+        results_train = list(tqdm(p.imap(compute, params_gauss(n_ampl, n_x0, n_width), chunksize=chunksize), total=nits))
 
     for i, (pot, rhs) in enumerate(tqdm(results_train)):
         potential_list[i, :, :] = pot
         physical_rhs_list[i, :, :] = rhs
-        if i % 500 == 0 and plot:
+        if i % plot_period == 0 and plot:
             E_field = - grad(pot, dx, dy, n_points, n_points)
-            plot_set_2D(X, Y, rhs, pot, E_field, 'Input number %d' % i, fig_dir + f'input_{i:04d}')
+            plot_set_2D(X, Y, rhs, pot, E_field, 'Input number %d' % i, fig_dir + f'input_{i:05d}')
 
 
     time_stop = time.time()

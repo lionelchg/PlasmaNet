@@ -34,7 +34,7 @@ data_loader:
     type: 'PoissonDataLoader'
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/rhs/random_64_4/'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/rhs/random_64_4_train/'
         batch_size: 128
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
