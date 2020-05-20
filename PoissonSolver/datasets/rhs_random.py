@@ -57,7 +57,7 @@ if device == 'mac':
     plot_period = 100
 elif device == 'kraken':
     data_dir = '/scratch/cfd/cheng/DL/datasets/rhs/' + casename
-    plot = True
+    plot = False
     n_procs = 36
     chunksize = 5
     plot_period = 2000
@@ -65,9 +65,10 @@ elif device == 'kraken':
 if not os.path.exists(data_dir):
     os.makedirs(data_dir)
 
-fig_dir = data_dir + 'figures/'
-if not os.path.exists(fig_dir):
-    os.makedirs(fig_dir)
+if plot:
+    fig_dir = data_dir + 'figures/'
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
 
 
 def params(nits):
