@@ -32,7 +32,7 @@ class PoissonDataLoader(BaseDataLoader):
         potential = np.load(self.data_dir / 'potential.npy')
 
         # Filter input potential if asked for
-        if input_cutoff_frequency is not None:
+        if input_cutoff_frequency is not None and input_cutoff_frequency != 'None':
             dataset_input_filter(physical_rhs, input_cutoff_frequency, config.size, config.length)
 
         # Convert to torch.Tensor of shape (batch_size, 1, H, W)
