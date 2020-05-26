@@ -9,7 +9,9 @@ __pycache__/
 *.prof
 *.lprof
 *.out
+*.vscode/
 
 # Storage directories
 models
 outputs
+/datasets
