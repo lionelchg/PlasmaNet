@@ -12,12 +12,16 @@ from pathlib import Path
 from tqdm import tqdm
 
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from numba import njit
 
 from poissonsolver.plot import plot_set_2D
 from poissonsolver.operators import grad
+from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
+from scipy.sparse.linalg import spsolve
 
+matplotlib.use('Agg')
 
 # Hardcoded parameters
 domain_length = 0.01
@@ -80,6 +84,21 @@ def cutoff_fourier_space(transf, freq, cutoff_frequency):
                 transf[k, j] = 0
 
 
+def poisson_solver(physical_rhs, dx, n_points):
+    """
+    Solves the Poisson equation for the given physical_rhs with Dirichlet boundary conditions.
+    """
+
+    tmp_rhs = - physical_rhs.reshape(-1) * dx**2
+    # Imposing Dirichlet boundary conditions
+    zeros_bc = np.zeros(n_points)
+    dirichlet_bc(rhs, n_points, zeros_bc, zeros_bc, zeros_bc, zeros_bc)
+    # Solving the sparse linear system
+    tmp_potential = spsolve(A, tmp_rhs).reshape(n_points, n_points)
+
+    return tmp_potential
+
+
 if __name__ == '__main__':
     # CLI argument parser
     parser = argparse.ArgumentParser(description="Filter a rhs_random dataset into a new dataset")
@@ -128,6 +147,7 @@ if __name__ == '__main__':
         dx = domain_length / (mesh_size - 1)
         x = np.linspace(0, domain_length, mesh_size)
         X, Y = np.meshgrid(x, x)
+        A = laplace_square_matrix(mesh_size)
         fig_dir = 'figures/'
         if not os.path.exists(fig_dir):
             os.makedirs(fig_dir)
@@ -136,6 +156,9 @@ if __name__ == '__main__':
             if i % plot_period == 0:
                 E_field = - grad(potential[i], dx, dx, mesh_size, mesh_size)
                 plot_set_2D(X, Y, rhs[i], potential[i], E_field, f'Filtered {i}', fig_dir + f'filtered_{i:05d}')
+                # comp_pot = poisson_solver(rhs[i], dx, mesh_size)
+                # E_field = - grad(comp_pot, dx, dx, mesh_size, mesh_size)
+                # plot_set_2D(X, Y, rhs[i], comp_pot, E_field, f'Filtered {i}', fig_dir + f'filtered_computed_{i:05d}')
 
     # Save the new dataset
     np.save(new_path / 'potential.npy', potential)
