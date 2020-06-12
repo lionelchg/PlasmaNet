@@ -66,7 +66,7 @@ def dataset_clean_filter(dataset, input_cutoff_frequency, mesh_size, domain_leng
         transf = np.fft.fft2(mirror)
         freq = np.fft.fftfreq(mesh_size * 2 - 1, domain_length / mesh_size)
         cutoff_fourier_space(transf, freq, input_cutoff_frequency)
-        # Replace the input with the correct quadrant
+        # Replace the input with the correct quadrant
         dataset[i] = np.real(np.fft.ifft2(transf))[mesh_size - 1 :, mesh_size - 1 :]
 
 
@@ -87,7 +87,8 @@ if __name__ == '__main__':
     parser.add_argument('cut_off_frequency', type=float, help='Cutoff frequency [Hz]')
     parser.add_argument('--split', type=float, default=1.0, help='Filter a fraction of the input dataset (default: 1)')
     parser.add_argument('--plot', action='store_true', help='Activate plots')
-    
+    parser.add_argument('--filter_target', action='store_true', help='Filter only input by default')
+
     args = parser.parse_args()
 
     # Load the input dataset
@@ -103,13 +104,19 @@ if __name__ == '__main__':
         work_length = int(rhs.shape[0] * args.split)
         print(f'Filtering the first {work_length} patches')
         dataset_clean_filter(rhs[:work_length], args.cut_off_frequency, mesh_size, domain_length)
+        if args.filter_target:
+            dataset_clean_filter(potential[:work_length], args.cut_off_frequency, mesh_size, domain_length)
     else:
         dataset_clean_filter(rhs, args.cut_off_frequency, mesh_size, domain_length)
+        if args.filter_target:
+            dataset_clean_filter(potential, args.cut_off_frequency, mesh_size, domain_length)
 
     # Determine new dataset name
     new_name = args.dataset.name
     if args.split != 1.0:
         new_name += f'_split{args.split:.1f}'
+    if args.filter_target:
+        new_name += f'_both'
     new_name += f'_filtered{args.cut_off_frequency:.0f}Hz'
 
     new_path = args.dataset.with_name(new_name)  # Return new Path object with changed name
