@@ -41,6 +41,7 @@ def sum_series_exact(x, y, Lx, Ly, V, M):
         series += series_term_exact(x, y, Lx, Ly, m)
     return 4 * V / np.pi * series
 
+
 if __name__ == '__main__':
 
     plot = True
@@ -90,13 +91,13 @@ if __name__ == '__main__':
     plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Potential up', figname + '_2D', no_rhs=True)
 
     # Analytical solution in terms of a series
-    list_M = [0, 5, 10, 20, 30]
+    list_M = [0, 5, 20]
     for M in list_M:
         potential_th = sum_series_exact(X, Y, Lx, Ly, V, M)
         E_field_th = - grad(potential_th, dx, dy, n_points, n_points)
         E_field_norm_th = np.sqrt(E_field_th[0]**2 + E_field_th[1]**2)
         lapl_pot_th = lapl(potential_th, dx, dy, n_points, n_points)
-        casename = 'constant_up_series_%d' % M
+        casename = 'Vup_exact_%d' % M
         figname = fig_dir + casename
         plot_set_1D(x, physical_rhs, potential_th, E_field_norm_th, lapl_pot_th, n_points, 'Potential up series M = %d' % M, figname + '_1D', no_rhs=True)
         plot_set_2D(X, Y, physical_rhs, potential_th, E_field_th, 'Potential up series M = %d' % M, figname + '_2D', no_rhs=True)
@@ -108,7 +109,8 @@ if __name__ == '__main__':
         E_field_th = - grad(potential_th, dx, dy, n_points, n_points)
         E_field_norm_th = np.sqrt(E_field_th[0]**2 + E_field_th[1]**2)
         lapl_pot_th = lapl(potential_th, dx, dy, n_points, n_points)
-        casename = 'constant_up_series_quadrature_%d' % N
+        casename = 'Vup_quad_%d' % N
         figname = fig_dir + casename
         plot_set_1D(x, physical_rhs, potential_th, E_field_norm_th, lapl_pot_th, n_points, 'Potential up series N = %d' % N, figname + '_1D', no_rhs=True)
         plot_set_2D(X, Y, physical_rhs, potential_th, E_field_th, 'Potential up series N = %d' % N, figname + '_2D', no_rhs=True)
+
