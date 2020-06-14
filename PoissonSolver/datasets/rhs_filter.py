@@ -12,12 +12,16 @@ from pathlib import Path
 from tqdm import tqdm
 
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from numba import njit
 
 from poissonsolver.plot import plot_set_2D
 from poissonsolver.operators import grad
+from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
+from scipy.sparse.linalg import spsolve
 
+matplotlib.use('Agg')
 
 # Hardcoded parameters
 domain_length = 0.01
@@ -66,7 +70,7 @@ def dataset_clean_filter(dataset, input_cutoff_frequency, mesh_size, domain_leng
         transf = np.fft.fft2(mirror)
         freq = np.fft.fftfreq(mesh_size * 2 - 1, domain_length / mesh_size)
         cutoff_fourier_space(transf, freq, input_cutoff_frequency)
-        # Replace the input with the correct quadrant
+        # Replace the input with the correct quadrant
         dataset[i] = np.real(np.fft.ifft2(transf))[mesh_size - 1 :, mesh_size - 1 :]
 
 
@@ -80,6 +84,21 @@ def cutoff_fourier_space(transf, freq, cutoff_frequency):
                 transf[k, j] = 0
 
 
+def poisson_solver(physical_rhs, dx, n_points):
+    """
+    Solves the Poisson equation for the given physical_rhs with Dirichlet boundary conditions.
+    """
+
+    tmp_rhs = - physical_rhs.reshape(-1) * dx**2
+    # Imposing Dirichlet boundary conditions
+    zeros_bc = np.zeros(n_points)
+    dirichlet_bc(rhs, n_points, zeros_bc, zeros_bc, zeros_bc, zeros_bc)
+    # Solving the sparse linear system
+    tmp_potential = spsolve(A, tmp_rhs).reshape(n_points, n_points)
+
+    return tmp_potential
+
+
 if __name__ == '__main__':
     # CLI argument parser
     parser = argparse.ArgumentParser(description="Filter a rhs_random dataset into a new dataset")
@@ -87,7 +106,8 @@ if __name__ == '__main__':
     parser.add_argument('cut_off_frequency', type=float, help='Cutoff frequency [Hz]')
     parser.add_argument('--split', type=float, default=1.0, help='Filter a fraction of the input dataset (default: 1)')
     parser.add_argument('--plot', action='store_true', help='Activate plots')
-    
+    parser.add_argument('--filter_target', action='store_true', help='Filter only input by default')
+
     args = parser.parse_args()
 
     # Load the input dataset
@@ -103,13 +123,19 @@ if __name__ == '__main__':
         work_length = int(rhs.shape[0] * args.split)
         print(f'Filtering the first {work_length} patches')
         dataset_clean_filter(rhs[:work_length], args.cut_off_frequency, mesh_size, domain_length)
+        if args.filter_target:
+            dataset_clean_filter(potential[:work_length], args.cut_off_frequency, mesh_size, domain_length)
     else:
         dataset_clean_filter(rhs, args.cut_off_frequency, mesh_size, domain_length)
+        if args.filter_target:
+            dataset_clean_filter(potential, args.cut_off_frequency, mesh_size, domain_length)
 
     # Determine new dataset name
     new_name = args.dataset.name
     if args.split != 1.0:
         new_name += f'_split{args.split:.1f}'
+    if args.filter_target:
+        new_name += f'_both'
     new_name += f'_filtered{args.cut_off_frequency:.0f}Hz'
 
     new_path = args.dataset.with_name(new_name)  # Return new Path object with changed name
@@ -121,6 +147,7 @@ if __name__ == '__main__':
         dx = domain_length / (mesh_size - 1)
         x = np.linspace(0, domain_length, mesh_size)
         X, Y = np.meshgrid(x, x)
+        A = laplace_square_matrix(mesh_size)
         fig_dir = 'figures/'
         if not os.path.exists(fig_dir):
             os.makedirs(fig_dir)
@@ -129,6 +156,9 @@ if __name__ == '__main__':
             if i % plot_period == 0:
                 E_field = - grad(potential[i], dx, dx, mesh_size, mesh_size)
                 plot_set_2D(X, Y, rhs[i], potential[i], E_field, f'Filtered {i}', fig_dir + f'filtered_{i:05d}')
+                # comp_pot = poisson_solver(rhs[i], dx, mesh_size)
+                # E_field = - grad(comp_pot, dx, dx, mesh_size, mesh_size)
+                # plot_set_2D(X, Y, rhs[i], comp_pot, E_field, f'Filtered {i}', fig_dir + f'filtered_computed_{i:05d}')
 
     # Save the new dataset
     np.save(new_path / 'potential.npy', potential)
