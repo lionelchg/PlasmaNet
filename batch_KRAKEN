@@ -5,5 +5,8 @@
 #SBATCH --ntasks-per-node=12
 #SBATCH --time=08:00:00
 #SBATCH --partition=gpu
+#SBATCH --nodelist=krakengpu2
+
+source /scratch/cfd/ajuria/Plasma/plasma_env/bin/activate
 
 python train.py -c config.yml

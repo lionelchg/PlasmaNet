@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 from ..base import BaseTrainer
-from .plot import plot_batch, plot_distrib
+from .plot import plot_batch, plot_distrib, plot_scales
 from ..utils import inf_loop, MetricTracker
 
 
@@ -55,7 +55,14 @@ class Trainer(BaseTrainer):
             data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
 
             self.optimizer.zero_grad()
-            output = self.model(data)
+
+            output_raw = self.model(data, epoch)
+            if output_raw.size(1) != 1:
+                output = output_raw[:,0].unsqueeze(1)
+                multiple_outputs = True
+            else:
+                output = output_raw
+
             if self.criterion.require_input_data():
                 loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
             else:
@@ -81,6 +88,13 @@ class Trainer(BaseTrainer):
             # Figure output after the 1st batch of each epoch
             if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
                 self._batch_plots(output, target, data, epoch, batch_idx)
+                if multiple_outputs:
+                    # Plot input, target, output and residual
+                    fig = plot_scales(output_raw, target, data, epoch, batch_idx, self.config)
+                    fig.savefig(self.config.fig_dir / 'train_scales_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
+                    self.writer.add_figure('Different Scales', fig)
+
+
 
             if batch_idx == self.len_epoch:  # Break iteration-based training
                 break
@@ -115,7 +129,13 @@ class Trainer(BaseTrainer):
                 data, target = data.to(self.device), target.to(self.device)
                 data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
 
-                output = self.model(data)
+                output_raw = self.model(data, epoch)
+                if output_raw.size(1) != 1:
+                    output = output_raw[:,0].unsqueeze(1)
+                    multiple_outputs = True
+                else:
+                    output = output_raw
+
                 if self.criterion.require_input_data():
                     loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
                 else:
@@ -132,6 +152,12 @@ class Trainer(BaseTrainer):
                 # Figure output after the 1st batch of each epoch
                 if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
                     self._batch_plots(output, target, data, epoch, batch_idx, 'valid')
+                    if multiple_outputs:
+                        # Plot input, target, output and residual
+                        fig = plot_scales(output_raw, target, data, epoch, batch_idx, self.config)
+                        fig.savefig(self.config.fig_dir / 'val_scales_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
+                        self.writer.add_figure('Different Scales', fig)
+
 
         # Add histogram of model parameters to the TensorBoard
         for name, p in self.model.named_parameters():

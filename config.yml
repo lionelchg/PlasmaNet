@@ -17,11 +17,11 @@
 # `config.init_obj` method.
 
 
-name: 'random_64_4' # Experience name
+name: 'conected_scales_DEBUG' # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
-    size: 64
+    size: 128
     length: 0.01
 
 
@@ -34,8 +34,8 @@ data_loader:
     type: 'PoissonDataLoader'
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/rhs/random_64_4_train/'
-        batch_size: 128
+        data_dir: '/scratch/cfd/bogopolsky/DL/plasmanet/datasets/128x128/rhs/random_128_4_split0.75_filtered500Hz/'
+        batch_size: 256
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4

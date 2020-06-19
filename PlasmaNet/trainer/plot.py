@@ -140,3 +140,36 @@ def plot_distrib(output, target, epoch, batch_idx):
     ax.set_ylabel('output')
 
     return fig
+
+def plot_scales(output, target, data, epoch, batch_idx, config):
+    """ Matplotlib plots. """
+    # Detach tensors and send them to cpu as numpy
+    target_np = target.detach().cpu().numpy()
+    output_np = output.detach().cpu().numpy()
+    data_np = data.detach().cpu().numpy()
+
+    # Lots of plots
+    fig, axes = plt.subplots(figsize=(20, 16), nrows=4, ncols=6)
+    fig.suptitle('Epoch {} batch {}'.format(epoch, batch_idx), fontsize=16, y=0.95)
+
+    for k in range(4):  # First 4 items of the batch
+        if config.channels == 3:
+            data_tmp = data_np[batch_idx + k, 2]
+        elif config.channels == 2:
+            data_tmp = data_np[batch_idx + k, 1]
+        else:
+            data_tmp = data_np[batch_idx + k, 0]
+        output_tmp = output_np[batch_idx + k, 0]
+        output_big = output_np[batch_idx + k, 1]
+        output_medium = output_np[batch_idx + k, 2]
+        output_small = output_np[batch_idx + k, 3]
+        target_tmp = target_np[batch_idx + k, 0]
+        # Same scale for output and target
+        target_max = round_up(np.max(np.abs(target_tmp)), decimals=1)
+        plot_ax_scalar(fig, axes[k, 0], config.X, config.Y, data_tmp, 'rhs')
+        plot_ax_scalar(fig, axes[k, 1], config.X, config.Y, output_tmp, 'predicted potential', max_value=target_max)
+        plot_ax_scalar(fig, axes[k, 2], config.X, config.Y, output_big, 'predicted Big Scale', max_value=target_max)
+        plot_ax_scalar(fig, axes[k, 3], config.X, config.Y, output_medium, 'predicted Medium Scale', max_value=target_max)
+        plot_ax_scalar(fig, axes[k, 4], config.X, config.Y, output_small, 'predicted Small Scale', max_value=target_max)
+        plot_ax_scalar(fig, axes[k, 5], config.X, config.Y, target_tmp, 'target potential', max_value=target_max)
+    return fig
