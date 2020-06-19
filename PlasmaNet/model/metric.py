@@ -13,6 +13,8 @@ from ..operators.gradient import gradient_scalar
 
 def residual(output, target, config):
     """ Computes the residual of the current batch. """
+    output = output[:,0]
+    target = target[:,0]
     with torch.no_grad():
         res = torch.sum(torch.abs(output - target)) / config.size ** 2 / config.batch_size
     return res
@@ -20,6 +22,8 @@ def residual(output, target, config):
 
 def l2_norm(output, target, config):
     """ Computes the L2 norm of the residual of the current batch. """
+    output = output[:,0]
+    target = target[:,0]
     with torch.no_grad():
         res = torch.sqrt(torch.sum((output - target) ** 2)) / config.size ** 2 / config.batch_size
     return res
@@ -27,6 +31,8 @@ def l2_norm(output, target, config):
 
 def inf_norm(output, target, config):
     """ Computes the infinity norm of the residual of the current batch. """
+    output = output[:,0]
+    target = target[:,0]
     with torch.no_grad():
         res = torch.max(torch.abs(output - target))
     return res
@@ -34,12 +40,16 @@ def inf_norm(output, target, config):
 
 def ratio_avg(output, target, config):
     """ Computes the average of the ratio between the output and target of the current batch. """
+    output = output[:,0]
+    target = target[:,0]
     with torch.no_grad():
         res = torch.mean(output / target)
 
 
 def pearsonr(output, target, config):
     """ Computes the Pearson correlation coefficient between the output and target of the current batch. """
+    output = output[:,0]
+    target = target[:,0]
     with torch.no_grad():
         out_mean, tar_mean = output.mean(), target.mean()
         out_centered, tar_centered = output - out_mean, target - tar_mean
@@ -55,6 +65,8 @@ def pearsonr2(output, target, config):
 
 def rotational(output, target, config):
     """ Computes the rotational of the electric field computed from the solution of the current batch. """
+    output = output[:,0]
+    target = target[:,0]
     with torch.no_grad():
         elec = gradient_scalar(output, config.dx, config.dy)
         res = torch.sum(scalar_rot(elec, config.dx, config.dy))

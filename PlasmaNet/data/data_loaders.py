@@ -11,6 +11,7 @@ from pathlib import Path
 import numpy as np
 import torch
 from torch.utils.data import TensorDataset
+import os
 
 from ..base import BaseDataLoader
 from ..utils import plot_dataloader_complete, fourier_guess
@@ -31,9 +32,15 @@ class PoissonDataLoader(BaseDataLoader):
         physical_rhs = np.load(self.data_dir / 'physical_rhs.npy')
         potential = np.load(self.data_dir / 'potential.npy')
 
+        self.multi = os.path.exists(self.data_dir / 'potential_interp.npy')
+
+        if self.multi:
+            potential_multi = np.load(self.data_dir / 'potential_interp.npy')
+
         # Convert to torch.Tensor of shape (batch_size, 1, H, W)
         physical_rhs = torch.from_numpy(physical_rhs[:, np.newaxis, :, :])
         potential = torch.from_numpy(potential[:, np.newaxis, :, :])
+        potential_multi = torch.from_numpy(potential_multi)
 
         # Normalization and length
         self.normalize = normalize
@@ -62,6 +69,8 @@ class PoissonDataLoader(BaseDataLoader):
             self.ratio_max = self.alpha / (np.pi**2 / 4)**2 / (2 / self.length**2)
             self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1)) / self.ratio_max
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
+            if self.multi:
+                self.target_norm_m = torch.ones((potential_multi.size(0), potential_multi.size(1), 1, 1))
             physical_rhs /= self.data_norm
         else:
             self.logger.info("No normalization")
@@ -73,7 +82,9 @@ class PoissonDataLoader(BaseDataLoader):
         potential = potential.type(torch.float32)
         self.data_norm = self.data_norm.type(torch.float32)
         self.target_norm = self.target_norm.type(torch.float32)
-
+        if self.multi:
+            self.target_norm_m = self.target_norm_m.type(torch.float32)
+            potential_multi = potential_multi.type(torch.float32)
         # if 5 channels
 
         if config.channels == 5:
@@ -109,7 +120,11 @@ class PoissonDataLoader(BaseDataLoader):
             self.data = physical_rhs
 
         # Create Dataset from Tensor
-        self.dataset = TensorDataset(self.data, potential, self.data_norm, self.target_norm)
+        if self.multi:
+            self.dataset = TensorDataset(self.data, potential_multi, self.data_norm, self.target_norm)
+        else:
+            self.dataset = TensorDataset(self.data, potential, self.data_norm, self.target_norm)
+
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
 
 

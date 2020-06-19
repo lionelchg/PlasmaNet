@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'conected_scales_DEBUG' # Experience name
+name: 'multiple_targets' # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -34,7 +34,8 @@ data_loader:
     type: 'PoissonDataLoader'
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/bogopolsky/DL/plasmanet/datasets/128x128/rhs/random_128_4_split0.75_filtered500Hz/'
+        data_dir:  '/scratch/cfd/ajuria/Plasma/plasmanet/datasets/64x64/rhs/random_64_4_interpolated_3_scales/'
+        #data_dir: '/scratch/cfd/bogopolsky/DL/plasmanet/datasets/128x128/rhs/random_128_4_split0.75_filtered500Hz/'
         batch_size: 256
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
@@ -56,12 +57,18 @@ loss:
     args:
         loss_list:                          # List of the losses to compose if ComposedLoss is used
             - InsideLoss
+            - MSInsideLoss_n
+            - MSInsideLoss_n2
+            - MSInsideLoss_n4
             - DirichletBoundaryLoss
             - LaplacianLoss
         inside_weight: 1.                   # Weighting of the loss inside the domain, excluding boundaries (float)
-        bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
+        inside_weight_n : 0.4              # Weighting of the loss inside the domain for the n scale , excluding boundaries (float)
+        inside_weight_n2 : 0.4              # Weighting of the loss inside the domain for the n 2 scale , excluding boundaries (float)
+        inside_weight_n4 : 0.4              # Weighting of the loss inside the domain for the n 4 scale , excluding boundaries (float)
+        bound_weight: 0. #1.                # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
-        lapl_weight: 0.2                    # Weighting of the loss on the Laplacian (float)
+        lapl_weight: 0. #0.2                # Weighting of the loss on the Laplacian (float)
 
 metrics:
     - 'residual'
@@ -80,7 +87,7 @@ lr_scheduler:
         verbose: False
 
 trainer:
-    epochs: 500
+    epochs: 5000 #500
     save_dir: 'outputs/'
     save_period: 10
     plot_period: 10                         # Period to send plots to TensorBoard

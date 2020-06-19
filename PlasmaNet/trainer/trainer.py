@@ -51,17 +51,21 @@ class Trainer(BaseTrainer):
         self.model.train()
         self.train_metrics.reset()
         for batch_idx, (data, target, data_norm, target_norm) in enumerate(self.data_loader):
+
             data, target = data.to(self.device), target.to(self.device)
             data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
 
             self.optimizer.zero_grad()
 
             output_raw = self.model(data, epoch)
+            multiple_outputs = False
             if output_raw.size(1) != 1:
-                output = output_raw[:,0].unsqueeze(1)
+                #output = output_raw[:,0].unsqueeze(1)
+                output = output_raw
                 multiple_outputs = True
             else:
                 output = output_raw
+
 
             if self.criterion.require_input_data():
                 loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
@@ -89,6 +93,7 @@ class Trainer(BaseTrainer):
             if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
                 self._batch_plots(output, target, data, epoch, batch_idx)
                 if multiple_outputs:
+                    print("Multiple outputs, performing plots!")
                     # Plot input, target, output and residual
                     fig = plot_scales(output_raw, target, data, epoch, batch_idx, self.config)
                     fig.savefig(self.config.fig_dir / 'train_scales_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
@@ -126,12 +131,15 @@ class Trainer(BaseTrainer):
 
         with torch.no_grad():
             for batch_idx, (data, target, data_norm, target_norm) in enumerate(self.valid_data_loader):
+                 
                 data, target = data.to(self.device), target.to(self.device)
                 data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
 
                 output_raw = self.model(data, epoch)
+                multiple_outputs = False
                 if output_raw.size(1) != 1:
-                    output = output_raw[:,0].unsqueeze(1)
+                    #output = output_raw[:,0].unsqueeze(1)
+                    output = output_raw
                     multiple_outputs = True
                 else:
                     output = output_raw
