@@ -135,7 +135,65 @@ class Trainer(BaseTrainer):
                 data, target = data.to(self.device), target.to(self.device)
                 data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
 
+                # Forwrad hook saving
+                # MultiScale Study, all the Feature Maps !
+                # Each layer is saved independiently
+
+                if self.config['trainer']['hooks']:
+                    # Get the corresponding Modules for Analysing!!!
+                    scale_4= self.model.conv_4
+                    scale_2= self.model.conv_2
+                    scale_1= self.model.conv_1
+
+                    inside_scale_4 = scale_4._modules.get('encode') 
+                    inside_scale_2 = scale_2._modules.get('encode')
+                    inside_scale_1 = scale_1._modules.get('encode')
+
+                    # Create a list to save the layer outputs
+                    output_analysis = {}
+
+                    # Definition of saving function
+
+                    def get_out(name):
+                        def hook(model,input,output):
+                            output_analysis[name] = output.data
+                        return hook
+
+                    # Perform Forward Hooks!
+
+                    for i in range(len(inside_scale_4)):    
+                        output_4 = inside_scale_4[i].register_forward_hook(get_out('s_4_l_{}'.format(i)))
+
+                    for i in range(len(inside_scale_2)):
+                        output_2 = inside_scale_2[i].register_forward_hook(get_out('s_2_l_{}'.format(i)))
+
+                    for i in range(len(inside_scale_1)):
+                        output_1 = inside_scale_1[i].register_forward_hook(get_out('s_1_l_{}'.format(i)))
+
                 output_raw = self.model(data, epoch)
+
+                if self.config['trainer']['hooks']:
+                    if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
+                        # Saving
+                        for w in range(len(inside_scale_4)):
+                            s_hook_4 = output_analysis['s_4_l_{}'.format(w)].cpu().data.numpy()
+                            np.save(self.config.fig_dir / 'epoch_{}_S_4_L_{}.npy'.format(epoch, w), s_hook_4)
+                        # Saving
+                        for w in range(len(inside_scale_2)):
+                            s_hook_2 = output_analysis['s_2_l_{}'.format(w)].cpu().data.numpy()
+                            np.save(self.config.fig_dir / 'epoch_{}_S_2_L_{}.npy'.format(epoch, w), s_hook_2)
+                        # Saving
+                        for w in range(len(inside_scale_1)):
+                            s_hook_1 = output_analysis['s_1_l_{}'.format(w)].cpu().data.numpy()
+                            np.save(self.config.fig_dir / 'epoch_{}_S_1_L_{}.npy'.format(epoch, w), s_hook_1)
+
+                    # Clear from memory to avoid leaking
+                    output_4.remove()
+                    output_2.remove()
+                    output_1.remove()
+                    output_analysis.clear()
+
+
                 multiple_outputs = False
                 if output_raw.size(1) != 1:
                     #output = output_raw[:,0].unsqueeze(1)

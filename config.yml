@@ -95,3 +95,4 @@ trainer:
     monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
     early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
     tensorboard: true
+    hooks: true

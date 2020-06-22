@@ -161,6 +161,7 @@ class MultiSimpleNet(BaseModel):
         
         #final_out = big_val * final_big + med_val * final_medium + small_val * final_small
         final_out = final_big + final_medium + final_small
+        #final_out = final_big
 
         output_fields = torch.cat((final_out, final_big, final_medium, final_small), dim=1)
         return output_fields
