@@ -13,6 +13,8 @@ from ..base import BaseTrainer
 from .plot import plot_batch, plot_distrib, plot_scales
 from ..utils import inf_loop, MetricTracker
 
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 class Trainer(BaseTrainer):
     """
@@ -50,6 +52,34 @@ class Trainer(BaseTrainer):
         """
         self.model.train()
         self.train_metrics.reset()
+
+        if epoch <100:
+            for param in self.model.conv_4.parameters():
+                    param.requires_grad = True
+            for param in self.model.conv_2.parameters():
+                    param.requires_grad = False
+            for param in self.model.conv_1.parameters():
+                    param.requires_grad = False
+
+        elif epoch > 100 and epoch < 300:
+            for param in self.model.conv_4.parameters():
+                    param.requires_grad = False
+            for param in self.model.conv_2.parameters():
+                    param.requires_grad = True
+            for param in self.model.conv_1.parameters():
+                    param.requires_grad = False
+            
+
+        if epoch > 300:
+            for param in self.model.conv_4.parameters():
+                    param.requires_grad = False
+            for param in self.model.conv_2.parameters():
+                    param.requires_grad = False
+            for param in self.model.conv_1.parameters():
+                    param.requires_grad = True 
+
+        print("Trainable parameters : ", count_parameters(self.model))
+
         for batch_idx, (data, target, data_norm, target_norm) in enumerate(self.data_loader):
 
             data, target = data.to(self.device), target.to(self.device)
