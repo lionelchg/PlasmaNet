@@ -55,7 +55,7 @@ class PoissonDataLoader(BaseDataLoader):
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
             physical_rhs /= self.data_norm
             potential /= self.target_norm
-        elif self.normalize == 'analytical':
+        elif self.normalize == 'analytical' or self.normalize == 'empirical':
             # Value that is approximately the max of the rhs
             self.logger.info("Using analytical normalization from Fourier series solution")
             self.alpha = 0.1
@@ -183,7 +183,7 @@ class DirichletDataLoader(BaseDataLoader):
                                    * torch.exp(-10.0 * x_tensor / resX)).type(torch.float32)
             elif config.guess == 'fourier':
                 modes = config.modes
-                # Using the first fourier mode as an initial guess for 2D network. 
+                # Using the first fourier mode as an initial guess for 2D network.
                 potential_guess = fourier_guess(BC_channel[:, :, :, 0], modes).type(torch.float32)
             else:
                 raise Exception(' Guess Option ({}) is not yet implemented. Only use exponential or \
