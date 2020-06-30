@@ -15,7 +15,7 @@ import torch
 import PlasmaNet.data.data_loaders as module_data
 import PlasmaNet.model.loss as module_loss
 import PlasmaNet.model.metric as module_metric
-import PlasmaNet.model.dirichletnet as module_arch
+import PlasmaNet.model.multiscalenet as module_arch
 from PlasmaNet.parse_config import ConfigParser
 from PlasmaNet.trainer import Trainer
 

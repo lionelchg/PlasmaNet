@@ -63,7 +63,7 @@ def main(config):
             # save sample images, or do something with output here
             #
 
-            fig = plot_batch(output, target, data, 0, i)
+            fig = plot_batch(output, target, data, 0, i, config)
             fig.savefig(out_dir / 'batch_{:05d}.png'.format(i), dpi=150, bbox_inches='tight')
 
             # Computing loss, metrics on test set
