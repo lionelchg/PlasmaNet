@@ -150,17 +150,17 @@ class MultiSimpleNet(BaseModel):
         final_medium = F.interpolate(conv_2_out, x.size()[2:], mode='bilinear', align_corners=False)
         final_small = F.interpolate(F.interpolate(conv_4_out, half_size, mode='bilinear', align_corners=False), x.size()[2:], mode='bilinear', align_corners=False)
 
-        #small_val =1.0
-        #med_val = 0.0
-        #big_val = 0.0
+        small_val =1.0
+        med_val = 0.0
+        big_val = 0.0
 
-        #if epoch > 20:
-        #    med_val = 1.0
-        #if epoch > 40:
-        #    big_val = 1.0
+        if epoch > 100:
+            med_val = 1.0
+        if epoch > 300:
+            big_val = 1.0
         
-        #final_out = big_val * final_big + med_val * final_medium + small_val * final_small
-        final_out = final_big + final_medium + final_small
+        final_out = big_val * final_big + med_val * final_medium + small_val * final_small
+        #final_out = final_big + final_medium + final_small
         #final_out = final_big
 
         output_fields = torch.cat((final_out, final_big, final_medium, final_small), dim=1)
