@@ -40,7 +40,7 @@ class MSInsideLoss_n2(BaseLoss):
         super().__init__()
         self.weight_n2 = inside_weight_n2
     def _forward(self, output, target, **kwargs):
-        return F.mse_loss(output[:, 2, 1:-1, 1:-1], target[:, 1, 1:-1, 1:-1]) * self.weight_n2
+        return F.mse_loss(output[:, 2, 1:-1, 1:-1], target[:, 1, 1:-1, 1:-1]-target[:, 2, 1:-1, 1:-1]) * self.weight_n2
 
 class MSInsideLoss_n4(BaseLoss):
     """ Computes the weighted MSELoss of the interior of the domain (excluding boundaries). For the n4 scale"""

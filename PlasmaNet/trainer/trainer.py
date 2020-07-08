@@ -45,6 +45,9 @@ class Trainer(BaseTrainer):
         self.valid_metrics = MetricTracker('loss', *self.criterion.loss_list,
                                            *[m.__name__ for m in self.metric_ftns], writer=self.writer)
 
+        self.s_e_1 = self.config['trainer']['1_scale']
+        self.s_e_2 = self.config['trainer']['2_scale']
+
     def _train_epoch(self, epoch):
         """
         Training method for the specified epoch.
@@ -53,7 +56,7 @@ class Trainer(BaseTrainer):
         self.model.train()
         self.train_metrics.reset()
 
-        if epoch <100:
+        if epoch < self.s_e_1:
             for param in self.model.conv_4.parameters():
                     param.requires_grad = True
             for param in self.model.conv_2.parameters():
@@ -61,7 +64,7 @@ class Trainer(BaseTrainer):
             for param in self.model.conv_1.parameters():
                     param.requires_grad = False
 
-        elif epoch > 100 and epoch < 300:
+        elif epoch > self.s_e_1 and epoch < self.s_e_2:
             for param in self.model.conv_4.parameters():
                     param.requires_grad = False
             for param in self.model.conv_2.parameters():
@@ -70,7 +73,7 @@ class Trainer(BaseTrainer):
                     param.requires_grad = False
             
 
-        if epoch > 300:
+        if epoch > self.s_e_2:
             for param in self.model.conv_4.parameters():
                     param.requires_grad = False
             for param in self.model.conv_2.parameters():

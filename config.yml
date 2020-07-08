@@ -96,3 +96,5 @@ trainer:
     early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
     tensorboard: true
     hooks: true
+    1_scale: 100                            # Epoch in which the network freezes the 1st scale
+    2_scale: 400                            # Epoch in which the middle scale is frozen
