@@ -10,7 +10,7 @@ __mail__ = ''
 __version__ = '0.1'
 
 from .data import data_loaders
-from .model import loss, metric, multiscalenet, dirichletnet
+from .model import loss, metric, multiscalenet, dirichletnet, unet
 from .trainer.trainer import Trainer
 from .parse_config import ConfigParser
 
@@ -20,6 +20,7 @@ __ALL__ = [
     metric,
     multiscalenet,
     dirichletnet,
+    unet,
     Trainer,
     ConfigParser
 ]

@@ -13,7 +13,6 @@ from ..base import BaseTrainer
 from .plot import plot_batch, plot_distrib
 from ..utils import inf_loop, MetricTracker
 
-
 class Trainer(BaseTrainer):
     """
     Trainer class.
