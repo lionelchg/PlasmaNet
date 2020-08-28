@@ -41,4 +41,3 @@ def edge_flux(res, a, u, diff_flux, sij, i1, j1, i2, j2, dim):
     flux -= 0.5 * (diff_flux[dim, j1, i1] + diff_flux[dim, j2, i2]) * sij[dim]
     res[j1, i1] += flux
     res[j2, i2] -= flux
-

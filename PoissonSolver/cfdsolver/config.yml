@@ -36,4 +36,4 @@ BC: 'perio_x'
 output:
   save: 'iteration'
   verbose: True
-  period: 50
+  period: 10

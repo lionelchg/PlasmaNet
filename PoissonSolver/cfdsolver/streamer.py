@@ -18,7 +18,7 @@ import copy
 from boundary import outlet_x, outlet_y, perio_x, perio_y, full_perio
 from metric import compute_voln
 from operators import grad
-from plot import plot_scalar
+from plot import plot_scalar, plot_streamer
 from scheme import compute_flux
 from chemistry import morrow
 
@@ -115,15 +115,15 @@ def main(config):
         E_field = - grad(potential, dx, dy, nnx, nny)
         physical_rhs = physical_rhs.reshape((nny, nnx))
 
+        # Update of the residual to zero
+        rese[:], resp[:], resn[:] = 0, 0, 0
+
         # Application of chemistry
         morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny)
 
         # Convective and diffusive flux
         a = mu * E_field
         diff_flux = D * grad(ne, dx, dy, nnx, nny)
-
-        # Update of the residual to zero
-        rese, resp, resn = 0, 0, 0
 
         # Loop on the cells to compute the interior flux and update residuals
         compute_flux(rese, a, ne, diff_flux, sij, ncx, ncy, r=y)
@@ -143,12 +143,12 @@ def main(config):
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
                 plot_streamer(X, Y, ne, rese, nionp, resp, nn, resn, dtsum, number, fig_dir)
-                plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'instant_%04d' % number, no_rhs=False)
+                plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False)
                 number += 1
         elif save_type == 'time':
             if np.abs(dtsum - number * period) < 0.1 * dt or it == nit:
                 plot_streamer(X, Y, ne, rese, nionp, resp, nn, resn, dtsum, number, fig_dir)
-                plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'instant_%04d' % number, no_rhs=False)
+                plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False)
                 number += 1
         elif save_type == 'none':
             pass

@@ -19,7 +19,6 @@ def plot_ax_scalar(fig, ax, X, Y, field, title):
     ax.set_aspect("equal")
     ax.set_title(title)
 
-
 def plot_scalar(X, Y, u, res, dtsum, number, fig_dir):
     fig, axes = plt.subplots(ncols=2, figsize=(12, 6))
     plot_ax_scalar(fig, axes[0], X, Y, u, "Scalar")
@@ -38,4 +37,4 @@ def plot_streamer(X, Y, ne, rese, nionp, resp, nn, resn, dtsum, number, fig_dir)
     plot_ax_scalar(fig, axes[2][1], X, Y, resn, "$r_n$")
     plt.tight_layout()
     plt.figtext(0.85, 0.07, '$t =$%.2e s' % dtsum, fontsize=12)
-    plt.savefig(fig_dir + 'instant_%04d' % number, bbox_inches='tight')
+    plt.savefig(fig_dir + 'dens_instant_%04d' % number, bbox_inches='tight')

@@ -33,6 +33,6 @@ poisson:
   backE: '4.8e6'
 
 output:
-  save: 'none'
+  save: 'iteration'
   verbose: True
   period: 10

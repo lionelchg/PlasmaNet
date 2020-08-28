@@ -1,5 +1,12 @@
+import os
 import numpy as np
+import scipy.constants as co
+import matplotlib.pyplot as plt
 from numba import njit
+
+fig_dir = 'figures/'
+if not os.path.exists(fig_dir):
+    os.makedirs(fig_dir)
 
 
 @njit(cache=True)
@@ -26,15 +33,19 @@ def morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny):
 
 
 @njit(cache=True)
-def ionization_rate_morrow(E_N, rate, N):
+def ionization_rate_morrow(E_N, N):
+    E_N = E_N * 1e4
     if (E_N > 1.5e-15):
-        rate = (N*1e-6) * 2.0e-16*np.exp(-7.248e-15 / E_N) * 1e2
+        rate = N * 1e-6 * 2.0e-16 * np.exp(-7.248e-15 / E_N)
     else:
-        rate = (N*1e-6) * 6.619e-17 * np.exp(-5.593e-15 / E_N) * 1e2
+        rate = N * 1e-6 * 6.619e-17 * np.exp(-5.593e-15 / E_N)
+
+    return rate
 
 
 @njit(cache=True)
-def attachment_rate_morrow(E_N, rate, N):
+def attachment_rate_morrow(E_N, N):
+    E_N = E_N * 1e4
     if (E_N > 1.05e-15):
         rate = (N*1e-6) * (8.889e-5*E_N+2.567e-19) * 1e2
     else:
@@ -48,9 +59,11 @@ def attachment_rate_morrow(E_N, rate, N):
     else:
         rate = rate + (N*1e-6)**2 * 4.7778e-59 * (1e-19)**(-1.2749) * 1e2
 
+    return rate
+
 
 @njit(cache=True)
-def mobility_coeff_morrow(Eprim, N, mobility):
+def mobility_coeff_morrow(Eprim, N):
     E_N = Eprim / N * 1e4
 
     if (E_N > 2.0e-15):
@@ -75,12 +88,55 @@ def mobility_coeff_morrow(Eprim, N, mobility):
 
     mobility = mobility * 1.0e-4
 
+    return mobility
+
 
 @njit(cache=True)
-def diffusion_coeff_morrow(Eprim, N, coeff, mobility):
+def diffusion_coeff_morrow(Eprim, N, mobility):
     E_N = Eprim / N * 1e4
 
     if (E_N > 1e-19):
         coeff = 0.3341e9 * E_N**0.54069 * mobility
     else:
         coeff = 0.3341e9 * 1e-19**0.54069 * mobility
+
+    return coeff
+
+def ax_prop(ax, logax, title):
+    ax.grid(True)
+    ax.set_title(title)
+    if logax == 'x':
+        ax.set_xscale('log')
+    elif logax == 'y':
+        ax.set_xscale('log')
+
+if __name__ == '__main__':
+    npoints = 201
+    Elog = np.logspace(1, 7, npoints)
+    Elin = np.linspace(1e5, 1e7, npoints)
+
+    P, Tgas = co.atm, 300
+    Ngas = P / co.k / Tgas
+
+    mobility, diffusion, ioniz_rate, att_rate = \
+        np.zeros_like(Elog), np.zeros_like(Elog), np.zeros_like(Elin), np.zeros_like(Elin)
+
+    for i in range(npoints):
+        mobility[i] = mobility_coeff_morrow(Elog[i], Ngas)
+        diffusion[i] = diffusion_coeff_morrow(Elog[i], Ngas, mobility[i])
+        ioniz_rate[i] = ionization_rate_morrow(Elin[i] / Ngas, Ngas)
+        att_rate[i] = attachment_rate_morrow(Elin[i] / Ngas, Ngas)
+
+    fig, axes = plt.subplots(ncols=2, nrows=2, figsize=(12, 12))
+
+    axes[0][0].plot(Elog, mobility)
+    ax_prop(axes[0][0], 'x', 'Mobility')
+    axes[1][0].plot(Elog, diffusion)
+    ax_prop(axes[1][0], 'x', 'Diffusion')
+    axes[0][1].plot(Elin, ioniz_rate)
+    ax_prop(axes[0][1], 'y', 'Ionization')
+    axes[1][1].plot(Elin, att_rate)
+    ax_prop(axes[1][1], 'y', 'Attachment')
+
+
+    plt.savefig(fig_dir + 'morrow', bbox_inches='tight')
