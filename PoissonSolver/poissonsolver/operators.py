@@ -134,8 +134,8 @@ def lapl(field, dx, dy, nx, ny, order=2, b=0, r=None):
 
     if r is not None:
         laplacian[1:-1, :] += (field[2:, :] - field[:-2, :]) / (2 * dy) / r[1:-1, :]
-        laplacian[0, :] = (- 3 * field[0, :] + 4 * field[1, :] - field[2, :]) / (2 * dy) / r[0, :]
-        laplacian[-1, :] = (3 * field[-1, :] - 4 * field[-2, :] + field[-3, :]) / (2 * dy) / r[-1, :]
+        # laplacian[0, :] += (- 3 * field[0, :] + 4 * field[1, :] - field[2, :]) / (2 * dy) / r[0, :]
+        laplacian[-1, :] += (3 * field[-1, :] - 4 * field[-2, :] + field[-3, :]) / (2 * dy) / r[-1, :]
 
     return laplacian
 

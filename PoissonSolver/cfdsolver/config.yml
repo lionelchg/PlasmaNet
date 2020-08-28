@@ -13,27 +13,27 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'a_D_perio_x_1/'
+casename: 'a_D_perio_x_2/'
 
 params:
-  nit: 100
+  nit: 200
 
 mesh:
   xmin: 0
   ymin: 0
   xmax: 1
   ymax: 1
-  nnx: 501
-  nny: 501
+  nnx: 201
+  nny: 201
 
 transport:
-  convection_x: 1
-  convection_y: 0.5
+  convection_x: 0
+  convection_y: 1
   diffusion: 0.001
 
 BC: 'perio_x'
 
 output:
-  save: 'none'
+  save: 'iteration'
   verbose: True
-  period: 10
+  period: 50

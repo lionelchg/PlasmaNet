@@ -108,9 +108,11 @@ def plot_potential(X, Y, dx, dy, potential, nx, ny, figname, figtitle=None, r=No
     plot_ax_trial_1D(axes[0][1], x, potential, ny, '1D cuts')
 
     E = - grad(potential, dx, dy, nx, ny)
-    normE = np.sqrt(E[0]**2 + E[1]**2)
+    # normE = np.sqrt(E[0]**2 + E[1]**2)
+    Ey = np.abs(E[1])
     plot_ax_vector_arrow(fig, axes[1][0], X, Y, E, 'Electric field')
-    plot_ax_trial_1D(axes[1][1], x, normE, ny, '1D cuts')
+    # plot_ax_trial_1D(axes[1][1], x, normE, ny, '1D cuts')
+    plot_ax_trial_1D(axes[1][1], x, Ey, ny, '1D cuts Ey')
 
     if r is not None:
         lapl_trial = lapl(potential, dx, dy, nx, ny, r=r)
@@ -124,8 +126,7 @@ def plot_potential(X, Y, dx, dy, potential, nx, ny, figname, figtitle=None, r=No
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
     plt.savefig(figname, bbox_inches='tight')
 
-def plot_ax_trial_1D(ax, x, function, n_points, title):
-    direction = 'y'
+def plot_ax_trial_1D(ax, x, function, n_points, title, direction='y'):
     list_cut = [0, 0.25, 0.5]
     for cut_pos in list_cut:
         n = int(cut_pos * (n_points - 1))
@@ -133,3 +134,28 @@ def plot_ax_trial_1D(ax, x, function, n_points, title):
     ax.set_title(title)
     ax.legend()
     ax.grid(True)
+
+def plot_lapl_rhs(X, Y, dx, dy, potential, physical_rhs, nx, ny, figname, figtitle=None, r=None):
+    """ Compares the laplacian of the potential against the real rhs """
+    x = X[0, :]
+
+    fig = plt.figure(figsize=(8, 10))
+
+    ax = fig.add_subplot(221)
+    if r is not None:
+        lapl_trial = lapl(potential, dx, dy, nx, ny, r=r)
+    else:
+        lapl_trial = lapl(potential, dx, dy, nx, ny)
+    plot_ax_scalar(fig, ax, X, Y, - lapl_trial, '- Laplacian')
+
+    ax = fig.add_subplot(222)
+    plot_ax_scalar(fig, ax, X, Y, physical_rhs, 'RHS')
+
+    ax = fig.add_subplot(212)
+    plot_ax_trial_1D(ax, x, -  lapl_trial, ny, '1D cuts', direction='y lapl')
+    plot_ax_trial_1D(ax, x, physical_rhs, ny, '1D cuts', direction='y rhs')
+
+    if figtitle is not None:
+        plt.suptitle(figtitle)
+    fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+    plt.savefig(figname, bbox_inches='tight')

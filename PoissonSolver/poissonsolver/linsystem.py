@@ -48,15 +48,16 @@ def dirichlet_bc(rhs, n_points, up, down, left, right):
     rhs[-1] = 0.5 * (right[-1] + down[-1])
 
 def matrix_cart(dx, dy, nx, ny):
+    """ Creation of the matrix for the down neumann, left/up/right dirichlet bc Poisson problem """
     diags = np.zeros((5, nx * ny))
 
     # Filling the diagonals, first the down neumann bc, then the dirichlet bc and finally the interior nodes
     for i in range(nx * ny):
         if 0 < i < nx - 1:
-            diags[0, i] = - (2 / dx**2 + 1 / dy**2)
+            diags[0, i] = - (2 / dx**2 + 2 / dy**2)
             diags[1, i + 1] = 1 / dx**2
             diags[2, i - 1] = 1 / dx**2
-            diags[3, i + nx] = 1 / dy**2
+            diags[3, i + nx] = 2 / dy**2
         elif i >= (ny - 1) * nx or i % nx == 0 or i % nx == nx - 1:
             diags[0, i] = 1
             diags[1, min(i + 1, nx * ny - 1)] = 0
@@ -82,10 +83,12 @@ def matrix_axisym(dx, dr, nx, nr, R):
     # Filling the diagonals, first the down neumann bc, then the dirichlet bc and finally the interior nodes
     for i in range(nx * nr):
         if 0 < i < nx - 1:
-            diags[0, i] = - ((r[i] + r[i + nx]) / (2 * r[i] * dr**2) + 2 / dx**2)
+            # diags[0, i] = - ((r[i] + r[i + nx]) / (2 * r[i] * dr**2) + 2 / dx**2)
+            diags[0, i] = - ((r[i] + r[i + nx]) / (r[i] * dr**2) + 2 / dx**2)
             diags[1, i + 1] = 1 / dx**2
             diags[2, i - 1] = 1 / dx**2
-            diags[3, i + nx] = (r[i] + r[i + nx]) / (2 * r[i] * dr**2)
+            # diags[3, i + nx] = (r[i] + r[i + nx]) / (2 * r[i] * dr**2)
+            diags[3, i + nx] = (r[i] + r[i + nx]) / (r[i] * dr**2)
         elif i >= (nr - 1) * nx or i % nx == 0 or i % nx == nx - 1:
             diags[0, i] = 1
             diags[1, min(i + 1, nx * nr - 1)] = 0

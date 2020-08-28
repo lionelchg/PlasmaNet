@@ -12,7 +12,7 @@ import copy
 
 from scipy.sparse.linalg import spsolve
 from poissonsolver.operators import lapl, grad
-from poissonsolver.plot import plot_set_2D, plot_potential
+from poissonsolver.plot import plot_set_2D, plot_potential, plot_lapl_rhs
 from poissonsolver.linsystem import matrix_cart, matrix_axisym, dirichlet_bc_axi
 from poissonsolver.postproc import lapl_diff
 
@@ -64,3 +64,4 @@ if __name__ == '__main__':
     physical_rhs = physical_rhs.reshape(nr, nx)
     plot_potential(X, R, dx, dr, potential, nx, nr, fig_dir + 'cartesian_pot')
     plot_potential(X, R, dx, dr, potential_axi, nx, nr, fig_dir + 'cylindrical_pot', r=R_nodes)
+    plot_lapl_rhs(X, R, dx, dr, potential, physical_rhs, nx, nr, fig_dir + 'comp_lapl_rhs', r=R_nodes)
