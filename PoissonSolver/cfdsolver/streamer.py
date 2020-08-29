@@ -109,6 +109,7 @@ def main(config):
         # Solve the Poisson equation / Axisymmetric resolution
         physical_rhs = (nionp - ne - nn).reshape(-1) * co.e / co.epsilon_0
         A = matrix_axisym(dx, dy, nnx, nny, R_nodes)
+        # A = matrix_cart(dx, dy, nnx, nny)
         rhs = - physical_rhs
         dirichlet_bc_axi(rhs, nnx, nny, up, left, right)
         potential = spsolve(A, rhs).reshape(nny, nnx)
@@ -119,7 +120,7 @@ def main(config):
         rese[:], resp[:], resn[:] = 0, 0, 0
 
         # Application of chemistry
-        morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny)
+        morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln)
 
         # Convective and diffusive flux
         a = mu * E_field
@@ -142,13 +143,19 @@ def main(config):
 
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
-                plot_streamer(X, Y, ne, rese, nionp, resp, nn, resn, dtsum, number, fig_dir)
-                plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False)
+                plot_streamer(X, Y, ne, rese / voln, nionp, resp / voln, nn, resn / voln, dtsum, number, fig_dir)
+                try:
+                    plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False)
+                except:
+                    pass
                 number += 1
         elif save_type == 'time':
             if np.abs(dtsum - number * period) < 0.1 * dt or it == nit:
                 plot_streamer(X, Y, ne, rese, nionp, resp, nn, resn, dtsum, number, fig_dir)
-                plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False)
+                try:
+                    plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False)
+                except:
+                    pass
                 number += 1
         elif save_type == 'none':
             pass

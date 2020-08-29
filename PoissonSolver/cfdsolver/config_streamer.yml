@@ -16,7 +16,7 @@
 casename: 'dh_streamer/'
 
 params:
-  nit: 100
+  nit: 10
 
 mesh:
   xmin: 0
@@ -35,4 +35,4 @@ poisson:
 output:
   save: 'iteration'
   verbose: True
-  period: 10
+  period: 1

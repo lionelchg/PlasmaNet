@@ -10,7 +10,7 @@ if not os.path.exists(fig_dir):
 
 
 @njit(cache=True)
-def morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny):
+def morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln):
     ngas = 2.688e25
     beta_recombination = 2e-13
     ionization_rate, attachment_rate = 0, 0
@@ -18,27 +18,25 @@ def morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny):
     for i in range(nnx):
         for j in range(nny):
             normE = np.sqrt(E_field[0, j, i]**2 + E_field[1, j, i]**2)
-            ionization_rate_morrow(normE / ngas * 1e4, ionization_rate, ngas)
-            attachment_rate_morrow(normE / ngas * 1e4, attachment_rate, ngas)
-            mobility_coeff_morrow(normE, ngas, mu[j, i])
-            diffusion_coeff_morrow(normE, ngas, D[j, i], mu[j, i])
+            mu[j, i] = mobility_coeff_morrow(normE, ngas)
+            D[j, i] = diffusion_coeff_morrow(normE, ngas, mu[j, i])
+            ionization_freq = ionization_rate_morrow(normE / ngas, ngas) * mu[j, i] * normE
+            attachment_freq = attachment_rate_morrow(normE / ngas, ngas) * mu[j, i] * normE
 
-            resp[j, i] -= ne[j, i] * ionization_rate * mu[j, i] * normE \
-              - (ne[j, i] + nn[j, i]) * nionp[j, i] * beta_recombination
-            resn[j, i] -= ne[j, i] * attachment_rate * mu[j, i] * normE \
-            - nn[j, i] * nionp[j, i] * beta_recombination
-            rese[j, i] -= ne[j, i] * ionization_rate * mu[j, i] * normE \
-            - ne[j, i] * attachment_rate * mu[j, i] * normE \
-             - ne[j, i] * nionp[j, i] * beta_recombination
+            resp[j, i] -= (ne[j, i] * ionization_freq - (ne[j, i] + nn[j, i]) * nionp[j, i] * beta_recombination) * voln[j, i]
+            resn[j, i] -= (ne[j, i] * attachment_freq - nn[j, i] * nionp[j, i] * beta_recombination) * voln[j, i]
+            rese[j, i] -= (ne[j, i] * ionization_freq - ne[j, i] * attachment_freq - ne[j, i] * nionp[j, i] * beta_recombination) * voln[j, i]
+
+
 
 
 @njit(cache=True)
 def ionization_rate_morrow(E_N, N):
     E_N = E_N * 1e4
     if (E_N > 1.5e-15):
-        rate = N * 1e-6 * 2.0e-16 * np.exp(-7.248e-15 / E_N)
+        rate = N * 1e-6 * 2.0e-16 * np.exp(-7.248e-15 / E_N) * 1e2
     else:
-        rate = N * 1e-6 * 6.619e-17 * np.exp(-5.593e-15 / E_N)
+        rate = N * 1e-6 * 6.619e-17 * np.exp(-5.593e-15 / E_N) * 1e2
 
     return rate
 
@@ -102,13 +100,16 @@ def diffusion_coeff_morrow(Eprim, N, mobility):
 
     return coeff
 
-def ax_prop(ax, logax, title):
+def ax_prop(ax, logax, title, ylim=None):
     ax.grid(True)
     ax.set_title(title)
     if logax == 'x':
         ax.set_xscale('log')
     elif logax == 'y':
-        ax.set_xscale('log')
+        ax.set_yscale('log')
+
+    if ylim is not None:
+        ax.set_ylim(ylim)
 
 if __name__ == '__main__':
     npoints = 201
@@ -118,14 +119,16 @@ if __name__ == '__main__':
     P, Tgas = co.atm, 300
     Ngas = P / co.k / Tgas
 
-    mobility, diffusion, ioniz_rate, att_rate = \
+    mobility, diffusion, ioniz_freq, att_freq = \
         np.zeros_like(Elog), np.zeros_like(Elog), np.zeros_like(Elin), np.zeros_like(Elin)
+
 
     for i in range(npoints):
         mobility[i] = mobility_coeff_morrow(Elog[i], Ngas)
         diffusion[i] = diffusion_coeff_morrow(Elog[i], Ngas, mobility[i])
-        ioniz_rate[i] = ionization_rate_morrow(Elin[i] / Ngas, Ngas)
-        att_rate[i] = attachment_rate_morrow(Elin[i] / Ngas, Ngas)
+        ioniz_freq[i] = ionization_rate_morrow(Elin[i] / Ngas, Ngas) * mobility_coeff_morrow(Elin[i], Ngas) * Elin[i]
+        att_freq[i] = attachment_rate_morrow(Elin[i] / Ngas, Ngas) * mobility_coeff_morrow(Elin[i], Ngas) * Elin[i]
+
 
     fig, axes = plt.subplots(ncols=2, nrows=2, figsize=(12, 12))
 
@@ -133,10 +136,9 @@ if __name__ == '__main__':
     ax_prop(axes[0][0], 'x', 'Mobility')
     axes[1][0].plot(Elog, diffusion)
     ax_prop(axes[1][0], 'x', 'Diffusion')
-    axes[0][1].plot(Elin, ioniz_rate)
-    ax_prop(axes[0][1], 'y', 'Ionization')
-    axes[1][1].plot(Elin, att_rate)
-    ax_prop(axes[1][1], 'y', 'Attachment')
-
+    axes[0][1].plot(Elin, ioniz_freq)
+    ax_prop(axes[0][1], 'y', 'Ionization Frequency', ylim=[1e6, 1e11])
+    axes[1][1].plot(Elin, att_freq)
+    ax_prop(axes[1][1], 'y', 'Attachment Frequency', ylim=[1e6, 1e11])
 
     plt.savefig(fig_dir + 'morrow', bbox_inches='tight')
