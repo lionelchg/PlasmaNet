@@ -14,6 +14,7 @@ import numpy as np
 import yaml
 import scipy.constants as co
 import copy
+import re
 
 from boundary import outlet_x, outlet_y, perio_x, perio_y, full_perio
 from metric import compute_voln
@@ -28,6 +29,16 @@ from poissonsolver.plot import plot_set_2D, plot_potential
 from poissonsolver.linsystem import matrix_cart, matrix_axisym, dirichlet_bc_axi
 from poissonsolver.postproc import lapl_diff
 
+def create_dir(dir_name):
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+
+def plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, potential, E_field, voln, dtsum, number, fig_dir):
+    plot_streamer(X, Y, ne, rese / voln, nionp, resp / voln, nn, resn / voln, dtsum, number, fig_dir)
+    try:
+        plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False)
+    except:
+        pass
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
@@ -50,8 +61,9 @@ def main(config):
     # Grid construction
     X, Y = np.meshgrid(x, y)
     R_nodes = copy.deepcopy(Y)
-    R_nodes[0] = dy / 2
+    R_nodes[0] = dy / 4
     voln = compute_voln(X, dx, dy) * R_nodes
+    # voln = compute_voln(X, dx, dy)
     sij = np.array([dy / 2, dx / 2])
 
     # Convection speed
@@ -63,12 +75,15 @@ def main(config):
 
     # Creation of the figures directory and numbering of outputs
     fig_dir = 'figures/' + config['casename']
-    if not os.path.exists(fig_dir):
-        os.makedirs(fig_dir)
-    number = 1
+    create_dir(fig_dir)
+
     save_type = config['output']['save']
     verbose = config['output']['verbose']
     period = config['output']['period']
+
+    file_type = config['output']['files']
+    if re.search('data', file_type):
+        create_dir(config['output']['folder'])
 
     # Timestep fixed
     dt = 5e-13
@@ -83,14 +98,31 @@ def main(config):
     # Number of iterations
     nit = config['params']['nit']
 
-    # Scalar and Residual declaration
-    ne, rese = np.zeros_like(X), np.zeros_like(X)
-    nionp, resp = np.zeros_like(X), np.zeros_like(X)
-    nn, resn = np.zeros_like(X), np.zeros_like(X)
+    input_fn = config['input']
+    
+    if input_fn == 'none':
+        number = 1
 
-    # Gaussian initialization for the electrons and positive ions
-    ne = gaussian(X, Y, 1e19, 2e-3, 0, 2e-4, 2e-4)
-    nionp = gaussian(X, Y, 1e19, 2e-3, 0, 2e-4, 2e-4)
+        # Scalar and Residual declaration
+        ne, rese = np.zeros_like(X), np.zeros_like(X)
+        nionp, resp = np.zeros_like(X), np.zeros_like(X)
+        nn, resn = np.zeros_like(X), np.zeros_like(X)
+
+        # Gaussian initialization for the electrons and positive ions
+        ne = gaussian(X, Y, 1e19, 2e-3, 0, 2e-4, 2e-4)
+        nionp = gaussian(X, Y, 1e19, 2e-3, 0, 2e-4, 2e-4)
+
+    else:
+        # Scalar and Residual declaration
+        rese, resp, resn = np.zeros_like(X), np.zeros_like(X), np.zeros_like(X)
+
+        # Loading of densities
+        ne = np.load(config['input']['ne'])
+        nionp = np.load(config['input']['np'])
+        nn = np.load(config['input']['nn'])
+
+        number = int(re.search('\d+', config['input']['ne']).group()) + 1
+
 
     # Print header to sum up the parameters
     if verbose:
@@ -98,7 +130,10 @@ def main(config):
         print(f'Bounding box: ({xmin:.1e}, {ymin:.1e}), ({xmax:.1e}, {ymax:.1e})')
         print(f'dx = {dx:.2e} -- dy = {dy:.2e} -- Timestep = {dt:.2e}')
         print('------------------------------------')
-        print('Start of simulation')
+        if input_fn == 'none':
+            print('Start of simulation')
+        else:
+            print('Restart of simulation')
         print('------------------------------------')
         print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
@@ -128,11 +163,12 @@ def main(config):
 
         # Loop on the cells to compute the interior flux and update residuals
         compute_flux(rese, a, ne, diff_flux, sij, ncx, ncy, r=y)
+        # compute_flux(rese, a, ne, diff_flux, sij, ncx, ncy)
 
         # Boundary conditions
-        outlet_y(rese, a, ne, diff_flux, dx, -1)
-        outlet_x(rese, a, ne, diff_flux, dy, 0)
-        outlet_x(rese, a, ne, diff_flux, dy, -1)
+        outlet_y(rese, a, ne, diff_flux, dx, -1, r=np.max(Y))
+        outlet_x(rese, a, ne, diff_flux, dy, 0, r=Y)
+        outlet_x(rese, a, ne, diff_flux, dy, -1, r=Y)
 
         ne = ne - rese * dt / voln
         nionp = nionp - resp * dt / voln
@@ -143,20 +179,25 @@ def main(config):
 
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
-                plot_streamer(X, Y, ne, rese / voln, nionp, resp / voln, nn, resn / voln, dtsum, number, fig_dir)
-                try:
-                    plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False)
-                except:
-                    pass
-                number += 1
+                if file_type == 'fig':
+                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
+                        potential, E_field, voln, dtsum, number, fig_dir)
+                    number += 1
+                elif file_type == 'data':
+                    np.save(config['output']['folder'] + 'ne_%04d' % number, ne)
+                    np.save(config['output']['folder'] + 'np_%04d' % number, nionp)
+                    np.save(config['output']['folder'] + 'nn_%04d' % number, nn)
+                    number += 1
+                else:
+                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
+                        potential, E_field, voln, dtsum, number, fig_dir)
+                    np.save(config['output']['folder'] + 'ne_%04d' % number, ne)
+                    np.save(config['output']['folder'] + 'np_%04d' % number, nionp)
+                    np.save(config['output']['folder'] + 'nn_%04d' % number, nn)
+                    number += 1
         elif save_type == 'time':
             if np.abs(dtsum - number * period) < 0.1 * dt or it == nit:
-                plot_streamer(X, Y, ne, rese, nionp, resp, nn, resn, dtsum, number, fig_dir)
-                try:
-                    plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False)
-                except:
-                    pass
-                number += 1
+                plot_it()
         elif save_type == 'none':
             pass
 

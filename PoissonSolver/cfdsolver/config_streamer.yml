@@ -35,4 +35,11 @@ poisson:
 output:
   save: 'iteration'
   verbose: True
-  period: 1
+  files: 'figdata'
+  folder: 'data/dh_streamer/'
+  period: 5
+
+input: 
+  ne: 'data/dh_streamer/ne_0002.npy'
+  np: 'data/dh_streamer/np_0002.npy'
+  nn: 'data/dh_streamer/nn_0002.npy'
