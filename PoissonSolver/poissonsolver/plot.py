@@ -25,7 +25,7 @@ def plot_ax_set_1D(axes, x, pot, E_field_norm, lapl_pot, n_points, M, direction=
 
 
 def plot_set_1D(x, physical_rhs, pot, E_field_norm, lapl_pot, n_points, figtitle, figname, no_rhs=False, direction='x'):
-    # 1D plot
+    """ 1D Matplotlib plots with cuts accross the y axis. """
     n_middle = int(n_points / 2)
     if no_rhs:
         list_cut = [0, 0.25, 0.5, 0.75, 1]
@@ -60,7 +60,7 @@ def plot_set_1D(x, physical_rhs, pot, E_field_norm, lapl_pot, n_points, figtitle
     plt.savefig(figname, bbox_inches='tight')
 
 def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False):
-    """ Matplotlib plots. """
+    """ 2D Matplotlib plots. """
     if no_rhs:
         fig, axes = plt.subplots(ncols=2, figsize=(11, 5))
         plot_ax_scalar(fig, axes[0], X, Y, pot, r'$\phi$')

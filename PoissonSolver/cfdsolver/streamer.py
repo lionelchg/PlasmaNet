@@ -25,7 +25,7 @@ from chemistry import morrow
 
 from scipy.sparse.linalg import spsolve
 from poissonsolver.operators import lapl, grad
-from poissonsolver.plot import plot_set_2D, plot_potential
+from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_potential
 from poissonsolver.linsystem import matrix_cart, matrix_axisym, dirichlet_bc_axi
 from poissonsolver.postproc import lapl_diff
 
@@ -33,10 +33,13 @@ def create_dir(dir_name):
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
 
-def plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, potential, E_field, voln, dtsum, number, fig_dir):
+def plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, potential, E_field, lapl_pot, voln, dtsum, number, fig_dir):
     plot_streamer(X, Y, ne, rese / voln, nionp, resp / voln, nn, resn / voln, dtsum, number, fig_dir)
     try:
         plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False)
+        # E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
+        # plot_set_1D(X[0, :], physical_rhs, potential, E_field_norm, lapl_pot, np.shape(X)[0], '1D EM cuts', 
+        #         fig_dir + 'EM_1D_instant_%04d' % number, no_rhs=False, direction='x')
     except:
         pass
 
@@ -91,9 +94,9 @@ def main(config):
 
     # Background electric field
     backE = float(config['poisson']['backE'])
-    up = x * backE
+    up = - x * backE
     left = np.zeros_like(y)
-    right = np.ones_like(y) * backE * xmax
+    right = - np.ones_like(y) * backE * xmax
 
     # Number of iterations
     nit = config['params']['nit']
@@ -137,14 +140,16 @@ def main(config):
         print('------------------------------------')
         print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
+    # Construction of the matrix
+    A = matrix_axisym(dx, dy, nnx, nny, R_nodes)
+    # A = matrix_cart(dx, dy, nnx, nny)
+
     # Iterations
     for it in range(1, nit + 1):
         dtsum += dt
 
         # Solve the Poisson equation / Axisymmetric resolution
         physical_rhs = (nionp - ne - nn).reshape(-1) * co.e / co.epsilon_0
-        A = matrix_axisym(dx, dy, nnx, nny, R_nodes)
-        # A = matrix_cart(dx, dy, nnx, nny)
         rhs = - physical_rhs
         dirichlet_bc_axi(rhs, nnx, nny, up, left, right)
         potential = spsolve(A, rhs).reshape(nny, nnx)
@@ -158,7 +163,7 @@ def main(config):
         morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln)
 
         # Convective and diffusive flux
-        a = mu * E_field
+        a = - mu * E_field
         diff_flux = D * grad(ne, dx, dy, nnx, nny)
 
         # Loop on the cells to compute the interior flux and update residuals
@@ -180,8 +185,9 @@ def main(config):
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
                 if file_type == 'fig':
+                    lapl_pot = lapl(potential, dx, dy, nnx, nny, r=Y)
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
-                        potential, E_field, voln, dtsum, number, fig_dir)
+                        potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     number += 1
                 elif file_type == 'data':
                     np.save(config['output']['folder'] + 'ne_%04d' % number, ne)
@@ -189,8 +195,9 @@ def main(config):
                     np.save(config['output']['folder'] + 'nn_%04d' % number, nn)
                     number += 1
                 else:
+                    lapl_pot = lapl(potential, dx, dy, nnx, nny, r=Y)
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
-                        potential, E_field, voln, dtsum, number, fig_dir)
+                        potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     np.save(config['output']['folder'] + 'ne_%04d' % number, ne)
                     np.save(config['output']['folder'] + 'np_%04d' % number, nionp)
                     np.save(config['output']['folder'] + 'nn_%04d' % number, nn)

@@ -16,7 +16,7 @@
 casename: 'dh_streamer/'
 
 params:
-  nit: 10
+  nit: 1000
 
 mesh:
   xmin: 0
@@ -24,7 +24,7 @@ mesh:
   xmax: 0.004
   ymax: 0.001
   nnx: 401
-  nny: 201
+  nny: 101
 
 transport:
   chemistry: 'morrow'
@@ -37,9 +37,9 @@ output:
   verbose: True
   files: 'figdata'
   folder: 'data/dh_streamer/'
-  period: 5
+  period: 100
 
-input: 
-  ne: 'data/dh_streamer/ne_0002.npy'
-  np: 'data/dh_streamer/np_0002.npy'
-  nn: 'data/dh_streamer/nn_0002.npy'
+input: 'none'
+  # ne: 'data/dh_streamer/ne_0002.npy'
+  # np: 'data/dh_streamer/np_0002.npy'
+  # nn: 'data/dh_streamer/nn_0002.npy'
