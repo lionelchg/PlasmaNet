@@ -17,12 +17,12 @@
 # `config.init_obj` method.
 
 
-name: '64x64/rand_fou_10_dec' # Experience name
+name: 'dh_streamer' # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
-    nx: 64
-    ny: 64
+    nnx: 64
+    nny: 64
     lx: 0.01
     ly: 0.01
 
@@ -36,8 +36,8 @@ data_loader:
     type: 'PoissonDataLoader'
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/rhs/64x64/rand_fou_10_dec_train/'
-        batch_size: 128
+        data_dir: '/scratch/cfd/cheng/DL/plasmanet/CfdSolver/data/dh_streamer/'
+        batch_size: 64
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4

@@ -13,10 +13,10 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'dh_streamer/'
+casename: 'dh_streamer_1/'
 
 params:
-  nit: 100
+  nit: 5000
 
 mesh:
   xmin: 0
@@ -37,7 +37,7 @@ output:
   verbose: True
   files: 'fig'
   folder: 'data/dh_streamer/'
-  period: 50
+  period: 200
   dl_save: 'yes'
 
 input: 'none'
