@@ -83,12 +83,10 @@ def matrix_axisym(dx, dr, nx, nr, R):
     # Filling the diagonals, first the down neumann bc, then the dirichlet bc and finally the interior nodes
     for i in range(nx * nr):
         if 0 < i < nx - 1:
-            # diags[0, i] = - ((r[i] + r[i + nx]) / (2 * r[i] * dr**2) + 2 / dx**2)
-            diags[0, i] = - ((r[i] + r[i + nx]) / (r[i] * dr**2) + 2 / dx**2)
+            diags[0, i] = - (2 / dx**2 + 4 / dr**2)
             diags[1, i + 1] = 1 / dx**2
             diags[2, i - 1] = 1 / dx**2
-            # diags[3, i + nx] = (r[i] + r[i + nx]) / (2 * r[i] * dr**2)
-            diags[3, i + nx] = (r[i] + r[i + nx]) / (r[i] * dr**2)
+            diags[3, i + nx] = 4 / dr**2
         elif i >= (nr - 1) * nx or i % nx == 0 or i % nx == nx - 1:
             diags[0, i] = 1
             diags[1, min(i + 1, nx * nr - 1)] = 0
@@ -96,12 +94,11 @@ def matrix_axisym(dx, dr, nx, nr, R):
             diags[3, min(i + nx, nx * nr - 1)] = 0
             diags[4, max(i - nx, 0)] = 0
         else:
-            diags[0, i] = - ((2 * r[i] + r[i + nx] + r[i - nx]) / (2 * r[i] * dr**2) + 2 / dx**2)
+            diags[0, i] = - (2 / dx**2 + 2 / dr**2)
             diags[1, i + 1] = 1 / dx**2
             diags[2, i - 1] = 1 / dx**2
-            diags[3, i + nx] = (r[i] + r[i + nx]) / (2 * r[i] * dr**2)
-            diags[4, i - nx] = (r[i] + r[i - nx]) / (2 * r[i] * dr**2)
-
+            diags[3, i + nx] = (1 + dr / (2 * r[i])) / dr**2 
+            diags[4, i - nx] = (1 - dr / (2 * r[i])) / dr**2
 
     # Creating the matrix
     return sparse.csc_matrix(

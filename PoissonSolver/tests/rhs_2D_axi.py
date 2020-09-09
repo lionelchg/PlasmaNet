@@ -64,4 +64,4 @@ if __name__ == '__main__':
     physical_rhs = physical_rhs.reshape(nr, nx)
     plot_potential(X, R, dx, dr, potential, nx, nr, fig_dir + 'cartesian_pot')
     plot_potential(X, R, dx, dr, potential_axi, nx, nr, fig_dir + 'cylindrical_pot', r=R_nodes)
-    plot_lapl_rhs(X, R, dx, dr, potential, physical_rhs, nx, nr, fig_dir + 'comp_lapl_rhs', r=R_nodes)
+    plot_lapl_rhs(X, R, dx, dr, potential_axi, physical_rhs, nx, nr, fig_dir + 'comp_lapl_rhs_cyl', r=R_nodes)

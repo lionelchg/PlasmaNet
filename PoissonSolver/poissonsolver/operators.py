@@ -105,9 +105,12 @@ def lapl(field, dx, dy, nx, ny, order=2, b=0, r=None):
         laplacian[1:-1, -2] = (field[2:, -2] + field[:-2, -2] - 2 * field[1:-1, -2]) / dy**2 + \
                               (field[1:-1, -1] + field[1:-1, -3] - 2 * field[1:-1, -2]) / dx**2
 
-    laplacian[0, 1:-1] = \
-        (2 * field[0, 1:-1] - 5 * field[1, 1:-1] + 4 * field[2, 1:-1] - field[3, 1:-1]) / dy**2 + \
-        (field[0, 2:] + field[0, :-2] - 2 * field[0, 1:-1]) / dx**2
+    if r is None:
+        laplacian[0, 1:-1] = \
+            (2 * field[0, 1:-1] - 5 * field[1, 1:-1] + 4 * field[2, 1:-1] - field[3, 1:-1]) / dy**2 + \
+            (field[0, 2:] + field[0, :-2] - 2 * field[0, 1:-1]) / dx**2
+    else:
+        laplacian[0, 1:-1] = (field[0, 2:] + field[0, :-2] - 2 * field[0, 1:-1]) / dx**2
     laplacian[-1, 1:-1] = \
         (2 * field[-1, 1:-1] - 5 * field[-2, 1:-1] + 4 * field[-3, 1:-1] - field[-4, 1:-1]) / dy**2 + \
         (field[-1, 2:] + field[-1, :-2] - 2 * field[-1, 1:-1]) / dx**2
@@ -119,12 +122,16 @@ def lapl(field, dx, dy, nx, ny, order=2, b=0, r=None):
         (2 * field[1:-1, -1] - 5 * field[1:-1, -2] + 4 * field[1:-1, -3] - field[1:-1, -4]) / dx**2
 
     # corners (respectively upper left, upper right, lower left and lower right)
-    laplacian[0, 0] = \
-        (2 * field[0, 0] - 5 * field[1, 0] + 4 * field[2, 0] - field[3, 0]) / dy**2 + \
-        (2 * field[0, 0] - 5 * field[0, 1] + 4 * field[0, 2] - field[0, 3]) / dx**2
-    laplacian[0, -1] = \
-        (2 * field[0, -1] - 5 * field[1, -1] + 4 * field[2, -1] - field[3, -1]) / dy**2 + \
-        (2 * field[0, -1] - 5 * field[0, -2] + 4 * field[0, -3] - field[0, -4]) / dx**2
+    if r is None:
+        laplacian[0, 0] = \
+            (2 * field[0, 0] - 5 * field[1, 0] + 4 * field[2, 0] - field[3, 0]) / dy**2 + \
+            (2 * field[0, 0] - 5 * field[0, 1] + 4 * field[0, 2] - field[0, 3]) / dx**2
+        laplacian[0, -1] = \
+            (2 * field[0, -1] - 5 * field[1, -1] + 4 * field[2, -1] - field[3, -1]) / dy**2 + \
+            (2 * field[0, -1] - 5 * field[0, -2] + 4 * field[0, -3] - field[0, -4]) / dx**2
+    else:
+        laplacian[0, 0] = (2 * field[0, 0] - 5 * field[0, 1] + 4 * field[0, 2] - field[0, 3]) / dx**2
+        laplacian[0, -1] = (2 * field[0, -1] - 5 * field[0, -2] + 4 * field[0, -3] - field[0, -4]) / dx**2
     laplacian[-1, 0] = \
         (2 * field[-1, 0] - 5 * field[-2, 0] + 4 * field[-3, 0] - field[-4, 0]) / dy**2 + \
         (2 * field[-1, 0] - 5 * field[-1, 1] + 4 * field[-1, 2] - field[-1, 3]) / dx**2
@@ -134,7 +141,7 @@ def lapl(field, dx, dy, nx, ny, order=2, b=0, r=None):
 
     if r is not None:
         laplacian[1:-1, :] += (field[2:, :] - field[:-2, :]) / (2 * dy) / r[1:-1, :]
-        # laplacian[0, :] += (- 3 * field[0, :] + 4 * field[1, :] - field[2, :]) / (2 * dy) / r[0, :]
+        laplacian[0, :] += 4 * (field[1, :] - field[0, :]) / dy**2
         laplacian[-1, :] += (3 * field[-1, :] - 4 * field[-2, :] + field[-3, :]) / (2 * dy) / r[-1, :]
 
     return laplacian

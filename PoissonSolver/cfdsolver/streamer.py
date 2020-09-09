@@ -37,9 +37,9 @@ def plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, potential, E_fi
     plot_streamer(X, Y, ne, rese / voln, nionp, resp / voln, nn, resn / voln, dtsum, number, fig_dir)
     try:
         plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False)
-        # E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
-        # plot_set_1D(X[0, :], physical_rhs, potential, E_field_norm, lapl_pot, np.shape(X)[0], '1D EM cuts', 
-        #         fig_dir + 'EM_1D_instant_%04d' % number, no_rhs=False, direction='x')
+        E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
+        plot_set_1D(X[0, :], physical_rhs, potential, E_field_norm, lapl_pot, np.shape(X)[0], '1D EM cuts', 
+                fig_dir + 'EM_1D_instant_%04d' % number, no_rhs=False, direction='x')
     except:
         pass
 
