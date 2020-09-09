@@ -37,7 +37,8 @@ class PoissonDataLoader(BaseDataLoader):
 
         # Normalization and length
         self.normalize = normalize
-        self.length = config.length
+        self.lx = config.lx
+        self.ly = config.ly
 
         if self.normalize == 'max':
             self.logger.info("Using max normalization")
@@ -51,7 +52,7 @@ class PoissonDataLoader(BaseDataLoader):
             # If mod(pot0) == 1 the normalization sums up to rhs * L**2
             # where L = physical length of the domain
             self.logger.info("Using physical normalization")
-            self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1)) / self.length**2
+            self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1)) / self.lx / self.ly
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
             physical_rhs /= self.data_norm
             potential /= self.target_norm
@@ -59,7 +60,7 @@ class PoissonDataLoader(BaseDataLoader):
             # Value that is approximately the max of the rhs
             self.logger.info("Using analytical normalization from Fourier series solution")
             self.alpha = 0.1
-            self.ratio_max = self.alpha / (np.pi**2 / 4)**2 / (2 / self.length**2)
+            self.ratio_max = self.alpha / (np.pi**2 / 4)**2 / (1 / self.lx**2 + 1 / self.ly**2)
             self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1)) / self.ratio_max
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
             physical_rhs /= self.data_norm
@@ -136,7 +137,8 @@ class DirichletDataLoader(BaseDataLoader):
 
         # Normalization and length
         self.normalize = normalize
-        self.length = config.length
+        self.lx = config.lx
+        self.ly = config.ly
 
         if self.normalize == 'max':
             self.logger.info("Using max normalization")
@@ -150,14 +152,16 @@ class DirichletDataLoader(BaseDataLoader):
             # If mod(pot0) == 1 the normalization sums up to rhs * L**2
             # where L = physical length of the domain
             self.logger.info("Using physical normalization")
-            self.data_norm = torch.ones((BC_channel.size(0), BC_channel.size(1), 1, 1)) / self.length**2
+            self.data_norm = torch.ones((BC_channel.size(0), BC_channel.size(1), 1, 1)) / self.lx / self.ly
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
             BC_channel /= self.data_norm
             potential /= self.target_norm
         elif self.normalize == 'empirical':
             # Value that is approximately the max of the rhs
             self.logger.info("Using empiric normalization")
-            self.data_norm = (torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))) * 2e6
+            self.alpha = 0.1
+            self.ratio_max = self.alpha / (np.pi**2 / 4)**2 / (1 / self.lx**2 + 1 / self.ly**2)
+            self.data_norm = (torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))) / self.ratio_max
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
             BC_channel /= self.data_norm
             potential /= self.target_norm

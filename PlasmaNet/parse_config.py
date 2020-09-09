@@ -63,8 +63,10 @@ class ConfigParser:
         write_yaml(self.config, self.save_dir / 'config.yml')
 
         # Declare global runtime parameters attributes
-        self.size = self.config['globals']['size']
-        self.length = self.config['globals']['length']
+        self.nnx = self.config['globals']['nnx']
+        self.nny = self.config['globals']['nny']
+        self.lx = self.config['globals']['lx']
+        self.ly = self.config['globals']['ly']
         self.batch_size = self.config['data_loader']['args']['batch_size']
         self.channels = self.config['arch']['args']['data_channels']
         self.normalization = self.config['data_loader']['args']['normalize']
@@ -72,11 +74,11 @@ class ConfigParser:
         self.modes = self.config['data_loader']['args'].get('modes')
 
         # Declare global physical parameters attributes
-        self.dx = self.length / (self.size - 1)
-        self.dy = self.dx
+        self.dx = self.lx / (self.nnx - 1)
+        self.dy = self.ly / (self.nny - 1)
         self.ds = self.dx * self.dy
-        self.surface = self.length ** 2
-        x, y = np.linspace(0, self.length, self.size), np.linspace(0, self.length, self.size)
+        self.surface = self.lx * self.ly
+        x, y = np.linspace(0, self.lx, self.nnx), np.linspace(0, self.ly, self.nny)
         self.X, self.Y = np.meshgrid(x, y)
 
         # Configure logging module

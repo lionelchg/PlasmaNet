@@ -17,31 +17,29 @@
 # `config.init_obj` method.
 
 
-name: '64x64/rand_fou_10_dec' # Experience name
+name: '64x64/random_4/gauss_test'                            # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
-    nx: 64
-    ny: 64
-    lx: 0.01
-    ly: 0.01
+    size: 64
+    length: 0.01
 
 
 arch:
     type: 'MultiSimpleNet'
     args:
-        data_channels: 1                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
+        data_channels: 1
 
 data_loader:
     type: 'PoissonDataLoader'
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/rhs/64x64/rand_fou_10_dec_train/'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/rhs/64x64/gauss_test/'
         batch_size: 128
         shuffle: True
-        validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
-        num_workers: 4
-        normalize: 'analytical'                   # max, physical or no for normalization types
+        validation_split: 0.0               # if float, fraction of the full dataset, if int, length of validation portion
+        num_workers: 2
+        normalize: 'analytical'
 
 initializer: 'off'
 
@@ -63,7 +61,7 @@ loss:
         inside_weight: 1.                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
-        lapl_weight: 0.2                    # Weighting of the loss on the Laplacian (float)
+        lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
 
 metrics:
     - 'residual'
@@ -72,18 +70,17 @@ metrics:
 
 lr_scheduler:
     type: 'ReduceLROnPlateau'
-    plateau_metric: loss                    # monitoring metric for ReduceLROnPlateau step()
     args:
         mode: 'min'
-        factor: 0.9                         # Amount scheduler reduces LR by (float)
+        factor: 0.99                        # Amount scheduler reduces LR by (float)
         patience: 50                        # Number of epochs the scheduler waits (int)
         threshold: 3.e-4                    # Relative improvement the scheduler must see (float)
         threshold_mode: 'rel'
         verbose: False
 
 trainer:
-    epochs: 400
-    save_dir: 'outputs/'
+    epochs: 1000
+    save_dir: 'outputs/eval/'
     save_period: 10
     plot_period: 10                         # Period to send plots to TensorBoard
     verbosity: 2
