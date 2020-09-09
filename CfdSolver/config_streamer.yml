@@ -1,0 +1,46 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                            cfdsolver -- Configuration file                                           #
+#                                                                                                                      #
+#                                           Lionel Cheng, CERFACS, 27.03.2020                                          #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+casename: 'dh_streamer/'
+
+params:
+  nit: 100
+
+mesh:
+  xmin: 0
+  ymin: 0
+  xmax: 0.004
+  ymax: 0.001
+  nnx: 401
+  nny: 101
+
+transport:
+  chemistry: 'morrow'
+
+poisson:
+  backE: '4.8e6'
+
+output:
+  save: 'iteration'
+  verbose: True
+  files: 'fig'
+  folder: 'data/dh_streamer/'
+  period: 50
+  dl_save: 'yes'
+
+input: 'none'
+  # ne: 'data/dh_streamer/ne_0002.npy'
+  # np: 'data/dh_streamer/np_0002.npy'
+  # nn: 'data/dh_streamer/nn_0002.npy'
