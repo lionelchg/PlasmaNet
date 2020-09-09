@@ -9,7 +9,7 @@
 import os
 import numpy as np
 from scipy.sparse.linalg import spsolve
-from poissonsolver.plot import plot_set_2D
+from poissonsolver.plot import plot_set_2D, plot_set_1D
 from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from poissonsolver.operators import grad
 
@@ -27,8 +27,8 @@ if __name__ == '__main__':
     plot = True
 
     n_points = 64
-    xmin, xmax = 0, 0.01
-    ymin, ymax = 0, 0.01
+    xmin, xmax = 0, 0.0001
+    ymin, ymax = 0, 0.0001
     dx = (xmax - xmin) / (n_points - 1)
     dy = (ymax - ymin) / (n_points - 1)
     x = np.linspace(xmin, xmax, n_points)
@@ -62,12 +62,13 @@ if __name__ == '__main__':
     potential = spsolve(A, rhs).reshape(n_points, n_points)
     physical_rhs = physical_rhs.reshape(n_points, n_points)
     electric_field = - grad(potential, dx, dy, n_points, n_points)
+    E_field_norm = np.sqrt(electric_field[0]**2 + electric_field[1]**2)
 
     casename = 'linear_potential'
     figname = fig_dir + casename
     # Plots
-    plot_set_2D(X, Y, physical_rhs, potential, electric_field, 'Linear potential', figname, no_rhs=True)
-
+    plot_set_2D(X, Y, physical_rhs, potential, electric_field, 'Linear potential', figname + '_2D', no_rhs=True)
+    plot_set_1D(x, physical_rhs, potential, E_field_norm, physical_rhs, n_points, 'Linear potential', figname + '_1D', no_rhs=True, direction='x')
 
     # Constant up
     up = V * ones_bc

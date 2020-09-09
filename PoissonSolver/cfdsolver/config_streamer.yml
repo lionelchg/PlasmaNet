@@ -16,7 +16,7 @@
 casename: 'dh_streamer/'
 
 params:
-  nit: 1000
+  nit: 100
 
 mesh:
   xmin: 0
@@ -35,9 +35,9 @@ poisson:
 output:
   save: 'iteration'
   verbose: True
-  files: 'figdata'
+  files: 'fig'
   folder: 'data/dh_streamer/'
-  period: 100
+  period: 10
 
 input: 'none'
   # ne: 'data/dh_streamer/ne_0002.npy'

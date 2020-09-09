@@ -25,8 +25,8 @@ def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
 
 
 if __name__ == '__main__':
-    xmin, xmax, nx = 0, 0.01, 101
-    rmin, rmax, nr = 0, 2.5e-3, 26
+    xmin, xmax, nx = 0, 4e-3, 401
+    rmin, rmax, nr = 0, 1e-3, 101
     dx, dr = (xmax - xmin) / (nx - 1), (rmax - rmin) / (nr - 1)
     x, r = np.linspace(xmin, xmax, nx), np.linspace(rmin, rmax, nr)
 
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     # creating the rhs
     ni0 = 1e16
     sigma_x, sigma_y = 1e-3, 1e-3
-    x0, y0 = 0.5e-2, 0
+    x0, y0 = 2e-4, 0
     rhs = np.zeros(nx * nr)
 
     # interior rhs
@@ -45,7 +45,6 @@ if __name__ == '__main__':
 
     # Cartesian resolution
     A = matrix_cart(dx, dr, nx, nr)
-    # print(A)
     rhs = - physical_rhs
     zeros_x, zeros_r = np.zeros(nx), np.zeros(nr)
     dirichlet_bc_axi(rhs, nx, nr, zeros_x, zeros_r, zeros_r)
@@ -53,9 +52,8 @@ if __name__ == '__main__':
 
     # Axisymmetric resolution
     R_nodes = copy.deepcopy(R)
-    R_nodes[0] = dr / 2
+    R_nodes[0] = dr / 4
     A = matrix_axisym(dx, dr, nx, nr, R_nodes)
-    # print(A)
     rhs = - physical_rhs
     dirichlet_bc_axi(rhs, nx, nr, zeros_x, zeros_r, zeros_r)
     potential_axi = spsolve(A, rhs).reshape(nr, nx)

@@ -23,7 +23,7 @@ from plot import plot_scalar, plot_streamer
 from scheme import compute_flux
 from chemistry import morrow
 
-from scipy.sparse.linalg import spsolve
+from scipy.sparse.linalg import spsolve, isolve, cg, cgs
 from poissonsolver.operators import lapl, grad
 from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_potential
 from poissonsolver.linsystem import matrix_cart, matrix_axisym, dirichlet_bc_axi
@@ -36,11 +36,12 @@ def create_dir(dir_name):
 def plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, potential, E_field, lapl_pot, voln, dtsum, number, fig_dir):
     plot_streamer(X, Y, ne, rese / voln, nionp, resp / voln, nn, resn / voln, dtsum, number, fig_dir)
     try:
-        plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False)
-        E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
-        plot_set_1D(X[0, :], physical_rhs, potential, E_field_norm, lapl_pot, np.shape(X)[0], '1D EM cuts', 
-                fig_dir + 'EM_1D_instant_%04d' % number, no_rhs=False, direction='x')
+        plot_set_2D(X, Y, - lapl_pot, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False, axi=True)
+        # E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
+        # plot_set_1D(X[0, :], physical_rhs, potential, E_field_norm, lapl_pot, np.shape(X)[0], '1D EM cuts', 
+        #         fig_dir + 'EM_1D_instant_%04d' % number, no_rhs=False, direction='x')
     except:
+        print('Error plot poisson')
         pass
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
@@ -66,8 +67,8 @@ def main(config):
     R_nodes = copy.deepcopy(Y)
     R_nodes[0] = dy / 4
     voln = compute_voln(X, dx, dy) * R_nodes
-    # voln = compute_voln(X, dx, dy)
     sij = np.array([dy / 2, dx / 2])
+    scale = dx * dy
 
     # Convection speed
     a = np.zeros((2, nny, nnx))
@@ -141,8 +142,7 @@ def main(config):
         print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
     # Construction of the matrix
-    A = matrix_axisym(dx, dy, nnx, nny, R_nodes)
-    # A = matrix_cart(dx, dy, nnx, nny)
+    A = matrix_axisym(dx, dy, nnx, nny, R_nodes, scale)
 
     # Iterations
     for it in range(1, nit + 1):
@@ -150,7 +150,7 @@ def main(config):
 
         # Solve the Poisson equation / Axisymmetric resolution
         physical_rhs = (nionp - ne - nn).reshape(-1) * co.e / co.epsilon_0
-        rhs = - physical_rhs
+        rhs = - physical_rhs * scale
         dirichlet_bc_axi(rhs, nnx, nny, up, left, right)
         potential = spsolve(A, rhs).reshape(nny, nnx)
         E_field = - grad(potential, dx, dy, nnx, nny)
@@ -168,7 +168,6 @@ def main(config):
 
         # Loop on the cells to compute the interior flux and update residuals
         compute_flux(rese, a, ne, diff_flux, sij, ncx, ncy, r=y)
-        # compute_flux(rese, a, ne, diff_flux, sij, ncx, ncy)
 
         # Boundary conditions
         outlet_y(rese, a, ne, diff_flux, dx, -1, r=np.max(Y))
@@ -185,7 +184,7 @@ def main(config):
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
                 if file_type == 'fig':
-                    lapl_pot = lapl(potential, dx, dy, nnx, nny, r=Y)
+                    lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
                         potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     number += 1
@@ -195,7 +194,7 @@ def main(config):
                     np.save(config['output']['folder'] + 'nn_%04d' % number, nn)
                     number += 1
                 else:
-                    lapl_pot = lapl(potential, dx, dy, nnx, nny, r=Y)
+                    lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
                         potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     np.save(config['output']['folder'] + 'ne_%04d' % number, ne)

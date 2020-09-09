@@ -24,7 +24,7 @@ def plot_ax_set_1D(axes, x, pot, E_field_norm, lapl_pot, n_points, M, direction=
     axes[2].set_title(r'$\mathbf{E}$')
 
 
-def plot_set_1D(x, physical_rhs, pot, E_field_norm, lapl_pot, n_points, figtitle, figname, no_rhs=False, direction='x'):
+def plot_set_1D(x, physical_rhs, pot, E_field_norm, lapl_pot, n_points, figtitle, figname, no_rhs=False, direction='y'):
     """ 1D Matplotlib plots with cuts accross the y axis. """
     n_middle = int(n_points / 2)
     if no_rhs:
@@ -36,6 +36,7 @@ def plot_set_1D(x, physical_rhs, pot, E_field_norm, lapl_pot, n_points, figtitle
             axes[1].plot(x, E_field_norm[n, :], label='%s = %.2f %smax' % (direction, cut_pos, direction))
         axes[0].set_title(r'$\phi$')
         axes[1].set_title(r'$\mathbf{E}$')
+        axes[1].set_ylim([0, 1.1 * np.max(E_field_norm)])
     else:
         list_cut = [0, 0.25, 0.5]
         fig, axes = plt.subplots(ncols=3, figsize=(15, 7))
@@ -50,6 +51,7 @@ def plot_set_1D(x, physical_rhs, pot, E_field_norm, lapl_pot, n_points, figtitle
         axes[2].set_title(r'$\mathbf{E}$')
         axes[2].grid()
         axes[2].legend()
+        axes[2].set_ylim([0, 1.2 * np.max(E_field_norm)])
 
     axes[0].grid()
     axes[1].grid()
@@ -58,43 +60,61 @@ def plot_set_1D(x, physical_rhs, pot, E_field_norm, lapl_pot, n_points, figtitle
     plt.suptitle(figtitle, y=1)
     plt.tight_layout()
     plt.savefig(figname, bbox_inches='tight')
+    plt.close()
 
-def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False):
+def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, axi=False):
     """ 2D Matplotlib plots. """
     if no_rhs:
-        fig, axes = plt.subplots(ncols=2, figsize=(11, 5))
-        plot_ax_scalar(fig, axes[0], X, Y, pot, r'$\phi$')
-        plot_ax_vector_arrow(fig, axes[1], X, Y, E, r'$\mathbf{E}$')
+        fig, axes = plt.subplots(ncols=2, figsize=(11, 4))
+        plot_ax_scalar(fig, axes[0], X, Y, pot, r'$\phi$', axi=axi)
+        plot_ax_vector_arrow(fig, axes[1], X, Y, E, r'$\mathbf{E}$', axi=axi)
     else:
-        fig, axes = plt.subplots(ncols=3, figsize=(16, 5))
-        plot_ax_scalar(fig, axes[0], X, Y, physical_rhs, r'$\rho / \epsilon_0$')
-        plot_ax_scalar(fig, axes[1], X, Y, pot, r'$\phi$')
-        plot_ax_vector_arrow(fig, axes[2], X, Y, E, r'$\mathbf{E}$')
+        fig, axes = plt.subplots(ncols=3, figsize=(16, 4))
+        plot_ax_scalar(fig, axes[0], X, Y, physical_rhs, r'$\rho / \epsilon_0$', axi=axi)
+        plot_ax_scalar(fig, axes[1], X, Y, pot, r'$\phi$', axi=axi)
+        plot_ax_vector_arrow(fig, axes[2], X, Y, E, r'$\mathbf{E}$', axi=axi)
 
     plt.suptitle(figtitle)
     plt.tight_layout()
     plt.savefig(figname, bbox_inches='tight')
+    plt.close()
 
 
-def plot_ax_scalar(fig, ax, X, Y, field, title, colormap='RdBu'):
+def plot_ax_scalar(fig, ax, X, Y, field, title, colormap='RdBu', axi=False):
     if colormap == 'RdBu':
         max_value = round_up(np.max(np.abs(field)), decimals=1)
         levels = np.linspace(- max_value, max_value, 101)
     else:
         levels = 101
     cs1 = ax.contourf(X, Y, field, levels, cmap=colormap)
-    fig.colorbar(cs1, ax=ax, pad=0.05, fraction=0.1, aspect=7)
+    fraction_cbar = 0.1
+    if axi: 
+        ax.contourf(X, - Y, field, levels, cmap=colormap)
+        aspect = 1.7 * np.max(Y) / fraction_cbar / np.max(X)
+    else:
+        aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
+    fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect)
     ax.set_aspect("equal")
     ax.set_title(title)
 
 
-def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues'):
+def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', axi=False):
     norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
     arrow_step = 10
-    CS = ax.contourf(X, Y, norm_field, 100, cmap=colormap)
-    cbar = fig.colorbar(CS, pad=0.05, fraction=0.1, ax=ax, aspect=7)
+    levels = np.linspace(0, np.max(norm_field), 101)
+    CS = ax.contourf(X, Y, norm_field, levels, cmap=colormap)
+    fraction_cbar = 0.1
+    if axi:
+        ax.contourf(X, - Y, norm_field, levels, cmap=colormap)
+        aspect = 1.7 * np.max(Y) / fraction_cbar / np.max(X)
+    else:
+        aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
+    cbar = fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect)
     q = ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
                 vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
+    if axi:
+        q = ax.quiver(X[::arrow_step, ::arrow_step], - Y[::arrow_step, ::arrow_step], 
+            vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
     ax.set_title(name)
     ax.set_aspect('equal')
 
@@ -108,11 +128,9 @@ def plot_potential(X, Y, dx, dy, potential, nx, ny, figname, figtitle=None, r=No
     plot_ax_trial_1D(axes[0][1], x, potential, ny, '1D cuts')
 
     E = - grad(potential, dx, dy, nx, ny)
-    # normE = np.sqrt(E[0]**2 + E[1]**2)
-    Ey = np.abs(E[1])
+    normE = np.sqrt(E[0]**2 + E[1]**2)
     plot_ax_vector_arrow(fig, axes[1][0], X, Y, E, 'Electric field')
-    # plot_ax_trial_1D(axes[1][1], x, normE, ny, '1D cuts')
-    plot_ax_trial_1D(axes[1][1], x, Ey, ny, '1D cuts Ey')
+    plot_ax_trial_1D(axes[1][1], x, normE, ny, '1D cuts', ylim=[0.99 * np.min(normE), 1.01 * np.max(normE)])
 
     if r is not None:
         lapl_trial = lapl(potential, dx, dy, nx, ny, r=r)
@@ -125,15 +143,18 @@ def plot_potential(X, Y, dx, dy, potential, nx, ny, figname, figtitle=None, r=No
         plt.suptitle(figtitle)
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
     plt.savefig(figname, bbox_inches='tight')
+    plt.close()
 
-def plot_ax_trial_1D(ax, x, function, n_points, title, direction='y'):
-    list_cut = [0, 0.25, 0.5]
+def plot_ax_trial_1D(ax, x, function, n_points, title, direction='y', ylim=None):
+    list_cut = [0, 0.25, 0.5, 0.75, 1.0]
     for cut_pos in list_cut:
         n = int(cut_pos * (n_points - 1))
         ax.plot(x, function[n, :], label='%s = %.2f %smax' % (direction, cut_pos, direction))
     ax.set_title(title)
     ax.legend()
     ax.grid(True)
+    if ylim is not None:
+        ax.set_ylim(ylim)
 
 def plot_lapl_rhs(X, Y, dx, dy, potential, physical_rhs, nx, ny, figname, figtitle=None, r=None):
     """ Compares the laplacian of the potential against the real rhs """
@@ -159,3 +180,4 @@ def plot_lapl_rhs(X, Y, dx, dy, potential, physical_rhs, nx, ny, figname, figtit
         plt.suptitle(figtitle)
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
     plt.savefig(figname, bbox_inches='tight')
+    plt.close()
