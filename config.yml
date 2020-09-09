@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'random_64_4' # Experience name
+name: '64x64/rand_fou_10_dec' # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -34,7 +34,7 @@ data_loader:
     type: 'PoissonDataLoader'
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/rhs/random_64_4_train/'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/rhs/64x64/rand_fou_10_dec_train/'
         batch_size: 128
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
@@ -80,7 +80,7 @@ lr_scheduler:
         verbose: False
 
 trainer:
-    epochs: 500
+    epochs: 400
     save_dir: 'outputs/'
     save_period: 10
     plot_period: 10                         # Period to send plots to TensorBoard

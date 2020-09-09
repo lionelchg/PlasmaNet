@@ -48,7 +48,7 @@ A = laplace_square_matrix(n_points)
 ni0 = 1e16
 
 # Directories declaration and creation if necessary
-casename = f'{n_points:d}x{n_points}/random_{n_res:d}_train/'
+casename = f'{n_points:d}x{n_points}/random_{n_res:d}_test/'
 if device == 'mac':
     data_dir = 'rhs/' + casename
     plot = True
