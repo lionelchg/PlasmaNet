@@ -21,10 +21,11 @@ name: '64x64/rand_fou_10_dec' # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
-    nx: 64
-    ny: 64
+    nx: 401
+    ny: 101
     lx: 0.01
     ly: 0.01
+    coord: 'cyl'
 
 
 arch:

@@ -81,6 +81,12 @@ class ConfigParser:
         x, y = np.linspace(0, self.lx, self.nnx), np.linspace(0, self.ly, self.nny)
         self.X, self.Y = np.meshgrid(x, y)
 
+        self.coord = self.config['globals']['coord']
+        if self.coord == 'cyl':
+            R_nodes = copy.deepcopy(self.Y)
+            R_nodes[0] = dr / 4
+            self.R_nodes = R_nodes
+
         # Configure logging module
         setup_logging(self.log_dir)
         self.log_levels = {
