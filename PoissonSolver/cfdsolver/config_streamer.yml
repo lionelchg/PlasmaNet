@@ -37,7 +37,8 @@ output:
   verbose: True
   files: 'fig'
   folder: 'data/dh_streamer/'
-  period: 10
+  period: 50
+  dl_save: 'yes'
 
 input: 'none'
   # ne: 'data/dh_streamer/ne_0002.npy'

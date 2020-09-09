@@ -80,6 +80,7 @@ def main(config):
     # Creation of the figures directory and numbering of outputs
     fig_dir = 'figures/' + config['casename']
     create_dir(fig_dir)
+    create_dir(config['output']['folder'])
 
     save_type = config['output']['save']
     verbose = config['output']['verbose']
@@ -144,6 +145,10 @@ def main(config):
     # Construction of the matrix
     A = matrix_axisym(dx, dy, nnx, nny, R_nodes, scale)
 
+    if config['output']['dl_save'] == 'yes':
+        potential_list = np.zeros((nit, nny, nnx))
+        physical_rhs_list = np.zeros((nit, nny, nnx))
+
     # Iterations
     for it in range(1, nit + 1):
         dtsum += dt
@@ -181,6 +186,10 @@ def main(config):
         if verbose and (it % period == 0 or it == nit):
             print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, dt, dtsum, width=14))
 
+        if config['output']['dl_save'] == 'yes':
+            potential_list[it - 1, :, :] = potential
+            physical_rhs_list[it - 1, :, :] = physical_rhs
+
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
                 if file_type == 'fig':
@@ -207,6 +216,9 @@ def main(config):
         elif save_type == 'none':
             pass
 
+    if config['output']['dl_save'] == 'yes':
+        np.save(config['output']['folder'] + 'potential.npy', potential_list)
+        np.save(config['output']['folder'] + 'physical_rhs.npy', physical_rhs_list)
 
 if __name__ == '__main__':
 
