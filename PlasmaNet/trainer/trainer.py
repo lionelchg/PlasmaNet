@@ -133,8 +133,9 @@ class Trainer(BaseTrainer):
                     self._batch_plots(output, target, data, epoch, batch_idx, 'valid')
 
         # Add histogram of model parameters to the TensorBoard
-        for name, p in self.model.named_parameters():
-            self.writer.add_histogram(name, p, bins='auto')
+        if self.config['trainer']['histograms']:
+            for name, p in self.model.named_parameters():
+                self.writer.add_histogram(name, p, bins='auto')
 
         # Extract averages and send to TensorBoard
         val_log = self.valid_metrics.result()
