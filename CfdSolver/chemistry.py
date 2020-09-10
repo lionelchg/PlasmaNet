@@ -100,13 +100,15 @@ def diffusion_coeff_morrow(Eprim, N, mobility):
 
     return coeff
 
-def ax_prop(ax, logax, title, ylim=None):
+def ax_prop(ax, logax, title, xlabel, ylabel, ylim=None):
     ax.grid(True)
     ax.set_title(title)
     if logax == 'x':
         ax.set_xscale('log')
     elif logax == 'y':
         ax.set_yscale('log')
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
 
     if ylim is not None:
         ax.set_ylim(ylim)
@@ -133,12 +135,12 @@ if __name__ == '__main__':
     fig, axes = plt.subplots(ncols=2, nrows=2, figsize=(12, 12))
 
     axes[0][0].plot(Elog, mobility)
-    ax_prop(axes[0][0], 'x', 'Mobility')
+    ax_prop(axes[0][0], 'x', 'Mobility', '$E$ [V.m-1]', '$\mu$ [m2.V-1.s-1]')
     axes[1][0].plot(Elog, diffusion)
-    ax_prop(axes[1][0], 'x', 'Diffusion')
+    ax_prop(axes[1][0], 'x', 'Diffusion', '$E$ [V.m-1]', '$D$ [m2.s-1]')
     axes[0][1].plot(Elin, ioniz_freq)
-    ax_prop(axes[0][1], 'y', 'Ionization Frequency', ylim=[1e6, 1e11])
+    ax_prop(axes[0][1], 'y', 'Ionization Frequency', '$E$ [V.m-1]', '$\nu$ [Hz]', ylim=[1e6, 1e11])
     axes[1][1].plot(Elin, att_freq)
-    ax_prop(axes[1][1], 'y', 'Attachment Frequency', ylim=[1e6, 1e11])
+    ax_prop(axes[1][1], 'y', 'Attachment Frequency', '$E$ [V.m-1]$', '$\nu$ [Hz]', ylim=[1e6, 1e11])
 
     plt.savefig(fig_dir + 'morrow', bbox_inches='tight')
