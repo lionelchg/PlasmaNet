@@ -34,10 +34,11 @@ class LaplacianLoss(BaseLoss):
         self.weight = lapl_weight
         self.dx = config.dx
         self.dy = config.dy
+        self.r_nodes = torch.from_numpy(config.r_nodes)
         self._require_input_data = True  # Need rhs for computation
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
-        laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy)
+        laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy, r=self.r_nodes)
         return F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
 
 
@@ -71,7 +72,7 @@ class ElectricLoss(BaseLoss):
         self.dy = config.dy
         self._require_input_data = False
 
-    def _forward(self, output, target, target_norm=1., data_norm=1.,  **_):
+    def _forward(self, output, target, target_norm=1., data_norm=1., **_):
         elec_output = gradient_scalar(output * target_norm / data_norm, self.dx, self.dy)
         elec_target = gradient_scalar(target * target_norm / data_norm, self.dx, self.dy)
         return F.mse_loss(elec_output, elec_target) * self.weight

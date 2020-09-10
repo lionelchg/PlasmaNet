@@ -207,5 +207,3 @@ class DirichletDataLoader(BaseDataLoader):
         # Create Dataset from Tensor
         self.dataset = TensorDataset(self.data, potential, self.data_norm, self.target_norm)
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
-
-

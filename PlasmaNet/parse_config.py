@@ -12,6 +12,7 @@ from datetime import datetime
 from functools import reduce, partial
 from operator import getitem
 from pathlib import Path
+from copy import deepcopy
 
 import numpy as np
 
@@ -83,9 +84,11 @@ class ConfigParser:
 
         self.coord = self.config['globals']['coord']
         if self.coord == 'cyl':
-            R_nodes = copy.deepcopy(self.Y)
-            R_nodes[0] = dr / 4
-            self.R_nodes = R_nodes
+            r_nodes = deepcopy(self.Y)
+            r_nodes[0] = self.dy / 4
+            self.r_nodes = r_nodes
+        else:
+            self.r_nodes = None
 
         # Configure logging module
         setup_logging(self.log_dir)
