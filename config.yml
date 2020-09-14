@@ -21,10 +21,11 @@ name: 'dh_streamer' # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
-    nnx: 64
-    nny: 64
+    nnx: 401
+    nny: 101
     lx: 0.01
     ly: 0.01
+    coord: 'cyl'
 
 
 arch:

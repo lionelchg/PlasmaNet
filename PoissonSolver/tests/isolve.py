@@ -9,11 +9,13 @@ if __name__ == '__main__':
         sparse.dia_matrix((np.linspace(1, n_points, n_points), [0]), shape=(n_points, n_points)))
 
     print(A * 0.5)
+    A[1, 0] = 10
+    A[:, 0] = x.reshape(101, 1)
+    print(A[:, 0])
+
 
     b = np.ones(n_points)
 
     x_direct = spsolve(A, b)
-    print(x_direct)
 
     x_iter = cg(A, b, tol=1e-8)
-    print(x_iter[0])

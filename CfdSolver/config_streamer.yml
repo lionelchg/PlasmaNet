@@ -16,7 +16,7 @@
 casename: 'dh_streamer_1/'
 
 params:
-  nit: 5000
+  nit: 4000
 
 mesh:
   xmin: 0
@@ -37,10 +37,10 @@ output:
   verbose: True
   files: 'fig'
   folder: 'data/dh_streamer/'
-  period: 200
-  dl_save: 'yes'
+  period: 100
+  dl_save: 'no'
 
 input: 'none'
-  # ne: 'data/dh_streamer/ne_0002.npy'
-  # np: 'data/dh_streamer/np_0002.npy'
-  # nn: 'data/dh_streamer/nn_0002.npy'
+  # ne: 'data/dh_streamer/ne_0010.npy'
+  # np: 'data/dh_streamer/np_0010.npy'
+  # nn: 'data/dh_streamer/nn_0010.npy'

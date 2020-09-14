@@ -12,6 +12,7 @@ from datetime import datetime
 from functools import reduce, partial
 from operator import getitem
 from pathlib import Path
+from copy import deepcopy
 
 import numpy as np
 
@@ -80,6 +81,14 @@ class ConfigParser:
         self.surface = self.lx * self.ly
         x, y = np.linspace(0, self.lx, self.nnx), np.linspace(0, self.ly, self.nny)
         self.X, self.Y = np.meshgrid(x, y)
+
+        self.coord = self.config['globals']['coord']
+        if self.coord == 'cyl':
+            r_nodes = deepcopy(self.Y)
+            r_nodes[0] = self.dy / 4
+            self.r_nodes = r_nodes
+        else:
+            self.r_nodes = None
 
         # Configure logging module
         setup_logging(self.log_dir)
