@@ -36,7 +36,6 @@ output:
   save: 'iteration'
   verbose: True
   files: 'fig'
-  folder: 'data/dh_streamer/'
   period: 100
   dl_save: 'no'
 

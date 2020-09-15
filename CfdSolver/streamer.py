@@ -80,7 +80,6 @@ def main(config):
     # Creation of the figures directory and numbering of outputs
     fig_dir = 'figures/' + config['casename']
     create_dir(fig_dir)
-    create_dir(config['output']['folder'])
 
     save_type = config['output']['save']
     verbose = config['output']['verbose']
@@ -88,7 +87,8 @@ def main(config):
 
     file_type = config['output']['files']
     if re.search('data', file_type):
-        create_dir(config['output']['folder'])
+        data_dir = 'data/' + config['casename']
+        create_dir(data_dir)
 
     # Timestep fixed
     dt = 5e-13
@@ -198,17 +198,17 @@ def main(config):
                         potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     number += 1
                 elif file_type == 'data':
-                    np.save(config['output']['folder'] + 'ne_%04d' % number, ne)
-                    np.save(config['output']['folder'] + 'np_%04d' % number, nionp)
-                    np.save(config['output']['folder'] + 'nn_%04d' % number, nn)
+                    np.save(data_dir + 'ne_%04d' % number, ne)
+                    np.save(data_dir + 'np_%04d' % number, nionp)
+                    np.save(data_dir + 'nn_%04d' % number, nn)
                     number += 1
                 else:
                     lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
                         potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
-                    np.save(config['output']['folder'] + 'ne_%04d' % number, ne)
-                    np.save(config['output']['folder'] + 'np_%04d' % number, nionp)
-                    np.save(config['output']['folder'] + 'nn_%04d' % number, nn)
+                    np.save(data_dir + 'ne_%04d' % number, ne)
+                    np.save(data_dir + 'np_%04d' % number, nionp)
+                    np.save(data_dir + 'nn_%04d' % number, nn)
                     number += 1
         elif save_type == 'time':
             if np.abs(dtsum - number * period) < 0.1 * dt or it == nit:
@@ -217,8 +217,8 @@ def main(config):
             pass
 
     if config['output']['dl_save'] == 'yes':
-        np.save(config['output']['folder'] + 'potential.npy', potential_list)
-        np.save(config['output']['folder'] + 'physical_rhs.npy', physical_rhs_list)
+        np.save(data_dir + 'potential.npy', potential_list)
+        np.save(data_dir + 'physical_rhs.npy', physical_rhs_list)
 
 if __name__ == '__main__':
 
