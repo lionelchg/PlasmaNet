@@ -38,7 +38,7 @@ def plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, potential, E_fi
     try:
         plot_set_2D(X, Y, - lapl_pot, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False, axi=True)
         # E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
-        # plot_set_1D(X[0, :], physical_rhs, potential, E_field_norm, lapl_pot, np.shape(X)[0], '1D EM cuts', 
+        # plot_set_1D(X[0, :], physical_rhs, potential, E_field_norm, lapl_pot, np.shape(X)[0], '1D EM cuts',
         #         fig_dir + 'EM_1D_instant_%04d' % number, no_rhs=False, direction='x')
     except:
         print('Error plot poisson')
@@ -80,6 +80,7 @@ def main(config):
     # Creation of the figures directory and numbering of outputs
     fig_dir = 'figures/' + config['casename']
     create_dir(fig_dir)
+    create_dir(config['output']['folder'] + config['casename'])
 
     save_type = config['output']['save']
     verbose = config['output']['verbose']
@@ -104,7 +105,7 @@ def main(config):
     nit = config['params']['nit']
 
     input_fn = config['input']
-    
+
     if input_fn == 'none':
         number = 1
 
@@ -194,7 +195,7 @@ def main(config):
             if it % period == 0 or it == nit:
                 if file_type == 'fig':
                     lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
-                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
+                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs,
                         potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     number += 1
                 elif file_type == 'data':
@@ -204,7 +205,7 @@ def main(config):
                     number += 1
                 else:
                     lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
-                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
+                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs,
                         potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     np.save(data_dir + 'ne_%04d' % number, ne)
                     np.save(data_dir + 'np_%04d' % number, nionp)
@@ -217,8 +218,8 @@ def main(config):
             pass
 
     if config['output']['dl_save'] == 'yes':
-        np.save(data_dir + 'potential.npy', potential_list)
-        np.save(data_dir + 'physical_rhs.npy', physical_rhs_list)
+        np.save(config['output']['folder'] + config['casename'] + 'potential.npy', potential_list)
+        np.save(config['output']['folder'] + config['casename'] + 'physical_rhs.npy', physical_rhs_list)
 
 if __name__ == '__main__':
 

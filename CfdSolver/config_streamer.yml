@@ -36,6 +36,7 @@ output:
   save: 'iteration'
   verbose: True
   files: 'fig'
+  folder: 'data/'
   period: 100
   dl_save: 'no'
 
