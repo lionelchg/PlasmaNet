@@ -2,8 +2,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --job-name=PlasmaNet
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=12
+#SBATCH --ntasks-per-node=9
 #SBATCH --time=08:00:00
-#SBATCH --partition=gpu
+#SBATCH --partition=biggpu
 
 python train.py -c config.yml
