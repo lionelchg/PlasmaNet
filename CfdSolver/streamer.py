@@ -29,7 +29,7 @@ from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_potential
 from poissonsolver.linsystem import matrix_cart, matrix_axisym, dirichlet_bc_axi
 from poissonsolver.postproc import lapl_diff
 
-from photo import photo_axisym, lambda_j_two, A_j_two, plot_Sph_irate
+from photo import photo_axisym, lambda_j_two, A_j_two, lambda_j_three, A_j_three, plot_Sph_irate
 
 def create_dir(dir_name):
     if not os.path.exists(dir_name):
@@ -124,9 +124,14 @@ def main(config):
         irate = np.zeros_like(X)
         Sph = np.zeros_like(X)
 
-        for i in range(2):
-            # Axisymmetric resolution
-            mats_photo.append(photo_axisym(dx, dy, nnx, nny, R_nodes, (lambda_j_two[i] * pO2)**2, scale))
+        if photo_model == 'two':
+            for i in range(2):
+                # Axisymmetric resolution
+                mats_photo.append(photo_axisym(dx, dy, nnx, nny, R_nodes, (lambda_j_two[i] * pO2)**2, scale))
+        elif photo_model == 'three':
+            for i in range(3):
+                # Axisymmetric resolution
+                mats_photo.append(photo_axisym(dx, dy, nnx, nny, R_nodes, (lambda_j_three[i] * pO2)**2, scale))
 
     input_fn = config['input']
 
@@ -205,10 +210,16 @@ def main(config):
             morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln, irate=irate)
             Sph[:] = 0
             print('--> Photoionization resolution')
-            for i in range(2):
-                rhs = - irate.reshape(-1) * A_j_two[i] * pO2**2 * scale
-                dirichlet_bc_axi(rhs, nnx, nny, up_photo, left_photo, right_photo)
-                Sph += spsolve(mats_photo[i], rhs).reshape(nny, nnx)
+            if photo_model == 'two':
+                for i in range(2):
+                    rhs = - irate.reshape(-1) * A_j_two[i] * pO2**2 * scale
+                    dirichlet_bc_axi(rhs, nnx, nny, up_photo, left_photo, right_photo)
+                    Sph += spsolve(mats_photo[i], rhs).reshape(nny, nnx)
+            elif photo_model == 'three':
+                for i in range(3):
+                    rhs = - irate.reshape(-1) * A_j_three[i] * pO2**2 * scale
+                    dirichlet_bc_axi(rhs, nnx, nny, up_photo, left_photo, right_photo)
+                    Sph += spsolve(mats_photo[i], rhs).reshape(nny, nnx)
         else:
             morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln)
 

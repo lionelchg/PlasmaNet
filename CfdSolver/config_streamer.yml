@@ -19,7 +19,7 @@ params:
   nit: 8000
   dt: 5.0e-13
   geom: 'xr'
-  photoionization: 'yes'
+  photoionization: 'three'
 
 mesh:
   xmin: 0
