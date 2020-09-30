@@ -71,7 +71,7 @@ def plot_fields( n_x, n_y, rhs, potential, potential_rhs, potential_BC, potentia
     limit = True
     ones = np.ones_like(n_x)
 
-    # Depending on initial or not, 2 or 3 images will be plotted
+    # Depending on initial or not, 2 or 5 images will be plotted
     if initial:
         size_big = 20
         ncols = 2
