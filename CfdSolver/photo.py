@@ -14,6 +14,7 @@ import copy
 from scipy import sparse
 from scipy.sparse.linalg import spsolve
 from plot import plot_ax_scalar, plot_ax_scalar_1D
+from numba import njit
 
 fig_dir = 'figures/photo/'
 if not os.path.exists(fig_dir):
@@ -24,12 +25,14 @@ A_j_three = np.array([1.986e-4, 0.0051, 0.4886]) * (1.0e2)**2
 lambda_j_two = np.array([0.0974, 0.5877]) * 1.0e2
 A_j_two = np.array([0.0021, 0.1775]) * (1.0e2)**2
 
+coef_p = 0.038
+
 def photo_axisym(dx, dr, nx, nr, R, coeff, scale):
     diags = np.zeros((5, nx * nr))
 
     r = R.reshape(-1)
 
-    # Filling the diagonals, first the down neumann bc, then the dirichlet bc and finally the interior nodes
+    # Filling the diagonals, first the down neumann bc,: the dirichlet bc and finally the interior nodes
     for i in range(nx * nr):
         if 0 < i < nx - 1:
             diags[0, i] = - (2 / dx**2 + 4 / dr**2 + coeff) * scale
@@ -71,6 +74,19 @@ def plot_Sph(X, R, dx, dr, Sph, nx, nr, figname):
     plot_ax_scalar_1D(fig, axes[1], X, [0, 0.05, 0.1], Sph, "Sph 1D cuts", yscale='log', ylim=[1e23, 1e29])
     plt.savefig(figname)
 
+@njit(cache=True)
+def photo_coeff(E_p):
+    # In Zheleznyak paper, the tabulation is done with E/p in V/cm * mmHg
+    E_p = E_p * 133.32 / 100
+    if (E_p < 30):
+        pcoeff = 5.e-2
+    elif (E_p >= 30 and E_p < 50):
+        pcoeff = 0.07 / 20 * (E_p - 30) + 5.e-2
+    elif (E_p >= 50 and E_p < 100):
+        pcoeff = 0.12 - 4e-2 / 50 * (E_p - 50)
+    else:
+        pcoeff = 0.08 - 2e-2 / 100 * (E_p - 100)
+    return pcoeff
 
 if __name__ == '__main__':
     xmin, xmax, nx = 0, 2e-3, 252

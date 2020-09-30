@@ -11,13 +11,17 @@ import copy
 
 def outlet_y(res, a, u, diff_flux, dx, yb, r=None):
     """ Outlet boundary conditions in the y direction """
-    flux = dx / 2 * (0.75 * (a[1, yb, 1:] * u[yb, 1:] + diff_flux[1, yb, 1:]) + 
+    if yb == 0:
+        flux_sign = -1
+    elif yb == -1:
+        flux_sign = 1
+    flux = flux_sign * dx / 2 * (0.75 * (a[1, yb, 1:] * u[yb, 1:] + diff_flux[1, yb, 1:]) + 
                      0.25 * (a[1, yb, :-1] * u[yb, :-1] + diff_flux[1, yb, :-1]))
     if r is not None:
         res[yb, 1:] += flux * r
     else:
         res[yb, 1:] += flux
-    flux = dx / 2 * (0.25 * (a[1, yb, 1:] * u[yb, 1:] + diff_flux[1, yb, 1:]) + 
+    flux = flux_sign * dx / 2 * (0.25 * (a[1, yb, 1:] * u[yb, 1:] + diff_flux[1, yb, 1:]) + 
                      0.75 * (a[1, yb, :-1] * u[yb, :-1] + diff_flux[1, yb, :-1]))
 
     if r is not None:
@@ -32,18 +36,23 @@ def outlet_y(res, a, u, diff_flux, dx, yb, r=None):
 
 def outlet_x(res, a, u, diff_flux, dy, xb, r=None):
     """ Outlet boundary condition in the x direction """
+    if xb == 0:
+        flux_sign = -1
+    elif xb == -1:
+        flux_sign = 1
+
     if r is not None:
-        flux = dy / 2 * (0.75 * (a[0, 1:, xb] * u[1:, xb] + diff_flux[1, 1:, xb]) * r[1:, xb] + 
+        flux = flux_sign * dy / 2 * (0.75 * (a[0, 1:, xb] * u[1:, xb] + diff_flux[1, 1:, xb]) * r[1:, xb] + 
                          0.25 * (a[0, :-1, xb] * u[:-1, xb] + diff_flux[1, :-1, xb]) * r[:-1, xb])
         res[1:, xb] += flux
-        flux = dy / 2 * (0.25 * (a[0, 1:, xb] * u[1:, xb] + diff_flux[1, 1:, xb]) * r[1:, xb] + 
+        flux = flux_sign * dy / 2 * (0.25 * (a[0, 1:, xb] * u[1:, xb] + diff_flux[1, 1:, xb]) * r[1:, xb] + 
                          0.75 * (a[0, :-1, xb] * u[:-1, xb] + diff_flux[1, :-1, xb]) * r[:-1, xb])
         res[:-1, xb] += flux
     else:
-        flux = dy / 2 * (0.75 * (a[0, 1:, xb] * u[1:, xb] + diff_flux[1, 1:, xb]) + 
+        flux = flux_sign * dy / 2 * (0.75 * (a[0, 1:, xb] * u[1:, xb] + diff_flux[1, 1:, xb]) + 
                          0.25 * (a[0, :-1, xb] * u[:-1, xb] + diff_flux[1, :-1, xb]))
         res[1:, xb] += flux
-        flux = dy / 2 * (0.25 * (a[0, 1:, xb] * u[1:, xb] + diff_flux[1, 1:, xb]) + 
+        flux = flux_sign * dy / 2 * (0.25 * (a[0, 1:, xb] * u[1:, xb] + diff_flux[1, 1:, xb]) + 
                          0.75 * (a[0, :-1, xb] * u[:-1, xb] + diff_flux[1, :-1, xb]))
         res[:-1, xb] += flux
     # res[1:-1, xb] += dy * a[0, 1:-1, xb] * u[1:-1, xb]

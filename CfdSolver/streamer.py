@@ -29,6 +29,8 @@ from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_potential
 from poissonsolver.linsystem import matrix_cart, matrix_axisym, dirichlet_bc_axi
 from poissonsolver.postproc import lapl_diff
 
+from photo import photo_axisym, lambda_j_two, A_j_two
+
 def create_dir(dir_name):
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
@@ -95,16 +97,6 @@ def main(config):
         data_dir = 'data/' + config['casename']
         create_dir(data_dir)
 
-    # For printing specific points
-    debug_fp = open(data_dir + 'run.log', 'w')
-    x0p, y0p = 2.5e-3, 0
-    sigma_xp, sigma_yp = 1.5e-5, 1.5e-5
-    list_print = []
-    for i in range(nnx):
-        for j in range(nny):
-            if (abs(X[j, i] - x0p) < sigma_xp and abs(Y[j, i] - y0p) < sigma_yp):
-                list_print.append([i, j])
-
     # Timestep fixed
     dt = config['params']['dt']
     dtsum = 0
@@ -115,10 +107,30 @@ def main(config):
     left = np.zeros_like(y)
     right = - np.ones_like(y) * backE * xmax
 
-    # Number of iterations
+    # Params
     nit = config['params']['nit']
+    photo = config['params']['photoionization'] != 'no'
+    print(photo)
+    if photo:
+        photo_model = config['params']['photoionization']
+        # Pressure in Torr
+        pO2 = 150
+
+        # Boundary conditions
+        up = np.zeros_like(x)
+        left = np.zeros_like(y)
+        right = np.zeros_like(y)
+        
+        mats_photo = []
+        irate = np.zeros_like(X)
+        Sph = np.zeros_like(X)
+
+        for i in range(2):
+            # Axisymmetric resolution
+            mats_photo.append(photo_axisym(dx, dy, nnx, nny, R_nodes, (lambda_j_two[i] * pO2)**2, scale))
 
     input_fn = config['input']
+
 
     if input_fn == 'none':
         number = 1
@@ -129,8 +141,12 @@ def main(config):
         nn, resn = np.zeros_like(X), np.zeros_like(X)
 
         # Gaussian initialization for the electrons and positive ions
-        ne = gaussian(X, Y, 1e19, 2e-3, 0, 2e-4, 2e-4)
-        nionp = gaussian(X, Y, 1e19, 2e-3, 0, 2e-4, 2e-4)
+        if photo:
+            n_back = 1e9
+        else:
+            n_back = 1e14
+        ne = gaussian(X, Y, 1e19, 2e-3, 0, 2e-4, 2e-4) + n_back
+        nionp = gaussian(X, Y, 1e19, 2e-3, 0, 2e-4, 2e-4) + n_back
 
     else:
         # Scalar and Residual declaration
@@ -180,16 +196,27 @@ def main(config):
         physical_rhs = physical_rhs.reshape((nny, nnx))
 
         # Set the electric field to zero in the radial direction on the axis
-        E_field[1, 0, :] = 0
+        # E_field[1, 0, :] = 0
 
         # Update of the residual to zero
         rese[:], resp[:], resn[:] = 0, 0, 0
 
-        # # Application of chemistry
-        morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln)
-        # E_field = np.zeros((2, nny, nnx))
-        # E_field[0, :] = 4.8e6
-        # E_field[1, :] = 0
+        # Application of chemistry
+        if photo and it % 10 == 1:
+            morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln, irate=irate)
+            Sph[:] = 0
+            print('Photo resolution')
+            for i in range(2):
+                rhs = - irate.reshape(-1) * A_j_two[i] * pO2**2 * scale
+                dirichlet_bc_axi(rhs, nx, nr, up, left, right)
+                Sph += spsolve(mats_photo[i], rhs).reshape(nr, nx)
+        else:
+            morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln)
+
+        if photo:
+            rese -= Sph * voln
+            resp -= Sph * voln
+
         # Convective and diffusive flux
         a = - mu * E_field
         diff_flux = D * grad(ne, dx, dy, nnx, nny)
@@ -211,14 +238,6 @@ def main(config):
         ne = ne - rese * dt / voln
         nionp = nionp - resp * dt / voln
         nn = nn - resn * dt / voln
-
-        debug_fp.write('{:>10d} {:{width}.2e} {:{width}.2e}\n'.format(it, dt, dtsum, width=14))
-        for coordind in list_print:
-            i, j = coordind[0], coordind[1]
-            xd, yd, Exd, Eyd, ned = X[j, i], Y[j, i], E_field[0, j, i], E_field[1, j, i], ne[j, i]
-            resed, volnd = rese[j, i], voln[j, i]
-            debug_fp.write(
-                f'{xd:.4e} {yd:.4e} - {Exd:.4e} {Eyd:.4e} {ned:.4e} {resed / volnd:.4e} \n')
 
         if verbose and (it % period == 0 or it == nit):
             print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, dt, dtsum, width=14))
