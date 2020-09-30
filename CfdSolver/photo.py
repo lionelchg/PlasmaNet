@@ -74,6 +74,13 @@ def plot_Sph(X, R, dx, dr, Sph, nx, nr, figname):
     plot_ax_scalar_1D(fig, axes[1], X, [0, 0.05, 0.1], Sph, "Sph 1D cuts", yscale='log', ylim=[1e23, 1e29])
     plt.savefig(figname)
 
+def plot_Sph_irate(X, R, dx, dr, Sph, irate, nx, nr, figname):
+    fig, axes = plt.subplots(ncols=2, figsize=(14, 6))
+    plot_ax_scalar(fig, axes[0], X, R, irate, 'Ionization rate', geom='xr')
+    plot_ax_scalar(fig, axes[1], X, R, Sph, 'Sph', geom='xr')
+    plt.savefig(figname, bbox_inches='tight')
+
+
 @njit(cache=True)
 def photo_coeff(E_p):
     # In Zheleznyak paper, the tabulation is done with E/p in V/cm * mmHg

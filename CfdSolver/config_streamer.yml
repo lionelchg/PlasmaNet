@@ -13,13 +13,13 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'dh_streamer_3/'
+casename: 'dh_streamer_4/'
 
 params:
   nit: 8000
   dt: 5.0e-13
   geom: 'xr'
-  photoionization: 'no'
+  photoionization: 'yes'
 
 mesh:
   xmin: 0

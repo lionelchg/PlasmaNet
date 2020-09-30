@@ -29,7 +29,7 @@ from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_potential
 from poissonsolver.linsystem import matrix_cart, matrix_axisym, dirichlet_bc_axi
 from poissonsolver.postproc import lapl_diff
 
-from photo import photo_axisym, lambda_j_two, A_j_two
+from photo import photo_axisym, lambda_j_two, A_j_two, plot_Sph_irate
 
 def create_dir(dir_name):
     if not os.path.exists(dir_name):
@@ -116,9 +116,9 @@ def main(config):
         pO2 = 150
 
         # Boundary conditions
-        up = np.zeros_like(x)
-        left = np.zeros_like(y)
-        right = np.zeros_like(y)
+        up_photo = np.zeros_like(x)
+        left_photo = np.zeros_like(y)
+        right_photo = np.zeros_like(y)
         
         mats_photo = []
         irate = np.zeros_like(X)
@@ -181,6 +181,9 @@ def main(config):
     if config['output']['dl_save'] == 'yes':
         potential_list = np.zeros((nit, nny, nnx))
         physical_rhs_list = np.zeros((nit, nny, nnx))
+        if photo:
+            Sph_list = np.zeros((nit, nny, nnx)) 
+            irate_list = np.zeros((nit, nny, nnx))
 
     # Iterations
     for it in range(1, nit + 1):
@@ -194,9 +197,6 @@ def main(config):
         E_field = - grad(potential, dx, dy, nnx, nny)
         physical_rhs = physical_rhs.reshape((nny, nnx))
 
-        # Set the electric field to zero in the radial direction on the axis
-        # E_field[1, 0, :] = 0
-
         # Update of the residual to zero
         rese[:], resp[:], resn[:] = 0, 0, 0
 
@@ -204,11 +204,11 @@ def main(config):
         if photo and it % 10 == 1:
             morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln, irate=irate)
             Sph[:] = 0
-            print('Photo resolution')
+            print('--> Photoionization resolution')
             for i in range(2):
                 rhs = - irate.reshape(-1) * A_j_two[i] * pO2**2 * scale
-                dirichlet_bc_axi(rhs, nx, nr, up, left, right)
-                Sph += spsolve(mats_photo[i], rhs).reshape(nr, nx)
+                dirichlet_bc_axi(rhs, nnx, nny, up_photo, left_photo, right_photo)
+                Sph += spsolve(mats_photo[i], rhs).reshape(nny, nnx)
         else:
             morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln)
 
@@ -244,6 +244,9 @@ def main(config):
         if config['output']['dl_save'] == 'yes':
             potential_list[it - 1, :, :] = potential + backE * X
             physical_rhs_list[it - 1, :, :] = physical_rhs
+            if photo:
+                irate_list[it - 1, :, :] = irate
+                Sph_list[it - 1, :, :] = Sph
 
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
@@ -254,8 +257,8 @@ def main(config):
                         lapl_pot = lapl(potential, dx, dy, nnx, nny)
 
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
-
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
+                    plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
                     number += 1
                 elif file_type == 'data':
                     np.save(data_dir + 'ne_%04d' % number, ne)
@@ -269,8 +272,8 @@ def main(config):
                         lapl_pot = lapl(potential, dx, dy, nnx, nny)
 
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
-
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
+                    plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
                     np.save(data_dir + 'ne_%04d' % number, ne)
                     np.save(data_dir + 'np_%04d' % number, nionp)
                     np.save(data_dir + 'nn_%04d' % number, nn)
@@ -284,6 +287,9 @@ def main(config):
     if config['output']['dl_save'] == 'yes':
         np.save(config['output']['folder'] + config['casename'] + 'potential.npy', potential_list)
         np.save(config['output']['folder'] + config['casename'] + 'physical_rhs.npy', physical_rhs_list)
+        if photo:
+            np.save(config['output']['folder'] + config['casename'] + 'Sph.npy', Sph_list)
+            np.save(config['output']['folder'] + config['casename'] + 'irate.npy', irate_list)
 
 if __name__ == '__main__':
 
