@@ -12,6 +12,7 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import numpy as np
 import yaml
+import copy
 
 from boundary import outlet_x, outlet_y, perio_x, perio_y, full_perio
 from metric import compute_voln
@@ -40,7 +41,13 @@ def main(config):
 
     # Grid construction
     X, Y = np.meshgrid(x, y)
-    voln = compute_voln(X, dx, dy)
+    geom = config['params']['geom']
+    if geom == 'xr':
+        R_nodes = copy.deepcopy(Y)
+        R_nodes[0] = dy / 4
+        voln = compute_voln(X, dx, dy) * R_nodes
+    else:
+        voln = compute_voln(X, dx, dy)
     sij = np.array([dy / 2, dx / 2])
 
     # Boundary conditions
@@ -68,8 +75,8 @@ def main(config):
     period = config['output']['period']
 
     # Timestep calculation through cfl and fourier
-    cfl = 0.5
-    fourier = 0.15
+    cfl = config['params']['cfl']
+    fourier = config['params']['fourier']
     dt = min(cfl * dx / max_speed, fourier * dx ** 2 / max_D)
     dtsum = 0
 
@@ -80,7 +87,7 @@ def main(config):
     u, res = np.zeros_like(X), np.zeros_like(X)
 
     # Gaussian initialization
-    u = gaussian(X, Y, 1, 0.5, 0.5, 1e-1, 1e-1)
+    u = gaussian(X, Y, 1, 0.5, 0.0, 1e-1, 1e-1)
 
     # Print header to sum up the parameters
     if verbose:
@@ -101,7 +108,12 @@ def main(config):
         # Update of the residual to zero
         res[:] = 0
         # Loop on the cells to compute the interior flux and update residuals
-        compute_flux(res, a, u, diff_flux, sij, ncx, ncy)
+        if geom == 'xy':
+            compute_flux(res, a, u, diff_flux, sij, ncx, ncy)
+        elif geom == 'xr':
+            compute_flux(res, a, u, diff_flux, sij, ncx, ncy, r=y)
+
+
         # Boundary conditions
         if BC == 'full_perio':
             full_perio(res)
@@ -114,11 +126,17 @@ def main(config):
             outlet_x(res, a, u, diff_flux, dy, 0)
             outlet_x(res, a, u, diff_flux, dy, -1)
         elif BC == 'full_out':
-            outlet_y(res, a, u, diff_flux, dx, 0)
-            outlet_y(res, a, u, diff_flux, dx, -1)
-            outlet_x(res, a, u, diff_flux, dy, 0)
-            outlet_x(res, a, u, diff_flux, dy, -1)
+            if geom == 'xy':
+                outlet_y(res, a, u, diff_flux, dx, 0)
+                outlet_y(res, a, u, diff_flux, dx, -1)
+                outlet_x(res, a, u, diff_flux, dy, 0)
+                outlet_x(res, a, u, diff_flux, dy, -1)
+            elif geom == 'xr':
+                outlet_y(res, a, u, diff_flux, dx, -1, r=np.max(Y))
+                outlet_x(res, a, u, diff_flux, dy, 0, r=Y)
+                outlet_x(res, a, u, diff_flux, dy, -1, r=Y)
 
+        
         u = u - res * dt / voln
 
         if verbose and (it % period == 0 or it == nit):
@@ -126,11 +144,11 @@ def main(config):
 
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
-                plot_scalar(X, Y, u, res, dtsum, number, fig_dir)
+                plot_scalar(X, Y, u, res / voln, dtsum, number, fig_dir)
                 number += 1
         elif save_type == 'time':
             if np.abs(dtsum - number * period) < 0.1 * dt or it == nit:
-                plot_scalar(X, Y, u, res, dtsum, number, fig_dir)
+                plot_scalar(X, Y, u, res / voln, dtsum, number, fig_dir)
                 number += 1
         elif save_type == 'none':
             pass

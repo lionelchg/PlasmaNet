@@ -13,10 +13,12 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'dh_streamer_1/'
+casename: 'dh_streamer_8/'
 
 params:
-  nit: 4000
+  nit: 8000
+  dt: 5.0e-13
+  geom: 'xr'
 
 mesh:
   xmin: 0
@@ -30,16 +32,16 @@ transport:
   chemistry: 'morrow'
 
 poisson:
-  backE: '4.8e6'
+  backE: 4.8e+6
 
 output:
   save: 'iteration'
   verbose: True
-  files: 'fig'
-  period: 100
+  files: 'figdata'
+  period: 500
   dl_save: 'no'
 
-input: 'none'
-  # ne: 'data/dh_streamer/ne_0010.npy'
-  # np: 'data/dh_streamer/np_0010.npy'
-  # nn: 'data/dh_streamer/nn_0010.npy'
+input: 
+  ne: 'data/dh_streamer_7/ne_0004.npy'
+  np: 'data/dh_streamer_7/np_0004.npy'
+  nn: 'data/dh_streamer_7/nn_0004.npy'

@@ -64,9 +64,13 @@ def main(config):
 
     # Grid construction
     X, Y = np.meshgrid(x, y)
-    R_nodes = copy.deepcopy(Y)
-    R_nodes[0] = dy / 4
-    voln = compute_voln(X, dx, dy) * R_nodes
+    geom = config['params']['geom']
+    if geom == 'xr':
+        R_nodes = copy.deepcopy(Y)
+        R_nodes[0] = dy / 4
+        voln = compute_voln(X, dx, dy) * R_nodes
+    else:
+        voln = compute_voln(X, dx, dy)
     sij = np.array([dy / 2, dx / 2])
     scale = dx * dy
 
@@ -90,12 +94,22 @@ def main(config):
         data_dir = 'data/' + config['casename']
         create_dir(data_dir)
 
+    # For printing specific points
+    debug_fp = open(data_dir + 'run.log', 'w')
+    x0p, y0p = 2.5e-3, 0
+    sigma_xp, sigma_yp = 1.5e-5, 1.5e-5
+    list_print = []
+    for i in range(nnx):
+        for j in range(nny):
+            if (abs(X[j, i] - x0p) < sigma_xp and abs(Y[j, i] - y0p) < sigma_yp):
+                list_print.append([i, j])
+
     # Timestep fixed
-    dt = 5e-13
+    dt = config['params']['dt']
     dtsum = 0
 
     # Background electric field
-    backE = float(config['poisson']['backE'])
+    backE = config['poisson']['backE']
     up = - x * backE
     left = np.zeros_like(y)
     right = - np.ones_like(y) * backE * xmax
@@ -126,7 +140,7 @@ def main(config):
         nionp = np.load(config['input']['np'])
         nn = np.load(config['input']['nn'])
 
-        number = int(re.search('\d+', config['input']['ne']).group()) + 1
+        number = int(re.search('_(\d+)\.npy', config['input']['ne']).group(1)) + 1
 
 
     # Print header to sum up the parameters
@@ -143,7 +157,10 @@ def main(config):
         print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
     # Construction of the matrix
-    A = matrix_axisym(dx, dy, nnx, nny, R_nodes, scale)
+    if geom == 'xr':
+        A = matrix_axisym(dx, dy, nnx, nny, R_nodes, scale)
+    elif geom == 'xy':
+        A = matrix_cart(dx, dy, nnx, nny, scale)
 
     if config['output']['dl_save'] == 'yes':
         potential_list = np.zeros((nit, nny, nnx))
@@ -161,27 +178,46 @@ def main(config):
         E_field = - grad(potential, dx, dy, nnx, nny)
         physical_rhs = physical_rhs.reshape((nny, nnx))
 
+        # Set the electric field to zero in the radial direction on the axis
+        E_field[1, 0, :] = 0
+
         # Update of the residual to zero
         rese[:], resp[:], resn[:] = 0, 0, 0
 
-        # Application of chemistry
+        # # Application of chemistry
         morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln)
-
+        # E_field = np.zeros((2, nny, nnx))
+        # E_field[0, :] = 4.8e6
+        # E_field[1, :] = 0
         # Convective and diffusive flux
         a = - mu * E_field
         diff_flux = D * grad(ne, dx, dy, nnx, nny)
 
         # Loop on the cells to compute the interior flux and update residuals
-        compute_flux(rese, a, ne, diff_flux, sij, ncx, ncy, r=y)
-
-        # Boundary conditions
-        outlet_y(rese, a, ne, diff_flux, dx, -1, r=np.max(Y))
-        outlet_x(rese, a, ne, diff_flux, dy, 0, r=Y)
-        outlet_x(rese, a, ne, diff_flux, dy, -1, r=Y)
+        if geom == 'xy':
+            compute_flux(rese, a, ne, diff_flux, sij, ncx, ncy)
+            outlet_y(rese, a, ne, diff_flux, dx, 0)
+            outlet_y(rese, a, ne, diff_flux, dx, -1)
+            outlet_x(rese, a, ne, diff_flux, dy, 0)
+            outlet_x(rese, a, ne, diff_flux, dy, -1)
+        elif geom == 'xr':
+            compute_flux(rese, a, ne, diff_flux, sij, ncx, ncy, r=y)
+            # Boundary conditions
+            outlet_y(rese, a, ne, diff_flux, dx, -1, r=np.max(Y))
+            outlet_x(rese, a, ne, diff_flux, dy, 0, r=Y)
+            outlet_x(rese, a, ne, diff_flux, dy, -1, r=Y)
 
         ne = ne - rese * dt / voln
         nionp = nionp - resp * dt / voln
         nn = nn - resn * dt / voln
+
+        debug_fp.write('{:>10d} {:{width}.2e} {:{width}.2e}\n'.format(it, dt, dtsum, width=14))
+        for coordind in list_print:
+            i, j = coordind[0], coordind[1]
+            xd, yd, Exd, Eyd, ned = X[j, i], Y[j, i], E_field[0, j, i], E_field[1, j, i], ne[j, i]
+            resed, volnd = rese[j, i], voln[j, i]
+            debug_fp.write(
+                f'{xd:.4e} {yd:.4e} - {Exd:.4e} {Eyd:.4e} {ned:.4e} {resed / volnd:.4e} \n')
 
         if verbose and (it % period == 0 or it == nit):
             print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, dt, dtsum, width=14))
@@ -193,7 +229,11 @@ def main(config):
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
                 if file_type == 'fig':
-                    lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
+                    if geom == 'xr':
+                        lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
+                    elif geom == 'xy':
+                        lapl_pot = lapl(potential, dx, dy, nnx, nny)
+
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
                         potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     number += 1
@@ -203,7 +243,11 @@ def main(config):
                     np.save(data_dir + 'nn_%04d' % number, nn)
                     number += 1
                 else:
-                    lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
+                    if geom == 'xr':
+                        lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
+                    elif geom == 'xy':
+                        lapl_pot = lapl(potential, dx, dy, nnx, nny)
+
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
                         potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     np.save(data_dir + 'ne_%04d' % number, ne)

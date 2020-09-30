@@ -131,7 +131,7 @@ def main(config, config_dl):
         create_dir(data_dir)
 
     # Timestep fixed
-    dt = 5e-13
+    dt = config['params']['dt']
     dtsum = 0
 
     # Background electric field

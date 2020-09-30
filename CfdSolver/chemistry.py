@@ -124,7 +124,6 @@ if __name__ == '__main__':
     mobility, diffusion, ioniz_freq, att_freq = \
         np.zeros_like(Elog), np.zeros_like(Elog), np.zeros_like(Elin), np.zeros_like(Elin)
 
-
     for i in range(npoints):
         mobility[i] = mobility_coeff_morrow(Elog[i], Ngas)
         diffusion[i] = diffusion_coeff_morrow(Elog[i], Ngas, mobility[i])
@@ -139,8 +138,8 @@ if __name__ == '__main__':
     axes[1][0].plot(Elog, diffusion)
     ax_prop(axes[1][0], 'x', 'Diffusion', '$E$ [V.m-1]', '$D$ [m2.s-1]')
     axes[0][1].plot(Elin, ioniz_freq)
-    ax_prop(axes[0][1], 'y', 'Ionization Frequency', '$E$ [V.m-1]', '$\nu$ [Hz]', ylim=[1e6, 1e11])
+    ax_prop(axes[0][1], 'y', 'Ionization Frequency', '$E$ [V.m-1]', r'$\nu$ [Hz]', ylim=[1e6, 1e11])
     axes[1][1].plot(Elin, att_freq)
-    ax_prop(axes[1][1], 'y', 'Attachment Frequency', '$E$ [V.m-1]$', '$\nu$ [Hz]', ylim=[1e6, 1e11])
+    ax_prop(axes[1][1], 'y', 'Attachment Frequency', '$E$ [V.m-1]$', r'$\nu$ [Hz]', ylim=[1e6, 1e11])
 
     plt.savefig(fig_dir + 'morrow', bbox_inches='tight')

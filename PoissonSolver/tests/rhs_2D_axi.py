@@ -32,6 +32,8 @@ if __name__ == '__main__':
 
     X, R = np.meshgrid(x, r)
 
+    scale = dx * dr
+
     physical_rhs = np.zeros_like(X)
 
     # creating the rhs
@@ -44,7 +46,7 @@ if __name__ == '__main__':
     physical_rhs = gaussian(X.reshape(-1), R.reshape(-1), ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
 
     # Cartesian resolution
-    A = matrix_cart(dx, dr, nx, nr)
+    A = matrix_cart(dx, dr, nx, nr, scale)
     rhs = - physical_rhs
     zeros_x, zeros_r = np.zeros(nx), np.zeros(nr)
     dirichlet_bc_axi(rhs, nx, nr, zeros_x, zeros_r, zeros_r)
@@ -53,7 +55,7 @@ if __name__ == '__main__':
     # Axisymmetric resolution
     R_nodes = copy.deepcopy(R)
     R_nodes[0] = dr / 4
-    A = matrix_axisym(dx, dr, nx, nr, R_nodes)
+    A = matrix_axisym(dx, dr, nx, nr, R_nodes, scale)
     rhs = - physical_rhs
     dirichlet_bc_axi(rhs, nx, nr, zeros_x, zeros_r, zeros_r)
     potential_axi = spsolve(A, rhs).reshape(nr, nx)
