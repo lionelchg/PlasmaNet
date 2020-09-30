@@ -7,7 +7,9 @@ from torch.autograd import Variable
 from collections import OrderedDict
 import random
 
-#Create the model
+from ..base import BaseModel
+
+# Create the model
 
 class _ConvBlock1(nn.Module):
     """
@@ -17,9 +19,9 @@ class _ConvBlock1(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(_ConvBlock1, self).__init__()
         layers = [
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(),
         ]
 
@@ -38,9 +40,9 @@ class _ConvBlock2(nn.Module):
         super(_ConvBlock2, self).__init__()
         layers = [
             nn.MaxPool2d(2),
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(),
         ]
         self.encode = nn.Sequential(*layers)
@@ -58,9 +60,9 @@ class _ConvBlock3(nn.Module):
         super(_ConvBlock3, self).__init__()
         layers = [
             nn.MaxPool2d(2),
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(),
         ]
         self.encode = nn.Sequential(*layers)
@@ -78,9 +80,9 @@ class _ConvBlock4(nn.Module):
         super(_ConvBlock4, self).__init__()
         layers = [
             nn.MaxPool2d(2),
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(),
         ]
         self.encode = nn.Sequential(*layers)
@@ -100,9 +102,9 @@ class _ConvBlock5(nn.Module):
         super(_ConvBlock5, self).__init__()
         layers = [
             nn.MaxPool2d(2),
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(),
         ]
         self.encode = nn.Sequential(*layers)
@@ -119,9 +121,9 @@ class _ConvBlock6(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(_ConvBlock6, self).__init__()
         layers = [
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(),
         ]
         self.encode = nn.Sequential(*layers)
@@ -139,9 +141,9 @@ class _ConvBlock7(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(_ConvBlock7, self).__init__()
         layers = [
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(),
         ]
         self.encode = nn.Sequential(*layers)
@@ -158,9 +160,9 @@ class _ConvBlock8(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(_ConvBlock8, self).__init__()
         layers = [
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(),
         ]
         self.encode = nn.Sequential(*layers)
@@ -177,9 +179,9 @@ class _ConvBlock9(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(_ConvBlock9, self).__init__()
         layers = [
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding = 1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(),
         ]
         self.encode = nn.Sequential(*layers)
@@ -203,25 +205,25 @@ class _ConvBlock10(nn.Module):
     def forward(self, x):
         return self.encode(x)
 
-class UNet(nn.Module):
+class UNet(BaseModel):
     """
     Define the network. Only input when called is number of data (input) channels.
         - Perform 4 levels of convolution
         - When returning to the original size, concatenate output of matching sizes
         - The smaller domains are upsampled to the desired size with the F.upsample function.
     """
-    def __init__(self,data_channels):
+    def __init__(self, data_channels):
         super(UNet, self).__init__()
-        self.convN_1 = _ConvBlock1(1,32)
+        self.convN_1 = _ConvBlock1(1, 32)
         self.convN_2 = _ConvBlock2(32, 32)
-        self.convN_3 = _ConvBlock3(32,32)
-        self.convN_4 = _ConvBlock4(32,64)
-        self.convN_5 = _ConvBlock5(64,64)
-        self.convN_6 = _ConvBlock6(128,64)
-        self.convN_7 = _ConvBlock7(96,64)
-        self.convN_8 = _ConvBlock8(96,32)
-        self.convN_9 = _ConvBlock9(64,32)
-        self.final = _ConvBlock10(32,1)
+        self.convN_3 = _ConvBlock3(32, 32)
+        self.convN_4 = _ConvBlock4(32, 64)
+        self.convN_5 = _ConvBlock5(64, 64)
+        self.convN_6 = _ConvBlock6(128, 64)
+        self.convN_7 = _ConvBlock7(96, 64)
+        self.convN_8 = _ConvBlock8(96, 32)
+        self.convN_9 = _ConvBlock9(64, 32)
+        self.final = _ConvBlock10(32, 1)
         
     def forward(self, x):
         convN_1out = self.convN_1(x)
@@ -229,9 +231,9 @@ class UNet(nn.Module):
         convN_3out = self.convN_3(convN_2out)
         convN_4out = self.convN_4(convN_3out)
         convN_5out = self.convN_5(convN_4out)
-        convN_6out = self.convN_6( torch.cat((F.upsample(convN_5out,scale_factor=2,mode = 'bilinear'), convN_4out),dim = 1) )
-        convN_7out = self.convN_7( torch.cat((F.upsample(convN_6out,scale_factor=2,mode = 'bilinear'), convN_3out),dim = 1) )
-        convN_8out = self.convN_8( torch.cat((F.upsample(convN_7out,scale_factor=2,mode = 'bilinear'), convN_2out),dim = 1) )
-        convN_9out = self.convN_9( torch.cat((F.upsample(convN_8out,scale_factor=2,mode = 'bilinear'), convN_1out),dim = 1) )
+        convN_6out = self.convN_6(torch.cat((F.interpolate(convN_5out, size=convN_4out[0,0].shape, mode='bilinear'), convN_4out), dim=1))
+        convN_7out = self.convN_7(torch.cat((F.interpolate(convN_6out, size=convN_3out[0,0].shape, mode='bilinear'), convN_3out), dim=1))
+        convN_8out = self.convN_8(torch.cat((F.interpolate(convN_7out, size=convN_2out[0,0].shape, mode='bilinear'), convN_2out), dim=1))
+        convN_9out = self.convN_9(torch.cat((F.interpolate(convN_8out, size=convN_1out[0,0].shape, mode='bilinear'), convN_1out), dim=1))
         final_out = self.final(convN_9out)
         return final_out
