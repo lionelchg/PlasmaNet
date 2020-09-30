@@ -23,7 +23,6 @@ parser.add_argument("nx", type=int, help="Target x dimension")
 parser.add_argument("ny", type=int, help="Target y dimension")
 parser.add_argument("--plot", action="store_true", help="Activate plot")
 parser.add_argument("--plot_period", type=int, default=50, help="Plot period (default: 50)")
-parser.add_argument("--data_augmentation", action="store_true", help="Perform some data augmentation")
 args = parser.parse_args()
 
 import numpy as np
@@ -111,13 +110,12 @@ t["source"] = base
 t["target"] = interp_base
 interp_base = t.execute()
 
-# Plots before interpolation
+# Plots after interpolation
 if args.plot:
     def plot_rhs_pot_cart(base, instant, target):
         """ Plot base element on cartesian structured mesh. """
         import matplotlib
         import matplotlib.pyplot as plt
-        from matplotlib.tri import Triangulation
         matplotlib.use("agg")
 
         fig, (ax1, ax2) = plt.subplots(figsize=(10, 4), nrows=1, ncols=2)
@@ -156,6 +154,3 @@ target_path = Path("./rhs/{}x{}/{}/".format(args.nx, args.ny, args.case_name))
 target_path.mkdir(parents=True, exist_ok=True)
 np.save(target_path / "potential.npy", potential, allow_pickle=False)
 np.save(target_path / "physical_rhs.npy", rhs, allow_pickle=False)
-
-# from IPython import embed
-# embed()

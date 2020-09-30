@@ -1,9 +1,9 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                    Separation of the Laplace and rhs Problem                                         #
-#                                           for Streamer dataset                                                       #
+#                                      Separation of the Laplace and rhs problem                                       #
+#                                                 for Streamer dataset                                                 #
 #                                                                                                                      #
-#                                       Ekhi AJuria, CERFACS, 30.09.2020                                               #
+#                                           Ekhi AJuria, CERFACS, 30.09.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
 
