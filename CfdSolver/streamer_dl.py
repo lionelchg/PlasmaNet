@@ -40,7 +40,6 @@ from tqdm import tqdm
 import PlasmaNet.data.data_loaders as module_data
 import PlasmaNet.model.loss as module_loss
 import PlasmaNet.model.metric as module_metric
-import PlasmaNet.model.multiscalenet as module_arch
 from PlasmaNet.parse_config import ConfigParser
 from PlasmaNet.trainer.trainer import plot_batch
 
@@ -79,8 +78,8 @@ def main(config, config_dl):
     loss_fn = config_dl.init_obj('loss', module_loss)
     metric_fns = [getattr(module_metric, metric) for metric in config_dl['metrics']]
 
-    logger.info('Loading checkpoint: {} ...'.format(config_dl.resume))
-    checkpoint = torch.load(config_dl.resume)
+    logger.info('Loading checkpoint: {} ...'.format(config_dl['resume']))
+    checkpoint = torch.load(config_dl['resume'])
     state_dict = checkpoint['state_dict']
     if config_dl['n_gpu'] > 1:
         model = torch.nn.DataParallel(model)
@@ -189,6 +188,9 @@ def main(config, config_dl):
         potential_list = np.zeros((nit, nny, nnx))
         physical_rhs_list = np.zeros((nit, nny, nnx))
 
+    # Traditional
+    traditional = False
+
     # Iterations
     for it in range(1, nit + 1):
         dtsum += dt
@@ -199,14 +201,39 @@ def main(config, config_dl):
         # Solve the Poisson equation / Axisymmetric resolution
         rhs = - physical_rhs * scale
         dirichlet_bc_axi(rhs, nnx, nny, up, left, right)
-        potential = spsolve(A, rhs).reshape(nny, nnx)
+
+        # Traditional
+        if traditional or it < 10:
+            potential = spsolve(A, rhs).reshape(nny, nnx)
+
+            # Determine lineal field
+            left_BC = potential[ :, 0]
+            right_BC = potential[ :, -1]
+            sup_BC = potential[ -1, :]
+
+            # Expand the Lateral BC as the resulting linear potential field
+            potential_BC =  np.repeat(sup_BC[np.newaxis, :], potential.shape[0], axis=0)
+
+            # Hard Copy the left and right (just in case corners are wierdly solved)
+            potential_BC[ :, 0] = left_BC
+            potential_BC[ :, -1] = right_BC
+
+        else:
+            physical_rhs = rhs.reshape((nny, nnx))
+            # Convert to torch.Tensor of shape (batch_size, 1, H, W)
+            physical_rhs_torch = torch.from_numpy(rhs[np.newaxis, np.newaxis, :, :]).float().cuda()
+            potential_torch = model(physical_rhs_torch*-scale)
+            potential_rhs = potential_torch.detach().cpu().numpy()[0, 0]
+            potential = potential_rhs + potential_BC 
+
         E_field = - grad(potential, dx, dy, nnx, nny)
         physical_rhs = physical_rhs.reshape((nny, nnx))
 
         # Convert to torch.Tensor of shape (batch_size, 1, H, W)
-        physical_rhs_torch = torch.from_numpy(physical_rhs[np.newaxis, np.newaxis, :, :])
+        physical_rhs_torch = torch.from_numpy(physical_rhs[np.newaxis, np.newaxis, :, :]).float().cuda()
         potential_torch = model(physical_rhs_torch)
-        potential = potential_torch.detach().cpu().numpy()[0, 0]
+        potential_rhs = potential_torch.detach().cpu().numpy()[0, 0]
+        potential = potential_rhs + potential_BC 
 
         # Update of the residual to zero
         rese[:], resp[:], resn[:] = 0, 0, 0
@@ -289,4 +316,9 @@ if __name__ == '__main__':
     with open('config_streamer.yml', 'r') as yaml_stream:
         config_streamer = yaml.safe_load(yaml_stream)
 
-    main(config_streamers, config_dl)
+    if config_dl['arch']['type'] == 'Unet' or config_dl['arch']['type'] == 'UNet':
+        import PlasmaNet.model.unet as module_arch
+    else:
+        import PlasmaNet.model.multiscalenet as module_arch
+
+    main(config_streamer, config_dl)
