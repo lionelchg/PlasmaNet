@@ -110,7 +110,6 @@ def main(config):
     # Params
     nit = config['params']['nit']
     photo = config['params']['photoionization'] != 'no'
-    print(photo)
     if photo:
         photo_model = config['params']['photoionization']
         # Pressure in Torr
@@ -243,7 +242,7 @@ def main(config):
             print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, dt, dtsum, width=14))
 
         if config['output']['dl_save'] == 'yes':
-            potential_list[it - 1, :, :] = potential
+            potential_list[it - 1, :, :] = potential + backE * X
             physical_rhs_list[it - 1, :, :] = physical_rhs
 
         if save_type == 'iteration':
@@ -256,7 +255,7 @@ def main(config):
 
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
 
-                        potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
+                        potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     number += 1
                 elif file_type == 'data':
                     np.save(data_dir + 'ne_%04d' % number, ne)
@@ -271,7 +270,7 @@ def main(config):
 
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
 
-                        potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
+                        potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     np.save(data_dir + 'ne_%04d' % number, ne)
                     np.save(data_dir + 'np_%04d' % number, nionp)
                     np.save(data_dir + 'nn_%04d' % number, nn)
