@@ -68,18 +68,18 @@ def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
 def main(config, config_dl):
     """ Main function containing initialisation, temporal loop and outputs. Takes a config dict as input. """
 
-    # # Load the network
-    # logger = config_dl.get_logger('test')
+    # Load the network
+    logger = config_dl.get_logger('test')
 
-    # # Setup data_loader instances
-    # data_loader = config_dl.init_obj('data_loader', module_data)
+    # Setup data_loader instances
+    data_loader = config_dl.init_obj('data_loader', module_data)
 
-    # # Build model architecture
-    # model = config_dl.init_obj('arch', module_arch)
+    # Build model architecture
+    model = config_dl.init_obj('arch', module_arch)
 
-    # # Get function handles of loss and metrics
-    # loss_fn = config_dl.init_obj('loss', module_loss)
-    # metric_fns = [getattr(module_metric, metric) for metric in config_dl['metrics']]
+    # Get function handles of loss and metrics
+    loss_fn = config_dl.init_obj('loss', module_loss)
+    metric_fns = [getattr(module_metric, metric) for metric in config_dl['metrics']]
 
     logger.info('Loading checkpoint: {} ...'.format(config_dl['resume']))
     checkpoint = torch.load(config_dl['resume'])
@@ -88,10 +88,10 @@ def main(config, config_dl):
         model = torch.nn.DataParallel(model)
     model.load_state_dict(state_dict)
 
-    # # Prepare model for testing
-    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # model = model.to(device)
-    # model.eval()
+    # Prepare model for testing
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = model.to(device)
+    model.eval()
 
     # Mesh properties
     nnx, nny = config['mesh']['nnx'], config['mesh']['nny']
@@ -342,7 +342,8 @@ def main(config, config_dl):
 
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
-                    plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
+                    if photo:
+                        plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
                     number += 1
                 elif file_type == 'data':
                     np.save(data_dir + 'ne_%04d' % number, ne)
@@ -357,7 +358,8 @@ def main(config, config_dl):
 
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
-                    plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
+                    if photo:
+                        plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
                     np.save(data_dir + 'ne_%04d' % number, ne)
                     np.save(data_dir + 'np_%04d' % number, nionp)
                     np.save(data_dir + 'nn_%04d' % number, nn)
