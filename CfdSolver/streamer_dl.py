@@ -50,6 +50,7 @@ def create_dir(dir_name):
 def plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, potential, E_field, lapl_pot, voln, dtsum, number, fig_dir):
     plot_streamer(X, Y, ne, rese / voln, nionp, resp / voln, nn, resn / voln, dtsum, number, fig_dir)
     try:
+        #plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False, axi=True)
         plot_set_2D(X, Y, - lapl_pot, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False, axi=True)
         # E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
         # plot_set_1D(X[0, :], physical_rhs, potential, E_field_norm, lapl_pot, np.shape(X)[0], '1D EM cuts', 
@@ -191,6 +192,10 @@ def main(config, config_dl):
     # Traditional
     traditional = False
 
+    # Normalization
+    alpha = 0.1
+    ratio = alpha / (np.pi**2 / 4)**2 / (1 / Lx**2 + 1 / Ly**2)
+
     # Iterations
     for it in range(1, nit + 1):
         dtsum += dt
@@ -200,10 +205,9 @@ def main(config, config_dl):
 
         # Solve the Poisson equation / Axisymmetric resolution
         rhs = - physical_rhs * scale
-        dirichlet_bc_axi(rhs, nnx, nny, up, left, right)
-
         # Traditional
-        if traditional or it < 10:
+        if traditional or it < 100 or it % 10 ==1:
+            dirichlet_bc_axi(rhs, nnx, nny, up, left, right)
             potential = spsolve(A, rhs).reshape(nny, nnx)
 
             # Determine lineal field
@@ -217,23 +221,21 @@ def main(config, config_dl):
             # Hard Copy the left and right (just in case corners are wierdly solved)
             potential_BC[ :, 0] = left_BC
             potential_BC[ :, -1] = right_BC
+            potential_rhs = potential - potential_BC
 
         else:
-            physical_rhs = rhs.reshape((nny, nnx))
+            # Normalize
+            rhs_nor = physical_rhs * ratio 
+            rhs_inter = rhs_nor.reshape((nny, nnx))
             # Convert to torch.Tensor of shape (batch_size, 1, H, W)
-            physical_rhs_torch = torch.from_numpy(rhs[np.newaxis, np.newaxis, :, :]).float().cuda()
-            potential_torch = model(physical_rhs_torch*-scale)
+            physical_rhs_torch = torch.from_numpy(rhs_inter[np.newaxis, np.newaxis, :, :]).float().cuda()
+            potential_torch = model(physical_rhs_torch)
             potential_rhs = potential_torch.detach().cpu().numpy()[0, 0]
             potential = potential_rhs + potential_BC 
-
+            physical_rhs = rhs_nor
+            
+        physical_rhs_scale = (physical_rhs).reshape((nny, nnx))        
         E_field = - grad(potential, dx, dy, nnx, nny)
-        physical_rhs = physical_rhs.reshape((nny, nnx))
-
-        # Convert to torch.Tensor of shape (batch_size, 1, H, W)
-        physical_rhs_torch = torch.from_numpy(physical_rhs[np.newaxis, np.newaxis, :, :]).float().cuda()
-        potential_torch = model(physical_rhs_torch)
-        potential_rhs = potential_torch.detach().cpu().numpy()[0, 0]
-        potential = potential_rhs + potential_BC 
 
         # Update of the residual to zero
         rese[:], resp[:], resn[:] = 0, 0, 0
@@ -262,14 +264,14 @@ def main(config, config_dl):
 
         if config['output']['dl_save'] == 'yes':
             potential_list[it - 1, :, :] = potential
-            physical_rhs_list[it - 1, :, :] = physical_rhs
+            physical_rhs_list[it - 1, :, :] = physical_rhs_scale
 
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
                 if file_type == 'fig':
                     lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
-                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
-                        potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
+                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs_scale, 
+                        potential_rhs, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     number += 1
                 elif file_type == 'data':
                     np.save(data_dir + 'ne_%04d' % number, ne)
@@ -279,7 +281,7 @@ def main(config, config_dl):
                 else:
                     lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
-                        potential, E_field, lapl_pot, voln, dtsum, number, fig_dir)
+                        potential_rhs, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     np.save(data_dir + 'ne_%04d' % number, ne)
                     np.save(data_dir + 'np_%04d' % number, nionp)
                     np.save(data_dir + 'nn_%04d' % number, nn)
