@@ -19,7 +19,7 @@ import re
 from boundary import outlet_x, outlet_y, perio_x, perio_y, full_perio
 from metric import compute_voln
 from operators import grad
-from plot import plot_scalar, plot_streamer
+from plot import plot_scalar, plot_streamer, plot_global
 from scheme import compute_flux
 from chemistry import morrow
 
@@ -190,6 +190,10 @@ def main(config):
             Sph_list = np.zeros((nit, nny, nnx)) 
             irate_list = np.zeros((nit, nny, nnx))
 
+    # Temporal values to store (position of positive streamer, position of negative streamer, energy of the discharge)
+    gstreamer = np.zeros((nit + 1, 4))
+    gstreamer[:, 0] = np.linspace(0, nit * dt, nit + 1)
+
     # Iterations
     for it in range(1, nit + 1):
         dtsum += dt
@@ -249,6 +253,15 @@ def main(config):
         nionp = nionp - resp * dt / voln
         nn = nn - resn * dt / voln
 
+        # Post processing of macro values
+        normE = np.sqrt(E_field[0, :, :]**2 + E_field[1, :, :]**2)
+        normE_ax = normE[0, :]
+        n_middle = int(nnx / 2)
+        indneg = np.argmax(normE_ax[:n_middle])
+        indpos = n_middle + np.argmax(normE_ax[n_middle:])
+        gstreamer[it, 1], gstreamer[it, 2] = x[np.argmax(normE_ax[:n_middle])], x[n_middle + np.argmax(normE_ax[n_middle:])]
+        gstreamer[it, 3] = gstreamer[it - 1, 3] + co.e * dt * np.sum(ne * mu * normE * voln)
+
         if verbose and (it % period == 0 or it == nit):
             print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, dt, dtsum, width=14))
 
@@ -294,6 +307,9 @@ def main(config):
                 plot_it()
         elif save_type == 'none':
             pass
+
+    plot_global(gstreamer, [xmin, xmax], fig_dir + 'globals')
+    np.save(data_dir + 'globals', gstreamer)
 
     if config['output']['dl_save'] == 'yes':
         np.save(config['output']['folder'] + config['casename'] + 'potential.npy', potential_list)

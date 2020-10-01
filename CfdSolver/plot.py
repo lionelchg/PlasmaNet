@@ -95,3 +95,25 @@ def plot_streamer(X, Y, ne, rese, nionp, resp, nn, resn, dtsum, number, fig_dir)
     plt.figtext(0.85, 0.07, '$t =$%.2e s' % dtsum, fontsize=12)
     plt.savefig(fig_dir + 'dens_instant_1D_%04d' % number, bbox_inches='tight')
     plt.close()
+
+def plot_global(gstreamer, xrange, figname):
+    """ Global quantities (position of negative streamer, 
+    positive streamer and energy of discharge) """
+    time = gstreamer[:, 0] / 1e-9
+    gstreamer[:, 1:3] = gstreamer[:, :2] / 1e-3
+    gstreamer[:, 3] = gstreamer[:, 3] / 1e-6
+    fig, axes = plt.subplots(ncols=2, figsize=(12, 6))
+    axes[0].plot(time, gstreamer[:, 1], label='Negative streamer')
+    axes[0].plot(time, gstreamer[:, 2], label='Positive streamer')
+    axes[0].set_ylabel('$x$ [mm]')
+    axes[0].set_xlabel('$t$ [ns]')
+    axes[0].set_ylim(np.array(xrange) / 1e-3)
+    axes[0].legend()
+    axes[0].grid(True)
+
+    axes[1].plot(time, gstreamer[:, 3])
+    axes[1].set_xlabel('$t$ [ns]')
+    axes[1].set_ylabel('E [$\mu$J]')
+    axes[1].grid(True)
+
+    plt.savefig(figname, bbox_inches='tight')
