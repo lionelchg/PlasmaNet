@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'STREAMER/debug'                      # Experience name
+name: 'dh_streamer_photo_UNet'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -29,20 +29,20 @@ globals:                                    # Domain sizes and others, used to c
 
 
 arch:
-    type: 'MultiSimpleNet'
+    type: 'UNet'
     args:
         data_channels: 1                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
 
 data_loader:
-    type: 'PoissonDataLoader'
+    type: 'PhotoDataLoader'
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/bogopolsky/DL/poisson_datasets/STREAMER/401x101/dh_streamer_1000' 
-        batch_size: 128
+        data_dir: '/scratch/cfd/cheng/DL/plasmanet/CfdSolver/data/dh_streamer_4'
+        batch_size: 64
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
-        normalize: 'analytical'             # max, physical or no for normalization types
+        normalize: 'none'             # max, physical or no for normalization types
 
 initializer: 'off'
 
@@ -60,7 +60,7 @@ loss:
         loss_list:                          # List of the losses to compose if ComposedLoss is used
             - InsideLoss
             - DirichletBoundaryLoss
-            - LaplacianLoss
+            - PhotoLoss
         inside_weight: 1.                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
