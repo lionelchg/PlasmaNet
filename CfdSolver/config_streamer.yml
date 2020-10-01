@@ -39,8 +39,9 @@ output:
   folder: 'data/'
   save: 'iteration'
   verbose: True
-  files: 'figdata'
-  period: 500
+  files: 'fig'
+  folder: 'data/'
+  period: 100
   dl_save: 'yes'
 
 input: 'none'

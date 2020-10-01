@@ -237,3 +237,5 @@ class UNet(BaseModel):
         convN_9out = self.convN_9(torch.cat((F.interpolate(convN_8out, size=convN_1out[0,0].shape, mode='bilinear'), convN_1out), dim=1))
         final_out = self.final(convN_9out)
         return final_out
+
+        #F.interpolate(x, half_size, mode='bilinear', align_corners=False)

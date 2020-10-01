@@ -151,6 +151,8 @@ if __name__ == '__main__':
     print(f'Dataset size : {rhs.shape[0]}')
     print(f'Shape of potential field : {potential.shape}')
 
+    # Do you want to plot fields? 5hardcoded, to be implemented in a fancier way)
+    plot_fig = False
 
     # Determine new dataset name
     new_name = args.dataset.name
@@ -162,7 +164,7 @@ if __name__ == '__main__':
 
     if not os.path.exists(new_path):
         new_path.mkdir()
-    if not os.path.exists(fig_path):
+    if not os.path.exists(fig_path) and plot_fig:
         fig_path.mkdir()
     print(new_path.as_posix())
     print(fig_path.as_posix())
@@ -179,8 +181,9 @@ if __name__ == '__main__':
     initial = True
     verbose = True
 
-    # Index definition for first plot
-    plot_fields( n_x, n_y, rhs, potential, potential_rhs_0, potential_BC_0, potential_solved_0, index_b, log_t, initial)
+    if plot_fig:
+        # Index definition for first plot
+        plot_fields( n_x, n_y, rhs, potential, potential_rhs_0, potential_BC_0, potential_solved_0, index_b, log_t, initial)
 
     # Matrix A creation
     nnx, nny = potential.shape[2], potential.shape[1]
@@ -215,10 +218,11 @@ if __name__ == '__main__':
     # Main loop
     potential_rhs, potential_BC, potential_solved = big_loop(potential, rhs, A, fig_path)
 
-    # Plot some fields after the correction
-    initial = False
-    for index_k in range(5):
-        plot_fields( n_x, n_y, rhs, potential, potential_rhs, potential_BC, potential_solved, index_k, log_t, initial) 
+    if plot_fig:
+        # Plot some fields after the correction
+        initial = False
+        for index_k in range(5):
+            plot_fields( n_x, n_y, rhs, potential, potential_rhs, potential_BC, potential_solved, index_k, log_t, initial) 
 
     # Save the new dataset
     np.save(new_path / 'potential_orig.npy', potential)
