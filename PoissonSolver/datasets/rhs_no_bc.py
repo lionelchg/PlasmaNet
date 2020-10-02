@@ -8,19 +8,17 @@
 ########################################################################################################################
 
 import argparse
-from pathlib import Path
-from tqdm import tqdm
 import copy
+import os
+from pathlib import Path
 
-import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import os
-
+import numpy as np
 from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_potential
-from poissonsolver.linsystem import matrix_cart, matrix_axisym, dirichlet_bc_axi
-
+from poissonsolver.linsystem import matrix_cart, matrix_axisym
 from scipy.sparse.linalg import spsolve
+from tqdm import tqdm
 
 matplotlib.use('Agg')
 
