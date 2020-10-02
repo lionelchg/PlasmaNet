@@ -13,13 +13,13 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'dh_streamer_10/'
+casename: 'dh_streamer_11/'
 
 params:
-  nit: 8000
+  nit: 100
   dt: 5.0e-13
   geom: 'xr'
-  photoionization: 'no'
+  photoionization: 'three'
 
 mesh:
   xmin: 0
@@ -40,7 +40,7 @@ output:
   save: 'iteration'
   verbose: True
   files: 'figdata'
-  period: 500
+  period: 50
   dl_save: 'yes'
 
 input: 'none'

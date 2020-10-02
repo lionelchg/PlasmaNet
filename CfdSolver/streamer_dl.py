@@ -104,6 +104,10 @@ def main(config, config_dl):
     x = np.linspace(xmin, xmax, nnx)
     y = np.linspace(ymin, ymax, nny)
 
+    # Scaling for network
+    alpha = 0.1
+    scale_net = alpha / (np.pi**2 / 4)**2 / (1 / Lx**2 + 1 / Ly**2)
+
     # Grid construction
     X, Y = np.meshgrid(x, y)
     geom = config['params']['geom']
@@ -313,7 +317,8 @@ def main(config, config_dl):
 
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
-                    plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
+                    if photo:
+                        plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
                     number += 1
                 elif file_type == 'data':
                     np.save(data_dir + 'ne_%04d' % number, ne)
@@ -328,7 +333,8 @@ def main(config, config_dl):
 
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
-                    plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
+                    if photo:
+                        plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
                     np.save(data_dir + 'ne_%04d' % number, ne)
                     np.save(data_dir + 'np_%04d' % number, nionp)
                     np.save(data_dir + 'nn_%04d' % number, nn)
