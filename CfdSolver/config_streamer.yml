@@ -39,8 +39,14 @@ output:
   folder: 'data/'
   save: 'iteration'
   verbose: True
+<<<<<<< HEAD
   files: 'figdata'
   period: 50
+=======
+  files: 'fig'
+  folder: 'data/'
+  period: 100
+>>>>>>> 4667bb0964cc2e271c35a1000aef7104552d6271
   dl_save: 'yes'
 
 input: 'none'

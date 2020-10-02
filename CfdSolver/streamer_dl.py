@@ -42,7 +42,6 @@ from tqdm import tqdm
 import PlasmaNet.data.data_loaders as module_data
 import PlasmaNet.model.loss as module_loss
 import PlasmaNet.model.metric as module_metric
-import PlasmaNet.model.multiscalenet as module_arch
 from PlasmaNet.parse_config import ConfigParser
 from PlasmaNet.trainer.trainer import plot_batch
 
@@ -53,6 +52,7 @@ def create_dir(dir_name):
 def plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, potential, E_field, lapl_pot, voln, dtsum, number, fig_dir):
     plot_streamer(X, Y, ne, rese / voln, nionp, resp / voln, nn, resn / voln, dtsum, number, fig_dir)
     try:
+        #plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False, axi=True)
         plot_set_2D(X, Y, - lapl_pot, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False, axi=True)
         # E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
         # plot_set_1D(X[0, :], physical_rhs, potential, E_field_norm, lapl_pot, np.shape(X)[0], '1D EM cuts', 
@@ -68,30 +68,30 @@ def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
 def main(config, config_dl):
     """ Main function containing initialisation, temporal loop and outputs. Takes a config dict as input. """
 
-    # # Load the network
-    # logger = config_dl.get_logger('test')
+    # Load the network
+    logger = config_dl.get_logger('test')
 
-    # # Setup data_loader instances
-    # data_loader = config_dl.init_obj('data_loader', module_data)
+    # Setup data_loader instances
+    data_loader = config_dl.init_obj('data_loader', module_data)
 
-    # # Build model architecture
-    # model = config_dl.init_obj('arch', module_arch)
+    # Build model architecture
+    model = config_dl.init_obj('arch', module_arch)
 
-    # # Get function handles of loss and metrics
-    # loss_fn = config_dl.init_obj('loss', module_loss)
-    # metric_fns = [getattr(module_metric, metric) for metric in config_dl['metrics']]
+    # Get function handles of loss and metrics
+    loss_fn = config_dl.init_obj('loss', module_loss)
+    metric_fns = [getattr(module_metric, metric) for metric in config_dl['metrics']]
 
-    # logger.info('Loading checkpoint: {} ...'.format(config_dl.resume))
-    # checkpoint = torch.load(config_dl.resume)
-    # state_dict = checkpoint['state_dict']
-    # if config_dl['n_gpu'] > 1:
-    #     model = torch.nn.DataParallel(model)
-    # model.load_state_dict(state_dict)
+    logger.info('Loading checkpoint: {} ...'.format(config_dl['resume']))
+    checkpoint = torch.load(config_dl['resume'])
+    state_dict = checkpoint['state_dict']
+    if config_dl['n_gpu'] > 1:
+        model = torch.nn.DataParallel(model)
+    model.load_state_dict(state_dict)
 
-    # # Prepare model for testing
-    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # model = model.to(device)
-    # model.eval()
+    # Prepare model for testing
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = model.to(device)
+    model.eval()
 
     # Mesh properties
     nnx, nny = config['mesh']['nnx'], config['mesh']['nny']
@@ -231,6 +231,13 @@ def main(config, config_dl):
     gstreamer = np.zeros((nit + 1, 4))
     gstreamer[:, 0] = np.linspace(0, nit * dt, nit + 1)
 
+    # Traditional
+    traditional = False
+
+    # Normalization
+    alpha = 0.1
+    ratio = alpha / (np.pi**2 / 4)**2 / (1 / Lx**2 + 1 / Ly**2)
+
     # Iterations
     for it in range(1, nit + 1):
         dtsum += dt
@@ -238,15 +245,37 @@ def main(config, config_dl):
         # Solve the Poisson equation / Axisymmetric resolution
         physical_rhs = (nionp - ne - nn).reshape(-1) * co.e / co.epsilon_0
         rhs = - physical_rhs * scale
-        dirichlet_bc_axi(rhs, nnx, nny, up, left, right)
-        potential = spsolve(A, rhs).reshape(nny, nnx)
-        E_field = - grad(potential, dx, dy, nnx, nny)
-        physical_rhs = physical_rhs.reshape((nny, nnx))
+        # Traditional
+        if traditional or it < 100 or it % 10 ==1:
+            dirichlet_bc_axi(rhs, nnx, nny, up, left, right)
+            potential = spsolve(A, rhs).reshape(nny, nnx)
 
-        # # Convert to torch.Tensor of shape (batch_size, 1, H, W)
-        # physical_rhs_torch = torch.from_numpy(physical_rhs[np.newaxis, np.newaxis, :, :])
-        # potential_torch = model(physical_rhs_torch)
-        # potential = potential_torch.detach().cpu().numpy()[0, 0]
+            # Determine lineal field
+            left_BC = potential[ :, 0]
+            right_BC = potential[ :, -1]
+            sup_BC = potential[ -1, :]
+
+            # Expand the Lateral BC as the resulting linear potential field
+            potential_BC =  np.repeat(sup_BC[np.newaxis, :], potential.shape[0], axis=0)
+
+            # Hard Copy the left and right (just in case corners are wierdly solved)
+            potential_BC[ :, 0] = left_BC
+            potential_BC[ :, -1] = right_BC
+            potential_rhs = potential - potential_BC
+
+        else:
+            # Normalize
+            rhs_nor = physical_rhs * ratio 
+            rhs_inter = rhs_nor.reshape((nny, nnx))
+            # Convert to torch.Tensor of shape (batch_size, 1, H, W)
+            physical_rhs_torch = torch.from_numpy(rhs_inter[np.newaxis, np.newaxis, :, :]).float().cuda()
+            potential_torch = model(physical_rhs_torch)
+            potential_rhs = potential_torch.detach().cpu().numpy()[0, 0]
+            potential = potential_rhs + potential_BC 
+            physical_rhs = rhs_nor
+            
+        physical_rhs_scale = (physical_rhs).reshape((nny, nnx))        
+        E_field = - grad(potential, dx, dy, nnx, nny)
 
         # Update of the residual to zero
         rese[:], resp[:], resn[:] = 0, 0, 0
@@ -370,5 +399,7 @@ if __name__ == '__main__':
 
     with open('config_streamer.yml', 'r') as yaml_stream:
         config_streamer = yaml.safe_load(yaml_stream)
+
+    import PlasmaNet.model as module_arch
 
     main(config_streamer, config_dl)

@@ -119,7 +119,7 @@ def main(config):
         up_photo = np.zeros_like(x)
         left_photo = np.zeros_like(y)
         right_photo = np.zeros_like(y)
-        
+
         mats_photo = []
         irate = np.zeros_like(X)
         Sph = np.zeros_like(X)
@@ -187,7 +187,7 @@ def main(config):
         potential_list = np.zeros((nit, nny, nnx))
         physical_rhs_list = np.zeros((nit, nny, nnx))
         if photo:
-            Sph_list = np.zeros((nit, nny, nnx)) 
+            Sph_list = np.zeros((nit, nny, nnx))
             irate_list = np.zeros((nit, nny, nnx))
 
     # Temporal values to store (position of positive streamer, position of negative streamer, energy of the discharge)
@@ -280,7 +280,7 @@ def main(config):
                     elif geom == 'xy':
                         lapl_pot = lapl(potential, dx, dy, nnx, nny)
 
-                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
+                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs,
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     if photo:
                         plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
@@ -296,9 +296,13 @@ def main(config):
                     elif geom == 'xy':
                         lapl_pot = lapl(potential, dx, dy, nnx, nny)
 
-                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
+                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs,
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
+<<<<<<< HEAD
                     if photo: 
+=======
+                    if photo:
+>>>>>>> 4667bb0964cc2e271c35a1000aef7104552d6271
                         plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
                     np.save(data_dir + 'ne_%04d' % number, ne)
                     np.save(data_dir + 'np_%04d' % number, nionp)
