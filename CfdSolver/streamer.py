@@ -298,11 +298,7 @@ def main(config):
 
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs,
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
-<<<<<<< HEAD
                     if photo: 
-=======
-                    if photo:
->>>>>>> 4667bb0964cc2e271c35a1000aef7104552d6271
                         plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
                     np.save(data_dir + 'ne_%04d' % number, ne)
                     np.save(data_dir + 'np_%04d' % number, nionp)
