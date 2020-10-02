@@ -8,6 +8,7 @@ mpl.rcParams['lines.linewidth'] = 2
 mpl.rcParams['contour.negative_linestyle'] = 'solid'
 default_cmap = 'RdBu'  # 'RdBu'
 
+
 def round_up(n, decimals=0): 
     multiplier = 10 ** decimals 
     return np.ceil(n * multiplier) / multiplier
@@ -61,6 +62,7 @@ def plot_set_1D(x, physical_rhs, pot, E_field_norm, lapl_pot, n_points, figtitle
     plt.tight_layout()
     plt.savefig(figname, bbox_inches='tight')
     plt.close()
+
 
 def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, axi=False):
     """ 2D Matplotlib plots. """
@@ -118,6 +120,7 @@ def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', ax
     ax.set_title(name)
     ax.set_aspect('equal')
 
+
 def plot_potential(X, Y, dx, dy, potential, nx, ny, figname, figtitle=None, r=None):
     # 1D vector
     x = X[0, :]
@@ -145,6 +148,7 @@ def plot_potential(X, Y, dx, dy, potential, nx, ny, figname, figtitle=None, r=No
     plt.savefig(figname, bbox_inches='tight')
     plt.close()
 
+
 def plot_ax_trial_1D(ax, x, function, n_points, title, direction='y', ylim=None):
     list_cut = [0, 0.25, 0.5, 0.75, 1.0]
     for cut_pos in list_cut:
@@ -155,6 +159,7 @@ def plot_ax_trial_1D(ax, x, function, n_points, title, direction='y', ylim=None)
     ax.grid(True)
     if ylim is not None:
         ax.set_ylim(ylim)
+
 
 def plot_lapl_rhs(X, Y, dx, dy, potential, physical_rhs, nx, ny, figname, figtitle=None, r=None):
     """ Compares the laplacian of the potential against the real rhs """

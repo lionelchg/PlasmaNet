@@ -3,37 +3,30 @@
 #                                      Separation of the Laplace and rhs problem                                       #
 #                                                 for Streamer dataset                                                 #
 #                                                                                                                      #
-#                                           Ekhi AJuria, CERFACS, 30.09.2020                                           #
+#                                 Ekhi Ajuria, Guillaume Bogopolsky CERFACS, 30.09.2020                                #
 #                                                                                                                      #
 ########################################################################################################################
 
-import os
 import argparse
 from pathlib import Path
 from tqdm import tqdm
-from multiprocessing import get_context
-import yaml
 import copy
-import re
 
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import os
-from numba import njit
 
-from poissonsolver.operators import lapl, grad
 from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_potential
 from poissonsolver.linsystem import matrix_cart, matrix_axisym, dirichlet_bc_axi
-from poissonsolver.postproc import lapl_diff
 
 from scipy.sparse.linalg import spsolve
-from scipy import interpolate
-import scipy.constants as co
+
+matplotlib.use('Agg')
 
 
 def compute_voln(X, dx, dy):
-    """ Computes the nodal volume associated to each node (i, j) """
+    """ Computes the nodal volume associated to each node (i, j). """
     voln = np.ones_like(X) * dx * dy
     voln[:, 0], voln[:, -1], voln[0, :], voln[-1, :] = \
         dx * dy / 2, dx * dy / 2, dx * dy / 2, dx * dy / 2
@@ -41,18 +34,11 @@ def compute_voln(X, dx, dy):
         dx * dy / 4, dx * dy / 4, dx * dy / 4, dx * dy / 4
     return voln
 
-matplotlib.use('Agg')
-
-# Hardcoded parameters
-domain_length = 0.01
-plot_period = 1000
-
-
 
 def inside_plot(fig, axis, n_x, n_y, n, ones, log_t, title, limit, axes_max_x, axes_max_y):
     if log_t:
-        #cs1 = ax[0].contourf(n_f, n_f, np.maximum(-2*ones,np.log(n)), 100, cmap='Blues')
-        cs1 = axis.contourf(n_x, n_y, np.maximum(-0.5*ones,np.log(np.maximum(0.0001*ones,n))), 100, cmap='Blues')
+        # cs1 = ax[0].contourf(n_f, n_f, np.maximum(-2*ones,np.log(n)), 100, cmap='Blues')
+        cs1 = axis.contourf(n_x, n_y, np.maximum(-0.5*ones, np.log(np.maximum(0.0001*ones, n))), 100, cmap='Blues')
     else:
         cs1 = axis.contourf(n_x, n_y, n, 100, cmap='Blues')
 
@@ -65,7 +51,7 @@ def inside_plot(fig, axis, n_x, n_y, n, ones, log_t, title, limit, axes_max_x, a
     fig.colorbar(cs1, ax=axis)
 
 
-def plot_fields( n_x, n_y, rhs, potential, potential_rhs, potential_BC, potential_solved, index_b, log_t, initial):
+def plot_fields(n_x, n_y, rhs, potential, potential_rhs, potential_bc, potential_solved, index_b, log_t, initial):
     axes_max_x = np.max(n_x)
     axes_max_y = np.max(n_y) 
     limit = True
@@ -81,13 +67,17 @@ def plot_fields( n_x, n_y, rhs, potential, potential_rhs, potential_BC, potentia
 
     fig, ax = plt.subplots(figsize=(size_big, 10), nrows=1, ncols=ncols)
 
-    inside_plot( fig, ax[0], n_x, n_y, rhs[index_b], ones, log_t,  'rhs', limit, axes_max_x, axes_max_y)
-    inside_plot( fig, ax[1], n_x, n_y, potential[index_b], ones, log_t,  'Initial Potential', limit, axes_max_x, axes_max_y)
+    inside_plot(fig, ax[0], n_x, n_y, rhs[index_b], ones, log_t,  'rhs', limit, axes_max_x, axes_max_y)
+    inside_plot(fig, ax[1], n_x, n_y, potential[index_b], ones, log_t,  'Initial Potential',
+                limit, axes_max_x, axes_max_y)
 
     if not initial:
-       inside_plot( fig, ax[2], n_x, n_y, potential_rhs[index_b], ones, log_t,  'Potential rhs', limit, axes_max_x, axes_max_y)
-       inside_plot( fig, ax[3], n_x, n_y, potential_BC[index_b], ones, log_t,  'Potential BC', limit, axes_max_x, axes_max_y)
-       inside_plot( fig, ax[4], n_x, n_y, potential_solved[index_b], ones, log_t,  'Potential solved', limit, axes_max_x, axes_max_y)  
+        inside_plot(fig, ax[2], n_x, n_y, potential_rhs[index_b], ones, log_t,  'Potential rhs',
+                    limit, axes_max_x, axes_max_y)
+        inside_plot(fig, ax[3], n_x, n_y, potential_bc[index_b], ones, log_t, 'Potential BC',
+                    limit, axes_max_x, axes_max_y)
+        inside_plot(fig, ax[4], n_x, n_y, potential_solved[index_b], ones, log_t,  'Potential solved',
+                    limit, axes_max_x, axes_max_y)
 
     if initial:
         plt.savefig(fig_path / 'Potential_initial_fields_{}.png'.format(index_b),dpi=300)
@@ -96,49 +86,55 @@ def plot_fields( n_x, n_y, rhs, potential, potential_rhs, potential_BC, potentia
     plt.close()
 
 
-
-def big_loop(potential, rhs, A, fig_path):
-    potential_BC = np.zeros_like(potential)
+def separate_problem(potential, rhs, A):
+    """ Separate the problem in the Laplace and Poisson problems. Basically does the big loop. """
+    potential_bc = np.zeros_like(potential)
     potential_rhs = np.zeros_like(potential) 
     potential_solved = np.zeros_like(potential)  
 
     for i in tqdm(range(potential.shape[0])):
         # Get BC
-        left_BC = potential[ i, :, 0]
-        right_BC = potential[ i, :, -1]
-        sup_BC = potential[ i, -1, :]
-        inf_BC = potential[ i, 0, :]
+        left_bc = potential[i, :, 0]
+        right_bc = potential[i, :, -1]
+        sup_bc = potential[i, -1, :]
+        inf_bc = potential[i, 0, :]
 
         # Just in case
-        max_left = np.rint(np.mean(left_BC))
-        max_right = np.rint(np.mean(right_BC))
-        lateral_BC = np.linspace(max_left, max_right, potential.shape[2])
+        max_left = np.rint(np.mean(left_bc))
+        max_right = np.rint(np.mean(right_bc))
+        lateral_bc = np.linspace(max_left, max_right, potential.shape[2])
 
         # Expand the Lateral BC as the resulting linear potential field
-        potential_BC[i] =  np.repeat(sup_BC[np.newaxis, :], potential.shape[1], axis=0)
+        potential_bc[i] = np.repeat(sup_bc[np.newaxis, :], potential.shape[1], axis=0)
 
-        # Hard Copy the left and right (just in case corners are wierdly solved)
-        potential_BC[ i, :, 0] = left_BC
-        potential_BC[ i, :, -1] = right_BC
-        #potential_BC[ i, -1, :] = sup_BC 
-        #potential_BC[ i, 0, :]  = inf_BC
+        # Hard copy the left and right (just in case corners are weirdly solved)
+        potential_bc[i, :, 0] = left_bc
+        potential_bc[i, :, -1] = right_bc
+        # potential_bc[i, -1, :] = sup_bc
+        # potential_bc[i, 0, :]  = inf_bc
 
         # Create the new rhs potential
-        potential_rhs[i] = potential[i] - potential_BC[i]
+        potential_rhs[i] = potential[i] - potential_bc[i]
 
         # Check the new rhs corresponds to 
-        potential_solved[i] = spsolve(A, rhs[i].reshape(-1) * - scale ).reshape(nny, nnx)
+        potential_solved[i] = spsolve(A, rhs[i].reshape(-1) * - scale).reshape(nny, nnx)
 
         # Testing
-        np.testing.assert_allclose(potential_rhs[i], potential_solved[i], atol=1e-07, equal_nan=True, err_msg='Arrays not equal! Check for errors', verbose=True)
+        np.testing.assert_allclose(potential_rhs[i], potential_solved[i], atol=1e-07, equal_nan=True,
+                                   err_msg='Arrays not equal! Check for errors', verbose=True)
 
-    return potential_rhs, potential_BC, potential_solved
+    return potential_rhs, potential_bc, potential_solved
+
 
 if __name__ == '__main__':
     # CLI argument parser
-    parser = argparse.ArgumentParser(description="Separate the rhs datasets into a Laplace (Dirichlet BC) and Poisson problem")
-    parser.add_argument('dataset', type=Path, help='Input dataset path')
-
+    parser = argparse.ArgumentParser(description="Separate the rhs datasets into a Laplace (Dirichlet BC) "
+                                                 "and Poisson problem")
+    parser.add_argument("dataset", type=Path, help="Input dataset path")
+    parser.add_argument("lx", type=float, help="Domain length along x")
+    parser.add_argument("ly", type=float, help="Domain length along y")
+    parser.add_argument("--axisym", action="store_true", help="Axisymmetric dataset")
+    parser.add_argument("--plot", action="store_true", help="Execute some plots")
     args = parser.parse_args()
 
     # Load the input dataset
@@ -151,9 +147,6 @@ if __name__ == '__main__':
     print(f'Dataset size : {rhs.shape[0]}')
     print(f'Shape of potential field : {potential.shape}')
 
-    # Do you want to plot fields? 5hardcoded, to be implemented in a fancier way)
-    plot_fig = False
-
     # Determine new dataset name
     new_name = args.dataset.name
     new_name += '_separated_BC_rhs'
@@ -164,14 +157,14 @@ if __name__ == '__main__':
 
     if not os.path.exists(new_path):
         new_path.mkdir()
-    if not os.path.exists(fig_path) and plot_fig:
+    if not os.path.exists(fig_path) and args.plot:
         fig_path.mkdir()
     print(new_path.as_posix())
     print(fig_path.as_posix())
 
     # nx and ny definition
-    n_x = np.arange(0,potential.shape[2])
-    n_y = np.arange(0,potential.shape[1]) 
+    n_x = np.arange(0, potential.shape[2])
+    n_y = np.arange(0, potential.shape[1])
 
     potential_rhs_0 = np.zeros_like(potential)
     potential_BC_0 = np.zeros_like(potential) 
@@ -181,15 +174,16 @@ if __name__ == '__main__':
     initial = True
     verbose = True
 
-    if plot_fig:
+    if args.plot:
         # Index definition for first plot
-        plot_fields( n_x, n_y, rhs, potential, potential_rhs_0, potential_BC_0, potential_solved_0, index_b, log_t, initial)
+        plot_fields(n_x, n_y, rhs, potential, potential_rhs_0, potential_BC_0, potential_solved_0,
+                    index_b, log_t, initial)
 
     # Matrix A creation
     nnx, nny = potential.shape[2], potential.shape[1]
     ncx, ncy = nnx - 1, nny - 1  # Number of cells
-    xmin, xmax = 0, 0.004
-    ymin, ymax = 0, 0.001
+    xmin, xmax = 0, args.lx
+    ymin, ymax = 0, args.ly
     Lx, Ly = xmax - xmin, ymax - ymin
     dx = (xmax - xmin) / ncx
     dy = (ymax - ymin) / ncy
@@ -198,12 +192,12 @@ if __name__ == '__main__':
 
     # Grid construction
     X, Y = np.meshgrid(x, y)
-    R_nodes = copy.deepcopy(Y)
-    R_nodes[0] = dy / 4
-    voln = compute_voln(X, dx, dy) * R_nodes
-    sij = np.array([dy / 2, dx / 2])
+    voln = compute_voln(X, dx, dy)
+    if args.axisym:
+        R_nodes = copy.deepcopy(Y)
+        R_nodes[0] = dy / 4
+        voln *= R_nodes
     scale = dx * dy
-
 
     # Print header to sum up the parameters
     if verbose:
@@ -213,32 +207,22 @@ if __name__ == '__main__':
         print('------------------------------------')
 
     # Construction of the matrix
-    A = matrix_axisym(dx, dy, nnx, nny, R_nodes, scale)
+    if args.axisym:
+        A = matrix_axisym(dx, dy, nnx, nny, R_nodes, scale)
+    else:
+        A = matrix_cart(dx, dy, nnx, nny, scale)
 
     # Main loop
-    potential_rhs, potential_BC, potential_solved = big_loop(potential, rhs, A, fig_path)
+    pot_rhs, pot_bc, pot_solved = separate_problem(potential, rhs, A)
 
-    if plot_fig:
+    if args.plot:
         # Plot some fields after the correction
         initial = False
         for index_k in range(5):
-            plot_fields( n_x, n_y, rhs, potential, potential_rhs, potential_BC, potential_solved, index_k, log_t, initial) 
+            plot_fields(n_x, n_y, rhs, potential, pot_rhs, pot_bc, pot_solved, index_k, log_t, initial)
 
     # Save the new dataset
     np.save(new_path / 'potential_orig.npy', potential)
-    np.save(new_path / 'potential_rhs.npy', potential_rhs)
-    np.save(new_path / 'potential_BC.npy', potential_BC)
+    np.save(new_path / 'potential_rhs.npy', pot_rhs)
+    np.save(new_path / 'potential_BC.npy', pot_bc)
     np.save(new_path / 'rhs.npy', rhs)
-
-
-
-
-
-
-
-
-
-
-
-
-
