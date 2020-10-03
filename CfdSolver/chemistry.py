@@ -9,9 +9,8 @@ fig_dir = 'figures/'
 if not os.path.exists(fig_dir):
     os.makedirs(fig_dir)
 
-
 @njit(cache=True)
-def morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln, irate=None):
+def morrow(mu, D, E_field, nd, resnd, nnx, nny, voln, irate=None):
     ngas, Tgas = 2.688e25, 300
     beta_recombination = 2e-13
     ionization_rate, attachment_rate = 0, 0
@@ -24,10 +23,10 @@ def morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln, irat
             ionization_freq = ionization_rate_morrow(normE / ngas, ngas) * mu[j, i] * normE
             attachment_freq = attachment_rate_morrow(normE / ngas, ngas) * mu[j, i] * normE
 
-            if irate is not None: irate[j, i] = ne[j, i] * ionization_freq * photo_coeff(normE / ngas / co.k / Tgas)
-            resp[j, i] -= (ne[j, i] * ionization_freq - (ne[j, i] + nn[j, i]) * nionp[j, i] * beta_recombination) * voln[j, i]
-            resn[j, i] -= (ne[j, i] * attachment_freq - nn[j, i] * nionp[j, i] * beta_recombination) * voln[j, i]
-            rese[j, i] -= (ne[j, i] * ionization_freq - ne[j, i] * attachment_freq - ne[j, i] * nionp[j, i] * beta_recombination) * voln[j, i]
+            if irate is not None: irate[j, i] = nd[0, j, i] * ionization_freq * photo_coeff(normE / ngas / co.k / Tgas)
+            resnd[0, j, i] -= (nd[0, j, i] * ionization_freq - nd[0, j, i] * attachment_freq - nd[0, j, i] * nd[1, j, i] * beta_recombination) * voln[j, i]
+            resnd[1, j, i] -= (nd[0, j, i] * ionization_freq - (nd[0, j, i] + nd[2, j, i]) * nd[1, j, i] * beta_recombination) * voln[j, i]
+            resnd[2, j, i] -= (nd[0, j, i] * attachment_freq - nd[2, j, i] * nd[1, j, i] * beta_recombination) * voln[j, i]
 
 
 

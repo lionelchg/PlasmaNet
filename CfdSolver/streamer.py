@@ -39,9 +39,6 @@ def plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, potential, E_fi
     plot_streamer(X, Y, ne, rese / voln, nionp, resp / voln, nn, resn / voln, dtsum, number, fig_dir)
     try:
         plot_set_2D(X, Y, - lapl_pot, potential, E_field, 'Poisson fields', fig_dir + 'EM_%04d' % number, no_rhs=False, axi=True)
-        # E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
-        # plot_set_1D(X[0, :], physical_rhs, potential, E_field_norm, lapl_pot, np.shape(X)[0], '1D EM cuts',
-        #         fig_dir + 'EM_1D_instant_%04d' % number, no_rhs=False, direction='x')
     except:
         print('Error plot poisson')
         pass
@@ -67,12 +64,10 @@ def main(config):
     # Grid construction
     X, Y = np.meshgrid(x, y)
     geom = config['params']['geom']
-    if geom == 'xr':
-        R_nodes = copy.deepcopy(Y)
-        R_nodes[0] = dy / 4
-        voln = compute_voln(X, dx, dy) * R_nodes
-    else:
-        voln = compute_voln(X, dx, dy)
+    R_nodes = copy.deepcopy(Y)
+    R_nodes[0] = dy / 4
+    voln = compute_voln(X, dx, dy) * R_nodes
+
     sij = np.array([dy / 2, dx / 2])
     scale = dx * dy
 
@@ -80,8 +75,7 @@ def main(config):
     a = np.zeros((2, nny, nnx))
 
     # Transport coefficients
-    mu = np.zeros_like(X)
-    D = np.zeros_like(X)
+    mu, D = np.zeros_like(X), np.zeros_like(X)
 
     # Creation of the figures directory and numbering of outputs
     fig_dir = 'figures/' + config['casename']
@@ -93,7 +87,8 @@ def main(config):
     period = config['output']['period']
 
     file_type = config['output']['files']
-    if re.search('data', file_type):
+    save_fig, save_data = re.search('fig', file_type), re.search('data', file_type)
+    if save_data:
         data_dir = 'data/' + config['casename']
         create_dir(data_dir)
 
@@ -139,28 +134,23 @@ def main(config):
     if input_fn == 'none':
         number = 1
 
-        # Scalar and Residual declaration
-        ne, rese = np.zeros_like(X), np.zeros_like(X)
-        nionp, resp = np.zeros_like(X), np.zeros_like(X)
-        nn, resn = np.zeros_like(X), np.zeros_like(X)
-
-        # Gaussian initialization for the electrons and positive ions
+        nd = np.zeros((3, nny, nnx))
+        resnd = np.zeros((3, nny, nnx))
         # Gaussian initialization for the electrons and positive ions
         n_back = config['params']['n_back']
         n_gauss = config['params']['n_gauss']
-        ne = gaussian(X, Y, n_gauss, 2e-3, 0, 2e-4, 2e-4) + n_back
-        nionp = gaussian(X, Y, n_gauss, 2e-3, 0, 2e-4, 2e-4) + n_back
+        nd[0, :] = gaussian(X, Y, n_gauss, 2e-3, 0, 2e-4, 2e-4) + n_back
+        nd[1, :] = gaussian(X, Y, n_gauss, 2e-3, 0, 2e-4, 2e-4) + n_back
 
     else:
         # Scalar and Residual declaration
-        rese, resp, resn = np.zeros_like(X), np.zeros_like(X), np.zeros_like(X)
+        resnd = np.zeros((3, nny, nnx))
 
         # Loading of densities
-        ne = np.load(config['input']['ne'])
-        nionp = np.load(config['input']['np'])
-        nn = np.load(config['input']['nn'])
+        nd = np.load(config['input']['nd'])
 
         number = int(re.search('_(\d+)\.npy', config['input']['ne']).group(1)) + 1
+        dtsum = (number - 1) * config['output']['period'] * dt
 
 
     # Print header to sum up the parameters
@@ -177,10 +167,7 @@ def main(config):
         print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
     # Construction of the matrix
-    if geom == 'xr':
-        A = matrix_axisym(dx, dy, nnx, nny, R_nodes, scale)
-    elif geom == 'xy':
-        A = matrix_cart(dx, dy, nnx, nny, scale)
+    A = matrix_axisym(dx, dy, nnx, nny, R_nodes, scale)
 
     if config['output']['dl_save'] == 'yes':
         potential_list = np.zeros((nit, nny, nnx))
@@ -198,7 +185,8 @@ def main(config):
         dtsum += dt
 
         # Solve the Poisson equation / Axisymmetric resolution
-        physical_rhs = (nionp - ne - nn).reshape(-1) * co.e / co.epsilon_0
+        physical_rhs = (nd[1] - nd[0] - nd[2]).reshape(-1) * co.e / co.epsilon_0
+        # physical_rhs = (nionp - ne - nn).reshape(-1) * co.e / co.epsilon_0
         rhs = - physical_rhs * scale
         dirichlet_bc_axi(rhs, nnx, nny, up, left, right)
         potential = spsolve(A, rhs).reshape(nny, nnx)
@@ -206,11 +194,11 @@ def main(config):
         physical_rhs = physical_rhs.reshape((nny, nnx))
 
         # Update of the residual to zero
-        rese[:], resp[:], resn[:] = 0, 0, 0
+        resnd[:] = 0
 
         # Application of chemistry
         if photo and it % 10 == 1:
-            morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln, irate=irate)
+            morrow(mu, D, E_field, nd, resnd, nnx, nny, voln, irate=irate)
             Sph[:] = 0
             print('--> Photoionization resolution')
             if photo_model == 'two':
@@ -224,33 +212,26 @@ def main(config):
                     dirichlet_bc_axi(rhs, nnx, nny, up_photo, left_photo, right_photo)
                     Sph += spsolve(mats_photo[i], rhs).reshape(nny, nnx)
         else:
-            morrow(mu, D, E_field, ne, rese, nionp, resp, nn, resn, nnx, nny, voln)
+            morrow(mu, D, E_field, nd, resnd, nnx, nny, voln)
 
         if photo:
-            rese -= Sph * voln
-            resp -= Sph * voln
+            resnd[0] -= Sph * voln
+            resnd[1] -= Sph * voln
 
         # Convective and diffusive flux
         a = - mu * E_field
-        diff_flux = D * grad(ne, dx, dy, nnx, nny)
+        diff_flux = D * grad(nd[0], dx, dy, nnx, nny)
 
         # Loop on the cells to compute the interior flux and update residuals
-        if geom == 'xy':
-            compute_flux(rese, a, ne, diff_flux, sij, ncx, ncy)
-            outlet_y(rese, a, ne, diff_flux, dx, 0)
-            outlet_y(rese, a, ne, diff_flux, dx, -1)
-            outlet_x(rese, a, ne, diff_flux, dy, 0)
-            outlet_x(rese, a, ne, diff_flux, dy, -1)
-        elif geom == 'xr':
-            compute_flux(rese, a, ne, diff_flux, sij, ncx, ncy, r=y)
-            # Boundary conditions
-            outlet_y(rese, a, ne, diff_flux, dx, -1, r=np.max(Y))
-            outlet_x(rese, a, ne, diff_flux, dy, 0, r=Y)
-            outlet_x(rese, a, ne, diff_flux, dy, -1, r=Y)
+        compute_flux(resnd[0], a, nd[0], diff_flux, sij, ncx, ncy, r=y)
+        # Boundary conditions
+        outlet_y(resnd[0], a, nd[0], diff_flux, dx, -1, r=np.max(Y))
+        outlet_x(resnd[0], a, nd[0], diff_flux, dy, 0, r=Y)
+        outlet_x(resnd[0], a, nd[0], diff_flux, dy, -1, r=Y)
 
-        ne = ne - rese * dt / voln
-        nionp = nionp - resp * dt / voln
-        nn = nn - resn * dt / voln
+
+        for i in range(2):
+            nd[i] = nd[i] - resnd[i] * dt / voln
 
         # Post processing of macro values
         normE = np.sqrt(E_field[0, :, :]**2 + E_field[1, :, :]**2)
@@ -259,7 +240,7 @@ def main(config):
         indneg = np.argmax(normE_ax[:n_middle])
         indpos = n_middle + np.argmax(normE_ax[n_middle:])
         gstreamer[it, 1], gstreamer[it, 2] = x[np.argmax(normE_ax[:n_middle])], x[n_middle + np.argmax(normE_ax[n_middle:])]
-        gstreamer[it, 3] = gstreamer[it - 1, 3] + co.e * dt * np.sum(ne * mu * normE * voln)
+        gstreamer[it, 3] = gstreamer[it - 1, 3] + co.e * dt * np.sum(nd[0] * mu * normE * voln)
 
         if verbose and (it % period == 0 or it == nit):
             print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, dt, dtsum, width=14))
@@ -273,39 +254,16 @@ def main(config):
 
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
-                if file_type == 'fig':
-                    if geom == 'xr':
-                        lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
-                    elif geom == 'xy':
-                        lapl_pot = lapl(potential, dx, dy, nnx, nny)
-
-                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs,
-                        potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
-                    if photo:
-                        plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_%04d' % number)
-                    number += 1
-                elif file_type == 'data':
-                    np.save(data_dir + 'ne_%04d' % number, ne)
-                    np.save(data_dir + 'np_%04d' % number, nionp)
-                    np.save(data_dir + 'nn_%04d' % number, nn)
-                    number += 1
-                else:
-                    if geom == 'xr':
-                        lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
-                    elif geom == 'xy':
-                        lapl_pot = lapl(potential, dx, dy, nnx, nny)
-
-                    plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs,
+                if save_fig:
+                    lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
+                    plot_it(X, Y, nd[0], resnd[0], nd[1], resnd[1], nd[2], resnd[2], physical_rhs,
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     if photo: 
                         plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_%04d' % number)
-                    np.save(data_dir + 'ne_%04d' % number, ne)
-                    np.save(data_dir + 'np_%04d' % number, nionp)
-                    np.save(data_dir + 'nn_%04d' % number, nn)
-                    number += 1
-        elif save_type == 'time':
-            if np.abs(dtsum - number * period) < 0.1 * dt or it == nit:
-                plot_it()
+                if save_data:
+                    np.save(data_dir + f'nd_{number:04d}', nd)
+
+                number += 1
         elif save_type == 'none':
             pass
 
