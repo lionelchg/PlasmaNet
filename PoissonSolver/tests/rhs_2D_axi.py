@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # creating the rhs
     ni0 = 1e16
     sigma_x, sigma_y = 1e-3, 1e-3
-    x0, y0 = 2e-4, 0
+    x0, y0 = 2e-3, 0
     rhs = np.zeros(nx * nr)
 
     # interior rhs
@@ -51,12 +51,12 @@ if __name__ == '__main__':
     zeros_x, zeros_r = np.zeros(nx), np.zeros(nr)
     dirichlet_bc_axi(rhs, nx, nr, zeros_x, zeros_r, zeros_r)
     potential = spsolve(A, rhs).reshape(nr, nx)
-
+    
     # Axisymmetric resolution
     R_nodes = copy.deepcopy(R)
     R_nodes[0] = dr / 4
     A = matrix_axisym(dx, dr, nx, nr, R_nodes, scale)
-    rhs = - physical_rhs
+    rhs = - physical_rhs * scale
     dirichlet_bc_axi(rhs, nx, nr, zeros_x, zeros_r, zeros_r)
     potential_axi = spsolve(A, rhs).reshape(nr, nx)
 
