@@ -38,7 +38,7 @@ def create_dir(dir_name):
 def plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, potential, E_field, lapl_pot, voln, dtsum, number, fig_dir):
     plot_streamer(X, Y, ne, rese / voln, nionp, resp / voln, nn, resn / voln, dtsum, number, fig_dir)
     try:
-        plot_set_2D(X, Y, - lapl_pot, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False, axi=True)
+        plot_set_2D(X, Y, - lapl_pot, potential, E_field, 'Poisson fields', fig_dir + 'EM_%04d' % number, no_rhs=False, axi=True)
         # E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
         # plot_set_1D(X[0, :], physical_rhs, potential, E_field_norm, lapl_pot, np.shape(X)[0], '1D EM cuts',
         #         fig_dir + 'EM_1D_instant_%04d' % number, no_rhs=False, direction='x')
@@ -145,12 +145,11 @@ def main(config):
         nn, resn = np.zeros_like(X), np.zeros_like(X)
 
         # Gaussian initialization for the electrons and positive ions
-        if photo:
-            n_back = 1e9
-        else:
-            n_back = 1e14
-        ne = gaussian(X, Y, 1e19, 2e-3, 0, 2e-4, 2e-4) + n_back
-        nionp = gaussian(X, Y, 1e19, 2e-3, 0, 2e-4, 2e-4) + n_back
+        # Gaussian initialization for the electrons and positive ions
+        n_back = config['params']['n_back']
+        n_gauss = config['params']['n_gauss']
+        ne = gaussian(X, Y, n_gauss, 2e-3, 0, 2e-4, 2e-4) + n_back
+        nionp = gaussian(X, Y, n_gauss, 2e-3, 0, 2e-4, 2e-4) + n_back
 
     else:
         # Scalar and Residual declaration
@@ -283,7 +282,7 @@ def main(config):
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs,
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     if photo:
-                        plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
+                        plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_%04d' % number)
                     number += 1
                 elif file_type == 'data':
                     np.save(data_dir + 'ne_%04d' % number, ne)
@@ -299,7 +298,7 @@ def main(config):
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs,
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     if photo: 
-                        plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
+                        plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_%04d' % number)
                     np.save(data_dir + 'ne_%04d' % number, ne)
                     np.save(data_dir + 'np_%04d' % number, nionp)
                     np.save(data_dir + 'nn_%04d' % number, nn)

@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'dh_streamer_photo_UNet'                      # Experience name
+name: 'dh_photo_UNet'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -37,7 +37,7 @@ data_loader:
     type: 'PhotoDataLoader'
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/plasmanet/CfdSolver/data/dh_streamer_4'
+        data_dir: '/scratch/cfd/cheng/DL/plasmanet/CfdSolver/data/dh_streamer_2'
         batch_size: 64
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
@@ -64,7 +64,7 @@ loss:
         inside_weight: 1.                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
-        lapl_weight: 0.2                    # Weighting of the loss on the Laplacian (float)
+        lapl_weight: 0.0                    # Weighting of the loss on the Laplacian (float)
 
 metrics:
     - 'residual'

@@ -19,6 +19,7 @@
 
 name: 'dh_streamer_eval'                            # Experience name
 n_gpu: 1                                    # Number of GPUs to use
+resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/models/dh_streamer_UNet/1001_083400/model_best.pth'
 
 globals:                                    # Domain sizes and others, used to compute global attributes
     nnx: 401

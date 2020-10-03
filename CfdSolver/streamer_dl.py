@@ -44,6 +44,7 @@ import PlasmaNet.model.loss as module_loss
 import PlasmaNet.model.metric as module_metric
 from PlasmaNet.parse_config import ConfigParser
 from PlasmaNet.trainer.trainer import plot_batch
+import PlasmaNet.model as module_arch
 
 def create_dir(dir_name):
     if not os.path.exists(dir_name):
@@ -53,7 +54,7 @@ def plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, potential, E_fi
     plot_streamer(X, Y, ne, rese / voln, nionp, resp / voln, nn, resn / voln, dtsum, number, fig_dir)
     try:
         #plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False, axi=True)
-        plot_set_2D(X, Y, - lapl_pot, potential, E_field, 'Poisson fields', fig_dir + 'EM_instant_%04d' % number, no_rhs=False, axi=True)
+        plot_set_2D(X, Y, - lapl_pot, potential, E_field, 'Poisson fields', fig_dir + 'EM_%04d' % number, no_rhs=False, axi=True)
         # E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
         # plot_set_1D(X[0, :], physical_rhs, potential, E_field_norm, lapl_pot, np.shape(X)[0], '1D EM cuts', 
         #         fig_dir + 'EM_1D_instant_%04d' % number, no_rhs=False, direction='x')
@@ -103,10 +104,6 @@ def main(config, config_dl):
     dy = (ymax - ymin) / ncy
     x = np.linspace(xmin, xmax, nnx)
     y = np.linspace(ymin, ymax, nny)
-
-    # Scaling for network
-    alpha = 0.1
-    scale_net = alpha / (np.pi**2 / 4)**2 / (1 / Lx**2 + 1 / Ly**2)
 
     # Grid construction
     X, Y = np.meshgrid(x, y)
@@ -189,12 +186,10 @@ def main(config, config_dl):
         nn, resn = np.zeros_like(X), np.zeros_like(X)
 
         # Gaussian initialization for the electrons and positive ions
-        if photo:
-            n_back = 1e9
-        else:
-            n_back = 1e14
-        ne = gaussian(X, Y, 1e19, 2e-3, 0, 2e-4, 2e-4) + n_back
-        nionp = gaussian(X, Y, 1e19, 2e-3, 0, 2e-4, 2e-4) + n_back
+        n_back = config['params']['n_back']
+        n_gauss = config['params']['n_gauss']
+        ne = gaussian(X, Y, n_gauss, 2e-3, 0, 2e-4, 2e-4) + n_back
+        nionp = gaussian(X, Y, n_gauss, 2e-3, 0, 2e-4, 2e-4) + n_back
 
     else:
         # Scalar and Residual declaration
@@ -232,9 +227,9 @@ def main(config, config_dl):
     gstreamer[:, 0] = np.linspace(0, nit * dt, nit + 1)
 
     # Traditional
-    traditional = False
+    dl_solve = True
 
-    # Normalization
+    # Normalization of rhs from the network
     alpha = 0.1
     ratio = alpha / (np.pi**2 / 4)**2 / (1 / Lx**2 + 1 / Ly**2)
 
@@ -243,38 +238,21 @@ def main(config, config_dl):
         dtsum += dt
 
         # Solve the Poisson equation / Axisymmetric resolution
-        physical_rhs = (nionp - ne - nn).reshape(-1) * co.e / co.epsilon_0
-        rhs = - physical_rhs * scale
-        # Traditional
-        if traditional or it < 100 or it % 10 ==1:
-            dirichlet_bc_axi(rhs, nnx, nny, up, left, right)
-            potential = spsolve(A, rhs).reshape(nny, nnx)
 
-            # Determine lineal field
-            left_BC = potential[ :, 0]
-            right_BC = potential[ :, -1]
-            sup_BC = potential[ -1, :]
-
-            # Expand the Lateral BC as the resulting linear potential field
-            potential_BC =  np.repeat(sup_BC[np.newaxis, :], potential.shape[0], axis=0)
-
-            # Hard Copy the left and right (just in case corners are wierdly solved)
-            potential_BC[ :, 0] = left_BC
-            potential_BC[ :, -1] = right_BC
-            potential_rhs = potential - potential_BC
-
-        else:
-            # Normalize
-            rhs_nor = physical_rhs * ratio 
-            rhs_inter = rhs_nor.reshape((nny, nnx))
-            # Convert to torch.Tensor of shape (batch_size, 1, H, W)
-            physical_rhs_torch = torch.from_numpy(rhs_inter[np.newaxis, np.newaxis, :, :]).float().cuda()
+        if dl_solve:
+            physical_rhs = (nionp - ne - nn) * co.e / co.epsilon_0
+            # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
+            physical_rhs_torch = torch.from_numpy(physical_rhs[np.newaxis, np.newaxis, :, :] * ratio).float().cuda()
             potential_torch = model(physical_rhs_torch)
             potential_rhs = potential_torch.detach().cpu().numpy()[0, 0]
-            potential = potential_rhs + potential_BC 
-            physical_rhs = rhs_nor
+            potential = potential_rhs - backE * X
+        else:
+            physical_rhs = (nionp - ne - nn).reshape(-1) * co.e / co.epsilon_0
+            rhs = - physical_rhs * scale
+            dirichlet_bc_axi(rhs, nnx, nny, up, left, right)
+            potential = spsolve(A, rhs).reshape(nny, nnx)
+            physical_rhs = physical_rhs.reshape((nny, nnx))
             
-        physical_rhs_scale = (physical_rhs).reshape((nny, nnx))        
         E_field = - grad(potential, dx, dy, nnx, nny)
 
         # Update of the residual to zero
@@ -347,7 +325,7 @@ def main(config, config_dl):
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     if photo:
-                        plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
+                        plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_%04d' % number)
                     number += 1
                 elif file_type == 'data':
                     np.save(data_dir + 'ne_%04d' % number, ne)
@@ -363,7 +341,7 @@ def main(config, config_dl):
                     plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, 
                         potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
                     if photo:
-                        plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_instant_%04d' % number)
+                        plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_%04d' % number)
                     np.save(data_dir + 'ne_%04d' % number, ne)
                     np.save(data_dir + 'np_%04d' % number, nionp)
                     np.save(data_dir + 'nn_%04d' % number, nn)
@@ -397,9 +375,7 @@ if __name__ == '__main__':
     ]
     config_dl = ConfigParser.from_args(args, options)
 
-    with open('config_streamer.yml', 'r') as yaml_stream:
+    with open('config_streamer_dl.yml', 'r') as yaml_stream:
         config_streamer = yaml.safe_load(yaml_stream)
-
-    import PlasmaNet.model as module_arch
 
     main(config_streamer, config_dl)

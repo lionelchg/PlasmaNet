@@ -81,7 +81,7 @@ def plot_streamer(X, Y, ne, rese, nionp, resp, nn, resn, dtsum, number, fig_dir)
     plot_ax_scalar(fig, axes[2][1], X, Y, resn, "$r_n$")
     plt.tight_layout()
     plt.figtext(0.85, 0.07, '$t =$%.2e s' % dtsum, fontsize=12)
-    plt.savefig(fig_dir + 'dens_instant_%04d' % number, bbox_inches='tight')
+    plt.savefig(fig_dir + 'dens_%04d' % number, bbox_inches='tight')
     plt.close()
 
     fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(14, 10))
@@ -93,7 +93,7 @@ def plot_streamer(X, Y, ne, rese, nionp, resp, nn, resn, dtsum, number, fig_dir)
     plot_ax_scalar_1D(fig, axes[2][1], X, [0, 0.05, 0.1], resn, "$r_n$")
     plt.tight_layout()
     plt.figtext(0.85, 0.07, '$t =$%.2e s' % dtsum, fontsize=12)
-    plt.savefig(fig_dir + 'dens_instant_1D_%04d' % number, bbox_inches='tight')
+    plt.savefig(fig_dir + 'dens_cut_%04d' % number, bbox_inches='tight')
     plt.close()
 
 def plot_global(gstreamer, xrange, figname):
