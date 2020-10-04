@@ -16,7 +16,7 @@
 casename: 'dh_streamer_1/'
 
 params:
-  nit: 50
+  nit: 8000
   dt: 5.0e-13
   geom: 'xr'
   photoionization: 'no'
@@ -42,7 +42,7 @@ output:
   save: 'iteration'
   verbose: True
   files: 'figdata'
-  period: 10
+  period: 1000
   dl_save: 'yes'
 
 input: 'none'

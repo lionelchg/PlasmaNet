@@ -257,7 +257,7 @@ def main(config):
                 if save_fig:
                     plot_streamer(X, Y, nd, resnd / voln, dtsum, fig_dir + 'dens_%04d' % number)
                     plot_streamer_1D(X, Y, nd, resnd / voln, dtsum, [0, 0.25, 0.5], fig_dir + 'dens_cut_%04d' % number)
-                    plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_%04d' % number, no_rhs=False, axi=True)
+                    plot_set_2D(X, Y, physical_rhs, potential, E_field, f'$t$ = {dtsum:.2e} s', fig_dir + 'EM_%04d' % number, no_rhs=False, axi=True)
                     if photo:
                         plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_%04d' % number)
                 if save_data:
