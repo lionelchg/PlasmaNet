@@ -71,10 +71,13 @@ def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, axi
         plot_ax_scalar(fig, axes[0], X, Y, pot, r'$\phi$', axi=axi)
         plot_ax_vector_arrow(fig, axes[1], X, Y, E, r'$\mathbf{E}$', axi=axi)
     else:
-        fig, axes = plt.subplots(ncols=3, figsize=(16, 4))
-        plot_ax_scalar(fig, axes[0], X, Y, physical_rhs, r'$\rho / \epsilon_0$', axi=axi)
-        plot_ax_scalar(fig, axes[1], X, Y, pot, r'$\phi$', axi=axi)
-        plot_ax_vector_arrow(fig, axes[2], X, Y, E, r'$\mathbf{E}$', axi=axi)
+        fig = plt.figure(figsize=(12, 8))
+        ax = fig.add_subplot(221)
+        plot_ax_scalar(fig, ax, X, Y, physical_rhs, r'$\rho / \epsilon_0$', axi=axi)
+        ax = fig.add_subplot(222)
+        plot_ax_scalar(fig, ax, X, Y, pot, r'$\phi$', axi=axi)
+        ax = fig.add_subplot(212)
+        plot_ax_vector_arrow(fig, ax, X, Y, E, r'$\mathbf{E}$', axi=axi)
 
     plt.suptitle(figtitle)
     plt.tight_layout()
@@ -83,6 +86,7 @@ def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, axi
 
 
 def plot_ax_scalar(fig, ax, X, Y, field, title, colormap='RdBu', axi=False):
+    xmax, ymax = np.max(X[:]), np.max(Y[:])
     if colormap == 'RdBu':
         max_value = round_up(np.max(np.abs(field)), decimals=1)
         levels = np.linspace(- max_value, max_value, 101)
@@ -92,25 +96,33 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, colormap='RdBu', axi=False):
     fraction_cbar = 0.1
     if axi: 
         ax.contourf(X, - Y, field, levels, cmap=colormap)
-        aspect = 1.7 * np.max(Y) / fraction_cbar / np.max(X)
+        aspect = 1.7 * ymax / fraction_cbar / xmax
+        ymax = np.max(Y[:])
+        ax.set_yticks([-ymax, -ymax / 2, 0, ymax / 2, ymax])
     else:
-        aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
+        aspect = 0.85 * ymax / fraction_cbar / xmax
     fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect)
+
+    scilimx = int(np.log10(xmax) - 1)
+    ax.ticklabel_format(axis='x', style='sci', scilimits=(scilimx, scilimx))
+    ax.ticklabel_format(axis='y', style='sci', scilimits=(scilimx, scilimx))
+
     ax.set_aspect("equal")
     ax.set_title(title)
 
 
 def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', axi=False):
+    xmax, ymax = np.max(X[:]), np.max(Y[:])
     norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
-    arrow_step = 10
+    arrow_step = 20
     levels = np.linspace(0, np.max(norm_field), 101)
     CS = ax.contourf(X, Y, norm_field, levels, cmap=colormap)
     fraction_cbar = 0.1
     if axi:
         ax.contourf(X, - Y, norm_field, levels, cmap=colormap)
-        aspect = 1.7 * np.max(Y) / fraction_cbar / np.max(X)
+        aspect = 1.7 * ymax / fraction_cbar / xmax
     else:
-        aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
+        aspect = 0.85 * ymax / fraction_cbar / xmax
     cbar = fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect)
     q = ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
                 vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
@@ -118,6 +130,10 @@ def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', ax
         q = ax.quiver(X[::arrow_step, ::arrow_step], - Y[::arrow_step, ::arrow_step], 
             vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
     ax.set_title(name)
+    xmax, ymax = np.max(X[:]), np.max(Y[:])
+    scilimx = int(np.log10(xmax) - 1)
+    ax.ticklabel_format(axis='x', style='sci', scilimits=(scilimx, scilimx))
+    ax.ticklabel_format(axis='y', style='sci', scilimits=(scilimx, scilimx))
     ax.set_aspect('equal')
 
 

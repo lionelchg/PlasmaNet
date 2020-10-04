@@ -19,7 +19,7 @@ import re
 from boundary import outlet_x, outlet_y, perio_x, perio_y, full_perio
 from metric import compute_voln
 from operators import grad
-from plot import plot_scalar, plot_streamer, plot_global
+from plot import plot_scalar, plot_streamer, plot_streamer_1D, plot_global
 from scheme import compute_flux
 from chemistry import morrow
 
@@ -230,7 +230,7 @@ def main(config):
         outlet_x(resnd[0], a, nd[0], diff_flux, dy, -1, r=Y)
 
 
-        for i in range(2):
+        for i in range(3):
             nd[i] = nd[i] - resnd[i] * dt / voln
 
         # Post processing of macro values
@@ -255,10 +255,10 @@ def main(config):
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
                 if save_fig:
-                    lapl_pot = lapl(potential, dx, dy, nnx, nny, r=R_nodes)
-                    plot_it(X, Y, nd[0], resnd[0], nd[1], resnd[1], nd[2], resnd[2], physical_rhs,
-                        potential + backE * X, E_field, lapl_pot, voln, dtsum, number, fig_dir)
-                    if photo: 
+                    plot_streamer(X, Y, nd, resnd / voln, dtsum, fig_dir + 'dens_%04d' % number)
+                    plot_streamer_1D(X, Y, nd, resnd / voln, dtsum, [0, 0.25, 0.5], fig_dir + 'dens_cut_%04d' % number)
+                    plot_set_2D(X, Y, physical_rhs, potential, E_field, 'Poisson fields', fig_dir + 'EM_%04d' % number, no_rhs=False, axi=True)
+                    if photo:
                         plot_Sph_irate(X, Y, dx, dy, Sph, irate, nnx, nny, fig_dir + 'Sph_%04d' % number)
                 if save_data:
                     np.save(data_dir + f'nd_{number:04d}', nd)
