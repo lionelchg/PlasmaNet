@@ -16,7 +16,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_potential
-from poissonsolver.linsystem import matrix_cart, matrix_axisym
+from poissonsolver.linsystem import matrix_cart, matrix_axisym, laplace_square_matrix
 from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
 
@@ -57,13 +57,13 @@ def plot_fields(n_x, n_y, rhs, potential, potential_rhs, potential_bc, potential
 
     # Depending on initial or not, 2 or 5 images will be plotted
     if initial:
-        size_big = 20
+        size_big = 10
         ncols = 2
     else:
-        size_big = 50
+        size_big = 25
         ncols = 5
 
-    fig, ax = plt.subplots(figsize=(size_big, 10), nrows=1, ncols=ncols)
+    fig, ax = plt.subplots(figsize=(size_big, 5), nrows=1, ncols=ncols)
 
     inside_plot(fig, ax[0], n_x, n_y, rhs[index_b], ones, log_t,  'rhs', limit, axes_max_x, axes_max_y)
     inside_plot(fig, ax[1], n_x, n_y, potential[index_b], ones, log_t,  'Initial Potential',
@@ -84,7 +84,7 @@ def plot_fields(n_x, n_y, rhs, potential, potential_rhs, potential_bc, potential
     plt.close()
 
 
-def separate_problem(potential, rhs, A):
+def separate_potential(potential, physical_rhs, A):
     """ Separate the problem in the Laplace and Poisson problems. Basically does the big loop. """
     potential_bc = np.zeros_like(potential)
     potential_rhs = np.zeros_like(potential) 
@@ -115,11 +115,13 @@ def separate_problem(potential, rhs, A):
         potential_rhs[i] = potential[i] - potential_bc[i]
 
         # Check the new rhs corresponds to 
-        potential_solved[i] = spsolve(A, rhs[i].reshape(-1) * - scale).reshape(nny, nnx)
+        if args.use_mkl:
+            potential_solved[i] = sparse_qr_solve_mkl(A, physical_rhs[i].reshape(-1) * - scale).reshape(nny, nnx)
+        else:
+            potential_solved[i] = spsolve(A, physical_rhs[i].reshape(-1) * - scale).reshape(nny, nnx)
 
         # Testing
-        np.testing.assert_allclose(potential_rhs[i], potential_solved[i], atol=1e-07, equal_nan=True,
-                                   err_msg='Arrays not equal! Check for errors', verbose=True)
+        # np.testing.assert_allclose(potential_rhs[i], potential_solved[i], atol=1e-07, equal_nan=True, verbose=True)
 
     return potential_rhs, potential_bc, potential_solved
 
@@ -133,6 +135,9 @@ if __name__ == '__main__':
     parser.add_argument("ly", type=float, help="Domain length along y")
     parser.add_argument("--axisym", action="store_true", help="Axisymmetric dataset")
     parser.add_argument("--plot", action="store_true", help="Execute some plots")
+    parser.add_argument("--plot_period", type=int, default=50, help="Plot period (default: 50)")
+    parser.add_argument("--use_mkl", action="store_true",
+                        help="Use MKL sparse solver as suitesparse is not available on kraken")
     args = parser.parse_args()
 
     # Load the input dataset
@@ -157,8 +162,8 @@ if __name__ == '__main__':
         new_path.mkdir()
     if not os.path.exists(fig_path) and args.plot:
         fig_path.mkdir()
-    print(new_path.as_posix())
-    print(fig_path.as_posix())
+    print(f"new_path : {new_path}")
+    print(f"fig_path : {fig_path}")
 
     # nx and ny definition
     n_x = np.arange(0, potential.shape[2])
@@ -208,10 +213,15 @@ if __name__ == '__main__':
     if args.axisym:
         A = matrix_axisym(dx, dy, nnx, nny, R_nodes, scale)
     else:
-        A = matrix_cart(dx, dy, nnx, nny, scale)
+        # A = matrix_cart(dx, dy, nnx, nny, scale)
+        A = laplace_square_matrix(nnx)
+    if args.use_mkl:
+        from scipy.sparse import csr_matrix
+        from sparse_dot_mkl import sparse_qr_solve_mkl
+        A = csr_matrix(A)
 
     # Main loop
-    pot_rhs, pot_bc, pot_solved = separate_problem(potential, rhs, A)
+    pot_rhs, pot_bc, pot_solved = separate_potential(potential, rhs, A)
 
     if args.plot:
         # Plot some fields after the correction
