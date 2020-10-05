@@ -12,6 +12,9 @@ import copy
 import os
 from pathlib import Path
 
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+os.environ['MKL_NUM_THREADS'] = '25'
+
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
