@@ -94,7 +94,7 @@ xmin, xmax = s["min"].shared["x"], s["max"].shared["x"]
 ymin, ymax = s["min"].shared["y"], s["max"].shared["y"]
 x = np.linspace(xmin, xmax, args.nx)
 y = np.linspace(ymin, ymax, args.ny)
-x, y = np.meshgrid(x, y, indexing="ij")  # creating a regular structured cartesian mesh
+x, y = np.meshgrid(x, y, indexing="xy")  # creating a regular structured cartesian mesh of dim (ny, nx)
 interp_base = asc.Base()
 interp_base["0000"] = asc.Zone()
 instant_names = base[0].keys()  # create the same instants as in the source base

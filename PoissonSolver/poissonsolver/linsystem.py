@@ -10,6 +10,7 @@ import numpy as np
 from scipy import sparse
 import scipy.constants as co
 
+
 def laplace_square_matrix(n_points):
     diags = np.zeros((5, n_points * n_points))
 
@@ -47,6 +48,7 @@ def dirichlet_bc(rhs, n_points, up, down, left, right):
     rhs[-n_points] = 0.5 * (left[-1] + down[0])
     rhs[-1] = 0.5 * (right[-1] + down[-1])
 
+
 def matrix_cart(dx, dy, nx, ny, scale):
     """ Creation of the matrix for the down neumann, left/up/right dirichlet bc Poisson problem """
     diags = np.zeros((5, nx * ny))
@@ -74,6 +76,7 @@ def matrix_cart(dx, dy, nx, ny, scale):
     # Creating the matrix
     return sparse.csc_matrix(
         sparse.dia_matrix((diags, [0, 1, -1, nx, -nx]), shape=(nx * ny, nx * ny)))
+
 
 def matrix_axisym(dx, dr, nx, nr, R, scale):
     diags = np.zeros((5, nx * nr))
@@ -103,6 +106,7 @@ def matrix_axisym(dx, dr, nx, nr, R, scale):
     # Creating the matrix
     return sparse.csc_matrix(
         sparse.dia_matrix((diags, [0, 1, -1, nx, -nx]), shape=(nx * nr, nx * nr)))
+
 
 def dirichlet_bc_axi(rhs, nx, nr, up, left, right):
     # filling of the three dirichlet boundaries for axisymmetric test case

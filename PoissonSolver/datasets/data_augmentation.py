@@ -33,7 +33,7 @@ print(f"Initial shape: {potential.shape}")
 # Define some operations
 def reverse_y_axis(potential, physical_rhs):
     """ Reverse the y axis of the dataset. """
-    return np.flip(potential, axis=2), np.flip(physical_rhs, axis=2)
+    return np.flip(potential, axis=1), np.flip(physical_rhs, axis=1)
 
 operations_register = {
     "reverse_y_axis": reverse_y_axis
@@ -53,7 +53,7 @@ if args.plot:
     matplotlib.use("agg")
     x = np.arange(nx)
     y = np.arange(ny)
-    x, y = np.meshgrid(x, y, indexing="ij")
+    x, y = np.meshgrid(x, y, indexing="xy")
     
     for i in tqdm(range(0, potential.shape[0], args.plot_period)):
         fig, (ax1, ax2) = plt.subplots(figsize=(10, 4), nrows=1, ncols=2)
