@@ -14,7 +14,7 @@ import scipy.constants as co
 
 def laplace_square_matrix_reduced(n_points_orig):
 
-    n_points = n_points_orig 
+    n_points = n_points_orig - 2
     diags = np.zeros((5, n_points * n_points))
 
     # Filling the diagonal
