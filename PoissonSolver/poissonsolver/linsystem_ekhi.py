@@ -24,10 +24,20 @@ def laplace_square_matrix_reduced(n_points_orig):
     diags[3, :] = np.ones(n_points** 2)
     diags[4, :] = np.ones(n_points** 2)
     # Creating the matrix
+
+    # Correcting the missing terms
+    # Up to now we're supposing every cell has 4 neihbours
+    # Corner cells only have 2, and lateral ones 3, which means that in those rows there
+    # cannot be 4 non diagonal terms
+    for i in range(n_points ** 2):
+        if i % n_points == 0:
+            diags[2, i - 1] = 0 
+        if i % n_points == n_points - 1:
+            diags[1, min(i + 1, n_points ** 2 -n_points)] = 0
+
     # Definition sparse
     # dia_matrix((data, offsets), shape=(M, N))
     # where the data[k,:] stores the diagonal entries for diagonal offsets[k] (See example below)
-
     # Example
     # from scipy.sparse import dia_matrix
     # n = 10
