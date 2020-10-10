@@ -8,6 +8,7 @@
 
 import numpy as np
 from scipy import sparse
+from scipy.sparse.linalg import spsolve
 import scipy.constants as co
 
 
@@ -19,10 +20,10 @@ def laplace_square_matrix_reduced(n_points_orig):
 
     # Filling the diagonal
     diags[0, :] = - 4 * np.ones(n_points ** 2)
-    diags[1, :] = np.ones(n_points** 2)
-    diags[2, :] = np.ones(n_points** 2)
-    diags[3, :] = np.ones(n_points** 2)
-    diags[4, :] = np.ones(n_points** 2)
+    diags[1, :] = np.ones(n_points**2)
+    diags[2, :] = np.ones(n_points**2)
+    diags[3, :] = np.ones(n_points**2)
+    diags[4, :] = np.ones(n_points**2)
     # Creating the matrix
 
     # Correcting the missing terms
@@ -31,9 +32,9 @@ def laplace_square_matrix_reduced(n_points_orig):
     # cannot be 4 non diagonal terms
     for i in range(n_points ** 2):
         if i % n_points == 0:
-            diags[2, i - 1] = 0 
+            diags[2, i - 1] = 0
         if i % n_points == n_points - 1:
-            diags[1, min(i + 1, n_points ** 2 -n_points)] = 0
+            diags[1, min(i + 1, n_points**2 - n_points)] = 0
 
     # Definition sparse
     # dia_matrix((data, offsets), shape=(M, N))
@@ -59,7 +60,7 @@ def laplace_square_matrix_reduced(n_points_orig):
 def dirichlet_bc_reduced(rhs_orig, n_points_orig, up, down, left, right):
 
     n_points = n_points_orig - 2 
-    rhs = rhs_orig[1:-1,1:-1]
+    rhs = (rhs_orig.reshape(n_points_orig, n_points_orig)[1:-1, 1:-1]).reshape(-1)
 
     # filling of the four boundaries, inversion of up and down ?
     rhs[:n_points] -= up[1:-1]
@@ -70,3 +71,16 @@ def dirichlet_bc_reduced(rhs_orig, n_points_orig, up, down, left, right):
     return rhs
 
 
+if __name__ == '__main__':
+    xmin, xmax, nnx = 0, 1, 11
+    x = np.linspace(xmin, xmax, nnx)
+    X, Y = np.meshgrid(x, x)
+    rhs = np.zeros(nnx**2)
+    backE = 100
+    linpot = - backE * x
+    
+    A = laplace_square_matrix_reduced(nnx)
+    rhs_red = dirichlet_bc_reduced(rhs, nnx, linpot, linpot, np.zeros_like(x), - backE * np.ones_like(x))
+
+    potential = spsolve(A, rhs_red).reshape(nnx - 2, nnx - 2)
+    print(potential[0, :])
