@@ -68,8 +68,8 @@ def plot_batch_2(output, target, data, epoch, batch_idx, config):
         # Same scale for output and target
         target_max = round_up(np.max(np.abs(target_tmp)), decimals=1)
         plot_ax_scalar(fig, axes[k, 0], config.X, config.Y, data_tmp, 'rhs')
-        plot_ax_scalar(fig, axes[k, 1], config.X, config.Y, output_tmp, 'predicted potential', max_value=target_max)
-        plot_ax_scalar(fig, axes[k, 2], config.X, config.Y, target_tmp, 'target potential', max_value=target_max)
+        plot_ax_scalar(fig, axes[k, 1], config.X, config.Y, output_tmp, 'predicted potential')
+        plot_ax_scalar(fig, axes[k, 2], config.X, config.Y, target_tmp, 'target potential')
         plot_ax_scalar(fig, axes[k, 3], config.X, config.Y, np.abs(target_tmp - output_tmp), 'residual',
                        colormap='Blues')
 

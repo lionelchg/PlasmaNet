@@ -13,27 +13,39 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'a_D_perio_x_1/'
+casename: 'dh_dl_2/'
 
 params:
   nit: 100
+  dt: 5.0e-13
+  geom: 'xr'
+  photoionization: 'no'
+  n_back: 1.0e+14
+  n_gauss: 1.0e+19
 
 mesh:
   xmin: 0
   ymin: 0
-  xmax: 1
-  ymax: 1
-  nnx: 501
-  nny: 501
+  xmax: 0.004
+  ymax: 0.001
+  nnx: 401
+  nny: 101
 
 transport:
-  convection_x: 1
-  convection_y: 0.5
-  diffusion: 0.001
+  chemistry: 'morrow'
 
-BC: 'perio_x'
+poisson:
+  backE: 4.8e+6
 
 output:
-  save: 'none'
+  folder: 'data/'
+  save: 'iteration'
   verbose: True
+  files: 'figdata'
   period: 10
+  dl_save: 'yes'
+
+input: 'none'
+  # ne: 'data/dh_streamer_7/ne_0004.npy'
+  # np: 'data/dh_streamer_7/np_0004.npy'
+  # nn: 'data/dh_streamer_7/nn_0004.npy'

@@ -10,6 +10,7 @@ __pycache__/
 *.lprof
 *.out
 *.vscode/
+*.log
 
 # Storage directories
 models

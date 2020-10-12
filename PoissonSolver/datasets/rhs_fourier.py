@@ -51,7 +51,7 @@ M = N
 n_range, m_range = np.arange(1, N +1), np.arange(1, M + 1)
 N_range, M_range = np.meshgrid(n_range, m_range)
 
-casename = f'{n_points:d}x{n_points:d}/rand_fou_{N:d}_dec_train/'
+casename = f'{n_points:d}x{n_points:d}/rand_fou_{N:d}_dec_test/'
 
 if device == 'mac':
     data_dir = 'rhs/' + casename

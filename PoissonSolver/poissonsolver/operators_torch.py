@@ -132,6 +132,7 @@ def grad(field, dx, dy, nx, ny):
 
     return gradient
 
+
 def scalar_rot(field, dx, dy, nx, ny):
     rotational = torch.zeros((ny, nx))
 

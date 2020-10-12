@@ -14,14 +14,14 @@ from ..operators.gradient import gradient_scalar
 def residual(output, target, config):
     """ Computes the residual of the current batch. """
     with torch.no_grad():
-        res = torch.sum(torch.abs(output - target)) / config.size ** 2 / config.batch_size
+        res = torch.sum(torch.abs(output - target)) / config.nnx / config.nny / config.batch_size
     return res
 
 
 def l2_norm(output, target, config):
     """ Computes the L2 norm of the residual of the current batch. """
     with torch.no_grad():
-        res = torch.sqrt(torch.sum((output - target) ** 2)) / config.size ** 2 / config.batch_size
+        res = torch.sqrt(torch.sum((output - target) ** 2)) / config.nnx / config.nny / config.batch_size
     return res
 
 

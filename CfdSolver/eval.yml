@@ -17,8 +17,9 @@
 # `config.init_obj` method.
 
 
-name: 'dh_photo_UNet'                      # Experience name
+name: 'dh_streamer_eval'                            # Experience name
 n_gpu: 1                                    # Number of GPUs to use
+resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/models/dh_streamer_UNet/1001_083400/model_best.pth'
 
 globals:                                    # Domain sizes and others, used to compute global attributes
     nnx: 401
@@ -31,18 +32,18 @@ globals:                                    # Domain sizes and others, used to c
 arch:
     type: 'UNet'
     args:
-        data_channels: 1                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
+        data_channels: 1
 
 data_loader:
-    type: 'PhotoDataLoader'
+    type: 'PoissonDataLoader'
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/plasmanet/CfdSolver/data/dh_streamer_2'
-        batch_size: 64
+        data_dir: '/scratch/cfd/cheng/DL/datasets/rhs/64x64/gauss_test/'
+        batch_size: 128
         shuffle: True
-        validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
-        num_workers: 4
-        normalize: 'none'             # max, physical or no for normalization types
+        validation_split: 0.0               # if float, fraction of the full dataset, if int, length of validation portion
+        num_workers: 2
+        normalize: 'analytical'
 
 initializer: 'off'
 
@@ -60,11 +61,11 @@ loss:
         loss_list:                          # List of the losses to compose if ComposedLoss is used
             - InsideLoss
             - DirichletBoundaryLoss
-            - PhotoLoss
+            - LaplacianLoss
         inside_weight: 1.                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
-        lapl_weight: 0.0                    # Weighting of the loss on the Laplacian (float)
+        lapl_weight: 0.2                    # Weighting of the loss on the Laplacian (float)
 
 metrics:
     - 'residual'
@@ -73,22 +74,20 @@ metrics:
 
 lr_scheduler:
     type: 'ReduceLROnPlateau'
-    plateau_metric: loss                    # monitoring metric for ReduceLROnPlateau step()
     args:
         mode: 'min'
-        factor: 0.9                         # Amount scheduler reduces LR by (float)
+        factor: 0.99                        # Amount scheduler reduces LR by (float)
         patience: 50                        # Number of epochs the scheduler waits (int)
         threshold: 3.e-4                    # Relative improvement the scheduler must see (float)
         threshold_mode: 'rel'
         verbose: False
 
 trainer:
-    epochs: 400
-    save_dir: 'outputs/'
+    epochs: 1000
+    save_dir: 'outputs/eval/'
     save_period: 10
     plot_period: 10                         # Period to send plots to TensorBoard
     verbosity: 2
     monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
     early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
     tensorboard: true
-    histograms: false                       # Save weights and bias histograms (turned off to increase TensorBoard perf)

@@ -13,26 +13,30 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'dh_streamer/'
+casename: 'a_D_x_cyl/'
 
 params:
   nit: 100
+  cfl: 0.5
+  fourier: 0.15
+  geom: 'xr'
 
 mesh:
   xmin: 0
   ymin: 0
-  xmax: 0.004
-  ymax: 0.001
-  nnx: 401
-  nny: 201
+  xmax: 1
+  ymax: 1
+  nnx: 101
+  nny: 101
 
 transport:
-  chemistry: 'morrow'
+  convection_x: 1
+  convection_y: 0
+  diffusion: 0.000
 
-poisson:
-  backE: '4.8e6'
+BC: 'full_out'
 
 output:
-  save: 'none'
+  save: 'iteration'
   verbose: True
   period: 10
