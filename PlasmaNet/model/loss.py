@@ -26,6 +26,30 @@ class InsideLoss(BaseLoss):
     def _forward(self, output, target, **kwargs):
         return F.mse_loss(output[:, 0, 1:-1, 1:-1], target[:, 0, 1:-1, 1:-1]) * self.weight
 
+class MSInsideLoss_n(BaseLoss):
+    """ Computes the weighted MSELoss of the interior of the domain (excluding boundaries). For the n scale"""
+    def __init__(self, config, inside_weight_n, **_):
+        super().__init__()
+        self.weight_n = inside_weight_n
+    def _forward(self, output, target, **kwargs):
+        return F.mse_loss(output[:, 1, 1:-1, 1:-1], target[:, 0, 1:-1, 1:-1]) * self.weight_n
+
+class MSInsideLoss_n2(BaseLoss):
+    """ Computes the weighted MSELoss of the interior of the domain (excluding boundaries). For the n2 scale"""
+    def __init__(self, config, inside_weight_n2, **_):
+        super().__init__()
+        self.weight_n2 = inside_weight_n2
+    def _forward(self, output, target, **kwargs):
+        return F.mse_loss(output[:, 2, 1:-1, 1:-1], target[:, 1, 1:-1, 1:-1]-target[:, 2, 1:-1, 1:-1]) * self.weight_n2
+
+class MSInsideLoss_n4(BaseLoss):
+    """ Computes the weighted MSELoss of the interior of the domain (excluding boundaries). For the n4 scale"""
+    def __init__(self, config, inside_weight_n4, **_):
+        super().__init__()
+        self.weight_n4 = inside_weight_n4
+    def _forward(self, output, target, **kwargs):
+        return F.mse_loss(output[:, 3, 1:-1, 1:-1], target[:, 2, 1:-1, 1:-1]) * self.weight_n4
+
 
 class LaplacianLoss(BaseLoss):
     """ A Laplacian loss function on the inside of the domain (excluding boundaries). """
