@@ -27,7 +27,6 @@ globals:                                    # Domain sizes and others, used to c
     ly: 0.001
     coord: 'cyl'
 
-
 arch:
     type: 'UNet'
     args:
@@ -37,8 +36,14 @@ data_loader:
     type: 'PhotoDataLoader'
     pipe_config: True
     args:
+<<<<<<< HEAD
         data_dir: '/scratch/cfd/cheng/DL/plasmanet/CfdSolver/data/dh_streamer_2'
         batch_size: 64
+=======
+        data_dir:  '/scratch/cfd/ajuria/Plasma/plasmanet/datasets/64x64/rhs/random_64_4_interpolated_3_scales/'
+        #data_dir: '/scratch/cfd/bogopolsky/DL/plasmanet/datasets/128x128/rhs/random_128_4_split0.75_filtered500Hz/'
+        batch_size: 256
+>>>>>>> scale_analysis_dev_2
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
@@ -62,12 +67,22 @@ loss:
     args:
         loss_list:                          # List of the losses to compose if ComposedLoss is used
             - InsideLoss
+            - MSInsideLoss_n
+            - MSInsideLoss_n2
+            - MSInsideLoss_n4
             - DirichletBoundaryLoss
             - PhotoLoss
         inside_weight: 1.                   # Weighting of the loss inside the domain, excluding boundaries (float)
-        bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
+        inside_weight_n : 0.4              # Weighting of the loss inside the domain for the n scale , excluding boundaries (float)
+        inside_weight_n2 : 0.4              # Weighting of the loss inside the domain for the n 2 scale , excluding boundaries (float)
+        inside_weight_n4 : 0.4              # Weighting of the loss inside the domain for the n 4 scale , excluding boundaries (float)
+        bound_weight: 0. #1.                # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
+<<<<<<< HEAD
         lapl_weight: 0.0                    # Weighting of the loss on the Laplacian (float)
+=======
+        lapl_weight: 0. #0.2                # Weighting of the loss on the Laplacian (float)
+>>>>>>> scale_analysis_dev_2
 
 metrics:
     - 'residual'
@@ -86,7 +101,11 @@ lr_scheduler:
         verbose: False
 
 trainer:
+<<<<<<< HEAD
     epochs: 400
+=======
+    epochs: 5000 #500
+>>>>>>> scale_analysis_dev_2
     save_dir: 'outputs/'
     save_period: 10
     plot_period: 10                         # Period to send plots to TensorBoard
@@ -94,4 +113,10 @@ trainer:
     monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
     early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
     tensorboard: true
+<<<<<<< HEAD
     histograms: false                       # Save weights and bias histograms (turned off to increase TensorBoard perf)
+=======
+    hooks: true
+    1_scale: 100                            # Epoch in which the network freezes the 1st scale
+    2_scale: 400                            # Epoch in which the middle scale is frozen
+>>>>>>> scale_analysis_dev_2

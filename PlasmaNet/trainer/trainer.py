@@ -10,8 +10,11 @@ import numpy as np
 import torch
 
 from ..base import BaseTrainer
-from .plot import plot_batch, plot_distrib
+from .plot import plot_batch, plot_distrib, plot_scales
 from ..utils import inf_loop, MetricTracker
+
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 class Trainer(BaseTrainer):
     """
@@ -42,6 +45,9 @@ class Trainer(BaseTrainer):
         self.valid_metrics = MetricTracker('loss', *self.criterion.loss_list,
                                            *[m.__name__ for m in self.metric_ftns], writer=self.writer)
 
+        self.s_e_1 = self.config['trainer']['1_scale']
+        self.s_e_2 = self.config['trainer']['2_scale']
+
     def _train_epoch(self, epoch):
         """
         Training method for the specified epoch.
@@ -49,12 +55,51 @@ class Trainer(BaseTrainer):
         """
         self.model.train()
         self.train_metrics.reset()
+
+        if epoch < self.s_e_1:
+            for param in self.model.conv_4.parameters():
+                    param.requires_grad = True
+            for param in self.model.conv_2.parameters():
+                    param.requires_grad = False
+            for param in self.model.conv_1.parameters():
+                    param.requires_grad = False
+
+        elif epoch > self.s_e_1 and epoch < self.s_e_2:
+            for param in self.model.conv_4.parameters():
+                    param.requires_grad = False
+            for param in self.model.conv_2.parameters():
+                    param.requires_grad = True
+            for param in self.model.conv_1.parameters():
+                    param.requires_grad = False
+            
+
+        if epoch > self.s_e_2:
+            for param in self.model.conv_4.parameters():
+                    param.requires_grad = False
+            for param in self.model.conv_2.parameters():
+                    param.requires_grad = False
+            for param in self.model.conv_1.parameters():
+                    param.requires_grad = True 
+
+        print("Trainable parameters : ", count_parameters(self.model))
+
         for batch_idx, (data, target, data_norm, target_norm) in enumerate(self.data_loader):
+
             data, target = data.to(self.device), target.to(self.device)
             data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
 
             self.optimizer.zero_grad()
-            output = self.model(data)
+
+            output_raw = self.model(data, epoch)
+            multiple_outputs = False
+            if output_raw.size(1) != 1:
+                #output = output_raw[:,0].unsqueeze(1)
+                output = output_raw
+                multiple_outputs = True
+            else:
+                output = output_raw
+
+
             if self.criterion.require_input_data():
                 loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
             else:
@@ -80,6 +125,14 @@ class Trainer(BaseTrainer):
             # Figure output after the 1st batch of each epoch
             if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
                 self._batch_plots(output, target, data, epoch, batch_idx)
+                if multiple_outputs:
+                    print("Multiple outputs, performing plots!")
+                    # Plot input, target, output and residual
+                    fig = plot_scales(output_raw, target, data, epoch, batch_idx, self.config)
+                    fig.savefig(self.config.fig_dir / 'train_scales_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
+                    self.writer.add_figure('Different Scales', fig)
+
+
 
             if batch_idx == self.len_epoch:  # Break iteration-based training
                 break
@@ -111,10 +164,77 @@ class Trainer(BaseTrainer):
 
         with torch.no_grad():
             for batch_idx, (data, target, data_norm, target_norm) in enumerate(self.valid_data_loader):
+                 
                 data, target = data.to(self.device), target.to(self.device)
                 data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
 
-                output = self.model(data)
+                # Forwrad hook saving
+                # MultiScale Study, all the Feature Maps !
+                # Each layer is saved independiently
+
+                if self.config['trainer']['hooks']:
+                    # Get the corresponding Modules for Analysing!!!
+                    scale_4= self.model.conv_4
+                    scale_2= self.model.conv_2
+                    scale_1= self.model.conv_1
+
+                    inside_scale_4 = scale_4._modules.get('encode') 
+                    inside_scale_2 = scale_2._modules.get('encode')
+                    inside_scale_1 = scale_1._modules.get('encode')
+
+                    # Create a list to save the layer outputs
+                    output_analysis = {}
+
+                    # Definition of saving function
+
+                    def get_out(name):
+                        def hook(model,input,output):
+                            output_analysis[name] = output.data
+                        return hook
+
+                    # Perform Forward Hooks!
+
+                    for i in range(len(inside_scale_4)):    
+                        output_4 = inside_scale_4[i].register_forward_hook(get_out('s_4_l_{}'.format(i)))
+
+                    for i in range(len(inside_scale_2)):
+                        output_2 = inside_scale_2[i].register_forward_hook(get_out('s_2_l_{}'.format(i)))
+
+                    for i in range(len(inside_scale_1)):
+                        output_1 = inside_scale_1[i].register_forward_hook(get_out('s_1_l_{}'.format(i)))
+
+                output_raw = self.model(data, epoch)
+
+                if self.config['trainer']['hooks']:
+                    if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
+                        # Saving
+                        for w in range(len(inside_scale_4)):
+                            s_hook_4 = output_analysis['s_4_l_{}'.format(w)].cpu().data.numpy()
+                            np.save(self.config.fig_dir / 'epoch_{}_S_4_L_{}.npy'.format(epoch, w), s_hook_4)
+                        # Saving
+                        for w in range(len(inside_scale_2)):
+                            s_hook_2 = output_analysis['s_2_l_{}'.format(w)].cpu().data.numpy()
+                            np.save(self.config.fig_dir / 'epoch_{}_S_2_L_{}.npy'.format(epoch, w), s_hook_2)
+                        # Saving
+                        for w in range(len(inside_scale_1)):
+                            s_hook_1 = output_analysis['s_1_l_{}'.format(w)].cpu().data.numpy()
+                            np.save(self.config.fig_dir / 'epoch_{}_S_1_L_{}.npy'.format(epoch, w), s_hook_1)
+
+                    # Clear from memory to avoid leaking
+                    output_4.remove()
+                    output_2.remove()
+                    output_1.remove()
+                    output_analysis.clear()
+
+
+                multiple_outputs = False
+                if output_raw.size(1) != 1:
+                    #output = output_raw[:,0].unsqueeze(1)
+                    output = output_raw
+                    multiple_outputs = True
+                else:
+                    output = output_raw
+
                 if self.criterion.require_input_data():
                     loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
                 else:
@@ -131,6 +251,12 @@ class Trainer(BaseTrainer):
                 # Figure output after the 1st batch of each epoch
                 if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
                     self._batch_plots(output, target, data, epoch, batch_idx, 'valid')
+                    if multiple_outputs:
+                        # Plot input, target, output and residual
+                        fig = plot_scales(output_raw, target, data, epoch, batch_idx, self.config)
+                        fig.savefig(self.config.fig_dir / 'val_scales_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
+                        self.writer.add_figure('Different Scales', fig)
+
 
         # Add histogram of model parameters to the TensorBoard
         if self.config['trainer']['histograms']:

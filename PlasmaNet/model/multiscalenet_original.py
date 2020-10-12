@@ -117,9 +117,7 @@ class MultiSimpleNet(BaseModel):
         - Downsample input to half scale, concat with output of ConvBlock1, and use ConvBlock2.
         - Upsample output of ConvBlock2 to full scale.
         - Concat input and output of ConvBlock2, use ConvBlock3. Output of ConvBlock3 has 8 channels.
-        - Use final Conv2d layer with kernel_size of 1 to go from 8 channels to 1 output channel.
-        - This same procedure is used to combine the exit of each layer, this new connexion should
-            help to analyse the task specialization of each scale
+        - Use final Conv2d layer with kernel_size of 1 to go from 4 channels to 1 output channel.
     """
     def __init__(self, data_channels):
         super(MultiSimpleNet, self).__init__()
@@ -127,11 +125,8 @@ class MultiSimpleNet(BaseModel):
         self.conv_2 = _ConvBlock2(data_channels + 1, 32, 64, 128, 1)
         self.conv_1 = _ConvBlock3(data_channels + 1, 32, 64, 128, 8)
         self.final = nn.Conv2d(8, 1, kernel_size=1)
-        self.w_s_4 = nn.Conv2d(1, 1, kernel_size=1)
-        self.w_s_2 = nn.Conv2d(1, 1, kernel_size=1)
-        self.w_s_1 = nn.Conv2d(1, 1, kernel_size=1)
 
-    def forward(self, x, epoch):
+    def forward(self, x):
         quarter_size = [int(i * 0.25) for i in list(x.size()[2:])]
         half_size = [int(i * 0.5) for i in list(x.size()[2:])]
         conv_4_out = self.conv_4(F.interpolate(x, quarter_size, mode='bilinear'))
@@ -141,27 +136,5 @@ class MultiSimpleNet(BaseModel):
         conv_1_out = self.conv_1(torch.cat((F.interpolate(x, x.size()[2:], mode='bilinear', align_corners=False),
                                             F.interpolate(conv_2_out, x.size()[2:], mode='bilinear', align_corners=False)),
                                            dim=1))
-
-        #final_big = self.w_s_1(self.final(conv_1_out))
-        #final_medium = self.w_s_2(F.interpolate(conv_2_out, x.size()[2:], mode='bilinear', align_corners=False))
-        #final_small = self.w_s_4( F.interpolate(F.interpolate(conv_4_out, half_size, mode='bilinear', align_corners=False), x.size()[2:], mode='bilinear', align_corners=False))
-
-        final_big = self.final(conv_1_out)
-        final_medium = F.interpolate(conv_2_out, x.size()[2:], mode='bilinear', align_corners=False)
-        final_small = F.interpolate(F.interpolate(conv_4_out, half_size, mode='bilinear', align_corners=False), x.size()[2:], mode='bilinear', align_corners=False)
-
-        small_val =1.0
-        med_val = 1.0
-        big_val = 1.0
-
-        #if epoch > 100:
-        #    med_val = 1.0
-        #if epoch > 300:
-        #    big_val = 1.0
-        
-        final_out = big_val * final_big + med_val * final_medium + small_val * final_small
-        #final_out = final_big + final_medium + final_small
-        #final_out = final_big
-
-        output_fields = torch.cat((final_out, final_big, final_medium, final_small), dim=1)
-        return output_fields
+        final_out = self.final(conv_1_out)
+        return final_out
