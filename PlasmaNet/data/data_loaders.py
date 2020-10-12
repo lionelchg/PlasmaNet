@@ -43,7 +43,8 @@ class PoissonDataLoader(BaseDataLoader):
         # Convert to torch.Tensor of shape (batch_size, 1, H, W)
         physical_rhs = torch.from_numpy(physical_rhs[:, np.newaxis, :, :])
         potential = torch.from_numpy(potential[:, np.newaxis, :, :])
-        potential_multi = torch.from_numpy(potential_multi)
+        if self.multi:
+            potential_multi = torch.from_numpy(potential_multi)
 
         # Normalization and length
         self.normalize = normalize
