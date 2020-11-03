@@ -13,13 +13,13 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'a_D_x_cyl/'
+casename: 'a_D_x/'
 
 params:
   nit: 100
   cfl: 0.5
   fourier: 0.15
-  geom: 'xr'
+  geom: 'xy'
 
 mesh:
   xmin: 0

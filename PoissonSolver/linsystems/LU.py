@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+from utils import print_mat
 
 def LU_kji(A):
     n = len(A[:, 0])
@@ -27,16 +28,6 @@ def bwd_row(U, b):
 
 def solve_system(LU, b):
     return bwd_row(LU, fwd_row(LU, b))
-
-def print_mat(A, matname):
-    print(f'Matrice {matname}')
-    n = len(A[:, 0])
-    for i in range(n):
-        row = ''
-        for j in range(n):
-            row += f'{A[i, j]:>6.2f} '
-        print(row)
-        
 
 if __name__ == '__main__':
     n = 10
