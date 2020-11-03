@@ -14,11 +14,23 @@ import numpy as np
 import yaml
 import copy
 
-from boundary import outlet_x, outlet_y, perio_x, perio_y, full_perio
+from boundary import impose_bc
 from metric import compute_voln
 from operators import grad
 from plot import plot_scalar
 from scheme import compute_flux
+
+def print_init(nnx, nny, xmin, ymin, xmax, ymax, max_speed, max_D, dx, dy,
+                cfl, fourier, dt):
+    # Print header to sum up the parameters
+    print(f'Number of nodes: nnx = {nnx:d} -- nny = {nny:d}')
+    print(f'Bounding box: ({xmin:.1e}, {ymin:.1e}), ({xmax:.1e}, {ymax:.1e})')
+    print(f'Transport: a = {max_speed:.2e} -- D = {max_D:.2e}')
+    print(f'dx = {dx:.2e} -- dy = {dy:.2e} -- CFL = {cfl:.2e} -- Fourier = {fourier:.2e} -- Timestep = {dt:.2e}')
+    print('------------------------------------')
+    print('Start of simulation')
+    print('------------------------------------')
+    print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
@@ -87,18 +99,12 @@ def main(config):
     u, res = np.zeros_like(X), np.zeros_like(X)
 
     # Gaussian initialization
-    u = gaussian(X, Y, 1, 0.5, 0.0, 1e-1, 1e-1)
+    u = gaussian(X, Y, 1, 0.5, 0.5, 1e-1, 1e-1)
 
     # Print header to sum up the parameters
     if verbose:
-        print(f'Number of nodes: nnx = {nnx:d} -- nny = {nny:d}')
-        print(f'Bounding box: ({xmin:.1e}, {ymin:.1e}), ({xmax:.1e}, {ymax:.1e})')
-        print(f'Transport: a = {max_speed:.2e} -- D = {max_D:.2e}')
-        print(f'dx = {dx:.2e} -- dy = {dy:.2e} -- CFL = {cfl:.2e} -- Fourier = {fourier:.2e} -- Timestep = {dt:.2e}')
-        print('------------------------------------')
-        print('Start of simulation')
-        print('------------------------------------')
-        print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
+        print_init(nnx, nny, xmin, ymin, xmax, ymax, max_speed, max_D, dx, dy,
+                        cfl, fourier, dt)
 
     # Iterations
     for it in range(1, nit + 1):
@@ -113,29 +119,7 @@ def main(config):
         elif geom == 'xr':
             compute_flux(res, a, u, diff_flux, sij, ncx, ncy, r=y)
 
-
-        # Boundary conditions
-        if BC == 'full_perio':
-            full_perio(res)
-        elif BC == 'perio_x':
-            perio_x(res)
-            outlet_y(res, a, u, diff_flux, dx, 0)
-            outlet_y(res, a, u, diff_flux, dx, -1)
-        elif BC == 'perio_y':
-            perio_y(res)
-            outlet_x(res, a, u, diff_flux, dy, 0)
-            outlet_x(res, a, u, diff_flux, dy, -1)
-        elif BC == 'full_out':
-            if geom == 'xy':
-                outlet_y(res, a, u, diff_flux, dx, 0)
-                outlet_y(res, a, u, diff_flux, dx, -1)
-                outlet_x(res, a, u, diff_flux, dy, 0)
-                outlet_x(res, a, u, diff_flux, dy, -1)
-            elif geom == 'xr':
-                outlet_y(res, a, u, diff_flux, dx, -1, r=np.max(Y))
-                outlet_x(res, a, u, diff_flux, dy, 0, r=Y)
-                outlet_x(res, a, u, diff_flux, dy, -1, r=Y)
-
+        impose_bc(BC, res, a, u, diff_flux, dx, dy, geom, Y)
         
         u = u - res * dt / voln
 
@@ -156,7 +140,7 @@ def main(config):
 
 if __name__ == '__main__':
 
-    with open('config.yml', 'r') as yaml_stream:
+    with open('scalar.yml', 'r') as yaml_stream:
         cfg = yaml.safe_load(yaml_stream)
 
     main(cfg)

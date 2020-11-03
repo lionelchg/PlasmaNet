@@ -279,7 +279,7 @@ def main(config):
 
 if __name__ == '__main__':
 
-    with open('config_streamer.yml', 'r') as yaml_stream:
+    with open('streamer.yml', 'r') as yaml_stream:
         cfg = yaml.safe_load(yaml_stream)
 
     main(cfg)

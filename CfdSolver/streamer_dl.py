@@ -375,7 +375,7 @@ if __name__ == '__main__':
     ]
     config_dl = ConfigParser.from_args(args, options)
 
-    with open('config_streamer_dl.yml', 'r') as yaml_stream:
+    with open('streamer_dl.yml', 'r') as yaml_stream:
         config_streamer = yaml.safe_load(yaml_stream)
 
     main(config_streamer, config_dl)

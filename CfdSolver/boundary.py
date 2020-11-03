@@ -82,3 +82,27 @@ def full_perio(res):
     res[1:-1, -1] = copy.deepcopy(res[1:-1, 0])
     res[0, 1:-1] += res[-1, 1:-1]
     res[-1, 1:-1] = copy.deepcopy(res[0, 1:-1])
+
+def impose_bc(BC, res, a, u, diff_flux, dx, dy, geom, Y):
+    """ Impose boundary conditions specified in the config file """
+    # Boundary conditions
+    if BC == 'full_perio':
+        full_perio(res)
+    elif BC == 'perio_x':
+        perio_x(res)
+        outlet_y(res, a, u, diff_flux, dx, 0)
+        outlet_y(res, a, u, diff_flux, dx, -1)
+    elif BC == 'perio_y':
+        perio_y(res)
+        outlet_x(res, a, u, diff_flux, dy, 0)
+        outlet_x(res, a, u, diff_flux, dy, -1)
+    elif BC == 'full_out':
+        if geom == 'xy':
+            outlet_y(res, a, u, diff_flux, dx, 0)
+            outlet_y(res, a, u, diff_flux, dx, -1)
+            outlet_x(res, a, u, diff_flux, dy, 0)
+            outlet_x(res, a, u, diff_flux, dy, -1)
+        elif geom == 'xr':
+            outlet_y(res, a, u, diff_flux, dx, -1, r=np.max(Y))
+            outlet_x(res, a, u, diff_flux, dy, 0, r=Y)
+            outlet_x(res, a, u, diff_flux, dy, -1, r=Y)

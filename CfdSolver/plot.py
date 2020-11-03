@@ -39,7 +39,9 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', ge
             ax.contourf(X, - Y, field, levels, cmap=cmap)
         fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect)
 
-    ax.set_yticks([-ymax, -ymax / 2, 0, ymax / 2, ymax])
+    if geom == 'xr':
+        ax.set_yticks([-ymax, -ymax / 2, 0, ymax / 2, ymax])
+
     scilimx = int(np.log10(xmax) - 1)
     ax.ticklabel_format(axis='x', style='sci', scilimits=(scilimx, scilimx))
     ax.ticklabel_format(axis='y', style='sci', scilimits=(scilimx, scilimx))
@@ -67,15 +69,18 @@ def plot_scalar(X, Y, u, res, dtsum, number, fig_dir, geom='xy'):
     plot_ax_scalar(fig, axes[0], X, Y, u, "Scalar", geom=geom)
     plot_ax_scalar(fig, axes[1], X, Y, res, "Residual", geom=geom)
     plt.tight_layout()
-    plt.figtext(0.85, 0.07, '$t =$%.2e s' % dtsum, fontsize=12)
-    plt.savefig(fig_dir + 'instant_%04d' % number, bbox_inches='tight')
+    fig.suptitle(f'$t$ = {dtsum:.2e} s')
+    fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+    plt.savefig(fig_dir + '2D_%04d' % number, bbox_inches='tight')
+    plt.close(fig)
 
     fig, axes = plt.subplots(ncols=2, figsize=(12, 6))
-    plot_ax_scalar_1D(fig, axes[0], X, [0, 0.05, 0.1], u, "Scalar")
-    plot_ax_scalar_1D(fig, axes[1], X, [0, 0.05, 0.1], res, "Residual")
-    plt.tight_layout()
-    plt.figtext(0.85, 0.07, '$t =$%.2e s' % dtsum, fontsize=12)
-    plt.savefig(fig_dir + 'instant_1D_%04d' % number, bbox_inches='tight')
+    plot_ax_scalar_1D(fig, axes[0], X, [0.1, 0.25, 0.5], u, "Scalar")
+    plot_ax_scalar_1D(fig, axes[1], X, [0.1, 0.25, 0.5], res, "Residual")
+    fig.suptitle(f'$t$ = {dtsum:.2e} s')
+    fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+    fig.savefig(fig_dir + '1D_%04d' % number, bbox_inches='tight')
+    plt.close(fig)
 
 def plot_streamer(X, Y, nd, resnd, dtsum, figname):
     fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(14, 10))
