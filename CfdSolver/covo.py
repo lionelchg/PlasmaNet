@@ -1,8 +1,8 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                         Drift-diffusion fluid plasma solver                                          #
+#                               Convective vortex for validation of Euler integration                                  #
 #                                                                                                                      #
-#                                          Lionel Cheng, CERFACS, 22.04.2020                                           #
+#                                          Lionel Cheng, CERFACS, 04.11.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -13,17 +13,42 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import numpy as np
 import yaml
 import copy
+import scipy.constants as co
+import matplotlib.pyplot as plt
 
-from boundary import outlet_x, outlet_y, perio_x, perio_y, full_perio
+from boundary import impose_bc_euler
 from metric import compute_voln
 from operators import grad
-from plot import plot_scalar
-from scheme import compute_flux
+from plot import plot_euler, plot_ax_scalar
+from euler import compute_flux, compute_res
+
+def print_init(nnx, nny, xmin, ymin, xmax, ymax, dx, dy, cfl, dt):
+    # Print header to sum up the parameters
+    print(f'Number of nodes: nnx = {nnx:d} -- nny = {nny:d}')
+    print(f'Bounding box: ({xmin:.1e}, {ymin:.1e}), ({xmax:.1e}, {ymax:.1e})')
+    print(f'dx = {dx:.2e} -- dy = {dy:.2e} -- CFL = {cfl:.2e} -- Timestep = {dt:.2e}')
+    print('------------------------------------')
+    print('Start of simulation')
+    print('------------------------------------')
+    print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
 
+def covo(x, y, x0, y0, u0, v0, rho0, p0, T0, alpha, K, gamma, r, t, U):
+    xbar = x - x0 - u0 * t
+    ybar = y - y0 - v0 * t
+    rbar = np.sqrt(xbar**2 + ybar**2)
+    u = u0 - K / (2 * np.pi) * ybar * np.exp(alpha * (1 - rbar**2) / 2)
+    v = v0 + K / (2 * np.pi) * xbar * np.exp(alpha * (1 - rbar**2) / 2)
+    T = T0 - K**2 * (gamma - 1) / (8 * alpha * np.pi**2 * gamma * r) * np.exp(alpha * (1 - rbar**2))
+    rho = rho0 * (T / T0)**(1 / (gamma - 1))
+    p = p0 * (T / T0)**(gamma / (gamma - 1))
+    U[0] = rho
+    U[1] = rho * u
+    U[2] = rho * v
+    U[3] = rho / 2 * (u**2 + v**2) + p / (gamma - 1)
 
 def main(config):
     """ Main function containing initialisation, temporal loop and outputs. Takes a config dict as input. """
@@ -41,29 +66,12 @@ def main(config):
 
     # Grid construction
     X, Y = np.meshgrid(x, y)
-    geom = config['params']['geom']
-    if geom == 'xr':
-        R_nodes = copy.deepcopy(Y)
-        R_nodes[0] = dy / 4
-        voln = compute_voln(X, dx, dy) * R_nodes
-    else:
-        voln = compute_voln(X, dx, dy)
-    sij = np.array([dy / 2, dx / 2])
+    voln = compute_voln(X, dx, dy)
+    volc = dx * dy
+    snc = np.array([[dx, dy], [-dx, dy], [-dx, -dy], [dx, -dy]])
 
     # Boundary conditions
     BC = config['BC']
-
-    # Convection speed
-    a = np.zeros((2, nny, nnx))
-    a[0, :, :] = config['transport']['convection_x']
-    a[1, :, :] = config['transport']['convection_y']
-    norm_a = np.sqrt(a[0, :, :] ** 2 + a[1, :, :] ** 2)
-    max_speed = np.max(norm_a)
-
-    # Diffusion coefficient
-    D = np.zeros_like(X)
-    D = config['transport']['diffusion']
-    max_D = np.max(D)
 
     # Creation of the figures directory and numbering of outputs
     fig_dir = 'figures/' + config['casename']
@@ -76,79 +84,66 @@ def main(config):
 
     # Timestep calculation through cfl and fourier
     cfl = config['params']['cfl']
-    fourier = config['params']['fourier']
-    dt = min(cfl * dx / max_speed, fourier * dx ** 2 / max_D)
     dtsum = 0
 
     # Number of iterations
     nit = config['params']['nit']
 
-    # Scalar and Residual declaration
-    u, res = np.zeros_like(X), np.zeros_like(X)
+    # Scalar and Residual declaration - Mixture parameters
+    gamma = 7 / 5
+    neqs = 4
+    ndim = 2
+    nvert = 4
+    Wair = 0.029 # kg/mol
+    rair = co.R / Wair
+    U = np.zeros((neqs, nny, nnx))
+    U_c = np.zeros((neqs, ncy, ncx))
+    F = np.zeros((neqs, ndim, nny, nnx))
+    res = np.zeros_like(U)
+    res_c = np.zeros((neqs, ncy, ncx))
+    press, Tgas = np.zeros_like(X), np.zeros_like(X)
 
-    # Gaussian initialization
-    u = gaussian(X, Y, 1, 0.5, 0.0, 1e-1, 1e-1)
-
+    # Convective vortex parameters and initialization
+    x0, y0 = 10, 10
+    u0, v0 = 2, 2
+    rho0, p0 = 1, 1 / gamma
+    alpha, K = 1, 5
+    a0 = np.sqrt(gamma * p0 / rho0)
+    T0 = 1 / gamma / rair
+    time = 0
+    covo(X, Y, x0, y0, u0, v0, rho0, p0, T0, alpha, K, gamma, rair, time, U)
+    dt = cfl * dx / a0
     # Print header to sum up the parameters
     if verbose:
-        print(f'Number of nodes: nnx = {nnx:d} -- nny = {nny:d}')
-        print(f'Bounding box: ({xmin:.1e}, {ymin:.1e}), ({xmax:.1e}, {ymax:.1e})')
-        print(f'Transport: a = {max_speed:.2e} -- D = {max_D:.2e}')
-        print(f'dx = {dx:.2e} -- dy = {dy:.2e} -- CFL = {cfl:.2e} -- Fourier = {fourier:.2e} -- Timestep = {dt:.2e}')
-        print('------------------------------------')
-        print('Start of simulation')
-        print('------------------------------------')
-        print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
+        print_init(nnx, nny, xmin, ymin, xmax, ymax, dx, dy, cfl, dt)
+    
 
     # Iterations
     for it in range(1, nit + 1):
-        dtsum += dt
-        # Calculation of diffusive flux
-        diff_flux = D * grad(u, dx, dy, nnx, nny)
         # Update of the residual to zero
-        res[:] = 0
+        res[:], res_c[:] = 0, 0
         # Loop on the cells to compute the interior flux and update residuals
-        if geom == 'xy':
-            compute_flux(res, a, u, diff_flux, sij, ncx, ncy)
-        elif geom == 'xr':
-            compute_flux(res, a, u, diff_flux, sij, ncx, ncy, r=y)
 
+        compute_flux(U, gamma, rair, F, press, Tgas)
 
-        # Boundary conditions
-        if BC == 'full_perio':
-            full_perio(res)
-        elif BC == 'perio_x':
-            perio_x(res)
-            outlet_y(res, a, u, diff_flux, dx, 0)
-            outlet_y(res, a, u, diff_flux, dx, -1)
-        elif BC == 'perio_y':
-            perio_y(res)
-            outlet_x(res, a, u, diff_flux, dy, 0)
-            outlet_x(res, a, u, diff_flux, dy, -1)
-        elif BC == 'full_out':
-            if geom == 'xy':
-                outlet_y(res, a, u, diff_flux, dx, 0)
-                outlet_y(res, a, u, diff_flux, dx, -1)
-                outlet_x(res, a, u, diff_flux, dy, 0)
-                outlet_x(res, a, u, diff_flux, dy, -1)
-            elif geom == 'xr':
-                outlet_y(res, a, u, diff_flux, dx, -1, r=np.max(Y))
-                outlet_x(res, a, u, diff_flux, dy, 0, r=Y)
-                outlet_x(res, a, u, diff_flux, dy, -1, r=Y)
+        compute_res(U, F, press, dt, snc, ncx, ncy, gamma, ndim, nvert, res, res_c, U_c)
 
+        impose_bc_euler(BC, res)
         
-        u = u - res * dt / voln
+        U = U - res / voln
+
+        dtsum += dt
 
         if verbose and (it % period == 0 or it == nit):
             print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, dt, dtsum, width=14))
 
         if save_type == 'iteration':
             if it % period == 0 or it == nit:
-                plot_scalar(X, Y, u, res / voln, dtsum, number, fig_dir, geom=geom)
+                plot_euler(X, Y, U, gamma, u0, v0, dtsum, fig_dir + f'2D_{it:04d}')
                 number += 1
         elif save_type == 'time':
             if np.abs(dtsum - number * period) < 0.1 * dt or it == nit:
-                plot_scalar(X, Y, u, res / voln, dtsum, number, fig_dir, geom=geom)
+                plot_euler(X, Y, U, gamma, u0, v0, dtsum, fig_dir + f'2D_{it:04d}')
                 number += 1
         elif save_type == 'none':
             pass
@@ -156,7 +151,7 @@ def main(config):
 
 if __name__ == '__main__':
 
-    with open('config.yml', 'r') as yaml_stream:
+    with open('covo.yml', 'r') as yaml_stream:
         cfg = yaml.safe_load(yaml_stream)
 
     main(cfg)

@@ -129,3 +129,15 @@ def plot_global(gstreamer, xrange, figname):
     axes[1].grid(True)
 
     plt.savefig(figname, bbox_inches='tight')
+
+def plot_euler(X, Y, U, gamma, u0, v0, dtsum, figname):
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 10))
+    plot_ax_scalar(fig, axes[0][0], X, Y, U[0], r"$\rho$", geom='xy')
+    press = (gamma - 1) * (U[3] - (U[1]**2 + U[2]**2) / 2 / U[0])
+    plot_ax_scalar(fig, axes[0][1], X, Y, press, "$P$", geom='xy')
+    plot_ax_scalar(fig, axes[1][0], X, Y, U[1] / U[0] - u0, "$u$", geom='xy')
+    plot_ax_scalar(fig, axes[1][1], X, Y, U[2] / U[0] - v0, "$v$", geom='xy')
+    plt.suptitle(rf'$t$ = {dtsum:.2e} s - $u_\infty = 2$ - $v_\infty = 2$')
+    fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+    fig.savefig(figname, bbox_inches='tight')
+    plt.close(fig)

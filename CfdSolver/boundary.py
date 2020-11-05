@@ -6,8 +6,8 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+import numpy as np
 import copy
-
 
 def outlet_y(res, a, u, diff_flux, dx, yb, r=None):
     """ Outlet boundary conditions in the y direction """
@@ -106,3 +106,15 @@ def impose_bc(BC, res, a, u, diff_flux, dx, dy, geom, Y):
             outlet_y(res, a, u, diff_flux, dx, -1, r=np.max(Y))
             outlet_x(res, a, u, diff_flux, dy, 0, r=Y)
             outlet_x(res, a, u, diff_flux, dy, -1, r=Y)
+
+def impose_bc_euler(BC, res):
+    """ Full periodic conditions in the 4 directions """
+    # Corner (only for full periodic)
+    res[:, 0, 0] = res[:, 0, 0] + res[:, 0, -1] + res[:, -1, 0] + res[:, -1, -1]
+    res[:, 0, -1], res[:, -1, 0], res[:, -1, -1] = res[:, 0, 0], res[:, 0, 0], res[:, 0, 0]
+
+    # Periodic boundary conditions - Sides
+    res[:, 1:-1, 0] += res[:, 1:-1, -1]
+    res[:, 1:-1, -1] = copy.deepcopy(res[:, 1:-1, 0])
+    res[:, 0, 1:-1] += res[:, -1, 1:-1]
+    res[:, -1, 1:-1] = copy.deepcopy(res[:, 0, 1:-1])

@@ -1,0 +1,35 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                            cfdsolver -- Configuration file                                           #
+#                                                                                                                      #
+#                                           Lionel Cheng, CERFACS, 05.11.2020                                          #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+casename: 'covo_perio/'
+
+params:
+  nit: 25
+  cfl: 0.5
+
+mesh:
+  xmin: 0
+  ymin: 0
+  xmax: 20
+  ymax: 20
+  nnx: 201
+  nny: 201
+
+BC: 'full_perio'
+
+output:
+  save: 'iteration'
+  verbose: True
+  period: 5
