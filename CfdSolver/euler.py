@@ -9,6 +9,11 @@
 import numpy as np
 from numba import njit
 
+@njit(cache=True)
+def compute_timestep(cfl, dx, U, press, gamma):
+    speed = np.sqrt(gamma * press / U[0]) + np.sqrt((U[1]**2 + U[2]**2) / U[0])
+    dt = cfl * dx / np.max(speed[:])
+    return dt
 
 @njit(cache=True)
 def compute_flux(U, gamma, r, F, press, Tgas):
@@ -30,17 +35,27 @@ def compute_flux(U, gamma, r, F, press, Tgas):
     F[3, 1] = U[2] / U[0] * (U[3] + press)
 
 @njit(cache=True)
-def compute_res(U, F, press, dt, snc, ncx, ncy, gamma, ndim, nvert, res, res_c, U_c):
+def compute_res(U, F, press, dt, volc, snc, ncx, ncy, gamma, ndim, nvert, res, res_c, U_c):
+    """ Compute residuals for the Lax-Wendroff scheme in a cell-vertex fashion """
     dF_c = np.zeros((4, 2))
     for i in range(ncx):
         for j in range(ncy):
             U_c[:, j, i] = 0.25 * (U[:, j, i] + U[:, j + 1, i]
                                   + U[:, j, i + 1] + U[:, j + 1, i + 1])
-            res_c[:, j, i] = - dt / ndim * (F[:, 0, j, i] * snc[0, 0] +  F[:, 1, j, i] * snc[0, 1]
+            res_c[:, j, i] = - (F[:, 0, j, i] * snc[0, 0] +  F[:, 1, j, i] * snc[0, 1]
                     + F[:, 0, j, i + 1] * snc[1, 0] +  F[:, 1, j, i + 1] * snc[1, 1]
                     + F[:, 0, j + 1, i + 1] * snc[2, 0] +  F[:, 1, j + 1, i + 1] * snc[2, 1]
                     + F[:, 0, j + 1, i] * snc[3, 0] +  F[:, 1, j + 1, i] * snc[3, 1])
 
+            # Add central term
+            res[:, j, i] += res_c[:, j, i] / nvert
+            res[:, j, i + 1] += res_c[:, j, i] / nvert
+            res[:, j + 1, i + 1] += res_c[:, j, i] / nvert
+            res[:, j + 1, i] += res_c[:, j, i] / nvert
+    
+    res_c *= dt / volc
+
+    # Add second order diffusion term
     for i in range(ncx):
         for j in range(ncy):
             press_c = (gamma - 1) * (U_c[3, j, i] - 
@@ -50,7 +65,7 @@ def compute_res(U, F, press, dt, snc, ncx, ncy, gamma, ndim, nvert, res, res_c, 
             v      = U_c[2, j, i] / rho
             H      = U_c[3, j, i] / rho + press_c / rho
             beta   = gamma - 1
-            alpha  = 0.5 * (u*u + v*v)
+            alpha  = 0.5 * (u**2 + v**2)
 
             drho   = res_c[0, j, i]
             drhou  = res_c[1, j, i]
@@ -79,12 +94,7 @@ def compute_res(U, F, press, dt, snc, ncx, ncy, gamma, ndim, nvert, res, res_c, 
             dF_c[2, 1] = drhovv + dP
             dF_c[3, 1] = drhoHv
 
-            res[:, j, i] = res_c[:, j, i] / nvert - 0.5 * dt * ( dF_c[:, 0] * snc[0, 0] 
-                                                + dF_c[:, 1] * snc[0, 1] ) / ndim
-            res[:, j, i + 1] = res_c[:, j, i] / nvert - 0.5 * dt * ( dF_c[:, 0] * snc[1, 0] 
-                                                + dF_c[:, 1] * snc[1, 1] ) / ndim
-            res[:, j + 1, i + 1] = res_c[:, j, i] / nvert - 0.5 * dt * ( dF_c[:, 0] * snc[2, 0] 
-                                                + dF_c[:, 1] * snc[2, 1] ) / ndim
-            res[:, j + 1, i] = res_c[:, j, i] / nvert - 0.5 * dt * ( dF_c[:, 0] * snc[3, 0] 
-                                                + dF_c[:, 1] * snc[3, 1] ) / ndim
-            
+            res[:, j, i] -= 0.5 * ( dF_c[:, 0] * snc[0, 0] + dF_c[:, 1] * snc[0, 1] )
+            res[:, j, i + 1] -= 0.5 * ( dF_c[:, 0] * snc[1, 0] + dF_c[:, 1] * snc[1, 1] )
+            res[:, j + 1, i + 1] -= 0.5 * ( dF_c[:, 0] * snc[2, 0] + dF_c[:, 1] * snc[2, 1] )
+            res[:, j + 1, i] -= 0.5 * ( dF_c[:, 0] * snc[3, 0] + dF_c[:, 1] * snc[3, 1] )

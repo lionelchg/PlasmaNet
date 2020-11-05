@@ -16,20 +16,20 @@
 casename: 'covo_perio/'
 
 params:
-  nit: 25
+  nit: 400
   cfl: 0.5
 
 mesh:
-  xmin: 0
-  ymin: 0
-  xmax: 20
-  ymax: 20
+  xmin: -10
+  ymin: -10
+  xmax: 10
+  ymax: 10
   nnx: 201
   nny: 201
 
 BC: 'full_perio'
 
 output:
-  save: 'iteration'
+  save: 'time'
   verbose: True
-  period: 5
+  period: 1

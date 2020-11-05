@@ -130,14 +130,26 @@ def plot_global(gstreamer, xrange, figname):
 
     plt.savefig(figname, bbox_inches='tight')
 
-def plot_euler(X, Y, U, gamma, u0, v0, dtsum, figname):
+def plot_euler(X, Y, U, gamma, u0, v0, dtsum, number, fig_dir):
+    """ 2D maps and 1D cuts at different y of the primitive variables """
     fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 10))
     plot_ax_scalar(fig, axes[0][0], X, Y, U[0], r"$\rho$", geom='xy')
     press = (gamma - 1) * (U[3] - (U[1]**2 + U[2]**2) / 2 / U[0])
     plot_ax_scalar(fig, axes[0][1], X, Y, press, "$P$", geom='xy')
     plot_ax_scalar(fig, axes[1][0], X, Y, U[1] / U[0] - u0, "$u$", geom='xy')
     plot_ax_scalar(fig, axes[1][1], X, Y, U[2] / U[0] - v0, "$v$", geom='xy')
-    plt.suptitle(rf'$t$ = {dtsum:.2e} s - $u_\infty = 2$ - $v_\infty = 2$')
+    plt.suptitle(rf'$t$ = {dtsum:.2e} s - $u_\infty = $ {u0:.2e} - $v_\infty =$ {v0:.2e}')
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
-    fig.savefig(figname, bbox_inches='tight')
+    fig.savefig(fig_dir + f'2D_{number:04d}', bbox_inches='tight')
+    plt.close(fig)
+
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 10))
+    plot_ax_scalar_1D(fig, axes[0][0], X, [0.25, 0.5], U[0], r"$\rho$")
+    press = (gamma - 1) * (U[3] - (U[1]**2 + U[2]**2) / 2 / U[0])
+    plot_ax_scalar_1D(fig, axes[0][1], X, [0.25, 0.5], press, "$P$")
+    plot_ax_scalar_1D(fig, axes[1][0], X, [0.25, 0.45], U[1] / U[0], "$u$")
+    plot_ax_scalar_1D(fig, axes[1][1], X, [0.25, 0.5], U[2] / U[0], "$v$")
+    plt.suptitle(rf'$t$ = {dtsum:.2e} s - $u_\infty = $ {u0:.2e} - $v_\infty =$ {v0:.2e}')
+    fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+    fig.savefig(fig_dir + f'1D_{number:04d}', bbox_inches='tight')
     plt.close(fig)
