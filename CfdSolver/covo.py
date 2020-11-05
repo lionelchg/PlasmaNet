@@ -20,13 +20,13 @@ from boundary import impose_bc_euler
 from metric import compute_voln
 from operators import grad
 from plot import plot_euler, plot_ax_scalar
-from euler import compute_flux, compute_res, compute_timestep
+from euler import compute_flux, compute_res, compute_timestep, Euler
 
-def print_init(nnx, nny, xmin, ymin, xmax, ymax, dx, dy, cfl, dt):
+def print_init(nnx, nny, xmin, ymin, xmax, ymax, dx, dy, cfl):
     # Print header to sum up the parameters
     print(f'Number of nodes: nnx = {nnx:d} -- nny = {nny:d}')
     print(f'Bounding box: ({xmin:.1e}, {ymin:.1e}), ({xmax:.1e}, {ymax:.1e})')
-    print(f'dx = {dx:.2e} -- dy = {dy:.2e} -- CFL = {cfl:.2e} -- Timestep = {dt:.2e}')
+    print(f'dx = {dx:.2e} -- dy = {dy:.2e} -- CFL = {cfl:.2e}')
     print('------------------------------------')
     print('Start of simulation')
     print('------------------------------------')
@@ -79,9 +79,9 @@ def main(config):
     y = np.linspace(ymin, ymax, nny)
 
     # Grid construction
+    X, Y = np.meshgrid(x, y)
     ndim = 2
     nvert = 4
-    X, Y = np.meshgrid(x, y)
     voln = compute_voln(X, dx, dy)
     volc = dx * dy
     # A bit of difference compared to avbp the nodal normal has been divided by ndim
@@ -92,6 +92,7 @@ def main(config):
     BC = config['BC']
     if BC == 'full_perio':
         voln[:] = dx * dy
+        
     # Creation of the figures directory and numbering of outputs
     fig_dir = 'figures/' + config['casename']
     if not os.path.exists(fig_dir):
@@ -120,6 +121,7 @@ def main(config):
     res_c = np.zeros((neqs, ncy, ncx))
     press, Tgas = np.zeros_like(X), np.zeros_like(X)
 
+
     # Convective vortex parameters and initialization
     x0, y0 = 0, 0
     u0, v0 = 2, 0
@@ -129,12 +131,10 @@ def main(config):
     T0 = 1 / gamma / rair
     covo(X, Y, x0, y0, u0, v0, rho0, p0, T0, alpha, K, gamma, rair, 0, U)
     plot_euler(X, Y, U, gamma, u0, v0, dtsum, 0, fig_dir)
-    maxspeed = a0 + np.sqrt(u0**2 + v0**2)
-    dt = cfl * dx / maxspeed
 
     # Print header to sum up the parameters
     if verbose:
-        print_init(nnx, nny, xmin, ymin, xmax, ymax, dx, dy, cfl, dt)
+        print_init(nnx, nny, xmin, ymin, xmax, ymax, dx, dy, cfl)
     
 
     # Iterations
@@ -161,7 +161,6 @@ def main(config):
 
         # Post processing
         number = postproc(save_type, it, period, nit, verbose, X, Y, U, gamma, u0, v0, dt, dtsum, number, fig_dir)
-
 
 if __name__ == '__main__':
 

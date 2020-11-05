@@ -16,7 +16,7 @@ class Poisson:
         self.scale = self.dx * self.dy
         if self.config == 'cart_dirichlet':
             self.R_nodes = None
-            self.mat = matrix_cart(dx, dy, nnx, nny, self.scale)
+            self.mat = matrix_cart(self.dx, self.dy, nnx, nny, self.scale)
             self.bc = dirichlet_bc_axi
         elif self.config == 'axi_dirichlet':
             self.R_nodes = copy.deepcopy(self.Y)

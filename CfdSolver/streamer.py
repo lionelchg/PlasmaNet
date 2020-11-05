@@ -35,13 +35,6 @@ def create_dir(dir_name):
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
 
-def plot_it(X, Y, ne, rese, nionp, resp, nn, resn, physical_rhs, potential, E_field, lapl_pot, voln, dtsum, number, fig_dir):
-    plot_streamer(X, Y, ne, rese / voln, nionp, resp / voln, nn, resn / voln, dtsum, number, fig_dir)
-    try:
-        plot_set_2D(X, Y, - lapl_pot, potential, E_field, 'Poisson fields', fig_dir + 'EM_%04d' % number, no_rhs=False, axi=True)
-    except:
-        print('Error plot poisson')
-        pass
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
