@@ -3,17 +3,15 @@ import numpy as np
 import scipy.constants as co
 import matplotlib.pyplot as plt
 from numba import njit
-from photo import photo_coeff
 
-fig_dir = 'figures/'
-if not os.path.exists(fig_dir):
-    os.makedirs(fig_dir)
+# From current library
+from .photo import photo_coeff
+from ..utils import create_dir
 
 @njit(cache=True)
 def morrow(mu, D, E_field, nd, resnd, nnx, nny, voln, irate=None):
     ngas, Tgas = 2.688e25, 300
     beta_recombination = 2e-13
-    ionization_rate, attachment_rate = 0, 0
 
     for i in range(nnx):
         for j in range(nny):
@@ -27,7 +25,6 @@ def morrow(mu, D, E_field, nd, resnd, nnx, nny, voln, irate=None):
             resnd[0, j, i] -= (nd[0, j, i] * ionization_freq - nd[0, j, i] * attachment_freq - nd[0, j, i] * nd[1, j, i] * beta_recombination) * voln[j, i]
             resnd[1, j, i] -= (nd[0, j, i] * ionization_freq - (nd[0, j, i] + nd[2, j, i]) * nd[1, j, i] * beta_recombination) * voln[j, i]
             resnd[2, j, i] -= (nd[0, j, i] * attachment_freq - nd[2, j, i] * nd[1, j, i] * beta_recombination) * voln[j, i]
-
 
 
 
@@ -115,6 +112,9 @@ def ax_prop(ax, logax, title, xlabel, ylabel, ylim=None):
         ax.set_ylim(ylim)
 
 if __name__ == '__main__':
+    fig_dir = 'figures/'
+    create_dir(fig_dir)
+    
     npoints = 201
     Elog = np.logspace(1, 7, npoints)
     Elin = np.linspace(1e5, 1e7, npoints)

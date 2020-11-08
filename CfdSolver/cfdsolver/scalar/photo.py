@@ -16,9 +16,7 @@ from scipy.sparse.linalg import spsolve
 from plot import plot_ax_scalar, plot_ax_scalar_1D
 from numba import njit
 
-fig_dir = 'figures/photo/'
-if not os.path.exists(fig_dir):
-    os.makedirs(fig_dir)
+from ..utils import create_dir
 
 lambda_j_three = np.array([0.0553, 0.1460,0.89]) * 1.0e2
 A_j_three = np.array([1.986e-4, 0.0051, 0.4886]) * (1.0e2)**2
@@ -96,6 +94,9 @@ def photo_coeff(E_p):
     return pcoeff
 
 if __name__ == '__main__':
+
+    fig_dir = 'figures/photo/'
+    create_dir(fig_dir)
     xmin, xmax, nx = 0, 2e-3, 252
     rmin, rmax, nr = 0, 2e-3, 252
     dx, dr = (xmax - xmin) / (nx - 1), (rmax - rmin) / (nr - 1)
