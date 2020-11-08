@@ -20,10 +20,11 @@ from boundary import impose_bc_euler
 from metric import compute_voln
 from operators import grad
 from plot import plot_euler, plot_ax_scalar
-from euler import compute_flux, compute_res, compute_timestep, Euler
+from cfdsolver import Euler
 
 
 def covo(x, y, x0, y0, u0, v0, rho0, p0, T0, alpha, K, gamma, r, t, U):
+    """ Initialize isentropic convective vortex as given by idolikecfd chap 7 """
     xbar = x - x0 - u0 * t
     ybar = y - y0 - v0 * t
     rbar = np.sqrt(xbar**2 + ybar**2)

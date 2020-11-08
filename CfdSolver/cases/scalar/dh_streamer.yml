@@ -2,7 +2,7 @@
 #                                                                                                                      #
 #                                            cfdsolver -- Configuration file                                           #
 #                                                                                                                      #
-#                                           Lionel Cheng, CERFACS, 05.11.2020                                          #
+#                                           Lionel Cheng, CERFACS, 27.03.2020                                          #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -13,23 +13,41 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'covo_perio_1/'
+casename: 'dh_streamer_2/'
 
 params:
-  nit: 400
-  cfl: 0.5
+  nit: 8000
+  dt: 5.0e-13
+  geom: 'xr'
+  photoionization: 'three'
+  n_back: 1.0e+14
+  n_gauss: 1.0e+19
 
 mesh:
-  xmin: -10
-  ymin: -10
-  xmax: 10
-  ymax: 10
-  nnx: 201
-  nny: 201
+  xmin: 0
+  ymin: 0
+  xmax: 0.004
+  ymax: 0.001
+  nnx: 401
+  nny: 101
 
-BC: 'full_perio'
+transport:
+  chemistry: 'morrow'
+
+BC: 'outlet_axi'
+
+poisson:
+  backE: 4.8e+6
 
 output:
-  save: 'time'
+  folder: 'data/'
+  save: 'iteration'
   verbose: True
-  period: 0.1
+  files: 'figdata'
+  period: 10
+  dl_save: 'yes'
+
+input: 'none'
+  # ne: 'data/dh_streamer_7/ne_0004.npy'
+  # np: 'data/dh_streamer_7/np_0004.npy'
+  # nn: 'data/dh_streamer_7/nn_0004.npy'

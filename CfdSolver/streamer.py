@@ -35,7 +35,6 @@ def create_dir(dir_name):
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
 
-
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
 
@@ -230,8 +229,6 @@ def main(config):
         normE = np.sqrt(E_field[0, :, :]**2 + E_field[1, :, :]**2)
         normE_ax = normE[0, :]
         n_middle = int(nnx / 2)
-        indneg = np.argmax(normE_ax[:n_middle])
-        indpos = n_middle + np.argmax(normE_ax[n_middle:])
         gstreamer[it, 1], gstreamer[it, 2] = x[np.argmax(normE_ax[:n_middle])], x[n_middle + np.argmax(normE_ax[n_middle:])]
         gstreamer[it, 3] = gstreamer[it - 1, 3] + co.e * dt * np.sum(nd[0] * mu * normE * voln)
 

@@ -6,8 +6,9 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+import os
 import numpy as np
-
+import copy
 
 def compute_voln(X, dx, dy):
     """ Computes the nodal volume associated to each node (i, j) """
