@@ -1,9 +1,0 @@
-#!/usr/bin/bash
-#SBATCH --job-name=PlasmaNet
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --time=01:00:00
-#SBATCH --partition=prodshared
-
-source /scratch/cfd/bogopolsky/DL/dl_env/activate
-python3 streamer.py 

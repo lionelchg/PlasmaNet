@@ -2,7 +2,7 @@
 #                                                                                                                      #
 #                                         Drift-diffusion fluid plasma solver                                          #
 #                                                                                                                      #
-#                                          Lionel Cheng, CERFACS, 22.04.2020                                           #
+#                                          Lionel Cheng, CERFACS, 09.11.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -30,9 +30,6 @@ import PlasmaNet.model.metric as module_metric
 from PlasmaNet.parse_config import ConfigParser
 from PlasmaNet.trainer.trainer import plot_batch
 import PlasmaNet.model as module_arch
-
-def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
-    return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
 
 
 def main(cfg_streamer, cfg_dl):
@@ -113,7 +110,6 @@ if __name__ == '__main__':
     options = [
         CustomArgs(['-ds', '--dataset'], type=str, target='data_loader;args;data_dir'),
         CustomArgs(['-n', '--name'], type=str, target='name')
-
     ]
     cfg_dl = ConfigParser.from_args(args, options)
 

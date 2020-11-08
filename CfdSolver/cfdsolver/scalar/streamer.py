@@ -51,58 +51,58 @@ class StreamerMorrow(BaseSim):
         self.mat_poisson = matrix_axisym(self.dx, self.dy, self.nnx, 
                 self.nny, self.R_nodes, self.scale)
         
-        # self.photo = config['params']['photoionization'] != 'no'
-        # if self.photo:
-        #     self.photo_model = config['params']['photoionization']
-        #     # Pressure in Torr
-        #     self.pO2 = 150
+        self.photo = config['params']['photoionization'] != 'no'
+        if self.photo:
+            self.photo_model = config['params']['photoionization']
+            # Pressure in Torr
+            self.pO2 = 150
 
-        #     # Boundary conditions
-        #     self.up_photo = np.zeros_like(self.x)
-        #     self.left_photo = np.zeros_like(self.y)
-        #     self.right_photo = np.zeros_like(self.y)
+            # Boundary conditions
+            self.up_photo = np.zeros_like(self.x)
+            self.left_photo = np.zeros_like(self.y)
+            self.right_photo = np.zeros_like(self.y)
 
-        #     self.mats_photo = []
-        #     self.irate = np.zeros_like(self.X)
-        #     self.Sph = np.zeros_like(self.X)
+            self.mats_photo = []
+            self.irate = np.zeros_like(self.X)
+            self.Sph = np.zeros_like(self.X)
 
-        #     if self.photo_model == 'two':
-        #         for i in range(2):
-        #             # Axisymmetric resolution
-        #             self.mats_photo.append(photo_axisym(self.dx, self.dy, 
-        #                 self.nnx, self.nny, self.R_nodes, (lambda_j_two[i] * self.pO2)**2, self.scale))
-        #     elif self.photo_model == 'three':
-        #         for i in range(3):
-        #             # Axisymmetric resolution
-        #             self.mats_photo.append(photo_axisym(self.dx, self.dy, 
-        #                 self.nnx, self.nny, self.R_nodes, (lambda_j_three[i] * self.pO2)**2, self.scale))
+            if self.photo_model == 'two':
+                for i in range(2):
+                    # Axisymmetric resolution
+                    self.mats_photo.append(photo_axisym(self.dx, self.dy, 
+                        self.nnx, self.nny, self.R_nodes, (lambda_j_two[i] * self.pO2)**2, self.scale))
+            elif self.photo_model == 'three':
+                for i in range(3):
+                    # Axisymmetric resolution
+                    self.mats_photo.append(photo_axisym(self.dx, self.dy, 
+                        self.nnx, self.nny, self.R_nodes, (lambda_j_three[i] * self.pO2)**2, self.scale))
 
-        # self.input_fn = config['input']
-        # if self.input_fn == 'none':
-        #     self.number = 1
+        self.input_fn = config['input']
+        if self.input_fn == 'none':
+            self.number = 1
 
-        #     self.nd = np.zeros((3, self.nny, self.nnx))
-        #     self.resnd = np.zeros((3, self.nny, self.nnx))
-        #     # Gaussian initialization for the electrons and positive ions
-        #     self.n_back = config['params']['n_back']
-        #     self.n_gauss = config['params']['n_gauss']
-        #     self.nd[0, :] = gaussian(self.X, self.Y, self.n_gauss, 2e-3, 0, 2e-4, 2e-4) + self.n_back
-        #     self.nd[1, :] = gaussian(self.X, self.Y, self.n_gauss, 2e-3, 0, 2e-4, 2e-4) + self.n_back
+            self.nd = np.zeros((3, self.nny, self.nnx))
+            self.resnd = np.zeros((3, self.nny, self.nnx))
+            # Gaussian initialization for the electrons and positive ions
+            self.n_back = config['params']['n_back']
+            self.n_gauss = config['params']['n_gauss']
+            self.nd[0, :] = gaussian(self.X, self.Y, self.n_gauss, 2e-3, 0, 2e-4, 2e-4) + self.n_back
+            self.nd[1, :] = gaussian(self.X, self.Y, self.n_gauss, 2e-3, 0, 2e-4, 2e-4) + self.n_back
 
-        # else:
-        #     # Scalar and Residual declaration
-        #     self.resnd = np.zeros((3, self.nny, self.nnx))
+        else:
+            # Scalar and Residual declaration
+            self.resnd = np.zeros((3, self.nny, self.nnx))
 
-        #     # Loading of densities
-        #     self.nd = np.load(config['input']['nd'])
+            # Loading of densities
+            self.nd = np.load(config['input']['nd'])
 
-        #     self.number = int(re.search('_(\d+)\.npy', config['input']['ne']).group(1)) + 1
-        #     self.dtsum = (self.number - 1) * config['output']['period'] * self.dt
+            self.number = int(re.search('_(\d+)\.npy', config['input']['ne']).group(1)) + 1
+            self.dtsum = (self.number - 1) * config['output']['period'] * self.dt
 
-        # # Temporal values to store (position of positive streamer, position of negative streamer, energy of the discharge)
-        # self.gstreamer = np.zeros((self.nit + 1, 4))
-        # self.gstreamer[:, 0] = np.linspace(0, self.nit * self.dt, self.nit + 1)
-        # self.n_middle = int(self.nnx / 2)
+        # Temporal values to store (position of positive streamer, position of negative streamer, energy of the discharge)
+        self.gstreamer = np.zeros((self.nit + 1, 4))
+        self.gstreamer[:, 0] = np.linspace(0, self.nit * self.dt, self.nit + 1)
+        self.n_middle = int(self.nnx / 2)
 
 
     def print_init(self):

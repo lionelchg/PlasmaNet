@@ -11,12 +11,6 @@ import numpy as np
 from scipy.sparse.linalg import spsolve
 from scipy import integrate
 
-# Creation of directories
-fig_dir = 'figures/dirichlet/'
-if not os.path.exists(fig_dir):
-    os.makedirs(fig_dir)
-
-
 def coef(V_u, n, x, Lx):
     return integrate.simps(V_u * np.sin(n * np.pi * x / Lx), x)
 
@@ -29,6 +23,3 @@ def sum_series(V_u, x, y, Lx, Ly, N):
     for n in range(1, N + 1):
         series += series_term(V_u, x, y, Lx, Ly, n)
     return 2 / Lx * series
-
-
-
