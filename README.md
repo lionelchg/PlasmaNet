@@ -11,21 +11,21 @@ Solving the electrostatic Poisson equation for plasma simulations using a deep l
 First set up the correct Python environment. If you are working on Kraken, you may use the already prepared
 environment `/scratch/cfd/bogopolsky/DL/dl_env` by using:
 
-```
+```bash
 source /scratch/cfd/bogopolsky/DL/dl_env/bin/activate
 ```
 
 To use your own environment, follow the above instructions to activate a Python 3.8 environment, create a new 
 Python 3.8 venv and activate it:
 
-```
+```bash
 python -m venv path/to/your/env  
 source path/to/your/env/bin/activate
 ```
 
 Install the required packages:
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
 Clone and install the repository:
 
-```
+```bash
 git clone https://nitrox.cerfacs.fr/cfd-apps/plasmanet
 cd plasmanet  
 pip install -e .
