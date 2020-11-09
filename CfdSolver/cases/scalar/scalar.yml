@@ -40,3 +40,4 @@ output:
   save: 'iteration'
   verbose: True
   period: 20
+  files: 'fig'

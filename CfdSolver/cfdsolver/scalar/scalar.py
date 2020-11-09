@@ -12,10 +12,11 @@ import matplotlib.pyplot as plt
 import scipy.constants as co
 import copy
 from numba import njit
+
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
 from ..base.basesim import BaseSim
 from ..base.operators import grad
-from boundary import outlet_x, outlet_y, full_perio, perio_x, perio_y
+from .boundary import outlet_x, outlet_y, full_perio, perio_x, perio_y
 
 class ScalarTransport(BaseSim):
     def __init__(self, config):

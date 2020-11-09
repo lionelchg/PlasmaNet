@@ -13,10 +13,10 @@ import copy
 
 from scipy import sparse
 from scipy.sparse.linalg import spsolve
-from plot import plot_ax_scalar, plot_ax_scalar_1D
 from numba import njit
 
 from ..utils import create_dir
+from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
 
 lambda_j_three = np.array([0.0553, 0.1460,0.89]) * 1.0e2
 A_j_three = np.array([1.986e-4, 0.0051, 0.4886]) * (1.0e2)**2

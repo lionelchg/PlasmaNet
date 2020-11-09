@@ -23,7 +23,7 @@ from .init import gaussian
 from .scalar import compute_flux
 from .chemistry import morrow
 from .photo import photo_axisym, A_j_two, A_j_three, lambda_j_two, lambda_j_three
-from boundary import outlet_x, outlet_y, full_perio, perio_x, perio_y
+from .boundary import outlet_x, outlet_y, full_perio, perio_x, perio_y
 
 from poissonsolver.linsystem import matrix_axisym, dirichlet_bc_axi
 
