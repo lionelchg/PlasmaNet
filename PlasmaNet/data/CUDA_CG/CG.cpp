@@ -20,10 +20,12 @@
 #include <stdio.h>
 #include <string.h>
 
+
 /* Using updated (v2) interfaces to cublas */
-#include <cuda_runtime.h>
-#include <cusparse.h>
-#include <cublas_v2.h>
+#include </softs/nvidia/cuda-10.1/include/cuda.h>
+#include </softs/nvidia/cuda-10.1/include/cuda_runtime.h>
+#include </softs/nvidia/cuda-10.1/include/cusparse.h>
+#include </softs/nvidia/cuda-10.1/include/cublas_v2.h>
 
 // Utilities and system includes
 #include </softs/nvidia/cuda-10.1/samples/common/inc/helper_functions.h>  // helper for shared functions common to CUDA Samples
