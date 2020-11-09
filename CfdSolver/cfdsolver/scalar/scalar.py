@@ -6,17 +6,15 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import os
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.constants as co
-import copy
 from numba import njit
 
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
 from ..base.basesim import BaseSim
 from ..base.operators import grad
 from .boundary import outlet_x, outlet_y, full_perio, perio_x, perio_y
+
 
 class ScalarTransport(BaseSim):
     def __init__(self, config):
@@ -33,7 +31,7 @@ class ScalarTransport(BaseSim):
         self.D = np.zeros_like(self.X)
         self.D[:] = config['transport']['diffusion']
         self.max_D = np.max(self.D)
-    
+
         self.fourier = config['params']['fourier']
         self.dt = min(self.cfl * self.dx / self.max_speed, self.fourier * self.dx ** 2 / self.max_D)
 
@@ -41,7 +39,7 @@ class ScalarTransport(BaseSim):
         self.u, self.res = np.zeros_like(self.X), np.zeros_like(self.X)
 
     def print_init(self):
-        # Print header to sum up the parameters
+        """ Print header to sum up the parameters. """
         print(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
         print(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
         print(f'Transport: a = {self.max_speed:.2e} -- D = {self.max_D:.2e}')
@@ -52,18 +50,20 @@ class ScalarTransport(BaseSim):
         print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
     def compute_dflux(self):
+        """ Compute the diffusive flux: D * grad(u) """
         self.diff_flux = self.D * grad(self.u, self.dx, self.dy, self.nnx, self.nny)
 
     def compute_flux(self):
+        """ Wrapper for jitted compute_flux function. """
         res = self.res
         a = self.a
         u = self.u
         diff_flux = self.diff_flux
         sij = self.sij
         compute_flux(res, a, u, diff_flux, sij, self.ncx, self.ncy, r=self.R_nodes)
-    
+
     def impose_bc(self):
-        """ Impose boundary conditions specified in the config file """
+        """ Impose boundary conditions specified in the config file. """
         res = self.res
         a = self.a
         u = self.u
@@ -86,14 +86,16 @@ class ScalarTransport(BaseSim):
                 outlet_x(res, a, u, diff_flux, self.dy, 0)
                 outlet_x(res, a, u, diff_flux, self.dy, -1)
             elif self.geom == 'xr':
-                outlet_y(res, a, u, diff_flux, self.dx, -1, r=np.max(Y))
-                outlet_x(res, a, u, diff_flux, self.dy, 0, r=Y)
-                outlet_x(res, a, u, diff_flux, self.dy, -1, r=Y)
-    
+                outlet_y(res, a, u, diff_flux, self.dx, -1, r=np.max(self.Y))
+                outlet_x(res, a, u, diff_flux, self.dy, 0, r=self.Y)
+                outlet_x(res, a, u, diff_flux, self.dy, -1, r=self.Y)
+
     def update_res(self):
+        """ Update residual. """
         self.u -= self.res * self.dt / self.voln
-    
+
     def plot(self):
+        """ Execute control plots. """
         fig, axes = plt.subplots(ncols=2, figsize=(12, 6))
         plot_ax_scalar(fig, axes[0], self.X, self.Y, self.u, "Scalar", geom=self.geom)
         plot_ax_scalar_1D(fig, axes[1], self.X, [0.1, 0.25, 0.5], self.u, "Scalar")
@@ -124,7 +126,7 @@ def compute_flux(res, a, u, diff_flux, sij, ncx, ncy, r=None):
 @njit(cache=True)
 def edge_flux(res, a, u, diff_flux, sij, i1, j1, i2, j2, dim):
     """ Convection-diffusion flux. Implemented with 1st order upwind scheme for convection
-    and second order centered scheme for diffusion """
+    and second order centered scheme for diffusion. """
     # Convective flux
     scalar_product = 0.5 * (a[dim, j1, i1] + a[dim, j2, i2]) * sij[dim]
     if scalar_product >= 0:

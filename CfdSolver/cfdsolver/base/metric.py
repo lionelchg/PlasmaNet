@@ -6,9 +6,9 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import os
 import numpy as np
 import copy
+
 
 class Mesh:
     def __init__(self, config):
@@ -25,6 +25,7 @@ class Mesh:
         self.y = np.linspace(self.ymin, self.ymax, self.nny)
         # Grid construction
         self.X, self.Y = np.meshgrid(self.x, self.y)
+
 
 class Grid(Mesh):
     def __init__(self, config):

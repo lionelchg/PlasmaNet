@@ -1,9 +1,17 @@
-import os
+########################################################################################################################
+#                                                                                                                      #
+#                                                    BaseSim class                                                     #
+#                                                                                                                      #
+#                                          Lionel Cheng, CERFACS, 05.11.2020                                           #
+#                                                                                                                      #
+########################################################################################################################
+
 import numpy as np
 import re
 
 from .metric import Grid
 from ..utils import create_dir
+
 
 class BaseSim(Grid):
     def __init__(self, config):
@@ -39,11 +47,11 @@ class BaseSim(Grid):
 
     def plot(self):
         """ Abstract method for plotting """
-        pass
-    
+        raise NotImplementedError
+
     def save(self):
         """ Abstract method for saving data """
-        pass
+        raise NotImplementedError
 
     def postproc(self, it):
         if self.save_type == 'iteration':

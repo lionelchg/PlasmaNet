@@ -34,3 +34,4 @@ output:
   save: 'time'
   verbose: True
   period: 0.5
+  files: "fig"

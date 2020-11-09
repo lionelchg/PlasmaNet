@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from test_funcs import gaussian, step, packet_wave
 
+
 def plot_fd(x_th, x, u_gauss, u_step, u_2pw, u_4pw, schemes, figtitle, figname):
     fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12, 12))
 

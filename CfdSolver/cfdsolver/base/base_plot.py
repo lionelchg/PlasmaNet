@@ -13,11 +13,16 @@ from matplotlib.colors import LogNorm
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+
 def round_up(n, decimals=0): 
     multiplier = 10 ** decimals 
     return np.ceil(n * multiplier) / multiplier
 
-def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', geom='xr', field_ticks=[1e14, 1e17, 1e20]):
+
+def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', geom='xr', field_ticks=None):
+    # Avoid mutable defaults value
+    if field_ticks is None:
+        field_ticks = [1e14, 1e17, 1e20]
     xmax, ymax = np.max(X), np.max(Y)
     fraction_cbar = 0.1
     aspect = 1.7 * ymax / fraction_cbar / xmax
@@ -49,6 +54,7 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', ge
     ax.set_aspect("equal")
     ax.set_title(title)
 
+
 def plot_ax_scalar_1D(fig, ax, X, list_cut, field, title, yscale='linear', ylim=None):
     x = X[0, :]
     n_points = len(X[:, 0])
@@ -64,6 +70,7 @@ def plot_ax_scalar_1D(fig, ax, X, list_cut, field, title, yscale='linear', ylim=
 
     ax.set_title(title)
 
+
 def plot_streamer(X, Y, nd, resnd, dtsum, figname):
     fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(14, 10))
     plot_ax_scalar(fig, axes[0][0], X, Y, nd[0], "$n_e$", cmap_scale='log')
@@ -77,6 +84,7 @@ def plot_streamer(X, Y, nd, resnd, dtsum, figname):
     plt.savefig(figname, bbox_inches='tight')
     plt.close()
 
+
 def plot_streamer_1D(X, Y, nd, resnd, dtsum, cut_pos, figname):
     fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(14, 10))
     plot_ax_scalar_1D(fig, axes[0][0], X, cut_pos, nd[0], "$n_e$", yscale='log')
@@ -89,6 +97,7 @@ def plot_streamer_1D(X, Y, nd, resnd, dtsum, cut_pos, figname):
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
     plt.savefig(figname, bbox_inches='tight')
     plt.close()
+
 
 def plot_global(gstreamer, xrange, figname):
     """ Global quantities (position of negative streamer, 
@@ -111,4 +120,3 @@ def plot_global(gstreamer, xrange, figname):
     axes[1].grid(True)
 
     plt.savefig(figname, bbox_inches='tight')
-

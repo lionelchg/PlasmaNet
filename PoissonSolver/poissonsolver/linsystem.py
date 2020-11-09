@@ -96,6 +96,7 @@ def matrix_cart(dx, dy, nx, ny, scale, down_bc='dirichlet'):
 
 
 def matrix_axisym(dx, dr, nx, nr, R, scale):
+    """ Build the matrix for the axisymmetric configuration. """
     diags = np.zeros((5, nx * nr))
 
     r = R.reshape(-1)
@@ -126,7 +127,7 @@ def matrix_axisym(dx, dr, nx, nr, R, scale):
 
 
 def dirichlet_bc_axi(rhs, nx, nr, up, left, right):
-    # filling of the three dirichlet boundaries for axisymmetric test case
+    """ Apply the three dirichlet boundary conditions for axisymmetric test case. """
     rhs[nx * (nr - 1):] = up
     rhs[:nx * (nr - 1) + 1:nx] = left
     rhs[nx - 1::nx] = right
@@ -134,9 +135,10 @@ def dirichlet_bc_axi(rhs, nx, nr, up, left, right):
     rhs[-nx] = 0.5 * (left[-1] + up[0])
     rhs[-1] = 0.5 * (right[-1] + up[-1])
 
+
 def dc_bc(rhs, nx, ny, *args):
     """ Apply dirichlet boundary conditions on full dirichlet or 
-    3 dirichlet + 1 neumann problem """
+    3 dirichlet + 1 neumann problem. """
     if len(args) == 3:
         up, left, right = args
         # filling of the three dirichlet boundaries for axisymmetric test case

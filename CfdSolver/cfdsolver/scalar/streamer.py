@@ -6,15 +6,12 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.constants as co
 import re
-import copy
-from numba import njit
 
-from scipy.sparse.linalg import spsolve, isolve, cg, cgs
+from scipy.sparse.linalg import spsolve
 
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
 from ..base.basesim import BaseSim
@@ -23,24 +20,19 @@ from .init import gaussian
 from .scalar import compute_flux
 from .chemistry import morrow
 from .photo import photo_axisym, A_j_two, A_j_three, lambda_j_two, lambda_j_three
-from .boundary import outlet_x, outlet_y, full_perio, perio_x, perio_y
+from .boundary import outlet_x, outlet_y
 
 from poissonsolver.linsystem import matrix_axisym, dirichlet_bc_axi
+
 
 class StreamerMorrow(BaseSim):
     def __init__(self, config):
         super().__init__(config)
-        # Timestep fixed
-        self.dt = config['params']['dt']
-
         # Convection speed
         self.a = np.zeros((self.ndim, self.nny, self.nnx))
 
         # Transport coefficients
         self.mu, self.D = np.zeros_like(self.X), np.zeros_like(self.X)
-
-        # Scalar and Residual declaration
-        self.u, self.res = np.zeros_like(self.X), np.zeros_like(self.X)
 
         # Background electric field and matrix construction
         self.backE = config['poisson']['backE']
@@ -48,9 +40,10 @@ class StreamerMorrow(BaseSim):
         self.left = np.zeros_like(self.y)
         self.right = - np.ones_like(self.y) * self.backE * self.xmax
         self.scale = self.dx * self.dy
-        self.mat_poisson = matrix_axisym(self.dx, self.dy, self.nnx, 
-                self.nny, self.R_nodes, self.scale)
-        
+        self.mat_poisson = matrix_axisym(self.dx, self.dy, self.nnx,
+                                         self.nny, self.R_nodes, self.scale)
+
+        # Photoionization initialization
         self.photo = config['params']['photoionization'] != 'no'
         if self.photo:
             self.photo_model = config['params']['photoionization']
@@ -69,26 +62,30 @@ class StreamerMorrow(BaseSim):
             if self.photo_model == 'two':
                 for i in range(2):
                     # Axisymmetric resolution
-                    self.mats_photo.append(photo_axisym(self.dx, self.dy, 
-                        self.nnx, self.nny, self.R_nodes, (lambda_j_two[i] * self.pO2)**2, self.scale))
+                    self.mats_photo.append(
+                        photo_axisym(self.dx, self.dy, self.nnx, self.nny, self.R_nodes,
+                                     (lambda_j_two[i] * self.pO2)**2, self.scale)
+                    )
             elif self.photo_model == 'three':
                 for i in range(3):
                     # Axisymmetric resolution
-                    self.mats_photo.append(photo_axisym(self.dx, self.dy, 
-                        self.nnx, self.nny, self.R_nodes, (lambda_j_three[i] * self.pO2)**2, self.scale))
+                    self.mats_photo.append(
+                        photo_axisym(self.dx, self.dy, self.nnx, self.nny, self.R_nodes,
+                                     (lambda_j_three[i] * self.pO2)**2, self.scale)
+                    )
 
+        # Read or initialize solution
         self.input_fn = config['input']
         if self.input_fn == 'none':
             self.number = 1
 
-            self.nd = np.zeros((3, self.nny, self.nnx))
+            self.nd = np.zeros((3, self.nny, self.nnx))  # Electrons, positive ions, negative ions
             self.resnd = np.zeros((3, self.nny, self.nnx))
             # Gaussian initialization for the electrons and positive ions
             self.n_back = config['params']['n_back']
             self.n_gauss = config['params']['n_gauss']
             self.nd[0, :] = gaussian(self.X, self.Y, self.n_gauss, 2e-3, 0, 2e-4, 2e-4) + self.n_back
             self.nd[1, :] = gaussian(self.X, self.Y, self.n_gauss, 2e-3, 0, 2e-4, 2e-4) + self.n_back
-
         else:
             # Scalar and Residual declaration
             self.resnd = np.zeros((3, self.nny, self.nnx))
@@ -104,8 +101,8 @@ class StreamerMorrow(BaseSim):
         self.gstreamer[:, 0] = np.linspace(0, self.nit * self.dt, self.nit + 1)
         self.n_middle = int(self.nnx / 2)
 
-
     def print_init(self):
+        """ Print header to sum up the parameters. """
         print(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
         print(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
         print(f'dx = {self.dx:.2e} -- dy = {self.dy:.2e} -- Timestep = {self.dt:.2e}')
@@ -118,16 +115,16 @@ class StreamerMorrow(BaseSim):
         print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
     def solve_poisson(self):
-        # Solve the Poisson equation / Axisymmetric resolution
+        """ Solve the Poisson equation in axisymmetric configuration. """
         self.physical_rhs = (self.nd[1] - self.nd[0] - self.nd[2]).reshape(-1) * co.e / co.epsilon_0
         self.rhs = - self.physical_rhs * self.scale
         dirichlet_bc_axi(self.rhs, self.nnx, self.nny, self.up, self.left, self.right)
         self.potential = spsolve(self.mat_poisson, self.rhs).reshape(self.nny, self.nnx)
         self.E_field = - grad(self.potential, self.dx, self.dy, self.nnx, self.nny)
         self.physical_rhs = self.physical_rhs.reshape((self.nny, self.nnx))
-    
+
     def compute_chemistry(self, it):
-            # Application of chemistry
+        """ Apply chemistry from Morrow et. al. with or without photoionization. """
         if self.photo and it % 10 == 1:
             morrow(self.mu, self.D, self.E_field, self.nd, self.resnd, self.nnx, self.nny, self.voln, irate=self.irate)
             self.Sph[:] = 0
@@ -148,9 +145,9 @@ class StreamerMorrow(BaseSim):
         if self.photo:
             self.resnd[0] -= self.Sph * self.voln
             self.resnd[1] -= self.Sph * self.voln
-    
+
     def compute_residuals(self):
-        # Convective and diffusive flux
+        """ Compute convective and diffusive fluxes. """
         self.a = - self.mu * self.E_field
         self.diff_flux = self.D * grad(self.nd[0], self.dx, self.dy, self.nnx, self.nny)
 
@@ -161,23 +158,27 @@ class StreamerMorrow(BaseSim):
         outlet_x(self.resnd[0], self.a, self.nd[0], self.diff_flux, self.dy, 0, r=self.Y)
         outlet_x(self.resnd[0], self.a, self.nd[0], self.diff_flux, self.dy, -1, r=self.Y)
 
-
     def update_res(self):
+        """ Update residual. """
         for i in range(3):
             self.nd[i] -= self.resnd[i] * self.dt / self.voln
 
     def global_prop(self, it):
-        # Post processing of macro values
+        """ Compute global propagation of the streamers and discharge power."""
         E_field = self.E_field
         x = self.x
-        self.normE = np.sqrt(E_field[0, :, :]**2 + E_field[1, :, :]**2)
-        self.normE_ax = self.normE[0, :]
-        self.gstreamer[it, 1] = x[np.argmax(self.normE_ax[:self.n_middle])]
+        self.normE = np.sqrt(E_field[0, :, :]**2 + E_field[1, :, :]**2) 
+        self.normE_ax = self.normE[0, :]  # compute norm on the axis
+        # maximal electric field position in the first half of the domain
+        # ie. left streamer position
+        self.gstreamer[it, 1] = x[np.argmax(self.normE_ax[:self.n_middle])]  
+        # right streamer position
         self.gstreamer[it, 2] = x[self.n_middle + np.argmax(self.normE_ax[self.n_middle:])]
+        # instantaneous discharge power
         self.gstreamer[it, 3] = self.gstreamer[it - 1, 3] + co.e * self.dt * np.sum(self.nd[0] * self.mu * self.normE * self.voln)
 
-    
     def plot(self):
+        """ Execute plots. """
         if self.photo:
             fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(14, 10))
         else:
@@ -202,11 +203,12 @@ class StreamerMorrow(BaseSim):
         plt.close(fig)
 
     def save(self):
+        """ Save solutions. """
         np.save(self.data_dir + f'nd_{self.number:04d}', self.nd)
 
     def plot_global(self):
         """ Global quantities (position of negative streamer, 
-        positive streamer and energy of discharge) """
+        positive streamer and energy of discharge). """
         gstreamer = self.gstreamer
         time = gstreamer[:, 0] / 1e-9
         gstreamer[:, 1:3] = gstreamer[:, :2] / 1e-3

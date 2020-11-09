@@ -6,20 +6,21 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.constants as co
 import copy
 from numba import njit
+
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
 from ..base.basesim import BaseSim
+
 
 class Euler(BaseSim):
     def __init__(self, config):
         super().__init__(config)
 
-        # Scalar and Residual declaration - Mixture parameters
+        # Scalar and residual declaration - Mixture parameters
         self.gamma = 7 / 5
         self.neqs = 4
         self.W = 0.029 # kg/mol
@@ -33,7 +34,7 @@ class Euler(BaseSim):
         self.dF_c = np.zeros((self.neqs, self.ndim))
 
     def print_init(self):
-        # Print header to sum up the parameters
+        """ Print header to sum up the parameters. """
         print(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
         print(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
         print(f'dx = {self.dx:.2e} -- dy = {self.dy:.2e} -- CFL = {self.cfl:.2e}')
@@ -42,20 +43,17 @@ class Euler(BaseSim):
         print('------------------------------------')
         print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
-
     def compute_flux(self):
         """ Compute the 2D flux of the Euler equations as well as pressure and 
-        temperature with wrapper around numba routine (optimized for speed) """
-
+        temperature with wrapper around numba routine (optimized for speed). """
         F = self.F
         U = self.U
         press = self.press
         Tgas = self.Tgas
-
         compute_flux(U, self.gamma, self.r, F, press, Tgas)
 
     def compute_timestep(self):
-        """ Compute the time step with wraper around numba routine """
+        """ Compute the time step with wraper around numba routine. """
         press = self.press
         U = self.U
         self.dt = compute_timestep(self.cfl, self.dx, U, press, self.gamma)
@@ -63,7 +61,7 @@ class Euler(BaseSim):
 
     def compute_res(self):
         """ Compute residuals for the Lax-Wendroff scheme in a cell-vertex fashion
-        (wrapper around numba routine) """
+        (wrapper around numba routine). """
         U = self.U
         U_c = self.U_c
         res_c = self.res_c
@@ -76,7 +74,7 @@ class Euler(BaseSim):
                 self.gamma, self.ndim, self.nvert, res, res_c, U_c)
 
     def impose_bc_euler(self):
-        """ Full periodic conditions in the 4 directions """
+        """ Full periodic conditions in the 4 directions. """
         res = self.res
         if self.BC == 'full_perio':
             # Corner (only for full periodic)
@@ -88,13 +86,13 @@ class Euler(BaseSim):
             res[:, 1:-1, -1] = copy.deepcopy(res[:, 1:-1, 0])
             res[:, 0, 1:-1] += res[:, -1, 1:-1]
             res[:, -1, 1:-1] = copy.deepcopy(res[:, 0, 1:-1])
-    
+
     def update_res(self):
-        """ Apply residual """
+        """ Apply residuals. """
         self.U -= self.dt / self.voln * self.res
 
     def plot(self):
-        """ 2D maps and 1D cuts at different y of the primitive variables """
+        """ 2D maps and 1D cuts at different y of the primitive variables. """
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 10))
         plot_ax_scalar(fig, axes[0][0], self.X, self.Y, self.U[0], r"$\rho$", geom='xy')
         press = (self.gamma - 1) * (self.U[3] - (self.U[1]**2 + self.U[2]**2) / 2 / self.U[0])
@@ -117,16 +115,19 @@ class Euler(BaseSim):
         fig.savefig(self.fig_dir + f'1D_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
 
+
 @njit(cache=True)
 def compute_timestep(cfl, dx, U, press, gamma):
+    """ Compute timestep CFL condition. """
     speed = np.sqrt(gamma * press / U[0]) + np.sqrt((U[1]**2 + U[2]**2) / U[0])
     dt = cfl * dx / np.max(speed[:])
     return dt
 
+
 @njit(cache=True)
 def compute_flux(U, gamma, r, F, press, Tgas):
     """ Compute the 2D flux of the Euler equations 
-    as well as pressure and temperature """
+    as well as pressure and temperature. """
     press = (gamma - 1) * (U[3] - (U[1]**2 + U[2]**2) / 2 / U[0])
     Tgas = press / U[0] / r
     # rhou - rhov
@@ -142,9 +143,10 @@ def compute_flux(U, gamma, r, F, press, Tgas):
     F[3, 0] = U[1] / U[0] * (U[3] + press)
     F[3, 1] = U[2] / U[0] * (U[3] + press)
 
+
 @njit(cache=True)
 def compute_res(U, F, dt, volc, snc, ncx, ncy, gamma, ndim, nvert, res, res_c, U_c):
-    """ Compute residuals for the Lax-Wendroff scheme in a cell-vertex fashion """
+    """ Compute residuals for the Lax-Wendroff scheme in a cell-vertex fashion. """
     dF_c = np.zeros((4, 2))
     for i in range(ncx):
         for j in range(ncy):
@@ -154,13 +156,11 @@ def compute_res(U, F, dt, volc, snc, ncx, ncy, gamma, ndim, nvert, res, res_c, U
                     + F[:, 0, j, i + 1] * snc[1, 0] +  F[:, 1, j, i + 1] * snc[1, 1]
                     + F[:, 0, j + 1, i + 1] * snc[2, 0] +  F[:, 1, j + 1, i + 1] * snc[2, 1]
                     + F[:, 0, j + 1, i] * snc[3, 0] +  F[:, 1, j + 1, i] * snc[3, 1])
-
             # Add central term
             res[:, j, i] += res_c[:, j, i] / nvert
             res[:, j, i + 1] += res_c[:, j, i] / nvert
             res[:, j + 1, i + 1] += res_c[:, j, i] / nvert
             res[:, j + 1, i] += res_c[:, j, i] / nvert
-    
     res_c *= dt / volc
 
     # Add second order diffusion term
@@ -206,4 +206,3 @@ def compute_res(U, F, dt, volc, snc, ncx, ncy, gamma, ndim, nvert, res, res_c, U
             res[:, j, i + 1] -= 0.5 * ( dF_c[:, 0] * snc[1, 0] + dF_c[:, 1] * snc[1, 1] )
             res[:, j + 1, i + 1] -= 0.5 * ( dF_c[:, 0] * snc[2, 0] + dF_c[:, 1] * snc[2, 1] )
             res[:, j + 1, i] -= 0.5 * ( dF_c[:, 0] * snc[3, 0] + dF_c[:, 1] * snc[3, 1] )
-    

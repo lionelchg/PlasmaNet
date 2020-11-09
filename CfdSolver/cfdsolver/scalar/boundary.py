@@ -2,12 +2,13 @@
 #                                                                                                                      #
 #                                            Boundary conditions functions                                             #
 #                                                                                                                      #
-#                                          Lionel Cheng, CERFACS, 22.04.2020                                           #
+#                                          Lionel Cheng, CERFACS, 05.11.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
 
 import numpy as np
 import copy
+
 
 def outlet_y(res, a, u, diff_flux, dx, yb, r=None):
     """ Outlet boundary conditions in the y direction """
@@ -59,6 +60,7 @@ def outlet_x(res, a, u, diff_flux, dy, xb, r=None):
     # res[0, xb] += dy / 2 * a[0, 0, xb] * u[0, xb]
     # res[-1, xb] += dy / 2 * a[0, -1, xb] * u[-1, xb]
 
+
 def perio_x(res):
     """ Periodic condition in the x direction """
     res[1:-1, 0] += res[1:-1, -1]
@@ -83,6 +85,7 @@ def full_perio(res):
     res[0, 1:-1] += res[-1, 1:-1]
     res[-1, 1:-1] = copy.deepcopy(res[0, 1:-1])
 
+
 def impose_bc(BC, res, a, u, diff_flux, dx, dy, geom, Y):
     """ Impose boundary conditions specified in the config file """
     # Boundary conditions
@@ -106,6 +109,7 @@ def impose_bc(BC, res, a, u, diff_flux, dx, dy, geom, Y):
             outlet_y(res, a, u, diff_flux, dx, -1, r=np.max(Y))
             outlet_x(res, a, u, diff_flux, dy, 0, r=Y)
             outlet_x(res, a, u, diff_flux, dy, -1, r=Y)
+
 
 def impose_bc_euler(BC, res):
     """ Full periodic conditions in the 4 directions """

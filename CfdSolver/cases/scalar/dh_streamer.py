@@ -12,10 +12,9 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import numpy as np
 import yaml
-import scipy.constants as co
-import re
 
 from cfdsolver import StreamerMorrow
+
 
 def main(config):
     """ Main function containing initialisation, temporal loop and outputs. Takes a config dict as input. """
@@ -66,7 +65,6 @@ def main(config):
                 irate_list[it - 1, :, :] = sim.irate
                 Sph_list[it - 1, :, :] = sim.Sph
 
-
     sim.plot_global()
     np.save(sim.data_dir + 'globals', sim.gstreamer)
 
@@ -76,6 +74,7 @@ def main(config):
         if sim.photo:
             np.save(config['output']['folder'] + config['casename'] + 'Sph.npy', Sph_list)
             np.save(config['output']['folder'] + config['casename'] + 'irate.npy', irate_list)
+
 
 if __name__ == '__main__':
 

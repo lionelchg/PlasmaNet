@@ -12,11 +12,12 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import numpy as np
 import yaml
-import copy
 from cfdsolver import ScalarTransport
+
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
+
 
 def main(config):
     """ Main function containing initialisation, temporal loop and outputs. Takes a config dict as input. """
@@ -45,7 +46,7 @@ def main(config):
         # Impose boundary conditions
         sim.impose_bc()
 
-        # Update residulas u -= res * dt / voln
+        # Update residuals u -= res * dt / voln
         sim.update_res()
 
         # Post processing (printing and plotting)

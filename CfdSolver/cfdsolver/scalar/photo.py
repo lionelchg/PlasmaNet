@@ -5,10 +5,9 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
-import os
+
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.constants as co
 import copy
 
 from scipy import sparse
@@ -18,6 +17,7 @@ from numba import njit
 from ..utils import create_dir
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
 
+
 lambda_j_three = np.array([0.0553, 0.1460,0.89]) * 1.0e2
 A_j_three = np.array([1.986e-4, 0.0051, 0.4886]) * (1.0e2)**2
 lambda_j_two = np.array([0.0974, 0.5877]) * 1.0e2
@@ -25,9 +25,9 @@ A_j_two = np.array([0.0021, 0.1775]) * (1.0e2)**2
 
 coef_p = 0.038
 
+
 def photo_axisym(dx, dr, nx, nr, R, coeff, scale):
     diags = np.zeros((5, nx * nr))
-
     r = R.reshape(-1)
 
     # Filling the diagonals, first the down neumann bc,: the dirichlet bc and finally the interior nodes
@@ -54,6 +54,7 @@ def photo_axisym(dx, dr, nx, nr, R, coeff, scale):
     return sparse.csc_matrix(
         sparse.dia_matrix((diags, [0, 1, -1, nx, -nx]), shape=(nx * nr, nx * nr)))
 
+
 def dirichlet_bc_axi(rhs, nx, nr, up, left, right):
     # filling of the three dirichlet boundaries for axisymmetric test case
     rhs[nx * (nr - 1):] = up
@@ -63,14 +64,17 @@ def dirichlet_bc_axi(rhs, nx, nr, up, left, right):
     rhs[-nx] = 0.5 * (left[-1] + up[0])
     rhs[-1] = 0.5 * (right[-1] + up[-1])
 
+
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
+
 
 def plot_Sph(X, R, dx, dr, Sph, nx, nr, figname):
     fig, axes = plt.subplots(ncols=2, figsize=(14, 10))
     plot_ax_scalar(fig, axes[0], X, R, Sph, 'Sph 2D', cmap_scale='log', geom='xr', field_ticks=[1e23, 1e26, 1e29])
     plot_ax_scalar_1D(fig, axes[1], X, [0, 0.05, 0.1], Sph, "Sph 1D cuts", yscale='log', ylim=[1e23, 1e29])
     plt.savefig(figname)
+
 
 def plot_Sph_irate(X, R, dx, dr, Sph, irate, nx, nr, figname):
     fig, axes = plt.subplots(ncols=2, figsize=(14, 6))
@@ -83,18 +87,18 @@ def plot_Sph_irate(X, R, dx, dr, Sph, irate, nx, nr, figname):
 def photo_coeff(E_p):
     # In Zheleznyak paper, the tabulation is done with E/p in V/cm * mmHg
     E_p = E_p * 133.32 / 100
-    if (E_p < 30):
+    if E_p < 30:
         pcoeff = 5.e-2
-    elif (E_p >= 30 and E_p < 50):
+    elif 30 <= E_p < 50:
         pcoeff = 0.07 / 20 * (E_p - 30) + 5.e-2
-    elif (E_p >= 50 and E_p < 100):
+    elif 50 <= E_p < 100:
         pcoeff = 0.12 - 4e-2 / 50 * (E_p - 50)
     else:
         pcoeff = 0.08 - 2e-2 / 100 * (E_p - 100)
     return pcoeff
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     fig_dir = 'figures/photo/'
     create_dir(fig_dir)
     xmin, xmax, nx = 0, 2e-3, 252

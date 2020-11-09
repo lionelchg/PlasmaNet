@@ -4,24 +4,29 @@ import numpy as np
 import cmath
 import matplotlib.pyplot as plt
 
+
 fig_dir = 'figures/'
 if not os.path.exists(fig_dir):
     os.makedirs(fig_dir)
 
 schemes = ['FOU', 'LW', 'SOU']
 
+
 def G_LW(phi, sigma):
     """ Return the Lax-Wendroff scheme amplification factor """
     return 1 + sigma**2 * (np.cos(phi) - 1) - 1j * sigma * np.sin(phi)
+
 
 def G_FOU(phi, sigma):
     """ Return the First Order Upwind scheme amplification factor """
     return 1 - sigma * (1 - np.exp(-1j * phi))
 
+
 def G_SOU(phi, sigma):
     """ Return the Second Order Upwind scheme amplification factor """
     return (1 - sigma / 2 * (3 - 4 * np.exp(-1j * phi) + np.exp(-2j * phi))
                 + sigma**2 / 2 * (1 - 2 * np.exp(-1j * phi) + np.exp(-2j * phi)))
+
 
 def errors(G, phi, sigma):
     """ Computation of diffusion and dispersion error for a constant advection
@@ -32,6 +37,7 @@ def errors(G, phi, sigma):
     disp_err[0] = 1
     disp_err[1:] = np.array([- cmath.phase(G_num[i]) / sigma / phi[i] for i in range(1, len(phi))])
     return diff_err, disp_err
+
 
 def plot_G(scheme, cfls):
     phi = np.linspace(0, np.pi, 300)
@@ -46,6 +52,7 @@ def plot_G(scheme, cfls):
     fig.suptitle(f'{scheme} Spectral Analysis')
     fig.savefig(fig_dir + f'errors_{scheme}', bbox_inches='tight')
 
+
 def ax_prop(ax, ylabel, ylim=None):
     ax.legend()
     ax.grid(True)
@@ -53,6 +60,7 @@ def ax_prop(ax, ylabel, ylim=None):
     ax.set_ylabel(ylabel)
     ax.set_ylim(bottom=0)
     ax.set_xlim([0, 180])
+
 
 if __name__ == '__main__':
     amplf_dict = {}

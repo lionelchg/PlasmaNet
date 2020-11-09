@@ -1,18 +1,19 @@
 #!/Users/cheng/code/envs/dl/bin/python
-import sys
+
 import os
 import numpy as np
-import copy
 from numba import njit
 
 from plot import plot_fd
 from test_funcs import gaussian, step, packet_wave
+
 
 fig_dir = 'figures/'
 if not os.path.exists(fig_dir):
     os.makedirs(fig_dir)
 
 schemes = ['FOU', 'LW', 'SOU']
+
 
 @njit(cache=True)
 def advance(res, u, sigma, scheme):
@@ -40,6 +41,7 @@ def iterations(nt, res, u, sigma, scheme):
     for i in range(nt):
         advance(res, u, sigma, scheme)
         u -= res
+
 
 def main():
     # Mesh properties
@@ -78,6 +80,7 @@ def main():
         plot_fd(x_th, x, u_gauss, u_step, u_2pw, u_4pw, 
                 schemes, f'CFL = {cfl:.2f} - dx = {dx:.2e} m - dt = {dt:.2e} s - nits = {nt:d}', 
                 fig_dir + f'cfl_{index}')
+
 
 if __name__ == '__main__':
     main()

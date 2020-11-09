@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="cfdsolver",
-    version="1.0",
+    version="0.1",
     description="A library with various tools for cfd simulation",
     long_description="",
 

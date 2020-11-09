@@ -22,7 +22,6 @@ from streamer import StreamerMorrowDL
 import torch
 import argparse
 import collections
-from tqdm import tqdm
 
 import PlasmaNet.data.data_loaders as module_data
 import PlasmaNet.model.loss as module_loss
@@ -36,30 +35,30 @@ def main(cfg_streamer, cfg_dl):
     """ Main function containing initialisation, temporal loop and outputs. 
             Takes a configuration dict as input. """
 
-    # # Load the network
-    # logger = cfg_dl.get_logger('test')
+    # Load the network
+    logger = cfg_dl.get_logger('test')
 
-    # # Setup data_loader instances
-    # data_loader = cfg_dl.init_obj('data_loader', module_data)
+    # Setup data_loader instances
+    data_loader = cfg_dl.init_obj('data_loader', module_data)
 
-    # # Build model architecture
-    # model = cfg_dl.init_obj('arch', module_arch)
+    # Build model architecture
+    model = cfg_dl.init_obj('arch', module_arch)
 
-    # # Get function handles of loss and metrics
-    # loss_fn = cfg_dl.init_obj('loss', module_loss)
-    # metric_fns = [getattr(module_metric, metric) for metric in cfg_dl['metrics']]
+    # Get function handles of loss and metrics
+    loss_fn = cfg_dl.init_obj('loss', module_loss)
+    metric_fns = [getattr(module_metric, metric) for metric in cfg_dl['metrics']]
 
-    # logger.info('Loading checkpoint: {} ...'.format(cfg_dl['resume']))
-    # checkpoint = torch.load(cfg_dl['resume'])
-    # state_dict = checkpoint['state_dict']
-    # if cfg_dl['n_gpu'] > 1:
-    #     model = torch.nn.DataParallel(model)
-    # model.load_state_dict(state_dict)
+    logger.info('Loading checkpoint: {} ...'.format(cfg_dl['resume']))
+    checkpoint = torch.load(cfg_dl['resume'])
+    state_dict = checkpoint['state_dict']
+    if cfg_dl['n_gpu'] > 1:
+        model = torch.nn.DataParallel(model)
+    model.load_state_dict(state_dict)
 
-    # # Prepare model for testing
-    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # model = model.to(device)
-    # model.eval()
+    # Prepare model for testing
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = model.to(device)
+    model.eval()
 
     sim = StreamerMorrowDL(cfg_streamer)
 
@@ -71,8 +70,8 @@ def main(cfg_streamer, cfg_dl):
         sim.dtsum += sim.dt
 
         # Solve poisson equation from charge distribution
-        # sim.solve_poisson_dl(model)
-        sim.solve_poisson()
+        sim.solve_poisson_dl(model)
+        # sim.solve_poisson()
 
         # Update of the residual to zero
         sim.resnd[:] = 0
@@ -94,6 +93,7 @@ def main(cfg_streamer, cfg_dl):
 
     sim.plot_global()
     np.save(sim.data_dir + 'globals', sim.gstreamer)
+
 
 if __name__ == '__main__':
 
