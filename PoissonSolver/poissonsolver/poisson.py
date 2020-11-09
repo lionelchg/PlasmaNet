@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 from scipy.sparse.linalg import spsolve
-from poissonsolver.linsystem import matrix_cart, matrix_axisym, dirichlet_bc_axi
+from poissonsolver.linsystem import matrix_cart, matrix_axisym, dc_bc
 from poissonsolver.operators import grad, lapl
 
 class Poisson:
@@ -17,18 +17,20 @@ class Poisson:
         if self.config == 'cart_dirichlet':
             self.R_nodes = None
             self.mat = matrix_cart(self.dx, self.dy, nnx, nny, self.scale)
-            self.bc = dirichlet_bc_axi
+        elif self.config == 'cart_3d1n':
+            self.R_nodes = None
+            self.mat = matrix_cart(self.dx, self.dy, nnx, nny, self.scale, down_bc='neumann')
         elif self.config == 'axi_dirichlet':
             self.R_nodes = copy.deepcopy(self.Y)
             self.R_nodes[0] = self.dy / 4
             self.mat = matrix_axisym(self.dx, self.dy, self.nnx, self.nny, 
                                 self.R_nodes, self.scale)
-            self.bc = dirichlet_bc_axi
+        self.bc = dc_bc
         self.potential = np.zeros_like(self.X)
 
-    def solve(self, physical_rhs, up, left, right):
+    def solve(self, physical_rhs, *args):
         rhs = - physical_rhs * self.scale
-        self.bc(rhs, self.nnx, self.nny, up, left, right)
+        self.bc(rhs, self.nnx, self.nny, args)
         self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
     
     @property
@@ -39,22 +41,41 @@ class Poisson:
     def lapl(self):
         return lapl(self.potential, self.dx, self.dy, self.nnx, self.nny, r=self.R_nodes)
 
-    def plot_potential(self, figname):
-            # 1D vector
+
+    def plot_2D(self, figname, axi=False):
+        # 1D vector
+        x = self.X[0, :]
+
+        fig, axes = plt.subplots(ncols=3, figsize=(11, 14))
+
+        self.plot_ax_scalar(fig, axes[0], self.X, self.Y, self.potential, 'Potential', axi=axi)
+
+        E = self.E_field
+        self.plot_ax_vector_arrow(fig, axes[1], self.X, self.Y, E, 'Electric field', axi=axi)
+
+        lapl_field = self.lapl
+        self.plot_ax_scalar(fig, axes[2], self.X, self.Y, - lapl_field, '- Laplacian', axi=axi)
+
+        fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+        plt.savefig(figname, bbox_inches='tight')
+        plt.close()
+
+    def plot_1D2D(self, figname, axi=False):
+        # 1D vector
         x = self.X[0, :]
 
         fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(11, 14))
 
-        self.plot_ax_scalar(fig, axes[0][0], self.X, self.Y, self.potential, 'Potential')
+        self.plot_ax_scalar(fig, axes[0][0], self.X, self.Y, self.potential, 'Potential', axi=axi)
         self.plot_ax_trial_1D(axes[0][1], x, self.potential, self.nny, '1D cuts')
 
         E = self.E_field
         normE = np.sqrt(E[0]**2 + E[1]**2)
-        self.plot_ax_vector_arrow(fig, axes[1][0], self.X, self.Y, E, 'Electric field')
+        self.plot_ax_vector_arrow(fig, axes[1][0], self.X, self.Y, E, 'Electric field', axi=axi)
         self.plot_ax_trial_1D(axes[1][1], x, normE, self.nny, '1D cuts', ylim=[0.99 * np.min(normE), 1.01 * np.max(normE)])
 
         lapl_field = self.lapl
-        self.plot_ax_scalar(fig, axes[2, 0], self.X, self.Y, - lapl_field, '- Laplacian')
+        self.plot_ax_scalar(fig, axes[2, 0], self.X, self.Y, - lapl_field, '- Laplacian', axi=axi)
         self.plot_ax_trial_1D(axes[2][1], x, -  lapl_field, self.nny, '1D cuts')
 
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
@@ -113,6 +134,6 @@ class Poisson:
                     vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
         if axi:
             q = ax.quiver(X[::arrow_step, ::arrow_step], - Y[::arrow_step, ::arrow_step], 
-                vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
+                vector_field[0, ::arrow_step, ::arrow_step], - vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
         ax.set_title(name)
         ax.set_aspect('equal')
