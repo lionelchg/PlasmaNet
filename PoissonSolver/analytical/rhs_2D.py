@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                            2D Poisson solver using numpy                                             #
+#                                        2D Poisson analytical solution tests                                          #
 #                                                                                                                      #
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
@@ -26,8 +26,9 @@ if __name__ == '__main__':
     x, y = np.linspace(xmin, xmax, nnx), np.linspace(ymin, ymax, nny)
 
     zeros_x, zeros_y = np.zeros(nnx), np.zeros(nny)
-    ones_x, ones_y = np.zeros(nnx), np.zeros(nny)
+    ones_x, ones_y = np.ones(nnx), np.ones(nny)
 
+    # Declaration of poisson solver (linear system)
     poisson = Poisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet')
 
     # creating the rhs
@@ -39,21 +40,31 @@ if __name__ == '__main__':
     physical_rhs = gaussian(poisson.X, poisson.Y, ni0, x0, y0, 
                             sigma_x, sigma_y) * co.e / co.epsilon_0
 
-    # poisson.solve(physical_rhs.reshape(-1), zeros_x, zeros_x, zeros_y, zeros_y)
-    # poisson.plot_2D(fig_dir + '2D')
-    # poisson.plot_1D2D(fig_dir + 'full')
+    poisson.solve(physical_rhs.reshape(-1), zeros_x, zeros_x, zeros_y, zeros_y)
+    poisson.plot_2D(fig_dir + '2D')
+    poisson.plot_1D2D(fig_dir + 'full')
 
+    # Declaration of class Poisson Analytical
     poisson_th = PoissonAnalytical(xmin, xmax, nnx, ymin, ymax, nny, nmax_rhs, mmax_rhs, nmax_d)
 
-    # poisson_th.init_rhs_bc(physical_rhs, zeros_y, zeros_y, zeros_x, zeros_x)
-    # poisson_th.rhs_solution()
-    # poisson_th.compute_sol()
-    # poisson_th.plot_2D(fig_dir + '2D_th')
-    # poisson_th.plot_1D2D(fig_dir + 'full_th')
+    # Solve rhs problem
+    poisson_th.compute_sol(physical_rhs, zeros_y, zeros_y, zeros_x, zeros_x)
+    poisson_th.plot_2D(fig_dir + '2D_th_1')
+    poisson_th.plot_1D2D(fig_dir + 'full_th_1')
 
-    poisson_th.init_rhs_bc(0 * physical_rhs, zeros_y, ones_y, zeros_x, zeros_x)
-    poisson_th.rhs_solution()
-    poisson_th.bc_solution()
-    poisson_th.compute_sol()
-    poisson_th.plot_2D(fig_dir + '2D_up_th')
-    poisson_th.plot_1D2D(fig_dir + 'full_up_th')
+    # Solve down, up, left, right constant bc problem
+    poisson_th.compute_sol(ones_y, zeros_y, zeros_x, zeros_x)
+    poisson_th.plot_2D(fig_dir + '2D_th_2')
+    poisson_th.plot_1D2D(fig_dir + 'full_th_2')
+
+    poisson_th.compute_sol(zeros_y, ones_y, zeros_x, zeros_x)
+    poisson_th.plot_2D(fig_dir + '2D_th_3')
+    poisson_th.plot_1D2D(fig_dir + 'full_th_3')
+
+    poisson_th.compute_sol(zeros_y, zeros_y, ones_x, zeros_x)
+    poisson_th.plot_2D(fig_dir + '2D_th_4')
+    poisson_th.plot_1D2D(fig_dir + 'full_th_4')
+
+    poisson_th.compute_sol(zeros_y, zeros_y, zeros_x, ones_x)
+    poisson_th.plot_2D(fig_dir + '2D_th_5')
+    poisson_th.plot_1D2D(fig_dir + 'full_th_5')
