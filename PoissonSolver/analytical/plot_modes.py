@@ -3,15 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from poissonsolver.plot import plot_ax_scalar
 
-fig_dir = 'figures/modes/'
-
-if not os.path.exists(fig_dir):
-    os.makedirs(fig_dir)
-
 def mode(X, Y, Lx, Ly, n, m):
     return np.sin(n * np.pi * X / Lx) * np.sin(m * np.pi * Y / Ly)
 
 if __name__=='__main__':
+    fig_dir = 'figures/modes/'
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
+        
     n_points = 101
     xmin, xmax = 0, 0.01
     ymin, ymax = 0, 0.01

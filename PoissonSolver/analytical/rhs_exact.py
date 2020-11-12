@@ -83,7 +83,6 @@ if __name__ == '__main__':
     E_field_norm = np.sqrt(E_field[0]**2 + E_field[1]**2)
     lapl_pot = lapl(potential, dx, dy, n_points, n_points)
 
-
     # Plots
     figname = fig_dir + 'solver_solution'
     plot_set_1D(x, physical_rhs, potential, E_field_norm, lapl_pot, n_points, 'Solver solution 1D', figname + '_1D')

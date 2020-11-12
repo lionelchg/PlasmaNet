@@ -14,11 +14,6 @@ from poissonsolver.plot import plot_set_1D, plot_set_2D
 from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from poissonsolver.operators import grad, lapl
 
-# Creation of directories
-fig_dir = 'figures/dirichlet/'
-if not os.path.exists(fig_dir):
-    os.makedirs(fig_dir)
-
 
 def coef(V_u, n, x, Lx):
     return integrate.simps(V_u * np.sin(n * np.pi * x / Lx), x)
@@ -43,6 +38,11 @@ def sum_series_exact(x, y, Lx, Ly, V, M):
 
 
 if __name__ == '__main__':
+    
+    # Creation of directories
+    fig_dir = 'figures/dirichlet/'
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
 
     plot = True
 
