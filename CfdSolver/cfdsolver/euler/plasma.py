@@ -12,7 +12,6 @@ from ..base.operators import grad
 class PlasmaEuler(Euler):
     def __init__(self, config):
         super().__init__(config)
-
         # Background electric field and matrix construction
         zeros_x = np.zeros_like(self.x)
         zeros_y = np.zeros_like(self.y)
@@ -24,9 +23,10 @@ class PlasmaEuler(Euler):
         self.bc = dc_bc
 
         self.m_e = co.m_e
+        self.W = self.m_e * co.N_A
         self.n_back = config['params']['n_back']
         self.n_pert = config['params']['n_pert']
-        x0, y0, sigma_x, sigma_y = 5e-3, 5e-3, 2e-3, 2e-3
+        x0, y0, sigma_x, sigma_y = 5e-3, 5e-3, 1e-3, 1e-3
         n_electron = gaussian(self.X, self.Y, self.n_pert, x0, 
                             y0, sigma_x, sigma_y) + self.n_back
         self.U[0] = self.m_e * n_electron
@@ -43,7 +43,7 @@ class PlasmaEuler(Euler):
         print(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
         print(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
         print(f'dx = {self.dx:.2e} -- dy = {self.dy:.2e}')
-        print(f'dt = {self.dt:.2e} s - omega_p = {self.omega_p:.2e} rad.s-1')
+        print(f'dt = {self.dt:.2e} s - T_p = {2 * np.pi / self.omega_p:.2e} s - omega_p = {self.omega_p:.2e} rad.s-1')
         print('------------------------------------')
         print('Start of simulation')
         print('------------------------------------')
@@ -81,7 +81,7 @@ class PlasmaEuler(Euler):
         plt.close(fig)
     
     def center_variables(self, it):
-        self.n_center[it - 1] = self.U[0, self.nny_mid, self.nnx_mid] / self.m_e
+        self.n_center[it - 1] = self.U[0, self.nny_mid, self.nnx_mid] / self.m_e - self.n_back
     
     def plot_temporal(self):
         fig, ax = plt.subplots(figsize=(8, 8))
