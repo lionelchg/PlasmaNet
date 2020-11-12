@@ -19,7 +19,8 @@ def round_up(n, decimals=0):
     return np.ceil(n * multiplier) / multiplier
 
 
-def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', geom='xr', field_ticks=None):
+def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', 
+        geom='xr', field_ticks=None, max_value=None):
     # Avoid mutable defaults value
     if field_ticks is None:
         field_ticks = [1e14, 1e17, 1e20]
@@ -37,7 +38,8 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', ge
             ax.contourf(X, - Y, field, levels, cmap=cmap, norm=LogNorm())
         fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect, ticks=field_ticks)
     else:
-        max_value = round_up(np.max(np.abs(field)), decimals=1)
+        if max_value is None:
+            max_value = round_up(np.max(np.abs(field)), decimals=1)
         levels = np.linspace(- max_value, max_value, 101)
         cs1 = ax.contourf(X, Y, field, levels, cmap=cmap)
         if geom == 'xr':
