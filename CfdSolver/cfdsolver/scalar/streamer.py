@@ -73,6 +73,8 @@ class StreamerMorrow(BaseSim):
                         photo_axisym(self.dx, self.dy, self.nnx, self.nny, self.R_nodes,
                                      (lambda_j_three[i] * self.pO2)**2, self.scale)
                     )
+        else:
+            self.irate = None
 
         # Read or initialize solution
         self.input_fn = config['input']
@@ -122,25 +124,25 @@ class StreamerMorrow(BaseSim):
         self.potential = spsolve(self.mat_poisson, self.rhs).reshape(self.nny, self.nnx)
         self.E_field = - grad(self.potential, self.dx, self.dy, self.nnx, self.nny)
         self.physical_rhs = self.physical_rhs.reshape((self.nny, self.nnx))
+    
+    def solve_photo(self):
+        """ Solve the photoionization source term using approximation in Helmholtz equations """
+        self.Sph[:] = 0
+        print('--> Photoionization resolution')
+        if self.photo_model == 'two':
+            for i in range(2):
+                rhs = - self.irate.reshape(-1) * A_j_two[i] * self.pO2**2 * self.scale
+                dirichlet_bc_axi(rhs, self.nnx, self.nny, self.up_photo, self.left_photo, self.right_photo)
+                self.Sph += spsolve(self.mats_photo[i], rhs).reshape(self.nny, self.nnx)
+        elif self.photo_model == 'three':
+            for i in range(3):
+                rhs = - self.irate.reshape(-1) * A_j_three[i] * self.pO2**2 * self.scale
+                dirichlet_bc_axi(rhs, self.nnx, self.nny, self.up_photo, self.left_photo, self.right_photo)
+                self.Sph += spsolve(self.mats_photo[i], rhs).reshape(self.nny, self.nnx)
 
     def compute_chemistry(self, it):
         """ Apply chemistry from Morrow et. al. with or without photoionization. """
-        if self.photo and it % 10 == 1:
-            morrow(self.mu, self.D, self.E_field, self.nd, self.resnd, self.nnx, self.nny, self.voln, irate=self.irate)
-            self.Sph[:] = 0
-            print('--> Photoionization resolution')
-            if self.photo_model == 'two':
-                for i in range(2):
-                    rhs = - self.irate.reshape(-1) * A_j_two[i] * self.pO2**2 * self.scale
-                    dirichlet_bc_axi(rhs, self.nnx, self.nny, self.up_photo, self.left_photo, self.right_photo)
-                    self.Sph += spsolve(self.mats_photo[i], rhs).reshape(self.nny, self.nnx)
-            elif self.photo_model == 'three':
-                for i in range(3):
-                    rhs = - self.irate.reshape(-1) * A_j_three[i] * self.pO2**2 * self.scale
-                    dirichlet_bc_axi(rhs, self.nnx, self.nny, self.up_photo, self.left_photo, self.right_photo)
-                    self.Sph += spsolve(self.mats_photo[i], rhs).reshape(self.nny, self.nnx)
-        else:
-            morrow(self.mu, self.D, self.E_field, self.nd, self.resnd, self.nnx, self.nny, self.voln)
+        morrow(self.mu, self.D, self.E_field, self.nd, self.resnd, self.nnx, self.nny, self.voln, irate=self.irate)
 
         if self.photo:
             self.resnd[0] -= self.Sph * self.voln

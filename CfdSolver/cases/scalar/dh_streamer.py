@@ -43,6 +43,9 @@ def main(config):
         # Update of the residual to zero
         sim.resnd[:] = 0
 
+        # Solve photoionization if activated
+        if sim.photo and it % 10 == 1: sim.solve_photo()
+
         # Compute the chemistry source terms with or without photo
         sim.compute_chemistry(it)
 
