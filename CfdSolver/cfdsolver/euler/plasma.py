@@ -26,17 +26,16 @@ class PlasmaEuler(Euler):
         self.m_e = co.m_e
         self.n_back = config['params']['n_back']
         self.n_pert = config['params']['n_pert']
-        x0, y0, sigma_x, sigma_y = 5e-3, 5e-3, 1e-3, 1e-3
+        x0, y0, sigma_x, sigma_y = 5e-3, 5e-3, 2e-3, 2e-3
         n_electron = gaussian(self.X, self.Y, self.n_pert, x0, 
                             y0, sigma_x, sigma_y) + self.n_back
         self.U[0] = self.m_e * n_electron
 
         self.omega_p = np.sqrt(self.n_back * co.e**2 / self.m_e / co.epsilon_0)
-        self.dt = 2 * np.pi / self.omega_p / 100
+        self.dt = 2 * np.pi / self.omega_p / config['params']['nt_oscill']
 
         self.time = np.zeros(self.nit)
         self.n_center = np.zeros(self.nit)
-        self.E_center = np.zeros(self.nit)
         self.nnx_mid, self.nny_mid = int(self.nnx / 2), int(self.nny / 2)
 
     def print_init(self):
@@ -83,13 +82,10 @@ class PlasmaEuler(Euler):
     
     def center_variables(self, it):
         self.n_center[it - 1] = self.U[0, self.nny_mid, self.nnx_mid] / self.m_e
-        self.E_center[it - 1] = self.E_norm[self.nny_mid, self.nnx_mid]
     
     def plot_temporal(self):
         fig, ax = plt.subplots(figsize=(8, 8))
-        ax.plot(self.time, self.n_center, label='n_e', color='blue')
-
-        ax1 = ax.twinx()
-        ax1.plot(self.time, self.E_center, label=r'|\mathbf{E}|', color='orange')
-
-        fig.savefig(self.fig_dir + 'center', bbox_inches='tight')
+        ax.plot(self.time, self.n_center, color='blue')
+        ax.grid(True)
+        fig.suptitle('Time evolution of electron density at center')
+        fig.savefig(self.fig_dir + 'center_ne', bbox_inches='tight')

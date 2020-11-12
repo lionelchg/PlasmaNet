@@ -16,24 +16,25 @@
 casename: 'oscillation/'
 
 params:
-  nit: 100
+  nit: 200
   geom: 'xy'
   n_back: 1.0e+15
-  n_pert: 1.0e+9
+  n_pert: 1.0e+11
   dt: 1.0e-10
+  nt_oscill: 100
 
 mesh:
   xmin: 0
   ymin: 0
   xmax: 1.0e-2
   ymax: 1.0e-2
-  nnx: 201
-  nny: 201
+  nnx: 101
+  nny: 101
 
 BC: 'full_out'
 
 output:
   save: 'iteration'
   verbose: True
-  period: 10
+  period: 20
   files: "fig"
