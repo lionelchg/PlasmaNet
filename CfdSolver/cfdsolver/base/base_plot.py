@@ -14,9 +14,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
-def round_up(n, decimals=0): 
-    multiplier = 10 ** decimals 
-    return np.ceil(n * multiplier) / multiplier
+def round_up(n, decimals=0):
+    power = int(np.log10(n))
+    digit = n / 10**power
+    return np.ceil(digit) * 10**power
 
 
 def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', 
@@ -122,3 +123,26 @@ def plot_global(gstreamer, xrange, figname):
     axes[1].grid(True)
 
     plt.savefig(figname, bbox_inches='tight')
+
+
+def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', axi=False, max_value=None):
+    norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
+    arrow_step = 10
+    if max_value is None:
+        max_value = round_up(np.max(np.abs(norm_field)), decimals=1)
+    levels = np.linspace(0, max_value, 101)
+    CS = ax.contourf(X, Y, norm_field, levels, cmap=colormap)
+    fraction_cbar = 0.1
+    if axi:
+        ax.contourf(X, - Y, norm_field, levels, cmap=colormap)
+        aspect = 1.7 * np.max(Y) / fraction_cbar / np.max(X)
+    else:
+        aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
+    fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect)
+    ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
+                vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
+    if axi:
+        ax.quiver(X[::arrow_step, ::arrow_step], - Y[::arrow_step, ::arrow_step], 
+            vector_field[0, ::arrow_step, ::arrow_step], - vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
+    ax.set_title(name)
+    ax.set_aspect('equal')

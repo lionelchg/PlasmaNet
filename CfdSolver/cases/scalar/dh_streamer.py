@@ -15,7 +15,7 @@ import yaml
 
 from cfdsolver import StreamerMorrow
 
-
+@profile
 def main(config):
     """ Main function containing initialisation, temporal loop and outputs. Takes a config dict as input. """
 
@@ -69,7 +69,7 @@ def main(config):
                 Sph_list[it - 1, :, :] = sim.Sph
 
     sim.plot_global()
-    np.save(sim.data_dir + 'globals', sim.gstreamer)
+    if sim.save_data: np.save(sim.data_dir + 'globals', sim.gstreamer)
 
     if config['output']['dl_save'] == 'yes':
         np.save(config['output']['folder'] + config['casename'] + 'potential.npy', potential_list)

@@ -33,6 +33,7 @@ class BaseSim(Grid):
 
         self.dtsum = 0
         self.dt = 0
+        self.it = 0
 
         # Timestep calculation through cfl
         if 'cfl' in config['params']:

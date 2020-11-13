@@ -13,10 +13,10 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'oscillation_2/'
+casename: 'oscillation_5/'
 
 params:
-  nit: 2000
+  nit: 1000
   geom: 'xy'
   n_back: 1.0e+16
   n_pert: 1.0e+11
@@ -28,13 +28,13 @@ mesh:
   ymin: 0
   xmax: 1.0e-2
   ymax: 1.0e-2
-  nnx: 201
-  nny: 201
+  nnx: 101
+  nny: 101
 
 BC: 'full_out'
 
 output:
   save: 'iteration'
   verbose: True
-  period: 200
+  period: 100
   files: "fig"

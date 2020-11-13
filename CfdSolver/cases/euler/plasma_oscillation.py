@@ -16,7 +16,6 @@ import yaml
 
 from cfdsolver import PlasmaEuler
 
-
 def main(config):
     """ Main function containing initialization, temporal loop and outputs. Takes a config dict as input. """
 
@@ -28,16 +27,19 @@ def main(config):
 
     # Iterations
     for it in range(1, sim.nit + 1):
+        sim.it = it
         sim.dtsum += sim.dt
         sim.time[it - 1] = sim.dtsum
+        
         # Update of the residual to zero
         sim.res[:], sim.res_c[:] = 0, 0
 
         # Solve poisson equation
         sim.solve_poisson()
 
-        # Compute euler fluxes
-        sim.compute_flux()
+        # Compute euler fluxes (without pressure)
+        # sim.compute_flux()
+        sim.compute_flux_cold()
 
         # Compute residuals in cell-vertex method
         sim.compute_res()

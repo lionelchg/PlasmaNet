@@ -2,11 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.constants as co
 from scipy.sparse.linalg import spsolve
+from numba import njit
 
 from .euler import Euler
 from cfdsolver.scalar.init import gaussian
 from poissonsolver.linsystem import matrix_cart, dc_bc
-from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
+from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D, plot_ax_vector_arrow
 from ..base.operators import grad
 
 class PlasmaEuler(Euler):
@@ -59,6 +60,13 @@ class PlasmaEuler(Euler):
         self.E_field = - grad(self.potential, self.dx, self.dy, self.nnx, self.nny)
         self.physical_rhs = self.physical_rhs.reshape((self.nny, self.nnx))
         self.E_norm = np.sqrt(self.E_field[0]**2 + self.E_field[1]**2)
+        if self.it == 1: self.E_max = np.max(self.E_norm)
+
+    def compute_flux_cold(self):
+        """ Compute the 2D flux of the Euler equations but without pressure """
+        F = self.F
+        U = self.U
+        compute_flux_cold(U, self.gamma, self.r, F)
 
     def compute_EM_source(self):
         """ Compute electro-magnetic source terms in vertex-centered approximation """
@@ -69,12 +77,13 @@ class PlasmaEuler(Euler):
     def plot(self):
         """ 2D maps and 1D cuts at different y of the primitive variables. """
         n_e = self.U[0] / self.m_e - self.n_back
+        E = self.E_field
         E_norm = self.E_norm
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12, 12))
-        plot_ax_scalar(fig, axes[0][0], self.X, self.Y, n_e, r"$n_e$", geom='xy', max_value=self.n_pert)
-        plot_ax_scalar_1D(fig, axes[0][1], self.X, [0.5], n_e, r"$n_e$")
-        plot_ax_scalar(fig, axes[1][0], self.X, self.Y, E_norm, r"$|\mathbf{E}|$", geom='xy')
-        plot_ax_scalar_1D(fig, axes[1][1], self.X, [0.5], E_norm, r"$|\mathbf{E}|$")
+        plot_ax_scalar(fig, axes[0][0], self.X, self.Y, n_e, r"$n_e$", geom='xy', max_value=1.1*self.n_pert)
+        plot_ax_scalar_1D(fig, axes[0][1], self.X, [0.5], n_e, r"$n_e$", ylim=[-1.1*self.n_pert, 1.1*self.n_pert])
+        plot_ax_vector_arrow(fig, axes[1][0], self.X, self.Y, E, 'Electric field', max_value=1.1*self.E_max)
+        plot_ax_scalar_1D(fig, axes[1][1], self.X, [0.5], E_norm, r"$|\mathbf{E}|$", ylim=[0, 1.1*self.E_max])
         plt.suptitle(rf'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
         fig.savefig(self.fig_dir + f'variables_{self.number:04d}', bbox_inches='tight')
@@ -87,5 +96,24 @@ class PlasmaEuler(Euler):
         fig, ax = plt.subplots(figsize=(8, 8))
         ax.plot(self.time, self.n_center, color='blue')
         ax.grid(True)
-        fig.suptitle('Time evolution of electron density at center')
+        ax.set_xlabel('$t$ [s]')
+        ax.set_ylabel('$n_e$ [m$^{-3}$]')
+        ax.set_title('Time evolution of electron density at center')
         fig.savefig(self.fig_dir + 'center_ne', bbox_inches='tight')
+
+@njit(cache=True)
+def compute_flux_cold(U, gamma, r, F):
+    """ Compute the 2D flux of the Euler equations 
+    as well as pressure and temperature. """
+    # rhou - rhov
+    F[0, 0] = U[1]
+    F[0, 1] = U[2]
+    # rho u^2 + p - rho u v
+    F[1, 0] = U[1]**2 / U[0]
+    F[1, 1] = U[1] * U[2] / U[0]
+    # rho u^2 + p - rho u v
+    F[2, 0] = U[1] * U[2] / U[0]
+    F[2, 1] = U[2]**2 / U[0]
+    # u(rho E + p) - v(rho E + p)
+    F[3, 0] = U[1] / U[0] * U[3]
+    F[3, 1] = U[2] / U[0] * U[3]
