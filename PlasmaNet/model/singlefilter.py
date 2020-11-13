@@ -1,8 +1,8 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                           MultiScale: neural network from the summer 2019 plasma workshop                            #
+#                                   Single filter network for testing purposes                                         #
 #                                                                                                                      #
-#                        Ekhi Ajuria, Guillaume Bogopolsky (transcription) CERFACS, 26.02.2020                         #
+#                                          Ekhi Ajuria, CERFACS, 13.10.2020                                            #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -18,15 +18,7 @@ from ..base import BaseModel
 class SingleFilter(BaseModel):
     """
     Define the network. The only input needed is the number of data (input) channels.
-    Procedure:
-        - Downsample input to quarter scale and use ConvBlock1.
-        - Upsample output of ConvBlock1 to half scale.
-        - Downsample input to half scale, concat with output of ConvBlock1, and use ConvBlock2.
-        - Upsample output of ConvBlock2 to full scale.
-        - Concat input and output of ConvBlock2, use ConvBlock3. Output of ConvBlock3 has 8 channels.
-        - Use final Conv2d layer with kernel_size of 1 to go from 8 channels to 1 output channel.
-        - This same procedure is used to combine the exit of each layer, this new connexion should
-            help to analyse the task specialization of each scale
+
     """
     def __init__(self, data_channels):
         super(SingleFilter, self).__init__()
