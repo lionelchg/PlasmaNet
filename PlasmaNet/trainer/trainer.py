@@ -45,8 +45,6 @@ class Trainer(BaseTrainer):
         self.valid_metrics = MetricTracker('loss', *self.criterion.loss_list,
                                            *[m.__name__ for m in self.metric_ftns], writer=self.writer)
 
-        self.s_e_1 = self.config['trainer']['1_scale']
-        self.s_e_2 = self.config['trainer']['2_scale']
 
     def _train_epoch(self, epoch):
         """
@@ -55,33 +53,6 @@ class Trainer(BaseTrainer):
         """
         self.model.train()
         self.train_metrics.reset()
-
-        if epoch < self.s_e_1:
-            for param in self.model.conv_4.parameters():
-                    param.requires_grad = True
-            for param in self.model.conv_2.parameters():
-                    param.requires_grad = False
-            for param in self.model.conv_1.parameters():
-                    param.requires_grad = False
-
-        elif epoch > self.s_e_1 and epoch < self.s_e_2:
-            for param in self.model.conv_4.parameters():
-                    param.requires_grad = False
-            for param in self.model.conv_2.parameters():
-                    param.requires_grad = True
-            for param in self.model.conv_1.parameters():
-                    param.requires_grad = False
-            
-
-        if epoch > self.s_e_2:
-            for param in self.model.conv_4.parameters():
-                    param.requires_grad = False
-            for param in self.model.conv_2.parameters():
-                    param.requires_grad = False
-            for param in self.model.conv_1.parameters():
-                    param.requires_grad = True 
-
-        print("Trainable parameters : ", count_parameters(self.model))
 
         for batch_idx, (data, target, data_norm, target_norm) in enumerate(self.data_loader):
 
@@ -172,60 +143,7 @@ class Trainer(BaseTrainer):
                 # MultiScale Study, all the Feature Maps !
                 # Each layer is saved independiently
 
-                if self.config['trainer']['hooks']:
-                    # Get the corresponding Modules for Analysing!!!
-                    scale_4= self.model.conv_4
-                    scale_2= self.model.conv_2
-                    scale_1= self.model.conv_1
-
-                    inside_scale_4 = scale_4._modules.get('encode') 
-                    inside_scale_2 = scale_2._modules.get('encode')
-                    inside_scale_1 = scale_1._modules.get('encode')
-
-                    # Create a list to save the layer outputs
-                    output_analysis = {}
-
-                    # Definition of saving function
-
-                    def get_out(name):
-                        def hook(model,input,output):
-                            output_analysis[name] = output.data
-                        return hook
-
-                    # Perform Forward Hooks!
-
-                    for i in range(len(inside_scale_4)):    
-                        output_4 = inside_scale_4[i].register_forward_hook(get_out('s_4_l_{}'.format(i)))
-
-                    for i in range(len(inside_scale_2)):
-                        output_2 = inside_scale_2[i].register_forward_hook(get_out('s_2_l_{}'.format(i)))
-
-                    for i in range(len(inside_scale_1)):
-                        output_1 = inside_scale_1[i].register_forward_hook(get_out('s_1_l_{}'.format(i)))
-
                 output_raw = self.model(data, epoch)
-
-                if self.config['trainer']['hooks']:
-                    if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
-                        # Saving
-                        for w in range(len(inside_scale_4)):
-                            s_hook_4 = output_analysis['s_4_l_{}'.format(w)].cpu().data.numpy()
-                            np.save(self.config.fig_dir / 'epoch_{}_S_4_L_{}.npy'.format(epoch, w), s_hook_4)
-                        # Saving
-                        for w in range(len(inside_scale_2)):
-                            s_hook_2 = output_analysis['s_2_l_{}'.format(w)].cpu().data.numpy()
-                            np.save(self.config.fig_dir / 'epoch_{}_S_2_L_{}.npy'.format(epoch, w), s_hook_2)
-                        # Saving
-                        for w in range(len(inside_scale_1)):
-                            s_hook_1 = output_analysis['s_1_l_{}'.format(w)].cpu().data.numpy()
-                            np.save(self.config.fig_dir / 'epoch_{}_S_1_L_{}.npy'.format(epoch, w), s_hook_1)
-
-                    # Clear from memory to avoid leaking
-                    output_4.remove()
-                    output_2.remove()
-                    output_1.remove()
-                    output_analysis.clear()
-
 
                 multiple_outputs = False
                 if output_raw.size(1) != 1:
