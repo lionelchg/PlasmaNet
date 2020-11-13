@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                   Single filter network for testing purposes                                         #
+#                                          Simple network for testing purposes                                         #
 #                                                                                                                      #
 #                                          Ekhi Ajuria, CERFACS, 13.10.2020                                            #
 #                                                                                                                      #
@@ -15,20 +15,25 @@ from ..base import BaseModel
 
 
 
-class SingleFilter(BaseModel):
+class SimpleNet(BaseModel):
     """
-    Define the network. The input needed are the number of data (input) channels.
-    And the kernel size (to be added in the corresponding config file)
+    Define the network. The only input needed is the number of data (input) channels.
+    And the number of filters.
+    The network will only two conv2D layers with an intermediate activation function.
+    The order is: Pad Conv ReLu Pad Conv
 
     """
-    def __init__(self, data_channels, kernel):
-        super(SingleFilter, self).__init__()
-        self.pad = nn.ReplicationPad2d(int((kernel-1)/2))       
-        self.final = nn.Conv2d(1, 1, kernel_size=kernel, stride=1)
+    def __init__(self, data_channels, filters):
+        super(SimpleNet, self).__init__()
+        self.pad = nn.ReplicationPad2d(1)      
+        self.initial = nn.Conv2d(1, filters, kernel_size=3, stride=1)
+        self.final =  nn.Conv2d(filters, 1, kernel_size=3, stride=1)
 
     def forward(self, x, epoch):
         x = self.pad(x)
-        output_fields = self.final(x)
-        print("Conv Layer weight", self.final.weight)
+        x = self.initial(x)
+        x = F.relu(x)
+        x = self.pad(x)
+        x = self.final(x)
 
-        return output_fields
+        return x
