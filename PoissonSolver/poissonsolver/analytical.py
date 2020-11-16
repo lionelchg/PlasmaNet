@@ -19,15 +19,6 @@ class PoissonAnalytical(BasePoisson):
         self.nmax_dirichlet = nmax_dirichlet
         self.nmax_rhs = nmax_rhs
         self.mmax_rhs = mmax_rhs
-
-    def compute_voln(self):
-        """ Computes the nodal volume associated to each node (i, j) """
-        voln = np.ones_like(self.X) * self.dx * self.dy
-        voln[:, 0], voln[:, -1], voln[0, :], voln[-1, :] = \
-            self.dx * self.dy / 2, self.dx * self.dy / 2, self.dx * self.dy / 2, self.dx * self.dy / 2
-        voln[0, 0], voln[-1, 0], voln[0, -1], voln[-1, -1] = \
-            self.dx * self.dy / 4, self.dx * self.dy / 4, self.dx * self.dy / 4, self.dx * self.dy / 4
-        return voln
     
     def rhs_solution(self):
         """ Solve the rhs problem """

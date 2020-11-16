@@ -18,6 +18,15 @@ class BasePoisson:
         # Radius of the nodes for axisymmetric configuration
         self.R_nodes = None
 
+    def compute_voln(self):
+        """ Computes the nodal volume associated to each node (i, j) """
+        voln = np.ones_like(self.X) * self.dx * self.dy
+        voln[:, 0], voln[:, -1], voln[0, :], voln[-1, :] = \
+            self.dx * self.dy / 2, self.dx * self.dy / 2, self.dx * self.dy / 2, self.dx * self.dy / 2
+        voln[0, 0], voln[-1, 0], voln[0, -1], voln[-1, -1] = \
+            self.dx * self.dy / 4, self.dx * self.dy / 4, self.dx * self.dy / 4, self.dx * self.dy / 4
+        return voln
+
     @property
     def E_field(self):
         return - grad(self.potential, self.dx, self.dy, self.nnx, self.nny)
@@ -27,9 +36,10 @@ class BasePoisson:
         return lapl(self.potential, self.dx, self.dy, self.nnx, self.nny, r=self.R_nodes)
 
     @classmethod
-    def round_up(cls, n, decimals=0): 
-        multiplier = 10 ** decimals 
-        return np.ceil(n * multiplier) / multiplier
+    def round_up(cls, n, decimals=0):
+        power = int(np.log10(n))
+        digit = n / 10**power
+        return np.ceil(digit) * 10**power
     
     @staticmethod
     def plot_ax_trial_1D(ax, x, function, n_points, title, direction='y', ylim=None):
@@ -46,7 +56,8 @@ class BasePoisson:
     @staticmethod
     def plot_ax_scalar(fig, ax, X, Y, field, title, colormap='RdBu', axi=False):
         if colormap == 'RdBu':
-            max_value = BasePoisson.round_up(np.max(np.abs(field)), decimals=1)
+            # max_value = BasePoisson.round_up(np.max(np.abs(field)), decimals=2)
+            max_value = np.max(np.abs(field))
             levels = np.linspace(- max_value, max_value, 101)
         else:
             levels = 101

@@ -27,3 +27,7 @@ class Poisson(BasePoisson):
         rhs = - physical_rhs * self.scale
         self.bc(rhs, self.nnx, self.nny, args)
         self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
+    
+    def L2error(self, th_potential):
+        return np.sqrt(np.sum(self.compute_voln() * 
+                    (self.potential - th_potential)**2)) / self.Lx / self.Ly
