@@ -2,7 +2,7 @@
 #                                                                                                                      #
 #                           MonoScale: CNN similar to the MS, but only with a single scale                             #
 #                                                                                                                      #
-#                                               Ekhi Ajuria,CERFACS, 07.09.2020                                        #
+#                                               Ekhi Ajuria, CERFACS, 07.09.2020                                        #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -10,7 +10,7 @@
 MonoScale network
 
 Inputs are shape (batch, channels, height, width)
-Outputs are shape (batch,1, height, width)
+Outputs are shape (batch, 1, height, width)
 
 The number of input (data) channels is selected when the model is created.
 the number of output (target) channels is fixed at 1, although this could be changed in the future.
@@ -34,7 +34,8 @@ class _ConvBlock(nn.Module):
     Optional dropout before final Conv2d layer
     ReLU after first four Conv2d layers, not after last - predictions can be +ve or -ve
     """
-    def __init__(self, in_channels, mid1_channels, mid2_channels,mid3_channels, mid4_channels,out_channels,dropout=False):
+
+    def __init__(self, in_channels, mid1_channels, mid2_channels, mid3_channels, mid4_channels, out_channels, dropout=False):
         super(_ConvBlock, self).__init__()
         layers = [
             nn.ReplicationPad2d(2),
@@ -44,37 +45,39 @@ class _ConvBlock(nn.Module):
             nn.Conv2d(mid1_channels, mid2_channels, kernel_size=3),
             nn.ReLU(),
             nn.ReplicationPad2d(1),
-            nn.Conv2d(mid2_channels,mid3_channels,kernel_size = 3),
+            nn.Conv2d(mid2_channels, mid3_channels, kernel_size=3),
             nn.ReLU(),
             nn.ReplicationPad2d(1),
-            nn.Conv2d(mid3_channels,mid4_channels,kernel_size = 3),
+            nn.Conv2d(mid3_channels, mid4_channels, kernel_size=3),
             nn.ReLU(),
             nn.ReplicationPad2d(1),
-            nn.Conv2d(mid4_channels,mid3_channels,kernel_size = 3),
+            nn.Conv2d(mid4_channels, mid3_channels, kernel_size=3),
             nn.ReLU(),
             nn.ReplicationPad2d(1),
-            nn.Conv2d(mid3_channels,mid2_channels,kernel_size = 3),
+            nn.Conv2d(mid3_channels, mid2_channels, kernel_size=3),
             nn.ReLU(),
             nn.ReplicationPad2d(1),
-            nn.Conv2d(mid2_channels,mid1_channels,kernel_size = 3),
+            nn.Conv2d(mid2_channels, mid1_channels, kernel_size=3),
             nn.ReLU(),
         ]
         layers.append(nn.ReplicationPad2d(1))
-        layers.append(nn.Conv2d(mid1_channels, out_channels, kernel_size = 3))
+        layers.append(nn.Conv2d(mid1_channels, out_channels, kernel_size=3))
         self.encode = nn.Sequential(*layers)
 
     def forward(self, x):
         return self.encode(x)
+
 
 class MonoScale(nn.Module):
     """
     Define the network. Only input when called is number of data (input) channels.
         -Use final Conv2d layer with kernel size of 1 to go from 8 channels to 1 output channel.
     """
-    def __init__(self,data_channels):
+
+    def __init__(self, data_channels):
         super(MonoScale, self).__init__()
-        self.convN = _ConvBlock(data_channels, 32,32,128,128,8)
-        self.final = nn.Conv2d(8,1, kernel_size = 1)
+        self.convN = _ConvBlock(data_channels, 32, 32, 128, 128, 8)
+        self.final = nn.Conv2d(8, 1, kernel_size=1)
 
     def forward(self, x):
 

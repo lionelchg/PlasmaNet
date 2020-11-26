@@ -21,14 +21,14 @@ if __name__ == '__main__':
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
 
-    xmin, xmax = 0.0, 1.0
-    ymin, ymax = 0.0, 1.0
+    xmin, xmax = 0.0, 0.1
+    ymin, ymax = 0.0, 0.1
     Lx, Ly = xmax - xmin, ymax - ymin
     # creating the rhs
-    ni0 = 1
+    ni0 = 15.7
     n, m = 5, 5
     
-    nnxs = np.array([51, 101, 201, 501])
+    nnxs = np.array([51, 101, 201])
     errors = np.zeros(len(nnxs))
     for i_err, nnx in enumerate(nnxs):
         print(f'nnx = {nnx:d}')
