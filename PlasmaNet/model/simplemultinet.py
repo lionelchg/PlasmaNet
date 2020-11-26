@@ -42,7 +42,7 @@ class SimpleScaleNet(BaseModel):
     """
     Define the network. The inputs needed are:
     - data_channels (int): The number of data (input) channels
-    - filers (int): number of filters of each layer
+    - filters (int): number of filters of each layer
     - scales (int): number of scales
     - concat (bool): boolean to check if the output of smaller scales is injected for high resolution scales.
     - add_scales (bool): boolean to check if scales are added or not (old behavior)

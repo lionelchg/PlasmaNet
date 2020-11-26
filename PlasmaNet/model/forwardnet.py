@@ -34,13 +34,16 @@ import random
 
 from ..base import BaseModel
 
-#Create the model
+# Create the model
+
+
 class _ConvBlock_Basic(nn.Module):
     """
     Two Conv2d layers, all with kernel_size 3 and padding of 1 (padding ensures output size is same as input size)
     ReLU after first two Conv2d layers
     """
-    def __init__(self, in_channels,out_channels):
+
+    def __init__(self, in_channels, out_channels):
         super(_ConvBlock_Basic, self).__init__()
         layers = [
             nn.ReLU(),
@@ -55,11 +58,13 @@ class _ConvBlock_Basic(nn.Module):
     def forward(self, x):
         return self.encode(x)
 
+
 class _ConvBlock_Init(nn.Module):
     """
     Two Conv2d layers, all with kernel_size 3 and padding of 1 (padding ensures output size is same as input size)
     ReLU only after the first Conv2d layers
     """
+
     def __init__(self, in_channels, out_channels):
         super(_ConvBlock_Init, self).__init__()
         layers = [
@@ -78,6 +83,7 @@ class _ConvBlock_Out(nn.Module):
     Two Conv2d layers, all with kernel_size 3 and padding of 1 (padding ensures output size is same as input size)
     ReLU only after the first Conv2d layers
     """
+
     def __init__(self, in_channels, out_channels):
         super(_ConvBlock_Out, self).__init__()
         layers = [
@@ -97,28 +103,29 @@ class ForwardNet(BaseModel):
         - When returning to the original size, concatenate output of matching sizes
         - The smaller domains are upsampled to the desired size with the F.upsample function.
     """
-    def __init__(self,data_channels):
+
+    def __init__(self, data_channels):
         super(ForwardNet, self).__init__()
-        self.convN_1 = _ConvBlock_Init(data_channels,32)
-        self.convN_2 = _ConvBlock_Basic(32,32)
-        self.convN_3 = _ConvBlock_Basic(32,64)
-        self.convN_4 = _ConvBlock_Basic(64,64)
-        self.convN_5 = _ConvBlock_Basic(64,64)
-        self.convN_6 = _ConvBlock_Basic(64,64)
-        self.convN_7 = _ConvBlock_Basic(64,64)
-        self.convN_8 = _ConvBlock_Basic(64,32)
-        self.convN_9 = _ConvBlock_Basic(32,32)
-        self.final = _ConvBlock_Out(32,1)
-        
+        self.convN_1 = _ConvBlock_Init(data_channels, 32)
+        self.convN_2 = _ConvBlock_Basic(32, 32)
+        self.convN_3 = _ConvBlock_Basic(32, 64)
+        self.convN_4 = _ConvBlock_Basic(64, 64)
+        self.convN_5 = _ConvBlock_Basic(64, 64)
+        self.convN_6 = _ConvBlock_Basic(64, 64)
+        self.convN_7 = _ConvBlock_Basic(64, 64)
+        self.convN_8 = _ConvBlock_Basic(64, 32)
+        self.convN_9 = _ConvBlock_Basic(32, 32)
+        self.final = _ConvBlock_Out(32, 1)
+
     def forward(self, x):
-        convN_1out = self.convN_1(x) 
-        convN_2out = self.convN_2(convN_1out) 
-        convN_3out = self.convN_3(convN_2out) 
+        convN_1out = self.convN_1(x)
+        convN_2out = self.convN_2(convN_1out)
+        convN_3out = self.convN_3(convN_2out)
         convN_4out = self.convN_4(convN_3out)
-        convN_5out = self.convN_5(convN_4out) 
-        convN_6out = self.convN_6(convN_5out) 
-        convN_7out = self.convN_7(convN_6out) 
-        convN_8out = self.convN_8(convN_7out) 
+        convN_5out = self.convN_5(convN_4out)
+        convN_6out = self.convN_6(convN_5out)
+        convN_7out = self.convN_7(convN_6out)
+        convN_8out = self.convN_8(convN_7out)
         convN_9out = self.convN_9(convN_8out)
         final_out = self.final(convN_9out)
         return final_out
