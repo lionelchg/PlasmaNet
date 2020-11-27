@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'local/oscillation_6/'
+casename: 'runs/local/oscillation_1/'
 
 params:
   nit: 100
@@ -37,4 +37,5 @@ output:
   save: 'iteration'
   verbose: True
   period: 100
-  files: "fig"
+  files: 'fig'
+  dl_save: 'yes'

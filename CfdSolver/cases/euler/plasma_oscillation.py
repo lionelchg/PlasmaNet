@@ -16,12 +16,11 @@ import yaml
 
 from cfdsolver import PlasmaEuler
 
-def main(config):
+def run(config):
     """ Main function containing initialization, temporal loop and outputs. Takes a config dict as input. """
-
     sim = PlasmaEuler(config)
-
     # Print header to sum up the parameters
+    sim.write_init()
     if sim.verbose:
         sim.print_init()
 
@@ -60,12 +59,11 @@ def main(config):
         sim.temporal_variables(it)
 
     # Plot temporals
-    sim.plot_temporal()
-
+    sim.post_temporal()
 
 if __name__ == '__main__':
 
     with open('plasma_oscillation.yml', 'r') as yaml_stream:
         cfg = yaml.safe_load(yaml_stream)
 
-    main(cfg)
+    run(cfg)

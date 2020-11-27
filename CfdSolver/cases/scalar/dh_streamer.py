@@ -15,7 +15,6 @@ import yaml
 
 from cfdsolver import StreamerMorrow
 
-@profile
 def main(config):
     """ Main function containing initialisation, temporal loop and outputs. Takes a config dict as input. """
 

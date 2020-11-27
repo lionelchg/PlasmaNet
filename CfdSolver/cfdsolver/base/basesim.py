@@ -22,13 +22,16 @@ class BaseSim(Grid):
         self.period = config['output']['period']
 
         # Saving of solutions data and/or figures
+        self.case_dir = config['casename']
+        create_dir(self.case_dir)
+
         self.file_type = config['output']['files']
         self.save_fig, self.save_data = re.search('fig', self.file_type), re.search('data', self.file_type)
         if self.save_data:
-            self.data_dir = 'data/' + config['casename']
+            self.data_dir = config['casename'] + 'data/'
             create_dir(self.data_dir)
         if self.save_fig:
-            self.fig_dir = 'figures/' + config['casename']
+            self.fig_dir = config['casename'] + 'figures/'
             create_dir(self.fig_dir)
 
         self.dtsum = 0
@@ -44,7 +47,10 @@ class BaseSim(Grid):
             self.dt = config['params']['dt']
 
         # Number of iterations
-        self.nit = config['params']['nit']
+        if 'nit' in config['params']:
+            self.nit = config['params']['nit']
+        elif 'end_time' in config['params']:
+            self.end_time = config['params']['end_time']
 
     def plot(self):
         """ Abstract method for plotting """

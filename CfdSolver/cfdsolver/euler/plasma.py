@@ -9,6 +9,7 @@ from cfdsolver.scalar.init import gaussian
 from poissonsolver.linsystem import matrix_cart, dc_bc
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D, plot_ax_vector_arrow
 from ..base.operators import grad
+from ..utils import create_dir
 
 class PlasmaEuler(Euler):
     def __init__(self, config):
@@ -33,7 +34,20 @@ class PlasmaEuler(Euler):
         self.U[0] = self.m_e * n_electron
 
         self.omega_p = np.sqrt(self.n_back * co.e**2 / self.m_e / co.epsilon_0)
-        self.dt = 2 * np.pi / self.omega_p / config['params']['nt_oscill']
+        self.T_p = 2 * np.pi / self.omega_p
+        self.nt_oscill = config['params']['nt_oscill']
+        self.dt = 2 * np.pi / self.omega_p / self.nt_oscill
+
+        if 'n_periods' in config['params']:
+            self.n_periods = config['params']['n_periods']
+            self.nit = self.n_periods * self.nt_oscill
+            self.end_time = self.n_periods * self.T_p
+        elif 'end_time' in config['params']:
+            self.nit = int(self.end_time / self.dt)
+            self.n_periods = self.end_time / self.T_p
+        else:
+            self.end_time = self.nit * self.dt
+            self.n_periods = self.end_time / self.T_p
 
         self.time = np.zeros(self.nit)
         # first is center n_e, then n_e at offsets and normE at offsets
@@ -41,16 +55,36 @@ class PlasmaEuler(Euler):
         self.nnx_mid, self.nny_mid = int(self.nnx / 2), int(self.nny / 2)
         self.offsets = [0.2, 0.4, 0.6]
 
+        # datasets for deep-learning
+        self.dl_save = config['output']['dl_save'] == 'yes'
+        if self.dl_save:
+            self.dl_dir = config['casename'] + 'dl_data/'
+            create_dir(self.dl_dir)
+            self.potential_list = np.zeros((self.nit, self.nny, self.nnx))
+            self.physical_rhs_list = np.zeros((self.nit, self.nny, self.nnx))
+
     def print_init(self):
         """ Print header to sum up the parameters. """
         print(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
         print(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
         print(f'dx = {self.dx:.2e} -- dy = {self.dy:.2e}')
-        print(f'dt = {self.dt:.2e} s - T_p = {2 * np.pi / self.omega_p:.2e} s - omega_p = {self.omega_p:.2e} rad.s-1')
+        print(f'dt = {self.dt:.2e} s - T_p = {self.T_p:.2e} s - omega_p = {self.omega_p:.2e} rad.s-1')
         print('------------------------------------')
         print('Start of simulation')
         print('------------------------------------')
         print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
+    
+    def write_init(self):
+        """ Print header to sum up the parameters. """
+        fp = open(self.case_dir + 'case.log', 'w')
+        fp.write(f'- Number of nodes: \nnnx = {self.nnx:d}\nnny = {self.nny:d}\n')
+        fp.write(f'- Bounding box: \n({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})\n')
+        fp.write(f'- Mesh: \ndx = {self.dx:.2e}\ndy = {self.dy:.2e}\n')
+        fp.write(f'- Plasma Oscillation: \nn_back = {self.n_back:.2e}\nn_pert = {self.n_pert:.2e}\n')
+        fp.write(f'T_p = {self.T_p:.2e} s\nomega_p = {self.omega_p:.2e} rad.s-1\n')
+        fp.write(f'dt = {self.dt:.2e} s\nnt_oscill = {self.nt_oscill:d}\n')
+        fp.write(f'nit = {self.nit:d}\nn_periods = {self.n_periods:.1f}')
+        fp.close()
 
 
     def solve_poisson(self):
@@ -91,6 +125,12 @@ class PlasmaEuler(Euler):
         fig.savefig(self.fig_dir + f'variables_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
     
+    def postproc(self, it):
+        super().postproc(it)
+        if self.dl_save:
+            self.potential_list[it - 1, :, :] = self.potential
+            self.physical_rhs_list[it - 1, :, :] = self.physical_rhs
+
     @staticmethod
     def mean_temp(var, nny_mid, nnx_mid, offset):
         return 0.25 * (var[nny_mid - offset, nnx_mid - offset] 
@@ -107,7 +147,9 @@ class PlasmaEuler(Euler):
                                                         self.nnx_mid, ioffset)
             self.temporals[it - 1, 4 + i] = self.mean_temp(self.E_norm, 
                                         self.nny_mid, self.nnx_mid, ioffset)
-    
+    def save(self):
+        pass
+
     @staticmethod
     def ax_prop(ax, xlabel, ylabel, axtitle):
         ax.grid(True)
@@ -119,14 +161,22 @@ class PlasmaEuler(Euler):
     def plot_temporal(self):
         fig, axes = plt.subplots(ncols=2, figsize=(12, 7))
         axes[0].plot(self.time, self.temporals[:, 0], label='r = 0')
-        for i in range(3):
+        for i in range(1):
             offset = self.offsets[i]
             axes[0].plot(self.time, self.temporals[:, 1 + i], label=f'r = {offset:.1f} rmax')
+        for i in range(3):
+            offset = self.offsets[i]    
             axes[1].plot(self.time, self.temporals[:, 4 + i], label=f'r = {offset:.1f} rmax')
         self.ax_prop(axes[0], '$t$ [s]', r'$n_e$ [m$^{-3}$]', r'Temporal evolution of $n_e$')
         self.ax_prop(axes[1], '$t$ [s]', r'$|\mathbf{E}|$ [V.m$^{-1}$]', 
                                         r'Temporal evolution of $|\mathbf{E}|$')
         fig.savefig(self.fig_dir + 'temporals', bbox_inches='tight')
+    
+    def post_temporal(self):
+        self.plot_temporal()
+        if self.dl_save:
+            np.save(self.dl_dir + 'potential.npy', self.potential_list)
+            np.save(self.dl_dir + 'physical_rhs.npy', self.physical_rhs_list)
 
 @njit(cache=True)
 def compute_flux_cold(U, gamma, r, F):
