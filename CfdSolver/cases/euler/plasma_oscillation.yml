@@ -13,15 +13,15 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/local/oscillation_1/'
+casename: 'runs/kraken/movie/'
 
 params:
-  nit: 100
+  n_periods: 1
   geom: 'xy'
   n_back: 1.0e+16
   n_pert: 1.0e+11
   dt: 1.0e-10
-  nt_oscill: 1000
+  nt_oscill: 4000
 
 mesh:
   xmin: 0
@@ -34,8 +34,8 @@ mesh:
 BC: 'full_out'
 
 output:
-  save: 'iteration'
+  save: 'plasma_period'
   verbose: True
-  period: 100
+  period: 0.01
   files: 'fig'
-  dl_save: 'yes'
+  dl_save: 'no'

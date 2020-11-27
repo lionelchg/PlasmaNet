@@ -1,3 +1,4 @@
+import sys
 import os
 from multiprocessing import get_context, current_process
 
@@ -32,6 +33,7 @@ if __name__ == '__main__':
     
     cases, base_cfg, base_cn = make_cases(cfg)
 
+    nprocs = int(sys.argv[1])
     # params(cases, base_cfg, base_cn)
-    with get_context('spawn').Pool(processes=2) as p:
+    with get_context('spawn').Pool(processes=nprocs) as p:
         p.map(run, params(cases, base_cfg, base_cn))

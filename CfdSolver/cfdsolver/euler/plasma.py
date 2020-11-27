@@ -48,6 +48,11 @@ class PlasmaEuler(Euler):
         else:
             self.end_time = self.nit * self.dt
             self.n_periods = self.end_time / self.T_p
+        
+        # Save every fraction of period
+        if self.save_type == 'plasma_period':
+            self.save_type = 'iteration'
+            self.period = (self.period * self.nt_oscill)
 
         self.time = np.zeros(self.nit)
         # first is center n_e, then n_e at offsets and normE at offsets
@@ -133,10 +138,18 @@ class PlasmaEuler(Euler):
 
     @staticmethod
     def mean_temp(var, nny_mid, nnx_mid, offset):
-        return 0.25 * (var[nny_mid - offset, nnx_mid - offset] 
-                        + var[nny_mid - offset, nnx_mid + offset] 
-                        + var[nny_mid + offset, nnx_mid - offset] 
-                        + var[nny_mid + offset, nnx_mid + offset])
+        return 0.25 * (var[nny_mid - offset, nnx_mid] 
+                        + var[nny_mid, nnx_mid + offset] 
+                        + var[nny_mid + offset, nnx_mid] 
+                        + var[nny_mid, nnx_mid - offset])
+    
+    @staticmethod
+    def radial_mean(var, nny_mid, nnx_mid, offset):
+        """ Vector variable with projection onto the e_r vector """
+        return 0.25 * (- var[1, nny_mid - offset, nnx_mid] 
+                        + var[0, nny_mid, nnx_mid + offset] 
+                        + var[1, nny_mid + offset, nnx_mid] 
+                        - var[0, nny_mid, nnx_mid - offset])
 
     def temporal_variables(self, it):
         nep = self.U[0, :, :] / self.m_e - self.n_back
@@ -145,7 +158,7 @@ class PlasmaEuler(Euler):
             ioffset = int(offset * (self.nnx - 1) / 2)
             self.temporals[it - 1, 1 + i] = self.mean_temp(nep, self.nny_mid, 
                                                         self.nnx_mid, ioffset)
-            self.temporals[it - 1, 4 + i] = self.mean_temp(self.E_norm, 
+            self.temporals[it - 1, 4 + i] = self.radial_mean(self.E_field, 
                                         self.nny_mid, self.nnx_mid, ioffset)
     def save(self):
         pass
@@ -167,9 +180,9 @@ class PlasmaEuler(Euler):
         for i in range(3):
             offset = self.offsets[i]    
             axes[1].plot(self.time, self.temporals[:, 4 + i], label=f'r = {offset:.1f} rmax')
-        self.ax_prop(axes[0], '$t$ [s]', r'$n_e$ [m$^{-3}$]', r'Temporal evolution of $n_e$')
-        self.ax_prop(axes[1], '$t$ [s]', r'$|\mathbf{E}|$ [V.m$^{-1}$]', 
-                                        r'Temporal evolution of $|\mathbf{E}|$')
+        self.ax_prop(axes[0], '$t$ [s]', r"$n_e$ [m$^{-3}$]", r"Temporal evolution of $n_e$")
+        self.ax_prop(axes[1], '$t$ [s]', r'$E_r$ [V.m$^{-1}$]', 
+                                        r'Temporal evolution of $E_r$')
         fig.savefig(self.fig_dir + 'temporals', bbox_inches='tight')
     
     def post_temporal(self):
