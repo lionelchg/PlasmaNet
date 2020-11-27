@@ -57,7 +57,7 @@ def main(config):
         sim.postproc(it)
 
         # Retrieve center variables 
-        sim.center_variables(it)
+        sim.temporal_variables(it)
 
     # Plot temporals
     sim.plot_temporal()

@@ -36,8 +36,10 @@ class PlasmaEuler(Euler):
         self.dt = 2 * np.pi / self.omega_p / config['params']['nt_oscill']
 
         self.time = np.zeros(self.nit)
-        self.n_center = np.zeros(self.nit)
+        # first is center n_e, then n_e at offsets and normE at offsets
+        self.temporals = np.zeros((self.nit, 7))
         self.nnx_mid, self.nny_mid = int(self.nnx / 2), int(self.nny / 2)
+        self.offsets = [0.2, 0.4, 0.6]
 
     def print_init(self):
         """ Print header to sum up the parameters. """
@@ -89,17 +91,42 @@ class PlasmaEuler(Euler):
         fig.savefig(self.fig_dir + f'variables_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
     
-    def center_variables(self, it):
-        self.n_center[it - 1] = self.U[0, self.nny_mid, self.nnx_mid] / self.m_e - self.n_back
+    @staticmethod
+    def mean_temp(var, nny_mid, nnx_mid, offset):
+        return 0.25 * (var[nny_mid - offset, nnx_mid - offset] 
+                        + var[nny_mid - offset, nnx_mid + offset] 
+                        + var[nny_mid + offset, nnx_mid - offset] 
+                        + var[nny_mid + offset, nnx_mid + offset])
+
+    def temporal_variables(self, it):
+        nep = self.U[0, :, :] / self.m_e - self.n_back
+        self.temporals[it - 1, 0] = nep[self.nny_mid, self.nnx_mid]
+        for i, offset in enumerate(self.offsets):
+            ioffset = int(offset * (self.nnx - 1) / 2)
+            self.temporals[it - 1, 1 + i] = self.mean_temp(nep, self.nny_mid, 
+                                                        self.nnx_mid, ioffset)
+            self.temporals[it - 1, 4 + i] = self.mean_temp(self.E_norm, 
+                                        self.nny_mid, self.nnx_mid, ioffset)
     
-    def plot_temporal(self):
-        fig, ax = plt.subplots(figsize=(8, 8))
-        ax.plot(self.time, self.n_center, color='blue')
+    @staticmethod
+    def ax_prop(ax, xlabel, ylabel, axtitle):
         ax.grid(True)
-        ax.set_xlabel('$t$ [s]')
-        ax.set_ylabel('$n_e$ [m$^{-3}$]')
-        ax.set_title('Time evolution of electron density at center')
-        fig.savefig(self.fig_dir + 'center_ne', bbox_inches='tight')
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.set_title(axtitle)
+        ax.legend()
+
+    def plot_temporal(self):
+        fig, axes = plt.subplots(ncols=2, figsize=(12, 7))
+        axes[0].plot(self.time, self.temporals[:, 0], label='r = 0')
+        for i in range(3):
+            offset = self.offsets[i]
+            axes[0].plot(self.time, self.temporals[:, 1 + i], label=f'r = {offset:.1f} rmax')
+            axes[1].plot(self.time, self.temporals[:, 4 + i], label=f'r = {offset:.1f} rmax')
+        self.ax_prop(axes[0], '$t$ [s]', r'$n_e$ [m$^{-3}$]', r'Temporal evolution of $n_e$')
+        self.ax_prop(axes[1], '$t$ [s]', r'$|\mathbf{E}|$ [V.m$^{-1}$]', 
+                                        r'Temporal evolution of $|\mathbf{E}|$')
+        fig.savefig(self.fig_dir + 'temporals', bbox_inches='tight')
 
 @njit(cache=True)
 def compute_flux_cold(U, gamma, r, F):

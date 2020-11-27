@@ -13,28 +13,34 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'local/oscillation_6/'
+mode: 'tree'
+casename: 'local/case'
+nt_oscill: [500, 1000]
+n_pert: [1.0e+10, 1.0e+11]
+dt: [1.0e-10, 2.0e-10, 3.0e-10]
 
-params:
-  nit: 100
-  geom: 'xy'
-  n_back: 1.0e+16
-  n_pert: 1.0e+11
-  dt: 1.0e-10
-  nt_oscill: 1000
+base:
 
-mesh:
-  xmin: 0
-  ymin: 0
-  xmax: 1.0e-2
-  ymax: 1.0e-2
-  nnx: 101
-  nny: 101
+  params:
+    nit: 10
+    geom: 'xy'
+    n_back: 1.0e+16
+    n_pert: 1.0e+11
+    dt: 1.0e-10
+    nt_oscill: 1000
 
-BC: 'full_out'
+  mesh:
+    xmin: 0
+    ymin: 0
+    xmax: 1.0e-2
+    ymax: 1.0e-2
+    nnx: 101
+    nny: 101
 
-output:
-  save: 'iteration'
-  verbose: True
-  period: 100
-  files: "fig"
+  BC: 'full_out'
+
+  output:
+    save: 'iteration'
+    verbose: True
+    period: 100
+    files: "fig"
