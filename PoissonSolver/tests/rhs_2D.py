@@ -27,7 +27,7 @@ if __name__ == '__main__':
     poisson = Poisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet')
 
     # creating the rhs
-    ni0 = 1e16
+    ni0 = 1e11
     sigma_x, sigma_y = 1e-3, 1e-3
     x0, y0 = 0.5e-2, 0.5e-2
 

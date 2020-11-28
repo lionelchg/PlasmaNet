@@ -92,55 +92,56 @@ def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, axi
 
 
 def plot_ax_scalar(fig, ax, X, Y, field, title, colormap='RdBu', axi=False):
-    xmax, ymax = np.max(X[:]), np.max(Y[:])
+    max_value = round_up(np.max(np.abs(field)))
     if colormap == 'RdBu':
-        max_value = round_up(np.max(np.abs(field)), decimals=1)
+        # max_value = np.max(np.abs(field))
         levels = np.linspace(- max_value, max_value, 101)
+        ticks = np.linspace(-max_value, max_value, 5)
     else:
         levels = 101
+        ticks = np.linspace(0, max_value, 5)
     cs1 = ax.contourf(X, Y, field, levels, cmap=colormap)
     fraction_cbar = 0.1
     if axi: 
         ax.contourf(X, - Y, field, levels, cmap=colormap)
-        aspect = 1.7 * ymax / fraction_cbar / xmax
-        ymax = np.max(Y[:])
-        ax.set_yticks([-ymax, -ymax / 2, 0, ymax / 2, ymax])
+        aspect = 1.7 * np.max(Y) / fraction_cbar / np.max(X)
     else:
-        aspect = 0.85 * ymax / fraction_cbar / xmax
-    fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect)
-
-    scilimx = int(np.log10(xmax) - 1)
-    ax.ticklabel_format(axis='x', style='sci', scilimits=(scilimx, scilimx))
-    ax.ticklabel_format(axis='y', style='sci', scilimits=(scilimx, scilimx))
-
+        aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
+    fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, 
+                    aspect=aspect, ticks=ticks)
+    scilim_x = int(np.log10(np.max(X)))
+    scilim_y = int(np.log10(np.max(Y)))
+    ax.ticklabel_format(axis='x', style='sci', scilimits=(scilim_x, scilim_x))
+    ax.ticklabel_format(axis='y', style='sci', scilimits=(scilim_y, scilim_y))
     ax.set_aspect("equal")
     ax.set_title(title)
 
 
 def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', axi=False):
-    xmax, ymax = np.max(X[:]), np.max(Y[:])
     norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
     arrow_step = 20
-    levels = np.linspace(0, np.max(norm_field), 101)
+    max_value = round_up(np.max(np.abs(norm_field)))
+    levels = np.linspace(0, max_value, 101)
+    ticks = np.linspace(0, max_value, 5)
     CS = ax.contourf(X, Y, norm_field, levels, cmap=colormap)
     fraction_cbar = 0.1
     if axi:
         ax.contourf(X, - Y, norm_field, levels, cmap=colormap)
-        aspect = 1.7 * ymax / fraction_cbar / xmax
+        aspect = 1.7 * np.max(Y) / fraction_cbar / np.max(X)
     else:
-        aspect = 0.85 * ymax / fraction_cbar / xmax
-    cbar = fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect)
-    q = ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
+        aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
+    fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect, ticks=ticks)
+    ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
                 vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
     if axi:
-        q = ax.quiver(X[::arrow_step, ::arrow_step], - Y[::arrow_step, ::arrow_step], 
-            vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
+        ax.quiver(X[::arrow_step, ::arrow_step], - Y[::arrow_step, ::arrow_step], 
+            vector_field[0, ::arrow_step, ::arrow_step], - vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
     ax.set_title(name)
-    xmax, ymax = np.max(X[:]), np.max(Y[:])
-    scilimx = int(np.log10(xmax) - 1)
-    ax.ticklabel_format(axis='x', style='sci', scilimits=(scilimx, scilimx))
-    ax.ticklabel_format(axis='y', style='sci', scilimits=(scilimx, scilimx))
     ax.set_aspect('equal')
+    scilim_x = int(np.log10(np.max(X)))
+    scilim_y = int(np.log10(np.max(Y)))
+    ax.ticklabel_format(axis='x', style='sci', scilimits=(scilim_x, scilim_x))
+    ax.ticklabel_format(axis='y', style='sci', scilimits=(scilim_y, scilim_y))
 
 
 def plot_potential(X, Y, dx, dy, potential, nx, ny, figname, figtitle=None, r=None):
