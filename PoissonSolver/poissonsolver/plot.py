@@ -9,9 +9,10 @@ mpl.rcParams['contour.negative_linestyle'] = 'solid'
 default_cmap = 'RdBu'  # 'RdBu'
 
 
-def round_up(n, decimals=0): 
-    multiplier = 10 ** decimals 
-    return np.ceil(n * multiplier) / multiplier
+def round_up(n, decimals=1):
+    power = int(np.log10(n))
+    digit = n / 10**power * 10**decimals
+    return np.ceil(digit) * 10**(power - decimals)
 
 
 def plot_ax_set_1D(axes, x, pot, E_field_norm, lapl_pot, n_points, M, direction='x'):
@@ -71,14 +72,19 @@ def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, axi
         plot_ax_scalar(fig, axes[0], X, Y, pot, r'$\phi$', axi=axi)
         plot_ax_vector_arrow(fig, axes[1], X, Y, E, r'$\mathbf{E}$', axi=axi)
     else:
-        fig = plt.figure(figsize=(12, 8))
-        ax = fig.add_subplot(221)
-        plot_ax_scalar(fig, ax, X, Y, physical_rhs, r'$\rho / \epsilon_0$', axi=axi)
-        ax = fig.add_subplot(222)
-        plot_ax_scalar(fig, ax, X, Y, pot, r'$\phi$', axi=axi)
-        ax = fig.add_subplot(212)
-        plot_ax_vector_arrow(fig, ax, X, Y, E, r'$\mathbf{E}$', axi=axi)
-
+        if axi:
+            fig = plt.figure(figsize=(12, 8))
+            ax = fig.add_subplot(221)
+            plot_ax_scalar(fig, ax, X, Y, physical_rhs, r'$\rho / \epsilon_0$', axi=axi)
+            ax = fig.add_subplot(222)
+            plot_ax_scalar(fig, ax, X, Y, pot, r'$\phi$', axi=axi)
+            ax = fig.add_subplot(212)
+            plot_ax_vector_arrow(fig, ax, X, Y, E, r'$\mathbf{E}$', axi=axi)
+        else:
+            fig, axes = plt.subplots(ncols=3, figsize=(14, 4))
+            plot_ax_scalar(fig, axes[0], X, Y, physical_rhs, r'$\rho / \epsilon_0$')
+            plot_ax_scalar(fig, axes[1], X, Y, pot, r'$\phi$')
+            plot_ax_vector_arrow(fig, axes[2], X, Y, E, r'$\mathbf{E}$')
     plt.suptitle(figtitle)
     plt.tight_layout()
     plt.savefig(figname, bbox_inches='tight')

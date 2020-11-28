@@ -45,10 +45,10 @@ X, Y = np.meshgrid(x, y)
 A = laplace_square_matrix(n_points)
 
 # Parameters for the rhs
-ni0 = 1e16
+ni0 = 1e11
 
 # Directories declaration and creation if necessary
-casename = f'{n_points:d}x{n_points}/random_{n_res:d}_test/'
+casename = f'{n_points:d}x{n_points}/random_{n_res:d}/'
 if device == 'mac':
     data_dir = 'rhs/' + casename
     plot = True
@@ -56,11 +56,11 @@ if device == 'mac':
     chunksize = 20
     plot_period = 100
 elif device == 'kraken':
-    data_dir = '/scratch/cfd/cheng/DL/datasets/rhs/' + casename
-    plot = False
-    n_procs = 36
+    data_dir = '/scratch/cfd/cheng/DL/datasets/' + casename
+    plot = True
+    n_procs = int(sys.argv[5])
     chunksize = 5
-    plot_period = 2000
+    plot_period = 1000
 
 if not os.path.exists(data_dir):
     os.makedirs(data_dir)

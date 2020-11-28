@@ -14,10 +14,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
-def round_up(n, decimals=0):
+def round_up(n, decimals=1):
     power = int(np.log10(n))
-    digit = n / 10**power
-    return np.ceil(digit) * 10**power
+    digit = n / 10**power * 10**decimals
+    return np.ceil(digit) * 10**(power - decimals)
 
 
 def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', 
