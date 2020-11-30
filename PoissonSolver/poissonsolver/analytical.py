@@ -1,17 +1,15 @@
 import numpy as np
 from scipy import integrate
-from poissonsolver.base import BasePoisson
+from poissonsolver.base import BasePoisson, fourier_coef_1D, fourier_coef_2D
 
 class PoissonAnalytical(BasePoisson):
     """ Analytical solution of the 2D Poisson problem 
     with 4 dirichlet boundaries in cartesian rectangular geometry """
     def __init__(self, xmin, xmax, nnx, ymin, ymax, nny, 
-                nmax_rhs, mmax_rhs, nmax_dirichlet):
-        super().__init__(xmin, xmax, nnx, ymin, ymax, nny)
+                nmax_rhs, mmax_rhs, nmax_dirichlet, nmax=None):
+        super().__init__(xmin, xmax, nnx, ymin, ymax, nny, nmax)
 
-        self.physical_rhs = np.zeros_like(self.X)
         self.bcs = [np.zeros(nnx), np.zeros(nnx), np.zeros(nny), np.zeros(nny)]
-        self.voln = self.compute_voln()
 
         # Decomposition of the potentials (rhs, down, up, left, right)
         self.potentials = np.zeros((5, nny, nnx))
@@ -62,18 +60,11 @@ class PoissonAnalytical(BasePoisson):
             self.bc_solution()
         self.potential = np.sum(self.potentials, axis=0)
 
-def fourier_coef_2D(X, Y, Lx, Ly, voln, rhs, n, m):
-    """ Fourier coefficient of the solution (integral over the domain) """
-    return 4 / Lx / Ly * np.sum(np.sin(n * np.pi * X / Lx) * np.sin(m * np.pi * Y / Ly) * rhs * voln)
-
 def series_term(X, Y, Lx, Ly, voln, rhs, n, m):
     """ Fourier series term of the analytical solution of the 2D Poisson with
     zero dirichlet bc problem """
     return (fourier_coef_2D(X, Y, Lx, Ly, voln, rhs, n, m) * np.sin(n * np.pi * X / Lx) 
                     * np.sin(m * np.pi * Y / Ly) / ((n / Lx)**2 + (m / Ly)**2))
-
-def fourier_coef_1D(V_u, n, x, Lx):
-    return integrate.simps(V_u * np.sin(n * np.pi * x / Lx), x)
 
 def series_term_dup(V_u, X, Y, Lx, Ly, n):
     return (fourier_coef_1D(V_u, n, X[0, :], Lx) * np.sin(n * np.pi * X / Lx) * 

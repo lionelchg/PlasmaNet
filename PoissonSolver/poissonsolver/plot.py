@@ -1,6 +1,7 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import LogNorm
 
 from poissonsolver.operators import lapl, grad
 
@@ -91,19 +92,19 @@ def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, axi
     plt.close()
 
 
-def plot_ax_scalar(fig, ax, X, Y, field, title, colormap='RdBu', axi=False):
+def plot_ax_scalar(fig, ax, X, Y, field, title, cmap='RdBu', axi=False, cmap_scale='log'):
     max_value = round_up(np.max(np.abs(field)))
-    if colormap == 'RdBu':
+    if cmap == 'RdBu':
         # max_value = np.max(np.abs(field))
         levels = np.linspace(- max_value, max_value, 101)
         ticks = np.linspace(-max_value, max_value, 5)
     else:
         levels = 101
         ticks = np.linspace(0, max_value, 5)
-    cs1 = ax.contourf(X, Y, field, levels, cmap=colormap)
+    cs1 = ax.contourf(X, Y, field, levels, cmap=cmap)
     fraction_cbar = 0.1
     if axi: 
-        ax.contourf(X, - Y, field, levels, cmap=colormap)
+        ax.contourf(X, - Y, field, levels, cmap=cmap)
         aspect = 1.7 * np.max(Y) / fraction_cbar / np.max(X)
     else:
         aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
@@ -209,3 +210,16 @@ def plot_lapl_rhs(X, Y, dx, dy, potential, physical_rhs, nx, ny, figname, figtit
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
     plt.savefig(figname, bbox_inches='tight')
     plt.close()
+
+def plot_modes(ax, N, M, coeffs, title):
+    """ Plot of the different modes of a 2D Fourier expansion """            
+    # ax.plot_surface(N, M, coeffs, alpha=0.7)
+    N, M, coeffs = N.reshape(-1), M.reshape(-1), coeffs.reshape(-1)
+    ax.bar3d(N, M, np.zeros_like(N), np.ones_like(N), np.ones_like(M), coeffs)
+    ax.set_zlabel('Amplitude')
+    ax.set_ylabel('M')
+    ax.set_xlabel('N')
+    ax.set_title(title)
+    scilim_z = int(np.log10(np.max(coeffs)))
+    ax.ticklabel_format(axis='z', style='sci', scilimits=(scilim_z, scilim_z))
+    ax.view_init(elev=20, azim=35)

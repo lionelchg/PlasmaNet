@@ -41,7 +41,7 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
     else:
         if max_value is None:
             max_value = round_up(np.max(np.abs(field)), decimals=1)
-        levels = np.linspace(- max_value, max_value, 101)
+        levels = np.linspace(-max_value, max_value, 101)
         cs1 = ax.contourf(X, Y, field, levels, cmap=cmap)
         if geom == 'xr':
             ax.contourf(X, - Y, field, levels, cmap=cmap)

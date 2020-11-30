@@ -5,11 +5,12 @@ from scipy.sparse.linalg import spsolve
 
 from poissonsolver.linsystem import matrix_cart, matrix_axisym, dc_bc
 from poissonsolver.operators import grad, lapl
-from poissonsolver.base import BasePoisson
+from poissonsolver.base import BasePoisson, fourier_coef_2D
+from poissonsolver.plot import plot_modes
 
 class Poisson(BasePoisson):
-    def __init__(self, xmin, xmax, nnx, ymin, ymax, nny, config):
-        super().__init__(xmin, xmax, nnx, ymin, ymax, nny)
+    def __init__(self, xmin, xmax, nnx, ymin, ymax, nny, config, nmax=None):
+        super().__init__(xmin, xmax, nnx, ymin, ymax, nny, nmax)
         self.config = config
         self.scale = self.dx * self.dy
         if self.config == 'cart_dirichlet':
@@ -25,9 +26,22 @@ class Poisson(BasePoisson):
 
     def solve(self, physical_rhs, *args):
         rhs = - physical_rhs * self.scale
+        self.physical_rhs = physical_rhs.reshape(self.nny, self.nnx)
         self.bc(rhs, self.nnx, self.nny, args)
         self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
     
     def L2error(self, th_potential):
         return np.sqrt(np.sum(self.compute_voln() * 
                     (self.potential - th_potential)**2)) / self.Lx / self.Ly
+
+class DatasetPoisson(Poisson):
+
+    def compute_modes(self):
+        """ Compute the fourier coefficients of rhs and potential """
+        if self.nmax is not None:
+            for i in self.nrange:
+                for j in self.nrange:
+                    self.coeffs_rhs[j - 1, i - 1] += fourier_coef_2D(self.X, self.Y, self.Lx, self.Ly, self.voln, self.physical_rhs, i, j)
+                    self.coeffs_pot[j - 1, i - 1] += self.coeffs_rhs[j - 1, i - 1] / np.pi**2 / ((i / self.Lx)**2 + (j / self.Ly)**2)
+        else:
+            print("Class is not initialized for computing modes")
