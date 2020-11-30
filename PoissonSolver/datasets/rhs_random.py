@@ -47,7 +47,7 @@ freq_period = int(0.01 * nits)
 # Directories declaration and creation if necessary
 casename = f'{npts:d}x{npts}/random_{n_res:d}/'
 if device == 'mac':
-    data_dir = 'rhs/' + casename
+    data_dir = 'outputs/' + casename
     chunksize = 20
 elif device == 'kraken':
     data_dir = '/scratch/cfd/cheng/DL/datasets/' + casename

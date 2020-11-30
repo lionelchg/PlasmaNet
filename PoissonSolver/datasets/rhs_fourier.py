@@ -25,7 +25,7 @@ from poissonsolver.poisson import DatasetPoisson
 from poissonsolver.utils import create_dir
 
 device = sys.argv[1]
-npts, nits, n_res, n_procs = [int(var) for var in sys.argv[2:6]]
+npts, nits, nmax_fourier, n_procs = [int(var) for var in sys.argv[2:6]]
 
 xmin, xmax, nnx = 0, 0.01, npts
 ymin, ymax, nny = 0, 0.01, npts
@@ -33,21 +33,21 @@ x, y = np.linspace(xmin, xmax, nnx), np.linspace(ymin, ymax, nny)
 
 zeros_x, zeros_y = np.zeros(nnx), np.zeros(nny)
 
-poisson = DatasetPoisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet', 15)
+poisson = DatasetPoisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet', nmax_fourier)
 
-n_lower = int(npts / n_res)
-x_lower, y_lower = np.linspace(xmin, xmax, n_lower), np.linspace(ymin, ymax, n_lower)
-
-# Parameters for the rhs and plotting
+# amplitude of the random modes
 ni0 = 1e11
+rhs0 = ni0 * co.e / co.epsilon_0
+
+# Parameters for the plotting
 plot = True
 plot_period = int(0.1 * nits)
 freq_period = int(0.01 * nits)
 
 # Directories declaration and creation if necessary
-casename = f'{npts:d}x{npts}/random_{n_res:d}/'
+casename = f'{npts:d}x{npts}/fourier_{nmax_fourier:d}/'
 if device == 'mac':
-    data_dir = 'rhs/' + casename
+    data_dir = 'outputs/' + casename
     chunksize = 20
 elif device == 'kraken':
     data_dir = '/scratch/cfd/cheng/DL/datasets/' + casename
@@ -57,27 +57,27 @@ fig_dir = data_dir + 'figures/'
 create_dir(data_dir)
 create_dir(fig_dir)
 
-
 def params(nits):
     """ Parameters to give to compute function for imap """
     for i in range(nits):
-        z_lower = 2 * np.random.random((n_lower, n_lower)) - 1
-        f = interpolate.interp2d(x_lower, y_lower, z_lower, kind='cubic')
-        yield f(x, y)
-
+        random_array = np.random.random((poisson.nmax, poisson.mmax))
+        rhs_coefs = rhs0 * (2 * random_array - 1)
+        yield rhs_coefs / (poisson.N**2 + poisson.M**2)
 
 def compute(args):
     """ Compute function for imap (multiprocessing) """
-    physical_rhs = ni0 * args.reshape(-1) * co.e / co.epsilon_0
+    rhs_coefs = args
+    # interior rhs
+    tmp_potential = poisson.pot_series(rhs_coefs)
+    tmp_rhs = poisson.sum_series(rhs_coefs)
 
-    poisson.solve(physical_rhs, zeros_x, zeros_x, zeros_y, zeros_y)
+    return tmp_potential, tmp_rhs
 
-    return poisson.potential, poisson.physical_rhs
 
 if __name__ == '__main__':
 
     # Print header of dataset
-    print(f'Device : {device:s} - npts = {npts:d} - nits = {nits:d} - n_res = {n_res:d}')
+    print(f'Device : {device:s} - npts = {npts:d} - nits = {nits:d} - nmax_fourier = {nmax_fourier:d}')
     print(f'Directory : {data_dir:s} - n_procs = {n_procs:d} - chunksize = {chunksize:d}')
 
     potential_list = np.zeros((nits, npts, npts))

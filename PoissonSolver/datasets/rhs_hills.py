@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                            2D Poisson solver using numpy                                             #
+#                              2D Poisson datasets using random generation of rhs gaussian                             #
 #                                                                                                                      #
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
@@ -15,150 +15,96 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import numpy as np
 import scipy.constants as co
+from scipy import interpolate
 from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
 
 from poissonsolver.plot import plot_set_2D
-from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from poissonsolver.operators import grad
+from poissonsolver.poisson import DatasetPoisson
+from poissonsolver.utils import create_dir
+from poissonsolver.funcs import gaussian
 
 device = sys.argv[1]
-n_points, n_ampl, n_x0, n_width = sys.argv[2:6]
-n_points, n_ampl, n_x0, n_width = int(n_points), int(n_ampl), int(n_x0), int(n_width)
+npts, nits, n_procs = [int(var) for var in sys.argv[2:5]]
 
-# Global variables
-xmin, xmax = 0, 0.01
-ymin, ymax = 0, 0.01
-dx = (xmax - xmin) / (n_points - 1)
-dy = (ymax - ymin) / (n_points - 1)
-x = np.linspace(xmin, xmax, n_points)
-y = np.linspace(ymin, ymax, n_points)
+xmin, xmax, nnx = 0, 0.01, npts
+ymin, ymax, nny = 0, 0.01, npts
+x, y = np.linspace(xmin, xmax, nnx), np.linspace(ymin, ymax, nny)
 
-L = xmax - xmin
+zeros_x, zeros_y = np.zeros(nnx), np.zeros(nny)
 
-X, Y = np.meshgrid(x, y)
+poisson = DatasetPoisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet', 10)
 
-A = laplace_square_matrix(n_points)
+# Parameters for the rhs and plotting
+ni0 = 1e11
+rhs0 = ni0 * co.e / co.epsilon_0
+ampl_min, ampl_max = 0.01, 1
+sigma_min, sigma_max = 1e-3, 3e-3
+x_middle, y_middle = (xmax - xmin) / 2, (ymax - ymin) / 2
+
+plot = True
+plot_period = int(0.1 * nits)
+freq_period = int(0.01 * nits)
 
 # Directories declaration and creation if necessary
-casename = f'{n_points:d}x{n_points:d}/gauss_test/'
+casename = f'{npts:d}x{npts}/hills/'
 if device == 'mac':
-    data_dir = 'rhs/' + casename
-    plot = True
-    n_procs = 2
+    data_dir = 'outputs/' + casename
     chunksize = 20
-    plot_period = 100
 elif device == 'kraken':
-    data_dir = '/scratch/cfd/cheng/DL/datasets/rhs/' + casename
-    plot = False
-    n_procs = 36
+    data_dir = '/scratch/cfd/cheng/DL/datasets/' + casename
     chunksize = 5
-    plot_period = 2000
 
-if not os.path.exists(data_dir):
-    os.makedirs(data_dir)
-
-if plot:
-    fig_dir = data_dir + 'figures/'
-    if not os.path.exists(fig_dir):
-        os.makedirs(fig_dir)
-
-# Parameters for the rhs
-# ni0 = 1e16
-ampl_min, ampl_max = 1e16, 5e16
-# ampl_min, ampl_max = -0.5e16, 7.5e16  # test dataset
-x0_min, x0_max = 4e-3, 6e-3
-sigma_min, sigma_max = 1e-3, 3e-3
-pow_min, pow_max = 3, 7
+fig_dir = data_dir + 'figures/'
+create_dir(data_dir)
+create_dir(fig_dir)
 
 
-def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
-    return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
-
-
-def cosine_hill(x, y, amplitude, x0, y0, powx, powy, L):
-    return amplitude * np.cos(np.pi / L * (x - x0)) ** powx * np.cos(np.pi / L * (y - y0)) ** powy
-
-
-def parabol(x, y, L):
-    return (1 - ((x - L / 2) / (L / 2)) ** 2) * (1 - ((y - L / 2) / (L / 2)) ** 2)
-
-
-def triangle(x, y, L):
-    return (1 - abs((x - L / 2) / (L / 2))) * (1 - abs((y - L / 2) / (L / 2)))
-
-
-def params_gauss(n_ampl, n_x0, n_width):
-    for i in range(n_ampl):
-        for j in range(n_x0**2):
-            for k in range(n_width**2):
-                coefs = np.random.random(5)
-                yield (ampl_max - ampl_min) * coefs[0] + ampl_min, \
-                      (x0_max - x0_min) * coefs[1] + x0_min, \
-                      (x0_max - x0_min) * coefs[2] + x0_min, \
-                      (sigma_max - sigma_min) * coefs[3] + sigma_min, \
-                      (sigma_max - sigma_min) * coefs[4] + sigma_min, 0
-
-
-def params_cosine(n_ampl, n_x0, n_pow):
-    for i in range(n_ampl):
-        for j in range(n_x0**2):
-            for k in range(n_width**2):
-                coefs = np.random.random(5)
-                yield (ampl_max - ampl_min) * coefs[0] + ampl_min, \
-                      (x0_max - x0_min) * coefs[1] + x0_min, \
-                      (x0_max - x0_min) * coefs[2] + x0_min, \
-                      (pow_max - pow_min) * coefs[3] + pow_min, \
-                      (pow_max - pow_min) * coefs[4] + pow_min, 1
+def params(nits):
+    """ Parameters to give to compute function for imap """
+    for i in range(nits):
+        coefs = np.random.random(5)
+        ampl = rhs0 * ((ampl_max - ampl_min) * coefs[0] + ampl_min)
+        sigma0 = (sigma_max - sigma_min) * coefs[1] + sigma_min
+        yield ampl, sigma0
 
 
 def compute(args):
-    ampl, x0, y0, param_x, param_y, which_set = args
-    # interior rhs
-    # Gaussian case
-    if which_set == 0:
-        physical_rhs = gaussian(X.reshape(-1), Y.reshape(-1), ampl, x0, y0, param_x, param_y) * co.e / co.epsilon_0
-    # Cosine hill case
-    elif which_set == 1:
-        L = xmax - xmin
-        physical_rhs = ampl * co.e / co.epsilon_0 \
-                       * cosine_hill(X.reshape(-1), Y.reshape(-1), ampl, x0, y0, param_x, param_y,
-                                     L) * co.e / co.epsilon_0
-    rhs = - physical_rhs * dx ** 2
+    """ Compute function for imap (multiprocessing) """
+    ampl, sigma0 = args
+    physical_rhs = gaussian(poisson.X.reshape(-1), poisson.Y.reshape(-1), ampl, 
+                        x_middle, y_middle, sigma0, sigma0)
 
-    # Imposing Dirichlet boundary conditions
-    zeros_bc = np.zeros(n_points)
-    dirichlet_bc(rhs, n_points, zeros_bc, zeros_bc, zeros_bc, zeros_bc)
+    poisson.solve(physical_rhs, zeros_x, zeros_x, zeros_y, zeros_y)
 
-    # Solving the sparse linear system
-    tmp_potential = spsolve(A, rhs).reshape(n_points, n_points)
-    tmp_rhs = physical_rhs.reshape(n_points, n_points)
-
-    return tmp_potential, tmp_rhs
-
+    return poisson.potential, poisson.physical_rhs
 
 if __name__ == '__main__':
 
-    nits = n_ampl *  n_x0 ** 2 * n_width ** 2
     # Print header of dataset
-    print(f'Device : {device:s} - n_points = {n_points:d} - nits = {nits:d} (n_ampl={n_ampl:d}/n_x0={n_x0:d}/n_width={n_width:d})')
+    print(f'Device : {device:s} - npts = {npts:d} - nits = {nits:d}')
     print(f'Directory : {data_dir:s} - n_procs = {n_procs:d} - chunksize = {chunksize:d}')
 
-    potential_list = np.zeros((nits, n_points, n_points))
-    physical_rhs_list = np.zeros((nits, n_points, n_points))
+    potential_list = np.zeros((nits, npts, npts))
+    physical_rhs_list = np.zeros((nits, npts, npts))
 
     time_start = time.time()
 
     with get_context('spawn').Pool(processes=n_procs) as p:
-        results_train = list(tqdm(p.imap(compute, params_gauss(n_ampl, n_x0, n_width), chunksize=chunksize), total=nits))
+        results_train = list(tqdm(p.imap(compute, params(nits), chunksize=chunksize), total=nits))
 
     for i, (pot, rhs) in enumerate(tqdm(results_train)):
         potential_list[i, :, :] = pot
         physical_rhs_list[i, :, :] = rhs
-        if i % plot_period == 0 and plot:
-            E_field = - grad(pot, dx, dy, n_points, n_points)
-            plot_set_2D(X, Y, rhs, pot, E_field, 'Input number %d' % i, fig_dir + f'input_{i:05d}')
-
+        if i % plot_period == 0:
+            poisson.potential = pot
+            poisson.plot_2D(fig_dir + f'input_{i:05d}')
+        if i % freq_period == 0:
+            poisson.physical_rhs = rhs
+            poisson.compute_modes()
+    
+    poisson.plot_pmodes(fig_dir + 'average_modes')
 
     time_stop = time.time()
     np.save(data_dir + 'potential.npy', potential_list)

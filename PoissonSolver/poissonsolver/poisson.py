@@ -45,3 +45,22 @@ class DatasetPoisson(Poisson):
                     self.coeffs_pot[j - 1, i - 1] += self.coeffs_rhs[j - 1, i - 1] / np.pi**2 / ((i / self.Lx)**2 + (j / self.Ly)**2)
         else:
             print("Class is not initialized for computing modes")
+    
+
+    def sum_series(self, coefs):
+        """ Series of rhs from Fourier resolution given coeffs """
+        series = np.zeros_like(self.X)
+        for n in range(1, self.nmax + 1):
+            for m in range(1, self.nmax + 1):
+                series += coefs[n - 1, m - 1] * np.sin(n * np.pi * self.X / self.Lx) * np.sin(m * np.pi * self.Y / self.Ly)
+        return series
+
+    def pot_series(self, coefs):
+        """ Series of potential from Fourier resolution given coeffs """
+        series = np.zeros_like(self.X)
+        for n in range(1, self.nmax + 1):
+            for m in range(1, self.nmax + 1):
+                series += (coefs[n - 1, m - 1] * np.sin(n * np.pi * self.X / self.Lx) 
+                    * np.sin(m * np.pi * self.Y / self.Ly) / ((n * np.pi / self.Lx)**2 + (m * np.pi / self.Ly)**2))
+        return series
+
