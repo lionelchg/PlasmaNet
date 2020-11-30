@@ -1,10 +1,11 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                            2D Poisson solver conver                                             #
+#                                            2D Poisson solver convergence                                             #
 #                                                                                                                      #
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,8 +14,10 @@ import scipy.constants as co
 from poissonsolver.poisson import Poisson
 from poissonsolver.funcs import gaussian
 
+
 def th_solution(X, Y, n, m, Lx, Ly):
     return np.sin(n * np.pi * X / Lx) * np.sin(n * np.pi * Y / Ly)
+
 
 if __name__ == '__main__':
     fig_dir = 'figures/convergence/'
@@ -40,9 +43,9 @@ if __name__ == '__main__':
 
         poisson = Poisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet')
         # interior rhs
-        physical_rhs = ni0 * th_solution(poisson.X.reshape(-1), poisson.Y.reshape(-1), 
-                            n, m, Lx, Ly)
-        potential_th = physical_rhs.reshape(nny, nnx) / ((n * np.pi / Lx)**2 + (m * np.pi * Ly)**2)
+        physical_rhs = ni0 * th_solution(poisson.X.reshape(-1), poisson.Y.reshape(-1),
+                                         n, m, Lx, Ly)
+        potential_th = physical_rhs.reshape(nny, nnx) / ((n * np.pi / Lx)**2 + (m * np.pi / Ly)**2)
         poisson.solve(physical_rhs, zeros_x, zeros_x, zeros_y, zeros_y)
         poisson.plot_1D2D(fig_dir + f'sol_{nnx}')
         errors[i_err] = poisson.L2error(potential_th)
