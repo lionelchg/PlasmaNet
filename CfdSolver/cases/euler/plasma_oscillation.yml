@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/target_case/'
+casename: 'runs/local/test_case/'
 
 params:
   n_periods: 2
@@ -21,15 +21,15 @@ params:
   n_back: 1.0e+16
   n_pert: 1.0e+11
   dt: 1.0e-10
-  nt_oscill: 5000
+  nt_oscill: 500
 
 mesh:
   xmin: 0
   ymin: 0
   xmax: 1.0e-2
   ymax: 1.0e-2
-  nnx: 128
-  nny: 128
+  nnx: 101
+  nny: 101
 
 BC: 'full_out'
 
@@ -39,3 +39,4 @@ output:
   period: 0.1
   files: 'fig'
   dl_save: 'yes'
+  nmax_fourier: 10

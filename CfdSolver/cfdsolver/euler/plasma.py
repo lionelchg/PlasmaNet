@@ -7,6 +7,7 @@ from numba import njit
 from .euler import Euler
 from cfdsolver.scalar.init import gaussian
 from poissonsolver.linsystem import matrix_cart, dc_bc
+from poissonsolver.poisson import DatasetPoisson
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D, plot_ax_vector_arrow
 from ..base.operators import grad
 from ..utils import create_dir
@@ -19,10 +20,9 @@ class PlasmaEuler(Euler):
         zeros_y = np.zeros_like(self.y)
         self.down, self.up = zeros_x, zeros_x
         self.left, self.right = zeros_y, zeros_y
-        self.scale = self.dx * self.dy
-        self.mat_poisson = matrix_cart(self.dx, self.dy, 
-                            self.nnx, self.nny, self.scale)
-        self.bc = dc_bc
+        self.poisson = DatasetPoisson(self.xmin, self.xmax, self.nnx, 
+                        self.ymin, self.ymax, self.nny, 'cart_dirichlet', 
+                        config['output']['nmax_fourier'])
 
         self.m_e = co.m_e
         self.W = self.m_e * co.N_A
@@ -94,12 +94,10 @@ class PlasmaEuler(Euler):
 
     def solve_poisson(self):
         """ Solve the Poisson equation in axisymmetric configuration. """
-        self.physical_rhs = - (self.U[0] / self.m_e - self.n_back).reshape(-1) * co.e / co.epsilon_0
-        self.rhs = - self.physical_rhs * self.scale
-        self.bc(self.rhs, self.nnx, self.nny, self.down, self.up, self.left, self.right)
-        self.potential = spsolve(self.mat_poisson, self.rhs).reshape(self.nny, self.nnx)
-        self.E_field = - grad(self.potential, self.dx, self.dy, self.nnx, self.nny)
-        self.physical_rhs = self.physical_rhs.reshape((self.nny, self.nnx))
+        self.poisson.solve(- (self.U[0] / self.m_e - self.n_back).reshape(-1) * co.e / co.epsilon_0,
+                                     self.down, self.up, self.left, self.right)
+        self.E_field = self.poisson.E_field
+
         self.E_norm = np.sqrt(self.E_field[0]**2 + self.E_field[1]**2)
         if self.it == 1: self.E_max = np.max(self.E_norm)
 
@@ -133,8 +131,9 @@ class PlasmaEuler(Euler):
     def postproc(self, it):
         super().postproc(it)
         if self.dl_save:
-            self.potential_list[it - 1, :, :] = self.potential
-            self.physical_rhs_list[it - 1, :, :] = self.physical_rhs
+            self.potential_list[it - 1, :, :] = self.poisson.potential
+            self.physical_rhs_list[it - 1, :, :] = self.poisson.physical_rhs
+
 
     @staticmethod
     def mean_temp(var, nny_mid, nnx_mid, offset):
