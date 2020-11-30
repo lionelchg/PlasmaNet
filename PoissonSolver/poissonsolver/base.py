@@ -93,7 +93,7 @@ class BasePoisson:
         if self.nmax is not None:
             for i in self.nrange:
                 for j in self.nrange:
-                    self.coeffs_rhs[j - 1, i - 1] = fourier_coef_2D(self.X, self.Y, self.Lx, self.Ly, self.voln, self.physical_rhs, i, j)
+                    self.coeffs_rhs[j - 1, i - 1] = abs(fourier_coef_2D(self.X, self.Y, self.Lx, self.Ly, self.voln, self.physical_rhs, i, j))
                     self.coeffs_pot[j - 1, i - 1] = self.coeffs_rhs[j - 1, i - 1] / np.pi**2 / ((i / self.Lx)**2 + (j / self.Ly)**2)
         else:
             print("Class is not initialized for computing modes")
@@ -104,9 +104,9 @@ class BasePoisson:
         self.compute_modes()
         fig = plt.figure(figsize=(12, 8))
         ax1 = fig.add_subplot(121, projection='3d')
-        plot_modes(ax1, self.N, self.M, abs(self.coeffs_rhs), "RHS modes")
+        plot_modes(ax1, self.N, self.M, self.coeffs_rhs, "RHS modes")
         ax2 = fig.add_subplot(122, projection='3d')
-        plot_modes(ax2, self.N, self.M, abs(self.coeffs_pot), "Potential modes")
+        plot_modes(ax2, self.N, self.M, self.coeffs_pot, "Potential modes")
 
         fig.tight_layout()
         fig.savefig(figname, bbox_inches='tight')

@@ -2,6 +2,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LogNorm
+import matplotlib as mpl
 
 from poissonsolver.operators import lapl, grad
 
@@ -211,11 +212,18 @@ def plot_lapl_rhs(X, Y, dx, dy, potential, physical_rhs, nx, ny, figname, figtit
     plt.savefig(figname, bbox_inches='tight')
     plt.close()
 
-def plot_modes(ax, N, M, coeffs, title):
+def plot_modes(ax, N, M, coeffs, title, cmap_str='Blues'):
     """ Plot of the different modes of a 2D Fourier expansion """            
     # ax.plot_surface(N, M, coeffs, alpha=0.7)
     N, M, coeffs = N.reshape(-1), M.reshape(-1), coeffs.reshape(-1)
-    ax.bar3d(N, M, np.zeros_like(N), np.ones_like(N), np.ones_like(M), coeffs)
+
+    offset = coeffs + np.abs(coeffs.min())
+    fracs = offset.astype(float) / offset.max()
+    norm = mpl.colors.Normalize(fracs.min(), fracs.max())
+    cmap = getattr(mpl.cm, cmap_str)
+    colors = cmap(norm(fracs))
+
+    ax.bar3d(N, M, np.zeros_like(N), np.ones_like(N), np.ones_like(M), coeffs, alpha=0.8, color=colors)
     ax.set_zlabel('Amplitude')
     ax.set_ylabel('M')
     ax.set_xlabel('N')

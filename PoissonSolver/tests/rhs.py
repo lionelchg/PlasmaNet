@@ -12,13 +12,13 @@ import scipy.constants as co
 from poissonsolver.poisson import Poisson
 from poissonsolver.funcs import gaussian
 
-fig_dir = 'figures/rhs_2D/'
+fig_dir = 'figures/rhs_2D_101/'
 if not os.path.exists(fig_dir):
     os.makedirs(fig_dir)
 
 if __name__ == '__main__':
-    xmin, xmax, nnx = 0, 0.01, 128
-    ymin, ymax, nny = 0, 0.01, 128
+    xmin, xmax, nnx = 0, 0.01, 101
+    ymin, ymax, nny = 0, 0.01, 101
     x, y = np.linspace(xmin, xmax, nnx), np.linspace(ymin, ymax, nny)
 
     zeros_x, zeros_y = np.zeros(nnx), np.zeros(nny)

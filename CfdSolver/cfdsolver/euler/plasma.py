@@ -5,7 +5,7 @@ from scipy.sparse.linalg import spsolve
 from numba import njit
 
 from .euler import Euler
-from cfdsolver.scalar.init import gaussian
+from cfdsolver.scalar.init import func_dict
 from poissonsolver.linsystem import matrix_cart, dc_bc
 from poissonsolver.poisson import DatasetPoisson
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D, plot_ax_vector_arrow
@@ -29,7 +29,7 @@ class PlasmaEuler(Euler):
         self.n_back = config['params']['n_back']
         self.n_pert = config['params']['n_pert']
         x0, y0, sigma_x, sigma_y = 5e-3, 5e-3, 1e-3, 1e-3
-        n_electron = gaussian(self.X, self.Y, self.n_pert, x0, 
+        n_electron = func_dict[config['params']['init_func']](self.X, self.Y, self.n_pert, x0, 
                             y0, sigma_x, sigma_y) + self.n_back
         self.U[0] = self.m_e * n_electron
 
@@ -64,9 +64,14 @@ class PlasmaEuler(Euler):
         self.dl_save = config['output']['dl_save'] == 'yes'
         if self.dl_save:
             self.dl_dir = config['casename'] + 'dl_data/'
+            self.dl_fig = self.dl_dir + 'figures/'
             create_dir(self.dl_dir)
+            create_dir(self.dl_fig)
             self.potential_list = np.zeros((self.nit, self.nny, self.nnx))
             self.physical_rhs_list = np.zeros((self.nit, self.nny, self.nnx))
+            # Compute fourier for 100 iterations
+            self.dl_plot_period = int(0.1 * self.nit)
+            self.fourier_period = int(0.01 * self.nit)
 
     def print_init(self):
         """ Print header to sum up the parameters. """
@@ -133,6 +138,10 @@ class PlasmaEuler(Euler):
         if self.dl_save:
             self.potential_list[it - 1, :, :] = self.poisson.potential
             self.physical_rhs_list[it - 1, :, :] = self.poisson.physical_rhs
+            if it % self.dl_plot_period == 0:
+                self.poisson.plot_2D(self.dl_fig + f'input_{it:05d}')
+            if it % self.fourier_period == 0:
+                self.poisson.compute_modes()
 
 
     @staticmethod
@@ -189,6 +198,7 @@ class PlasmaEuler(Euler):
         if self.dl_save:
             np.save(self.dl_dir + 'potential.npy', self.potential_list)
             np.save(self.dl_dir + 'physical_rhs.npy', self.physical_rhs_list)
+            self.poisson.plot_pmodes(self.dl_fig + 'modes')
 
 @njit(cache=True)
 def compute_flux_cold(U, gamma, r, F):

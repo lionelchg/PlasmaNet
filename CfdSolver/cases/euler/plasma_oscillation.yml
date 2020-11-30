@@ -13,15 +13,16 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/local/test_case/'
+casename: 'runs/local/triangle_init/'
 
 params:
   n_periods: 2
   geom: 'xy'
+  init_func: 'triangle'
   n_back: 1.0e+16
   n_pert: 1.0e+11
   dt: 1.0e-10
-  nt_oscill: 500
+  nt_oscill: 1000
 
 mesh:
   xmin: 0
@@ -35,7 +36,7 @@ BC: 'full_out'
 
 output:
   save: 'plasma_period'
-  verbose: False
+  verbose: True
   period: 0.1
   files: 'fig'
   dl_save: 'yes'

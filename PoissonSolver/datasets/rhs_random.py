@@ -33,7 +33,7 @@ x, y = np.linspace(xmin, xmax, nnx), np.linspace(ymin, ymax, nny)
 
 zeros_x, zeros_y = np.zeros(nnx), np.zeros(nny)
 
-poisson = DatasetPoisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet', 15)
+poisson = DatasetPoisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet', 10)
 
 n_lower = int(npts / n_res)
 x_lower, y_lower = np.linspace(xmin, xmax, n_lower), np.linspace(ymin, ymax, n_lower)

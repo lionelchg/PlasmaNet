@@ -35,17 +35,42 @@ class Poisson(BasePoisson):
                     (self.potential - th_potential)**2)) / self.Lx / self.Ly
 
 class DatasetPoisson(Poisson):
+    """ Class for dataset of poisson rhs and potentials (contains
+    different plotting of modes) """
+    def __init__(self, xmin, xmax, nnx, ymin, ymax, nny, config, nmax=None):
+        super().__init__(xmin, xmax, nnx, ymin, ymax, nny, config, nmax)
+        # Mean, min and max
+        self.coeffs_rhs_dset = np.zeros((2, self.nmax, self.nmax))
+        self.coeffs_pot_dset = np.zeros((2, self.nmax, self.nmax))
+        self.nfourier_comput = 0
 
     def compute_modes(self):
         """ Compute the fourier coefficients of rhs and potential """
-        if self.nmax is not None:
-            for i in self.nrange:
-                for j in self.nrange:
-                    self.coeffs_rhs[j - 1, i - 1] += fourier_coef_2D(self.X, self.Y, self.Lx, self.Ly, self.voln, self.physical_rhs, i, j)
-                    self.coeffs_pot[j - 1, i - 1] += self.coeffs_rhs[j - 1, i - 1] / np.pi**2 / ((i / self.Lx)**2 + (j / self.Ly)**2)
-        else:
-            print("Class is not initialized for computing modes")
-    
+        super().compute_modes()
+        self.nfourier_comput += 1
+        self.coeffs_rhs_dset[0] += self.coeffs_rhs
+        self.coeffs_rhs_dset[1] = np.maximum(self.coeffs_rhs_dset[1], self.coeffs_rhs)
+        self.coeffs_pot_dset[0] += self.coeffs_pot
+        self.coeffs_pot_dset[1] = np.maximum(self.coeffs_pot_dset[1], self.coeffs_pot)
+
+    def plot_pmodes(self, figname):
+        """ Plot the potential and rhs modes from 2D
+        Fourier expansion """
+        self.coeffs_rhs_dset[0] /= self.nfourier_comput
+        self.coeffs_pot_dset[0] /= self.nfourier_comput
+        fig = plt.figure(figsize=(12, 14))
+        ax1 = fig.add_subplot(221, projection='3d')
+        plot_modes(ax1, self.N, self.M, self.coeffs_rhs_dset[0], "RHS modes")
+        ax2 = fig.add_subplot(222, projection='3d')
+        plot_modes(ax2, self.N, self.M, self.coeffs_pot_dset[0], "Potential modes")
+        ax3 = fig.add_subplot(223, projection='3d')
+        plot_modes(ax3, self.N, self.M, self.coeffs_rhs_dset[1], "RHS modes", 'Purples')
+        ax4 = fig.add_subplot(224, projection='3d')
+        plot_modes(ax4, self.N, self.M, self.coeffs_pot_dset[1], "Potential modes", 'Purples')
+
+        fig.tight_layout()
+        fig.savefig(figname, bbox_inches='tight')
+        plt.close()
 
     def sum_series(self, coefs):
         """ Series of rhs from Fourier resolution given coeffs """
