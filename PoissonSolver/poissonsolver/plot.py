@@ -93,7 +93,7 @@ def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, axi
     plt.close()
 
 
-def plot_ax_scalar(fig, ax, X, Y, field, title, cmap='RdBu', axi=False, cmap_scale='log'):
+def plot_ax_scalar(fig, ax, X, Y, field, title, cmap='RdBu', axi=False):
     max_value = round_up(np.max(np.abs(field)))
     if cmap == 'RdBu':
         # max_value = np.max(np.abs(field))

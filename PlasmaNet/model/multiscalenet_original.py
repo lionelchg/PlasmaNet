@@ -153,8 +153,8 @@ class MSNet3(BaseModel):
     def __init__(self, data_channels):
         super(MSNet3, self).__init__()
         self.conv_4 = _ConvBlock1(data_channels, 32, 64, 1)
-        self.conv_2 = _ConvBlock2(data_channels + 1, 16, 32, 64, 1)
-        self.conv_1 = _ConvBlock3(data_channels + 1, 16, 32, 64, 8)
+        self.conv_2 = _ConvBlock2(data_channels + 1, 32, 64, 128, 1)
+        self.conv_1 = _ConvBlock3(data_channels + 1, 32, 64, 128, 8)
         self.final = nn.Conv2d(8, 1, kernel_size=1)
 
     def forward(self, x):
@@ -185,11 +185,11 @@ class MSNet5(BaseModel):
     """
     def __init__(self, data_channels):
         super(MSNet5, self).__init__()
-        self.conv_16 = _ConvBlock1(data_channels, 16, 32, 1)
-        self.conv_8 = _ConvBlock1(data_channels, 32, 64, 1)
-        self.conv_4 = _ConvBlock1(data_channels, 32, 64, 1)
-        self.conv_2 = _ConvBlock2(data_channels + 1, 16, 32, 64, 1)
-        self.conv_1 = _ConvBlock3(data_channels + 1, 16, 32, 64, 8)
+        self.conv_16 = _ConvBlock1(data_channels, 32, 64, 1)
+        self.conv_8 = _ConvBlock1(data_channels + 1, 32, 64, 1)
+        self.conv_4 = _ConvBlock1(data_channels + 1, 32, 64, 1)
+        self.conv_2 = _ConvBlock2(data_channels + 1, 32, 48, 96, 1)
+        self.conv_1 = _ConvBlock3(data_channels + 1, 32, 64, 128, 8)
         self.final = nn.Conv2d(8, 1, kernel_size=1)
 
     def forward(self, x):
@@ -201,6 +201,7 @@ class MSNet5(BaseModel):
         conv_8_out = self.conv_8(torch.cat((F.interpolate(x, eight_size, mode='bilinear', align_corners=False),
                                             F.interpolate(conv_16_out, eight_size, mode='bilinear', align_corners=False)),
                                            dim=1))
+        conv_16_out = self.conv_16(F.interpolate(x, sixteen_size, mode='bilinear'))
         conv_4_out = self.conv_4(torch.cat((F.interpolate(x, quarter_size, mode='bilinear', align_corners=False),
                                             F.interpolate(conv_8_out, quarter_size, mode='bilinear', align_corners=False)),
                                            dim=1))
@@ -226,13 +227,13 @@ class MSNet7(BaseModel):
     """
     def __init__(self, data_channels):
         super(MSNet7, self).__init__()
-        self.conv_64 = _ConvBlock1(data_channels, 8, 16, 1)
-        self.conv_32 = _ConvBlock1(data_channels, 16, 32, 1)
-        self.conv_16 = _ConvBlock1(data_channels, 16, 32, 1)
-        self.conv_8 = _ConvBlock1(data_channels, 32, 64, 1)
-        self.conv_4 = _ConvBlock1(data_channels, 32, 64, 1)
-        self.conv_2 = _ConvBlock2(data_channels + 1, 16, 32, 64, 1)
-        self.conv_1 = _ConvBlock3(data_channels + 1, 16, 32, 64, 8)
+        self.conv_64 = _ConvBlock1(data_channels, 16, 32, 1)
+        self.conv_32 = _ConvBlock1(data_channels + 1, 16, 32, 1)
+        self.conv_16 = _ConvBlock1(data_channels + 1, 32, 64, 1)
+        self.conv_8 = _ConvBlock1(data_channels + 1, 32, 64, 1)
+        self.conv_4 = _ConvBlock1(data_channels + 1, 32, 64, 1)
+        self.conv_2 = _ConvBlock2(data_channels + 1, 32, 48, 96, 1)
+        self.conv_1 = _ConvBlock3(data_channels + 1, 32, 64, 112, 8)
         self.final = nn.Conv2d(8, 1, kernel_size=1)
 
     def forward(self, x):

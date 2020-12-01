@@ -67,10 +67,13 @@ def plot_batch_Efield(output, target, data, epoch, batch_idx, config):
         target_tmp = - grad(target_np[batch_idx + k, 0], config.dx, config.dy)
         norm_output_tmp = np.sqrt(output_tmp[0]**2 + output_tmp[1]**2)
         norm_target_tmp = np.sqrt(target_tmp[0]**2 + target_tmp[1]**2)
+        target_max = round_up(np.max(np.abs(norm_target_tmp)), decimals=1)
         # Same scale for output and target
         plot_ax_scalar(fig, axes[k, 0], config.X, config.Y, data_tmp, 'RHS')
-        plot_ax_vector_arrow(fig, axes[k, 1], config.X, config.Y, output_tmp, 'Predicted E')
-        plot_ax_vector_arrow(fig, axes[k, 2], config.X, config.Y, target_tmp, 'Target E')
+        plot_ax_vector_arrow(fig, axes[k, 1], config.X, config.Y, output_tmp, 
+                                            'Predicted E', max_value=target_max)
+        plot_ax_vector_arrow(fig, axes[k, 2], config.X, config.Y, target_tmp, 
+                                            'Target E', max_value=target_max)
         plot_ax_scalar(fig, axes[k, 3], config.X, config.Y, np.abs(norm_target_tmp - norm_output_tmp), 
                             'Residual', colormap='Blues')
 
@@ -91,10 +94,11 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, colormap='RdBu', max_value=None)
     ax.axis('off')
     ax.set_title(title)
 
-def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, title, colormap='Blues', axi=False):
+def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, title, colormap='Blues', axi=False, max_value=None):
     norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
     arrow_step = 20
-    max_value = round_up(np.max(np.abs(norm_field)))
+    if max_value is None:
+        max_value = round_up(np.max(np.abs(norm_field)))
     levels = np.linspace(0, max_value, 101)
     ticks = np.linspace(0, max_value, 5)
     CS = ax.contourf(X, Y, norm_field, levels, cmap=colormap)
