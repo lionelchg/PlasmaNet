@@ -10,6 +10,7 @@ import sys
 import os
 import time
 from multiprocessing import get_context
+import argparse
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
@@ -24,8 +25,21 @@ from poissonsolver.operators import grad
 from poissonsolver.poisson import DatasetPoisson
 from poissonsolver.utils import create_dir
 
-device = sys.argv[1]
-npts, nits, nmax_fourier, n_procs = [int(var) for var in sys.argv[2:6]]
+args = argparse.ArgumentParser(description='Rhs random dataset')
+args.add_argument('-d', '--device', default=None, type=str,
+                    help='device on which the dataset is run')
+args.add_argument('-n', '--npts', default=101, type=int,
+                    help='number of points of the domain')
+args.add_argument('-ni', '--nits', default=None, type=int,
+                    help='number of entries in the dataset')
+args.add_argument('-nm', '--nmax_fourier', default=None, type=int,
+                    help='number of fourier modes included')
+args.add_argument('-np', '--n_procs', default=None, type=int,
+                    help='number of procs')
+args = args.parse_args()
+
+device = args.device
+npts, nits, nmax_fourier, n_procs = args.npts, args.nits, args.nmax_fourier, args.n_procs
 
 xmin, xmax, nnx = 0, 0.01, npts
 ymin, ymax, nny = 0, 0.01, npts

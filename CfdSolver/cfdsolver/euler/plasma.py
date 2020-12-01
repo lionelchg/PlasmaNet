@@ -146,6 +146,7 @@ class PlasmaEuler(Euler):
 
     @staticmethod
     def mean_temp(var, nny_mid, nnx_mid, offset):
+        """ Mean temporal """
         return 0.25 * (var[nny_mid - offset, nnx_mid] 
                         + var[nny_mid, nnx_mid + offset] 
                         + var[nny_mid + offset, nnx_mid] 

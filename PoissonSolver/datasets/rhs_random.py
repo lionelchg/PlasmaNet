@@ -10,6 +10,7 @@ import sys
 import os
 import time
 from multiprocessing import get_context
+import argparse
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
@@ -24,8 +25,21 @@ from poissonsolver.operators import grad
 from poissonsolver.poisson import DatasetPoisson
 from poissonsolver.utils import create_dir
 
-device = sys.argv[1]
-npts, nits, n_res, n_procs = [int(var) for var in sys.argv[2:6]]
+args = argparse.ArgumentParser(description='Rhs random dataset')
+args.add_argument('-d', '--device', default=None, type=str,
+                    help='device on which the dataset is run')
+args.add_argument('-n', '--npts', default=101, type=int,
+                    help='number of points of the domain')
+args.add_argument('-ni', '--nits', default=None, type=int,
+                    help='number of entries in the dataset')
+args.add_argument('-nr', '--n_res', default=None, type=int,
+                    help='grid of npts/nres on which the random set is taken')
+args.add_argument('-np', '--n_procs', default=None, type=int,
+                    help='number of procs')
+args = args.parse_args()
+
+device = args.device
+npts, nits, n_res, n_procs = args.npts, args.nits, args.n_res, args.n_procs
 
 xmin, xmax, nnx = 0, 0.01, npts
 ymin, ymax, nny = 0, 0.01, npts
@@ -38,25 +52,7 @@ poisson = DatasetPoisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet', 10)
 n_lower = int(npts / n_res)
 x_lower, y_lower = np.linspace(xmin, xmax, n_lower), np.linspace(ymin, ymax, n_lower)
 
-# Parameters for the rhs and plotting
 ni0 = 1e11
-plot = True
-plot_period = int(0.1 * nits)
-freq_period = int(0.01 * nits)
-
-# Directories declaration and creation if necessary
-casename = f'{npts:d}x{npts}/random_{n_res:d}/'
-if device == 'mac':
-    data_dir = 'outputs/' + casename
-    chunksize = 20
-elif device == 'kraken':
-    data_dir = '/scratch/cfd/cheng/DL/datasets/' + casename
-    chunksize = 5
-
-fig_dir = data_dir + 'figures/'
-create_dir(data_dir)
-create_dir(fig_dir)
-
 
 def params(nits):
     """ Parameters to give to compute function for imap """
@@ -75,6 +71,24 @@ def compute(args):
     return poisson.potential, poisson.physical_rhs
 
 if __name__ == '__main__':
+
+    # Parameters for the rhs and plotting
+    plot = True
+    plot_period = int(0.1 * nits)
+    freq_period = int(0.01 * nits)
+
+    # Directories declaration and creation if necessary
+    casename = f'{npts:d}x{npts}/random_{n_res:d}/'
+    if device == 'mac':
+        data_dir = 'outputs/' + casename
+        chunksize = 20
+    elif device == 'kraken':
+        data_dir = '/scratch/cfd/cheng/DL/datasets/' + casename
+        chunksize = 5
+
+    fig_dir = data_dir + 'figures/'
+    create_dir(data_dir)
+    create_dir(fig_dir)
 
     # Print header of dataset
     print(f'Device : {device:s} - npts = {npts:d} - nits = {nits:d} - n_res = {n_res:d}')
