@@ -150,7 +150,7 @@ class MultiSimpleNet(BaseModel):
         final_medium = F.interpolate(conv_2_out, x.size()[2:], mode='bilinear', align_corners=False)
         final_small = F.interpolate(F.interpolate(conv_4_out, half_size, mode='bilinear', align_corners=False), x.size()[2:], mode='bilinear', align_corners=False)
 
-        small_val =1.0
+        small_val = 1.0
         med_val = 1.0
         big_val = 1.0
 

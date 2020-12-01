@@ -212,3 +212,33 @@ def gradient_vector(field, dx, dy):
                         (2 * field[:, 0, -1] - 5 * field[:, 0, -2] + 4 * field[:, 0, -3] - field[:, 0, -4]) / dx**2
 
     return gradient
+
+def grad(field, dx, dy):
+    """
+    Calculates the gradient of a vector field (second order accurate, degraded to first order on boundaries).
+    The output shape is the same as the input shape.
+
+    Parameters
+    ----------
+    field : torch.Tensor
+        Input 2D field: tensor of size (H, W)
+
+    dx, dy : float
+
+    Returns
+    -------
+    torch.Tensor
+        Output gradient field: array of size (2, H, W)
+    """
+    ny, nx = field.shape
+    gradient = np.zeros((2, ny, nx))
+
+    gradient[0, :, 1:-1] = (field[:, 2:] - field[:, :-2]) / (2 * dx)
+    gradient[0, :, 0] = (4 * field[:, 1] - 3 * field[:, 0] - field[:, 2]) / (2 * dx)
+    gradient[0, :, -1] = - (4 * field[:, -2] - 3 * field[:, -1] - field[:, -3]) / (2 * dx)
+
+    gradient[1, 1:-1, :] = (field[2:, :] - field[:-2, :]) / (2 * dy)
+    gradient[1, 0, :] = (4 * field[1, :] - 3 * field[0, :] - field[2, :]) / (2 * dy)
+    gradient[1, -1, :] = - (4 * field[-2, :] - 3 * field[-1, :] - field[-3, :]) / (2 * dy)
+
+    return gradient

@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import copy
 from scipy.sparse.linalg import spsolve
 
@@ -7,6 +8,7 @@ from poissonsolver.linsystem import matrix_cart, matrix_axisym, dc_bc
 from poissonsolver.operators import grad, lapl
 from poissonsolver.base import BasePoisson, fourier_coef_2D
 from poissonsolver.plot import plot_modes
+
 
 class Poisson(BasePoisson):
     def __init__(self, xmin, xmax, nnx, ymin, ymax, nny, config, nmax=None):

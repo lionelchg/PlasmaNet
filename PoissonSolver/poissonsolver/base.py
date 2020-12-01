@@ -2,6 +2,7 @@ import numpy as np
 import scipy.constants as co
 from scipy import integrate
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib as mpl
 from poissonsolver.operators import grad, lapl
 from poissonsolver.plot import plot_ax_scalar, plot_ax_vector_arrow, plot_ax_trial_1D, plot_modes

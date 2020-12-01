@@ -45,7 +45,7 @@ plot_period = int(0.1 * nits)
 freq_period = int(0.01 * nits)
 
 # Directories declaration and creation if necessary
-casename = f'{npts:d}x{npts}/fourier_{nmax_fourier:d}/'
+casename = f'{npts:d}x{npts}/fourier_{nmax_fourier:d}_4/'
 if device == 'mac':
     data_dir = 'outputs/' + casename
     chunksize = 20
@@ -62,7 +62,8 @@ def params(nits):
     for i in range(nits):
         random_array = np.random.random((poisson.nmax, poisson.mmax))
         rhs_coefs = rhs0 * (2 * random_array - 1)
-        yield rhs_coefs / (poisson.N**2 + poisson.M**2)
+        yield rhs_coefs / (poisson.N**4 + poisson.M**4)
+        # yield rhs_coefs
 
 def compute(args):
     """ Compute function for imap (multiprocessing) """

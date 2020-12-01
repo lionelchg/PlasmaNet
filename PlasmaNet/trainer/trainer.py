@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 from ..base import BaseTrainer
-from .plot import plot_batch, plot_distrib, plot_scales
+from .plot import plot_batch, plot_distrib, plot_scales, plot_batch_Efield
 from ..utils import inf_loop, MetricTracker
 
 def count_parameters(model):
@@ -61,7 +61,8 @@ class Trainer(BaseTrainer):
 
             self.optimizer.zero_grad()
 
-            output_raw = self.model(data, epoch)
+            # output_raw = self.model(data, epoch)
+            output_raw = self.model(data)
             multiple_outputs = False
             if output_raw.size(1) != 1:
                 #output = output_raw[:,0].unsqueeze(1)
@@ -143,7 +144,8 @@ class Trainer(BaseTrainer):
                 # MultiScale Study, all the Feature Maps !
                 # Each layer is saved independiently
 
-                output_raw = self.model(data, epoch)
+                # output_raw = self.model(data, epoch)
+                output_raw = self.model(data)
 
                 multiple_outputs = False
                 if output_raw.size(1) != 1:
@@ -193,6 +195,10 @@ class Trainer(BaseTrainer):
         fig = plot_batch(output, target, data, epoch, batch_idx, self.config)
         fig.savefig(self.config.fig_dir / '{}_{:05d}.png'.format(mode, epoch), dpi=150, bbox_inches='tight')
         self.writer.add_figure('ComparisonWithResiduals', fig)
+        # Plot output vs target distribution
+        fig = plot_batch_Efield(output, target, data, epoch, batch_idx, self.config)
+        fig.savefig(self.config.fig_dir / '{}_{:05d}.png'.format(mode, epoch), dpi=150, bbox_inches='tight')
+        self.writer.add_figure('ComparisonWithEfield', fig)
         # Plot output vs target distribution
         fig = plot_distrib(output, target, epoch, batch_idx)
         fig.savefig(self.config.fig_dir / '{}_distrib_{:05d}.png'.format(mode, epoch), dpi=150, bbox_inches='tight')
