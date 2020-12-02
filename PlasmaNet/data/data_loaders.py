@@ -81,7 +81,12 @@ class PoissonDataLoader(BaseDataLoader):
             self.logger.info("No normalization")
             self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
-
+        
+        # Scaling factor for the float32 that are not very precise
+        self.scaling_factor = config.scaling_factor
+        physical_rhs *= self.scaling_factor
+        potential *= self.scaling_factor
+        
         # Convert to torch.float32
         physical_rhs = physical_rhs.type(torch.float32)
         potential = potential.type(torch.float32)

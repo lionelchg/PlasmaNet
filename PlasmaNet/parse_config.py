@@ -73,6 +73,7 @@ class ConfigParser:
         self.normalization = self.config['data_loader']['args']['normalize']
         self.guess = self.config['data_loader']['args'].get('guess')
         self.modes = self.config['data_loader']['args'].get('modes')
+        self.scaling_factor = self.config['data_lodaer']['args']['scaling_factor']
 
         # Declare global physical parameters attributes
         self.dx = self.lx / (self.nnx - 1)
@@ -89,7 +90,7 @@ class ConfigParser:
             self.r_nodes = r_nodes
         else:
             self.r_nodes = None
-
+        
         # Configure logging module
         setup_logging(self.log_dir)
         self.log_levels = {
