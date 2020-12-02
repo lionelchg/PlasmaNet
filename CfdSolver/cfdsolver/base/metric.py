@@ -67,3 +67,7 @@ class Grid(Mesh):
         voln[0, 0], voln[-1, 0], voln[0, -1], voln[-1, -1] = \
             dx * dy / 4, dx * dy / 4, dx * dy / 4, dx * dy / 4
         return voln
+
+    def domain_ave(self, var):
+        """ Returns the domain average of var """
+        return np.sum(var * self.voln) / self.Lx / self.Ly
