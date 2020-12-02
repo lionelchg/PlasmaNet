@@ -40,7 +40,7 @@ class PlasmaEuler(Euler):
 
         if 'n_periods' in config['params']:
             self.n_periods = config['params']['n_periods']
-            self.nit = self.n_periods * self.nt_oscill
+            self.nit = int(self.n_periods * self.nt_oscill)
             self.end_time = self.n_periods * self.T_p
         elif 'end_time' in config['params']:
             self.nit = int(self.end_time / self.dt)
@@ -56,8 +56,13 @@ class PlasmaEuler(Euler):
 
         self.time = np.zeros(self.nit)
         # first is center n_e, then n_e at offsets and normE at offsets
-        self.temporals = np.zeros((self.nit, 7))
-        self.nnx_mid, self.nny_mid = int(self.nnx / 2), int(self.nny / 2)
+        self.temporals = np.zeros((self.nit, 8))
+        if self.nnx % 2 == 0:
+            tmp_nnx = int(self.nnx / 2)
+            self.nnx_mid = np.array([tmp_nnx, tmp_nnx - 1, tmp_nnx - 1, tmp_nnx], dtype=int)
+            self.nny_mid = np.array([tmp_nnx, tmp_nnx, tmp_nnx - 1, tmp_nnx - 1], dtype=int)
+        else:
+            self.nnx_mid, self.nny_mid = np.array([int(self.nnx / 2)], dtype=int), np.array([int(self.nny / 2)], dtype=int)
         self.offsets = [0.2, 0.4, 0.6]
 
         # datasets for deep-learning
@@ -161,14 +166,18 @@ class PlasmaEuler(Euler):
                         - var[0, nny_mid, nnx_mid - offset])
 
     def temporal_variables(self, it):
+        """ Taking temporal variables in the middle for the single point for nnx
+        odd or for the mean of the four points for nnx even """
         nep = self.U[0, :, :] / self.m_e - self.n_back
-        self.temporals[it - 1, 0] = nep[self.nny_mid, self.nnx_mid]
+        self.temporals[it - 1, 0] = np.mean(nep[self.nny_mid, self.nnx_mid])
         for i, offset in enumerate(self.offsets):
             ioffset = int(offset * (self.nnx - 1) / 2)
-            self.temporals[it - 1, 1 + i] = self.mean_temp(nep, self.nny_mid, 
-                                                        self.nnx_mid, ioffset)
-            self.temporals[it - 1, 4 + i] = self.radial_mean(self.E_field, 
-                                        self.nny_mid, self.nnx_mid, ioffset)
+            self.temporals[it - 1, 1 + i] = np.mean(self.mean_temp(nep, self.nny_mid, 
+                                                        self.nnx_mid, ioffset))
+            self.temporals[it - 1, 4 + i] = np.mean(self.radial_mean(self.E_field, 
+                                                self.nny_mid, self.nnx_mid, ioffset))
+        self.temporals[it - 1, -1] = self.domain_ave(nep)
+
     def save(self):
         pass
 
@@ -186,6 +195,7 @@ class PlasmaEuler(Euler):
         for i in range(1):
             offset = self.offsets[i]
             axes[0].plot(self.time, self.temporals[:, 1 + i], label=f'r = {offset:.1f} rmax')
+        axes[0].plot(self.time, 10 * self.temporals[:, -1], label=r'10 $\times$ Mean')
         for i in range(3):
             offset = self.offsets[i]    
             axes[1].plot(self.time, self.temporals[:, 4 + i], label=f'r = {offset:.1f} rmax')
