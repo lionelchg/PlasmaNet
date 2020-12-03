@@ -24,7 +24,7 @@ class PoissonDataLoader(BaseDataLoader):
     """
 
     def __init__(self, config, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0,
-                 input_cutoff_frequency=None, num_workers=1):
+                 input_cutoff_frequency=None, num_workers=1, scaling_factor=1.0):
         self.data_dir = Path(data_dir)
         self.logger = config.get_logger('PoissonDataLoader', config['trainer']['verbosity'])
 
@@ -83,7 +83,7 @@ class PoissonDataLoader(BaseDataLoader):
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
         
         # Scaling factor for the float32 that are not very precise
-        self.scaling_factor = config.scaling_factor
+        self.scaling_factor = scaling_factor
         physical_rhs *= self.scaling_factor
         potential *= self.scaling_factor
         

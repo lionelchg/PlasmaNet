@@ -24,11 +24,14 @@ class PlasmaEuler(Euler):
                         self.ymin, self.ymax, self.nny, 'cart_dirichlet', 
                         config['output']['nmax_fourier'])
 
+        
         self.m_e = co.m_e
         self.W = self.m_e * co.N_A
         self.n_back = config['params']['n_back']
         self.n_pert = config['params']['n_pert']
-        x0, y0, sigma_x, sigma_y = 5e-3, 5e-3, 1e-3, 1e-3
+
+        sigma = config['params']['sigma']
+        x0, y0, sigma_x, sigma_y = 5e-3, 5e-3, sigma, sigma
         n_electron = func_dict[config['params']['init_func']](self.X, self.Y, self.n_pert, x0, 
                             y0, sigma_x, sigma_y) + self.n_back
         self.U[0] = self.m_e * n_electron

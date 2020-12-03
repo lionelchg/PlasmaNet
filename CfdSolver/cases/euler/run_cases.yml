@@ -13,20 +13,22 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/cases_3/'
-description: 'Influence of the amplitude of perturbation'
+casename: 'runs/kraken/cases_4/'
+description: 'Influence of the standard deviation of the gaussian'
 mode: 'seq'
-params/n_pert: [1.0e+10, 1.0e+11, 1.0e+12, 1.0e+13]
+params/sigma: [0.5e-3, 1.0e-3, 2.0e-3, 3.0e-3]
 
 base:
 
   params:
-    n_periods: 3
+    n_periods: 3.0
     geom: 'xy'
     n_back: 1.0e+16
+    init_func: 'gaussian'
     n_pert: 1.0e+11
+    sigma: 1.0e-3
     dt: 1.0e-10
-    nt_oscill: 1000
+    nt_oscill: 5000
 
   mesh:
     xmin: 0
@@ -41,6 +43,7 @@ base:
   output:
     save: 'plasma_period'
     verbose: False
-    period: 0.2
+    period: 0.1
     files: 'fig'
     dl_save: 'no'
+    nmax_fourier: 10

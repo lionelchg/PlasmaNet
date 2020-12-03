@@ -17,18 +17,18 @@
 # `config.init_obj` method.
 
 
-name: 'MSNet7_random_8'                      # Experience name
+name: 'nparams/MSNet5_big_1/random_8'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
-    nnx: 128
-    nny: 128
+    nnx: 101
+    nny: 101
     lx: 0.01
     ly: 0.01
     coord: 'cart'
 
 arch:
-    type: 'MSNet7'
+    type: 'MSNet5_big_1'
     args:
         data_channels: 1                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
 
@@ -36,7 +36,7 @@ data_loader:
     type: 'PoissonDataLoader'
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/128x128/random_8'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/101x101/random_8'
         batch_size: 64
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
@@ -81,7 +81,7 @@ lr_scheduler:
         verbose: False
 
 trainer:
-    epochs: 400
+    epochs: 300
     save_dir: 'outputs/'
     save_period: 10
     plot_period: 10                         # Period to send plots to TensorBoard
