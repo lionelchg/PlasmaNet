@@ -1,8 +1,8 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                         Drift-diffusion fluid plasma solver                                          #
+#                               Convective vortex for validation of Euler integration                                  #
 #                                                                                                                      #
-#                                          Lionel Cheng, CERFACS, 09.11.2020                                           #
+#                                          Lionel Cheng, CERFACS, 04.11.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -10,13 +10,11 @@ import os
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
-# Standard libraries
 import numpy as np
-import yaml
 import scipy.constants as co
+import yaml
 
-# Solver library
-from plasma import StreamerMorrowDL
+from plasma import PlasmaEulerDL
 
 # For network
 import torch
@@ -30,11 +28,10 @@ from PlasmaNet.parse_config import ConfigParser
 from PlasmaNet.trainer.trainer import plot_batch
 import PlasmaNet.model as module_arch
 
-
-def main(cfg_streamer, cfg_dl):
-    """ Main function containing initialisation, temporal loop and outputs. 
-            Takes a configuration dict as input. """
-
+@profile
+def run(cfg_plasma, cfg_dl):
+    """ Main function containing initialization, temporal loop and outputs. Takes a config dict as input. """
+    
     # Load the network
     logger = cfg_dl.get_logger('test')
 
@@ -58,42 +55,49 @@ def main(cfg_streamer, cfg_dl):
     # Prepare model for testing
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
-    model.eval()
-
-    sim = StreamerMorrowDL(cfg_streamer)
-
-    # Print information
-    sim.print_init()
+    model.eval()    
+    
+    sim = PlasmaEulerDL(cfg_plasma)
+    # Print header to sum up the parameters
+    sim.write_init()
+    if sim.verbose:
+        sim.print_init()
 
     # Iterations
     for it in range(1, sim.nit + 1):
+        sim.it = it
         sim.dtsum += sim.dt
-
-        # Solve poisson equation from charge distribution
-        sim.solve_poisson_dl(model)
-        # sim.solve_poisson()
-
+        sim.time[it - 1] = sim.dtsum
+        
         # Update of the residual to zero
-        sim.resnd[:] = 0
+        sim.res[:], sim.res_c[:] = 0, 0
 
-        # Compute the chemistry source terms with or without photo
-        sim.compute_chemistry(it)
+        # Solve poisson equation
+        sim.solve_poisson_dl(model)
 
-        # Compute transport terms
-        sim.compute_residuals()
+        # Compute euler fluxes (without pressure)
+        sim.compute_flux_cold()
 
-        # Apply residuals
+        # Compute residuals in cell-vertex method
+        sim.compute_res()
+
+        # Compute residuals from electro-magnetic terms
+        sim.compute_EM_source()
+
+        # boundary conditions
+        sim.impose_bc_euler()
+        
+        # Apply residual
         sim.update_res()
 
-        # Post processing of macro values
-        sim.global_prop(it)
-
-        # General post processing
+        # Post processing
         sim.postproc(it)
 
-    sim.plot_global()
-    np.save(sim.data_dir + 'globals', sim.gstreamer)
+        # Retrieve center variables 
+        sim.temporal_variables(it)
 
+    # Plot temporals
+    sim.post_temporal()
 
 if __name__ == '__main__':
 
@@ -113,7 +117,7 @@ if __name__ == '__main__':
     ]
     cfg_dl = ConfigParser.from_args(args, options)
 
-    with open('dh_streamer.yml', 'r') as yaml_stream:
-        cfg_streamer = yaml.safe_load(yaml_stream)
+    with open('plasma_oscillation.yml', 'r') as yaml_stream:
+        cfg = yaml.safe_load(yaml_stream)
 
-    main(cfg_streamer, cfg_dl)
+    run(cfg, cfg_dl)

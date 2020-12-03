@@ -133,9 +133,9 @@ class PlasmaEuler(Euler):
         E_norm = self.E_norm
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12, 12))
         plot_ax_scalar(fig, axes[0][0], self.X, self.Y, n_e, r"$n_e$", geom='xy', max_value=1.1*self.n_pert)
-        plot_ax_scalar_1D(fig, axes[0][1], self.X, [0.5], n_e, r"$n_e$", ylim=[-1.1*self.n_pert, 1.1*self.n_pert])
+        plot_ax_scalar_1D(fig, axes[0][1], self.X, [0.4, 0.5, 0.6], n_e, r"$n_e$", ylim=[-1.1*self.n_pert, 1.1*self.n_pert])
         plot_ax_vector_arrow(fig, axes[1][0], self.X, self.Y, E, 'Electric field', max_value=1.1*self.E_max)
-        plot_ax_scalar_1D(fig, axes[1][1], self.X, [0.5], E_norm, r"$|\mathbf{E}|$", ylim=[0, 1.1*self.E_max])
+        plot_ax_scalar_1D(fig, axes[1][1], self.X, [0.25, 0.5, 0.75], E_norm, r"$|\mathbf{E}|$", ylim=[0, 1.1*self.E_max])
         plt.suptitle(rf'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
         fig.savefig(self.fig_dir + f'variables_{self.number:04d}', bbox_inches='tight')
@@ -185,11 +185,12 @@ class PlasmaEuler(Euler):
         pass
 
     @staticmethod
-    def ax_prop(ax, xlabel, ylabel, axtitle):
+    def ax_prop(ax, xlabel, ylabel, axtitle, ylim):
         ax.grid(True)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.set_title(axtitle)
+        ax.set_ylim(ylim)
         ax.legend()
 
     def plot_temporal(self):
@@ -202,9 +203,10 @@ class PlasmaEuler(Euler):
         for i in range(3):
             offset = self.offsets[i]    
             axes[1].plot(self.time, self.temporals[:, 4 + i], label=f'r = {offset:.1f} rmax')
-        self.ax_prop(axes[0], '$t$ [s]', r"$n_e$ [m$^{-3}$]", r"Temporal evolution of $n_e$")
-        self.ax_prop(axes[1], '$t$ [s]', r'$E_r$ [V.m$^{-1}$]', 
-                                        r'Temporal evolution of $E_r$')
+        self.ax_prop(axes[0], '$t$ [s]', r"$n_e$ [m$^{-3}$]", r"Temporal evolution of $n_e$",
+                            [-1.1 * self.n_pert, 1.1 * self.n_pert])
+        self.ax_prop(axes[1], '$t$ [s]', r'$E_r$ [V.m$^{-1}$]', r'Temporal evolution of $E_r$', 
+                                [-1.1 * self.E_max, 1.1 * self.E_max])
         fig.savefig(self.fig_dir + 'temporals', bbox_inches='tight')
     
     def post_temporal(self):

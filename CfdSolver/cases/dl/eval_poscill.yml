@@ -17,8 +17,9 @@
 # `config.init_obj` method.
 
 
-name: 'nparams/MSNet5_big/fourier_5_4'                      # Experience name
+name: 'poscill/MSNet5_big/target_case/'                            # Experience name
 n_gpu: 1                                    # Number of GPUs to use
+resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/models/nparams/MSNet5_big/target_case/1203_095708/model_best.pth'
 
 globals:                                    # Domain sizes and others, used to compute global attributes
     nnx: 101
@@ -36,7 +37,7 @@ data_loader:
     type: 'PoissonDataLoader'
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/101x101/fourier_5_4'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/101x101/target_case'
         batch_size: 64
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
@@ -82,7 +83,7 @@ lr_scheduler:
 
 trainer:
     epochs: 300
-    save_dir: 'outputs/'
+    save_dir: 'outputs/eval/'
     save_period: 10
     plot_period: 10                         # Period to send plots to TensorBoard
     verbosity: 2
