@@ -125,4 +125,20 @@ def __init__(self, data_channels):
     self.final = nn.Conv2d(8, 1, kernel_size=1)
 ```
 
+### Results on random_8 dataset
+MSNet_big_1 seems to yield better results than MSNet_big_2 so adding parameters to the upper scale
+is more efficient than adding parameters to the down scales but the number of epochs seems to be
+too low to get a real trend. Restart case maybe. For now on the best network is MSNet5_big
+
+### Results on random_4, random_16, fourier_5, fourier_5_2, fourier_5_4 and target_case of MSNet5_big
+|Dataset|Remarks|
+|-------|-------|
+|random_4| Results very close to random_8, slightly better on the losses (+overfitting with loss of valid that goes up)|
+|random_16| The network struggles, the behavior is quite unexpected as there are less fine scales to understand|
+|fourier_5| The network struggles, maybe the high value of the high frequencies is hard to capture|
+|fourier_5_2| Better behavior compared to fourier_5 (expected)|
+|fourier_5_4| Better behavior compared to fourier_5_2 (expected)|
+|target_case| Very small loss the network learns very good the correlation (simple case as it is symmetric)|
+
+
 # UNet
