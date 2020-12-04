@@ -17,9 +17,9 @@
 # `config.init_obj` method.
 
 
-name: 'poscill/MSNet5_big/target_case/'                            # Experience name
+name: 'poscill/MSNet5_big/fourier_5_4/'                            # Experience name
 n_gpu: 1                                    # Number of GPUs to use
-resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/models/nparams/MSNet5_big/target_case/1203_095708/model_best.pth'
+resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/models/nparams/MSNet5_big/fourier_5_4/1203_150833/model_best.pth'
 
 globals:                                    # Domain sizes and others, used to compute global attributes
     nnx: 101

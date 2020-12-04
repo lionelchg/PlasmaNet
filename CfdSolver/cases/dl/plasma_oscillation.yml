@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/MSNet5_big/target_case/'
+casename: 'runs/MSNet5_big/fourier_5_4/'
 
 params:
   n_periods: 2.0
