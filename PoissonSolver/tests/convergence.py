@@ -7,6 +7,9 @@
 ########################################################################################################################
 
 import os
+
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.constants as co
@@ -24,14 +27,14 @@ if __name__ == '__main__':
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
 
-    xmin, xmax = 0.0, 0.1
-    ymin, ymax = 0.0, 0.1
+    xmin, xmax = 0.0, 0.01
+    ymin, ymax = 0.0, 0.01
     Lx, Ly = xmax - xmin, ymax - ymin
     # creating the rhs
     ni0 = 15.7
     n, m = 5, 5
     
-    nnxs = np.array([51, 101, 201])
+    nnxs = np.array([51, 101, 201, 401])
     errors = np.zeros(len(nnxs))
     for i_err, nnx in enumerate(nnxs):
         print(f'nnx = {nnx:d}')

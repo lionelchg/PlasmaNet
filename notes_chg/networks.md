@@ -67,6 +67,10 @@ seems to yield better results than MSNet4 and 6. Two questions arise:
 - Why is the n / 8 scale (the added scale from MSNet3 to 4) so important?
 - Why is MSNet5 an optimum in the three networks?
 
+![alt text](figures/network_training/scales/losses.png "Losses")
+![alt text](figures/network_training/scales/metrics.png "Residuals")
+
+
 ## Number of parameters
 Among the previous networks MSNet5 seems to be the most promising. We start from these 5 scales and
 change the number of parameters.
@@ -101,6 +105,7 @@ The gap from MSNet5_small to MSNet5 is however bigger than from MSNet5 to MSNet5
 Let us now try to increase the number of parameters one step further and to add only
 in the small scales / big scales. Both networks have around 900 000 parameters.
 
+
 ### MSNet5_big_1
 ```python
 def __init__(self, data_channels):
@@ -130,6 +135,11 @@ MSNet_big_1 seems to yield better results than MSNet_big_2 so adding parameters 
 is more efficient than adding parameters to the down scales but the number of epochs seems to be
 too low to get a real trend. Restart case maybe. For now on the best network is MSNet5_big
 
+![alt text](figures/network_training/nparams/losses.png "Losses")
+![alt text](figures/network_training/nparams/metrics.png "Residuals")
+
+
+
 ### Results on random_4, random_16, fourier_5, fourier_5_2, fourier_5_4 and target_case of MSNet5_big
 |Dataset|Remarks|
 |-------|-------|
@@ -140,5 +150,20 @@ too low to get a real trend. Restart case maybe. For now on the best network is 
 |fourier_5_4| Better behavior compared to fourier_5_2 (expected)|
 |target_case| Very small loss the network learns very good the correlation (simple case as it is symmetric)|
 
+![alt text](figures/network_training/MSNet5_big/losses_fourier.png "Losses")
+![alt text](figures/network_training/MSNet5_big/metrics_fourier.png "Residuals")
+
+![alt text](figures/network_training/MSNet5_big/losses_random.png "Losses")
+![alt text](figures/network_training/MSNet5_big/metrics_random.png "Residuals")
+
+
+## Weights of the different losses
+Everything is run on random_8 and MSNet5_big for now:
+| Loss weights (Inside, Dirichlet, Laplacian) | Remarks |
+| ------------ | --------|
+| (1.0, 1.0, 0.2) | Set used since the beginning |
+| (0.0, 0.0, 1.0) | Opposite case (full_lapl) |
+| (0.5, 0.5, 1.0) | More laplacian (weight_1) |
+| (1.0, 1.0, 1.0) | More laplacian (weight_2) |
 
 # UNet

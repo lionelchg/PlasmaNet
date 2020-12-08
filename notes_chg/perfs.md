@@ -1,7 +1,7 @@
 ## Plasma Oscillation
 Running on 1 CPU node of krakengpu2
 # Numpy Solver
-```
+```python
 Timer unit: 1e-06 s
 
 Total time: 576.163 s
@@ -58,7 +58,7 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
 
 ```
 # Neural Network
-```
+```python
 Timer unit: 1e-06 s
 
 Total time: 340.43 s
