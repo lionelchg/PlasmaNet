@@ -16,7 +16,6 @@ import yaml
 
 from cfdsolver import PlasmaEuler
 
-@profile
 def run(config):
     """ Main function containing initialization, temporal loop and outputs. Takes a config dict as input. """
     sim = PlasmaEuler(config)

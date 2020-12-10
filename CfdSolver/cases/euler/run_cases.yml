@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/cases_4/'
+casename: 'runs/local/cases_test/'
 description: 'Influence of the standard deviation of the gaussian'
 mode: 'seq'
 params/sigma: [0.5e-3, 1.0e-3, 2.0e-3, 3.0e-3]

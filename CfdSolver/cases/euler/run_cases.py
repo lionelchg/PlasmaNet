@@ -4,6 +4,7 @@ from multiprocessing import get_context, current_process
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
+import argparse
 import copy
 import re
 import time
@@ -28,12 +29,18 @@ def params(cases, base_cfg, base_cn):
 
 if __name__ == '__main__':
 
+    args = argparse.ArgumentParser(description='Multiple cases run')
+    args.add_argument('-np', '--n_procs', default=None, type=int,
+                        help='number of procs')
+    args = args.parse_args()
+
     with open('run_cases.yml', 'r') as yaml_stream:
         cfg = yaml.safe_load(yaml_stream)
     
     cases, base_cfg, base_cn = make_cases(cfg)
 
-    nprocs = int(sys.argv[1])
-    # params(cases, base_cfg, base_cn)
-    with get_context('spawn').Pool(processes=nprocs) as p:
-        p.map(run, params(cases, base_cfg, base_cn))
+    print(cases)
+
+    # # params(cases, base_cfg, base_cn)
+    # with get_context('spawn').Pool(processes=args.np) as p:
+    #     p.map(run, params(cases, base_cfg, base_cn))

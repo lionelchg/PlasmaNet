@@ -1,3 +1,4 @@
+from itertools import product
 from .utils import create_dir
 
 def make_cases(cfg):
@@ -29,34 +30,13 @@ def make_cases(cfg):
 
     cases = {}
     if mode == 'tree':
-        ncase = 0
-        if len(list_params) == 1:
-            key = list_keys[0]
-            params = list_params[0]
-            for param in params:
-                cases[ncase] = {}
-                cases[ncase][key] = param
-                ncase += 1
-        elif len(list_params) == 2:
-            key, key1 = list_keys[:2]
-            params, params1 = list_params[:2]
-            for param in params:
-                for param1 in params1:
-                    cases[ncase] = {}
-                    cases[ncase][key] = param
-                    cases[ncase][key1] = param1
-                    ncase += 1
-        elif len(list_params) == 3:
-            key, key1, key2 = list_keys[:3]
-            params, params1, params2 = list_params[:3]
-            for param in params:
-                for param1 in params1:
-                    for param2 in params2:
-                        cases[ncase] = {}
-                        cases[ncase][key] = param
-                        cases[ncase][key1] = param1
-                        cases[ncase][key2] = param2
-                        ncase += 1
+        product_params = list(product(*list_params))
+
+        cases = {}
+        for index, element in enumerate(product_params):
+            cases[index] = {}
+            for i in range(len(list_keys)):
+                cases[index][list_keys[i]] = element[i]
 
     elif mode == 'seq':
         for ncase in range(len(list_params[0])):
