@@ -1,3 +1,5 @@
+import re
+import copy
 from itertools import product
 from .utils import create_dir
 
@@ -56,3 +58,16 @@ def make_cases(cfg):
     fp.close()
 
     return cases, base_cfg, base_cn
+
+re_keys = re.compile(r'(\w*)/(\w*)')
+
+def params(cases, base_cfg, base_cn):
+    for ncase, case in cases.items():
+        # deepcopy is very important for recursive copy
+        case_cfg = copy.deepcopy(base_cfg)
+        for key, value in case.items():
+            keys_search = re_keys.search(key)
+            group_key, inner_key = keys_search.group(1), keys_search.group(2)
+            case_cfg[group_key][inner_key] = value
+        case_cfg['casename'] = f'{base_cn}case_{ncase:d}/'
+        yield case_cfg
