@@ -24,5 +24,5 @@ if __name__ == '__main__':
     
     cases, base_cfg, base_cn = make_cases(cfg)
 
-    with get_context('spawn').Pool(processes=args.np) as p:
+    with get_context('spawn').Pool(processes=args.n_procs) as p:
         p.map(run, params(cases, base_cfg, base_cn))
