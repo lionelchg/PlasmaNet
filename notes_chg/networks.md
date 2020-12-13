@@ -167,3 +167,67 @@ Everything is run on random_8 and MSNet5_big for now:
 | (1.0, 1.0, 1.0) | More laplacian (weight_2) |
 
 # UNet
+
+## Number of scales 
+All the networks have parameters around 417 000 and it is in scales/ directory.
+### UNet3
+```python
+def __init__(self):
+    self.conv = []
+    self.conv.append(_ConvBlockIn(1, 64, 64))
+    self.conv.append(_ConvBlockDown(64, 64, 64))
+    self.conv.append(_ConvBlockDown(64, 76, 64))
+    self.conv.append(_ConvBlockUp(128, 64, 64))
+    self.conv.append(_ConvBlockUp(128, 64, 64))
+    self.conv.append(_ConvBlockOut(64, 1))
+```
+
+### UNet4
+```python
+def __init__(self):
+    self.conv = []
+    self.conv.append(_ConvBlockIn(1, 48, 48))
+    self.conv.append(_ConvBlockDown(48, 48, 48))
+    self.conv.append(_ConvBlockDown(48, 48, 48))
+    self.conv.append(_ConvBlockDown(48, 64, 64))
+    self.conv.append(_ConvBlockUp(112, 64, 64))
+    self.conv.append(_ConvBlockUp(112, 60, 48))
+    self.conv.append(_ConvBlockUp(96, 48, 48))
+    self.conv.append(_ConvBlockOut(48, 1))
+```
+
+### UNet5
+```python
+def __init__(self):
+    self.conv = []
+    self.conv.append(_ConvBlockIn(1, 32, 32))
+    self.conv.append(_ConvBlockDown(32, 32, 32))
+    self.conv.append(_ConvBlockDown(32, 32, 32))
+    self.conv.append(_ConvBlockDown(32, 48, 60))
+    self.conv.append(_ConvBlockDown(60, 62, 60))
+    self.conv.append(_ConvBlockUp(124, 64, 64))
+    self.conv.append(_ConvBlockUp(96, 64, 64))
+    self.conv.append(_ConvBlockUp(96, 32, 32))
+    self.conv.append(_ConvBlockUp(64, 32, 32))
+    self.conv.append(_ConvBlockOut(32, 1))
+```
+
+### UNet6
+```python
+def __init__(self):
+    self.conv = []
+    self.conv.append(_ConvBlockIn(1, 32, 32))
+    self.conv.append(_ConvBlockDown(32, 32, 32))
+    self.conv.append(_ConvBlockDown(32, 32, 32))
+    self.conv.append(_ConvBlockDown(32, 48, 48))
+    self.conv.append(_ConvBlockDown(48, 48, 48))
+    self.conv.append(_ConvBlockDown(48, 48, 48))
+    self.conv.append(_ConvBlockUp(96, 60, 48))
+    self.conv.append(_ConvBlockUp(96, 48, 48))
+    self.conv.append(_ConvBlockUp(80, 48, 48))
+    self.conv.append(_ConvBlockUp(80, 32, 32))
+    self.conv.append(_ConvBlockUp(64, 32, 32))
+    self.conv.append(_ConvBlockOut(32, 1))
+```
+
+### Results on random_8 dataset
