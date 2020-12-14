@@ -38,15 +38,57 @@ class _Convscale(nn.Module):
     def forward(self, x):
         return self.encode(x)
 
+class _ConvscaleFlexible(nn.Module):
+    """
+    Fleixble.
+    Input:
+    - data_channels: number of input images
+    - filters (list): number of filters in the network's layers.
+
+    The network will have conv2D layers with an intermediate activation function at each scale.
+    Each layer will have a kernel of size 3x3 and no stride. Padding is only done with replication padding.
+    The order is: Pad Conv ReLu Pad Conv.
+    """
+    def __init__(self, data_channels, filters):
+        super(_ConvscaleFlexible, self).__init__()
+
+        # Module list containing all the layers
+        self.scale_filters = nn.ModuleList()
+
+        # Initialize with input size.
+        self.scale_filters.append(nn.ReplicationPad2d(1))
+        self.scale_filters.append(nn.Conv2d(data_channels, filters[0], kernel_size=3, stride=1, padding=0))
+
+        # Intermediate layers.
+        for i in range(len(filters)-1):
+            self.scale_filters.append(nn.ReLU())
+            self.scale_filters.append(nn.ReplicationPad2d(1))
+            self.scale_filters.append(nn.Conv2d(filters[i], filters[i+1], kernel_size=3, stride=1, padding=0))
+
+        # Final layer, note that there is no ReLU at the end.
+        self.scale_filters.append(nn.ReLU())
+        self.scale_filters.append(nn.ReplicationPad2d(1))
+        self.scale_filters.append(nn.Conv2d(filters[-1], 1, kernel_size=3, stride=1, padding=0))
+
+    def forward(self, x):
+        for i in range(len(self.scale_filters)):
+            x = self.scale_filters[i](x)
+        return x
+
+
 class SimpleScaleNet(BaseModel):
     """
     Define the network. The inputs needed are:
     - data_channels (int): The number of data (input) channels
-    - filters (int): number of filters of each layer
+    - filters (list of list)s: number of filters of each layer and scale, thus containing how many scales will be needed.
+    The number of scales MUST correspond to the number of lists in the filters list.
+    The first element of the list will corrrespond to the lowest resolution scale, whereas the last one will be the scale
+    with the original size.
     - scales (int): number of scales
     - concat (bool): boolean to check if the output of smaller scales is injected for high resolution scales.
     - add_scales (bool): boolean to check if scales are added or not (old behavior)
-    The network will only have two conv2D layers with an intermediate activation function at each scale.
+    The network have as many conv2D layers with an intermediate activation function at each scale as indicated on the
+    scales lists.
     The order is: Pad Conv ReLu Pad Conv
     Depending on the number of scales added, the network will consequently interpolate the domain as input.
     All the outputs will be added at the end.
@@ -59,22 +101,23 @@ class SimpleScaleNet(BaseModel):
         self.add_scales = add_scales
         self.scales_module = nn.ModuleList()
         self.output_list = []
-        
+
+        assert len(filters) == scales, 'Scales and inputted filters do not match'
+
         # Lowest resolution scale
-        self.scales_module.append(_Convscale(data_channels, filters))
+        self.scales_module.append(_ConvscaleFlexible(data_channels, filters[0]))
 
-        for i in range(self.scales-1):
+        for i in range(len(filters)-1):
             if self.concat:
-                self.scales_module.append(_Convscale(data_channels+1, filters))
+                self.scales_module.append(_ConvscaleFlexible(data_channels+1, filters[i+1]))
             else:
-                self.scales_module.append(_Convscale(data_channels, filters))
+                self.scales_module.append(_ConvscaleFlexible(data_channels, filters[i+1]))
 
 
-    def forward(self, x, epoch):
+    def forward(self, x):
         """
         Inputs:
         - x (torch.tensor): Tensor containing input fields (bsz, channels, h, w)
-        - epoch (int): Value corresponding to the actual epoch 
 
         y[0] corresponds to the definitive result!
 
