@@ -12,6 +12,7 @@ from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D, plot_ax_vector_a
 from ..base.operators import grad
 from ..utils import create_dir
 
+
 class PlasmaEuler(Euler):
     def __init__(self, config):
         super().__init__(config)
@@ -24,7 +25,6 @@ class PlasmaEuler(Euler):
                         self.ymin, self.ymax, self.nny, 'cart_dirichlet', 
                         config['output']['nmax_fourier'])
 
-        
         self.m_e = co.m_e
         self.W = self.m_e * co.N_A
         self.n_back = config['params']['n_back']
@@ -104,7 +104,6 @@ class PlasmaEuler(Euler):
         fp.write(f'nit = {self.nit:d}\nn_periods = {self.n_periods:.1f}')
         fp.close()
 
-
     def solve_poisson(self):
         """ Solve the Poisson equation in axisymmetric configuration. """
         self.poisson.solve(- (self.U[0] / self.m_e - self.n_back).reshape(-1) * co.e / co.epsilon_0,
@@ -150,7 +149,6 @@ class PlasmaEuler(Euler):
                 self.poisson.plot_2D(self.dl_fig + f'input_{it:05d}')
             if it % self.fourier_period == 0:
                 self.poisson.compute_modes()
-
 
     @staticmethod
     def mean_temp(var, nny_mid, nnx_mid, offset):
@@ -215,6 +213,7 @@ class PlasmaEuler(Euler):
             np.save(self.dl_dir + 'potential.npy', self.potential_list)
             np.save(self.dl_dir + 'physical_rhs.npy', self.physical_rhs_list)
             self.poisson.plot_pmodes(self.dl_fig + 'modes')
+
 
 @njit(cache=True)
 def compute_flux_cold(U, gamma, r, F):
