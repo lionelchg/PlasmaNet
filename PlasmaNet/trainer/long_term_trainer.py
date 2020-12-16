@@ -11,8 +11,8 @@ import numpy as np
 import scipy.constants as co
 import multiprocessing as mp
 from ctypes import c_bool
-from time import sleep
-from time import perf_counter
+from time import sleep, perf_counter
+from more_itertools import grouper
 
 from CfdSolver.cfdsolver.euler.plasma import PlasmaEuler
 
@@ -43,7 +43,7 @@ class LongTermPlasmaEuler(PlasmaEuler):
         """ Solve poisson equation with the model undergoing training on the parent process. """
         self.physical_rhs = - (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
-        physical_rhs_torch = torch.from_numpy(self.physical_rhs[np.newaxis, np.newaxis, :, :] 
+        physical_rhs_torch = torch.from_numpy(self.physical_rhs[np.newaxis, np.newaxis, :, :]
                                               * self.ratio * self.scaling_factor).float()
         # Communicate with parent process
         work_pipe.send(physical_rhs_torch)
@@ -51,10 +51,10 @@ class LongTermPlasmaEuler(PlasmaEuler):
 
         # Convert back to numpy
         potential_rhs = potential_torch.numpy()[0, 0] / self.scaling_factor
-        
+
         self.poisson.potential = potential_rhs
         self.E_field = self.poisson.E_field
-    
+
         self.E_norm = np.sqrt(self.E_field[0]**2 + self.E_field[1]**2)
         if self.it == 1: self.E_max = np.max(self.E_norm)
 
@@ -65,7 +65,7 @@ class LongTermPlasmaEuler(PlasmaEuler):
         potential_rhs = potential_rhs[0] / self.scaling_factor
         self.poisson.potential = potential_rhs
         self.E_field = self.poisson.E_field
-    
+
         self.E_norm = np.sqrt(self.E_field[0]**2 + self.E_field[1]**2)
         if self.it == 1: self.E_max = np.max(self.E_norm)
 
@@ -167,56 +167,62 @@ def propagate(config, output, data, model, its, inference_status, ctl_pipes, wor
     Uses the subprocesses previously initialised for cfdsolver, and executes GPU inferences as they are needed.
     Basically the parent worker.
     """
-    batch_size = len(output)
+    batch_size, num_procs = len(output), len(ctl_pipes)
+    procs = list(range(num_procs))  # List of proc number
+    rhs_out = []
     perf = perf_counter()
 
-    # Initialize subprocesses
-    # Send signal to children to enter "work" state
-    for i in range(batch_size):
-        # Update child state
-        ctl_pipes[i].send("work")
-        # Send initialization data
-        work_pipes[i].send([output[i], data[i], config, its])
+    # Split the batch in group of images of size the number of subprocesses
+    for current_images in grouper(range(batch_size), num_procs, fillvalue=None):
+        # Remove None elements from last group (which may be smaller than the other and filled with None)
+        current_images = [cur for cur in current_images if cur is not None]
 
-    # Execute cfdsolver simulations
-    # Wait start of inference for any subprocess 
-    while not ctypes_any(inference_status):
-        sleep(0.01)
-    # Enter inference loop
-    it_count = 0
-    active_count = 0
-    while ctypes_any(inference_status):  # as long as some child is inferring
-        # Check if data is available in a Connection and deal with it
-        # This should allow asynchronous task execution
-        it_count += 1
-        active_pipes = mp.connection.wait(work_pipes, timeout=0.01)  # Returns the list of connections with pending work
-        active_count += len(active_pipes)
-        # Send all available data as a single batch
-        if len(active_pipes) > 0:
-            # Buffer in a list
-            torch_rhs_buf = []
-            for work_pipe in active_pipes:
-                torch_rhs_buf.append(work_pipe.recv())
-            # Convert the list to a single torch Tensor
-            torch_rhs = torch.cat(torch_rhs_buf, dim=0)
-            torch_potential = model(torch_rhs.cuda())
-            # Split the Tensor along the batch dimension
-            torch_potential_buf = torch.split(torch_potential.detach().cpu(), 1, dim=0)
-            # Send data back to subprocesses
-            for i in range(len(active_pipes)):
-                active_pipes[i].send(torch_potential_buf[i])
-    # print("Average active pipes {}".format(active_count / it_count))
+        # Initialize subprocesses
+        # Send signal to children to enter "work" state
+        for image, proc in zip(current_images, procs):
+            # Update child state
+            ctl_pipes[proc].send("work")
+            # Send initialization data
+            work_pipes[proc].send([output[image], data[image], config, its])
 
-    # Receive results from each child
-    # Send signal to children to enter "return" state
-    for i in range(batch_size):
-        ctl_pipes[i].send("return")
-    output = []
-    for i in range(batch_size):
-        output.append(work_pipes[i].recv())
+        # Execute cfdsolver simulations
+        # Wait start of inference for any subprocess
+        while not ctypes_any(inference_status):
+            sleep(0.01)
+        # Enter inference loop
+        it_count = 0
+        active_count = 0
+        while ctypes_any(inference_status):  # as long as some child is inferring
+            # Check if data is available in a Connection and deal with it
+            # This should allow asynchronous task execution
+            it_count += 1
+            active_pipes = mp.connection.wait(work_pipes, timeout=0.01)  # Lists the connections with pending work
+            active_count += len(active_pipes)
+            # Send all available data as a single batch
+            if len(active_pipes) > 0:
+                # Buffer in a list
+                torch_rhs_buf = []
+                for work_pipe in active_pipes:
+                    torch_rhs_buf.append(work_pipe.recv())
+                # Convert the list to a single torch Tensor
+                torch_rhs = torch.cat(torch_rhs_buf, dim=0)
+                torch_potential = model(torch_rhs.cuda())
+                # Split the Tensor along the batch dimension
+                torch_potential_buf = torch.split(torch_potential.detach().cpu(), 1, dim=0)
+                # Send data back to subprocesses
+                for i in range(len(active_pipes)):
+                    active_pipes[i].send(torch_potential_buf[i])
+        # print("Average active pipes {}".format(active_count / it_count))
+
+        # Receive results from each child
+        # Send signal to children to enter "return" state
+        for _, proc in zip(current_images, procs):  # Only iterate on procs where we expect an output
+            ctl_pipes[proc].send("return")
+        for _, proc in zip(current_images, procs):
+            rhs_out.append(work_pipes[proc].recv())
 
     # Aggregate the list of Tensors as a batch Tensor
-    rhs_lt = np.concatenate(output, axis=0)
+    rhs_lt = np.concatenate(rhs_out, axis=0)
 
     perf = perf_counter() - perf
     # print("Propagate perf: {}".format(perf))
@@ -258,7 +264,7 @@ def apply_cfdsolver(work_pipe, output, data, config, its):
     # Apply residual
     sim.update_res()
 
-    # Retrieve center variables 
+    # Retrieve center variables
     sim.temporal_variables(0)
 
     # Iterations
@@ -289,7 +295,7 @@ def apply_cfdsolver(work_pipe, output, data, config, its):
         # Apply residual
         sim.update_res()
 
-        # Retrieve center variables 
+        # Retrieve center variables
         sim.temporal_variables(it)
 
     physical_rhs = - (sim.U[0] / sim.m_e - sim.n_back) * co.e / co.epsilon_0
