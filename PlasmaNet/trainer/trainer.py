@@ -53,7 +53,7 @@ class Trainer(BaseTrainer):
                 self.inference_status,
                 self.ctl_pipes,
                 self.work_pipes,
-            ) = init_subprocesses(self.data_loader.batch_size)
+            ) = init_subprocesses(self.config["loss"]["args"]["ltloss_num_procs"])
 
     def _train_epoch(self, epoch):
         """
