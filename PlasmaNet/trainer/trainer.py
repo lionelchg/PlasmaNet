@@ -12,9 +12,8 @@ import torch
 from ..base import BaseTrainer
 from .plot import plot_batch, plot_distrib, plot_scales, plot_batch_Efield
 from ..utils import inf_loop, MetricTracker
+from .long_term_trainer import init_subprocesses, propagate
 
-def count_parameters(model):
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 class Trainer(BaseTrainer):
     """
@@ -27,6 +26,7 @@ class Trainer(BaseTrainer):
                  valid_data_loader=None, lr_scheduler=None, len_epoch=None):
         super().__init__(model, criterion, metric_fnts, optimizer, config)
         self.config = config
+        self.lt_loss = config['loss']['args']['lt_weight']
         self.data_loader = data_loader
         if len_epoch is None:
             # epoch-based training
@@ -45,6 +45,15 @@ class Trainer(BaseTrainer):
         self.valid_metrics = MetricTracker('loss', *self.criterion.loss_list,
                                            *[m.__name__ for m in self.metric_ftns], writer=self.writer)
 
+        if self.lt_loss > 0:
+            # Initializes and launch worker subprocesses for cfdsolver
+            (
+                self.procs,
+                self.child_on,
+                self.inference_status,
+                self.ctl_pipes,
+                self.work_pipes,
+            ) = init_subprocesses(self.config["loss"]["args"]["ltloss_num_procs"])
 
     def _train_epoch(self, epoch):
         """
@@ -63,14 +72,28 @@ class Trainer(BaseTrainer):
 
             # output_raw = self.model(data, epoch)
             output_raw = self.model(data)
+
             multiple_outputs = False
             if output_raw.size(1) != 1:
-                #output = output_raw[:,0].unsqueeze(1)
+                # output = output_raw[:,0].unsqueeze(1)
                 output = output_raw
                 multiple_outputs = True
             else:
                 output = output_raw
 
+            # For the long term loss, freeze the network!
+            if self.lt_loss > 0:
+                with torch.no_grad():
+                    its_lt = 5 + np.random.randint(5)
+                    long_output = propagate(self.config_sim, output.cpu().numpy(), data.cpu().numpy(), self.model,
+                                            its_lt, self.inference_status, self.ctl_pipes, self.work_pipes)
+                
+                output_lt = self.model(torch.from_numpy(long_output).float().cuda())
+
+                if multiple_outputs:
+                    output = output[:, 0].unsqueeze(1)
+            
+                output = torch.cat((output, output_lt), dim=1)
 
             if self.criterion.require_input_data():
                 loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
@@ -103,8 +126,6 @@ class Trainer(BaseTrainer):
                     fig = plot_scales(output_raw, target, data, epoch, batch_idx, self.config)
                     fig.savefig(self.config.fig_dir / 'train_scales_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
                     self.writer.add_figure('Different Scales', fig)
-
-
 
             if batch_idx == self.len_epoch:  # Break iteration-based training
                 break
@@ -140,20 +161,30 @@ class Trainer(BaseTrainer):
                 data, target = data.to(self.device), target.to(self.device)
                 data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
 
-                # Forwrad hook saving
-                # MultiScale Study, all the Feature Maps !
-                # Each layer is saved independiently
-
                 # output_raw = self.model(data, epoch)
                 output_raw = self.model(data)
 
                 multiple_outputs = False
                 if output_raw.size(1) != 1:
-                    #output = output_raw[:,0].unsqueeze(1)
+                    # output = output_raw[:,0].unsqueeze(1)
                     output = output_raw
                     multiple_outputs = True
                 else:
                     output = output_raw
+
+                # For the long term loss, freeze the network!
+                if self.lt_loss > 0:
+                    its_lt = 5 + np.random.randint(5)
+
+                    long_output = propagate(self.config_sim, output.cpu().numpy(), data.cpu().numpy(), self.model,
+                                            its_lt, self.inference_status, self.ctl_pipes, self.work_pipes)
+                    
+                    output_lt = self.model(torch.from_numpy(long_output).float().cuda())
+
+                    if multiple_outputs:
+                        output = output[:, 0].unsqueeze(1)
+                
+                    output = torch.cat((output, output_lt), dim = 1) 
 
                 if self.criterion.require_input_data():
                     loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
@@ -176,7 +207,6 @@ class Trainer(BaseTrainer):
                         fig = plot_scales(output_raw, target, data, epoch, batch_idx, self.config)
                         fig.savefig(self.config.fig_dir / 'val_scales_{:05d}.png'.format(epoch), dpi=150, bbox_inches='tight')
                         self.writer.add_figure('Different Scales', fig)
-
 
         # Add histogram of model parameters to the TensorBoard
         if self.config['trainer']['histograms']:
@@ -228,3 +258,15 @@ class Trainer(BaseTrainer):
         return base.format(current, total, 100.0 * current / total)
 
 
+class LtTrainer(Trainer):
+    """
+    Trainer class.
+    Train a model for the given criterion and optimizer. Metrics are computed at each epoch. A scheduler may be used,
+    as well as a different validation dataloader than the training dataloader.
+    If len_epoch is specified, iteration-based training is used, otherwise epoch-based.
+    """
+    def __init__(self, model, criterion, metric_fnts, optimizer, config, config_sim, data_loader,
+                 valid_data_loader=None, lr_scheduler=None, len_epoch=None):
+        super().__init__(model, criterion, metric_fnts, optimizer, config, data_loader,
+                         valid_data_loader, lr_scheduler, len_epoch)
+        self.config_sim = config_sim 

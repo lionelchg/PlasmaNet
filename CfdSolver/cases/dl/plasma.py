@@ -21,6 +21,7 @@ class StreamerMorrowDL(StreamerMorrow):
         potential_rhs = potential_torch.detach().cpu().numpy()[0, 0]
         self.potential = potential_rhs - self.backE * self.X
 
+
 class PlasmaEulerDL(PlasmaEuler):
     """ Solve poisson with PlasmaNet. """
     def __init__(self, config):
