@@ -4,7 +4,8 @@ from .metric import *
 # from .multiscalenet_original import *
 from .msnet_tests import *
 from .dirichletnet import *
-from .unet import *
+# from .unet import *
+from .unet_tests import *
 from .singlefilter import *
 from .simplenet import *
 from .simplemultinet import *

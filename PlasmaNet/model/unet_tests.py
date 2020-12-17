@@ -106,9 +106,9 @@ class UNet3(BaseModel):
         convN_2out = self.convN_2(convN_1out)
         convN_3out = self.convN_3(convN_2out)
         convN_4out = self.convN_4(torch.cat((F.interpolate(convN_3out, size=convN_2out[0, 0].shape, 
-                                        mode='bilinear', align_corners= False), convN_4out), dim=1))
+                                        mode='bilinear', align_corners= False), convN_2out), dim=1))
         convN_5out = self.convN_5(torch.cat((F.interpolate(convN_4out, size=convN_1out[0, 0].shape, 
-                                        mode='bilinear', align_corners=False), convN_3out), dim=1))
+                                        mode='bilinear', align_corners=False), convN_1out), dim=1))
 
         final_out = self.final(convN_5out)
         return final_out
@@ -127,7 +127,7 @@ class UNet4(BaseModel):
         self.convN_3 = _ConvBlockDown(48, 48, 48)
         self.convN_4 = _ConvBlockDown(48, 64, 64)
         self.convN_5 = _ConvBlockUp(112, 64, 64)
-        self.convN_6 = _ConvBlockUp(112, 48, 48)
+        self.convN_6 = _ConvBlockUp(112, 60, 48)
         self.convN_7 = _ConvBlockUp(96, 48, 48)
         self.final = _ConvBlockOut(48, 1)
         
@@ -137,11 +137,11 @@ class UNet4(BaseModel):
         convN_3out = self.convN_3(convN_2out)
         convN_4out = self.convN_4(convN_3out)
         convN_5out = self.convN_5(torch.cat((F.interpolate(convN_4out, size=convN_3out[0, 0].shape, 
-                                        mode='bilinear', align_corners= False), convN_4out), dim=1))
+                                        mode='bilinear', align_corners= False), convN_3out), dim=1))
         convN_6out = self.convN_6(torch.cat((F.interpolate(convN_5out, size=convN_2out[0, 0].shape, 
-                                        mode='bilinear', align_corners=False), convN_3out), dim=1))
-        convN_7out = self.convN_7(torch.cat((F.interpolate(convN_6out, size=convN_1out[0, 0].shape, 
                                         mode='bilinear', align_corners=False), convN_2out), dim=1))
+        convN_7out = self.convN_7(torch.cat((F.interpolate(convN_6out, size=convN_1out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_1out), dim=1))
         final_out = self.final(convN_7out)
         return final_out
 
@@ -158,7 +158,7 @@ class UNet5(BaseModel):
         self.convN_2 = _ConvBlockDown(32, 32, 32)
         self.convN_3 = _ConvBlockDown(32, 32, 32)
         self.convN_4 = _ConvBlockDown(32, 48, 62)
-        self.convN_5 = _ConvBlockDown(60, 60, 62)
+        self.convN_5 = _ConvBlockDown(62, 60, 62)
         self.convN_6 = _ConvBlockUp(124, 64, 64)
         self.convN_7 = _ConvBlockUp(96, 64, 64)
         self.convN_8 = _ConvBlockUp(96, 32, 32)
@@ -199,7 +199,7 @@ class UNet6(BaseModel):
         self.convN_6 = _ConvBlockDown(48, 48, 48)
         self.convN_7 = _ConvBlockUp(96, 60, 48)
         self.convN_8 = _ConvBlockUp(96, 48, 48)
-        self.convN_9 = _ConvBlockUp(96, 48, 48)
+        self.convN_9 = _ConvBlockUp(80, 48, 48)
         self.convN_10 = _ConvBlockUp(80, 32, 32)
         self.convN_11 = _ConvBlockUp(64, 32, 32)
         self.final = _ConvBlockOut(32, 1)
