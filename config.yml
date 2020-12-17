@@ -57,12 +57,16 @@ loss:
     pipe_config: True                       # Object initialization require config as first argument
     args:
         loss_list:                          # List of the losses to compose if ComposedLoss is used
-            - InsideLoss
+            - InsideLoss             
             - DirichletBoundaryLoss
             - LaplacianLoss
+            - LongTermLaplacianLoss
         inside_weight: 1.                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
+        elec_weight: 0.                     # Weighting of the loss on the electric field (float)
         lapl_weight: 0.2                    # Weighting of the loss on the Laplacian (float)
+        lt_weight: 1.0                      # Weighting of the lt loss, whoch only has a Laplacian term
+        ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation
 
 metrics:
     - 'residual'
