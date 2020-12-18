@@ -20,7 +20,6 @@ def run(config):
     """ Main function containing initialization, temporal loop and outputs. Takes a config dict as input. """
     sim = PlasmaEuler(config)
     # Print header to sum up the parameters
-    sim.write_init()
     if sim.verbose:
         sim.print_init()
 

@@ -8,6 +8,7 @@ from .euler import Euler
 from cfdsolver.scalar.init import func_dict
 from poissonsolver.linsystem import matrix_cart, dc_bc
 from poissonsolver.poisson import DatasetPoisson
+from poissonsolver.analytical import PoissonAnalytical
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D, plot_ax_vector_arrow
 from ..base.operators import grad
 from ..utils import create_dir
@@ -16,14 +17,22 @@ from ..utils import create_dir
 class PlasmaEuler(Euler):
     def __init__(self, config):
         super().__init__(config)
-        # Background electric field and matrix construction
-        zeros_x = np.zeros_like(self.x)
-        zeros_y = np.zeros_like(self.y)
-        self.down, self.up = zeros_x, zeros_x
-        self.left, self.right = zeros_y, zeros_y
-        self.poisson = DatasetPoisson(self.xmin, self.xmax, self.nnx, 
-                        self.ymin, self.ymax, self.nny, 'cart_dirichlet', 
-                        config['output']['nmax_fourier'])
+        # Choose the way to solve poisson equation, either classic with linear system
+        # or with analytical solution (2D Fourier series)
+        self.poisson_type = config['poisson']['type']
+        if self.poisson_type == 'lin_system':
+            self.poisson = DatasetPoisson(self.xmin, self.xmax, self.nnx, 
+                            self.ymin, self.ymax, self.nny, 'cart_dirichlet', 
+                            config['poisson']['nmax_fourier'])
+            # Boundary conditions
+            zeros_x = np.zeros_like(self.x)
+            zeros_y = np.zeros_like(self.y)
+            self.down, self.up = zeros_x, zeros_x
+            self.left, self.right = zeros_y, zeros_y
+        elif self.poisson_type == 'analytical':
+            self.poisson = PoissonAnalytical(self.xmin, self.xmax, self.nnx, 
+                            self.ymin, self.ymax, self.nny, config['poisson']['nmax_fourier'],
+                            config['poisson']['nmax_fourier'], 0, config['poisson']['nmax_fourier'])
 
         self.m_e = co.m_e
         self.W = self.m_e * co.N_A
@@ -91,23 +100,14 @@ class PlasmaEuler(Euler):
         print('Start of simulation')
         print('------------------------------------')
         print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
-    
-    def write_init(self):
-        """ Print header to sum up the parameters. """
-        fp = open(self.case_dir + 'case.log', 'w')
-        fp.write(f'- Number of nodes: \nnnx = {self.nnx:d}\nnny = {self.nny:d}\n')
-        fp.write(f'- Bounding box: \n({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})\n')
-        fp.write(f'- Mesh: \ndx = {self.dx:.2e}\ndy = {self.dy:.2e}\n')
-        fp.write(f'- Plasma Oscillation: \nn_back = {self.n_back:.2e}\nn_pert = {self.n_pert:.2e}\n')
-        fp.write(f'T_p = {self.T_p:.2e} s\nomega_p = {self.omega_p:.2e} rad.s-1\n')
-        fp.write(f'dt = {self.dt:.2e} s\nnt_oscill = {self.nt_oscill:d}\n')
-        fp.write(f'nit = {self.nit:d}\nn_periods = {self.n_periods:.1f}')
-        fp.close()
 
     def solve_poisson(self):
         """ Solve the Poisson equation in axisymmetric configuration. """
-        self.poisson.solve(- (self.U[0] / self.m_e - self.n_back).reshape(-1) * co.e / co.epsilon_0,
-                                     self.down, self.up, self.left, self.right)
+        if self.poisson_type == 'lin_system':
+            self.poisson.solve(- (self.U[0] / self.m_e - self.n_back).reshape(-1) * co.e / co.epsilon_0,
+                                        self.down, self.up, self.left, self.right)
+        elif self.poisson_type == 'analytical':
+            self.poisson.compute_sol(- (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0)
         self.E_field = self.poisson.E_field
 
         self.E_norm = np.sqrt(self.E_field[0]**2 + self.E_field[1]**2)
