@@ -1,3 +1,11 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                            Main class for Poisson solver                                             #
+#                                                                                                                      #
+#                                          Lionel Cheng, CERFACS, 04.11.2020                                           #
+#                                                                                                                      #
+########################################################################################################################
+
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -6,7 +14,7 @@ from scipy.sparse.linalg import spsolve
 
 from poissonsolver.linsystem import matrix_cart, matrix_axisym, dc_bc
 from poissonsolver.operators import grad, lapl
-from poissonsolver.base import BasePoisson, fourier_coef_2D
+from poissonsolver.base import BasePoisson
 from poissonsolver.plot import plot_modes
 
 
@@ -31,10 +39,11 @@ class Poisson(BasePoisson):
         self.physical_rhs = physical_rhs.reshape(self.nny, self.nnx)
         self.bc(rhs, self.nnx, self.nny, args)
         self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
-    
+
     def L2error(self, th_potential):
         return np.sqrt(np.sum(self.compute_voln() * 
                     (self.potential - th_potential)**2)) / self.Lx / self.Ly
+
 
 class DatasetPoisson(Poisson):
     """ Class for dataset of poisson rhs and potentials (contains
@@ -90,4 +99,3 @@ class DatasetPoisson(Poisson):
                 series += (coefs[n - 1, m - 1] * np.sin(n * np.pi * self.X / self.Lx) 
                     * np.sin(m * np.pi * self.Y / self.Ly) / ((n * np.pi / self.Lx)**2 + (m * np.pi / self.Ly)**2))
         return series
-

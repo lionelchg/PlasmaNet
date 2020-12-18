@@ -1,11 +1,21 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                            Base class for Poisson solver                                             #
+#                                                                                                                      #
+#                                          Lionel Cheng, CERFACS, 04.11.2020                                           #
+#                                                                                                                      #
+########################################################################################################################
+
 import numpy as np
 import scipy.constants as co
 from scipy import integrate
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib as mpl
+
 from poissonsolver.operators import grad, lapl
 from poissonsolver.plot import plot_ax_scalar, plot_ax_vector_arrow, plot_ax_trial_1D, plot_modes
+
 
 class BasePoisson:
     def __init__(self, xmin, xmax, nnx, ymin, ymax, nny, nmax=None):
@@ -49,7 +59,6 @@ class BasePoisson:
     @property
     def lapl(self):
         return lapl(self.potential, self.dx, self.dy, self.nnx, self.nny, r=self.R_nodes)
-
 
     def plot_2D(self, figname, axi=False):
 
@@ -118,6 +127,7 @@ def fourier_coef_1D(V_u, n, x, Lx):
     """ Fourier coefficient of the solution of one dirichlet boundary condition
     in the square setup """
     return integrate.simps(V_u * np.sin(n * np.pi * x / Lx), x)
+
 
 def fourier_coef_2D(X, Y, Lx, Ly, voln, rhs, n, m):
     """ Fourier coefficient of the solution (integral over the domain) """
