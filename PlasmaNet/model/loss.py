@@ -138,23 +138,15 @@ class NeumannBoundaryLoss(BaseLoss):
         return bnd_loss * self.weight
 
 
-class LongTermLaplacianLoss(BaseLoss):
+class LongTermLaplacianLoss(LaplacianLoss):
     """ A Laplacian loss function on the inside of the domain (excluding boundaries),
     for a long term loss. """
     def __init__(self, config, lt_weight, **_):
-        super().__init__()
-        self.weight = lt_weight
-        self.dx = config.dx
-        self.dy = config.dy
-        self.r_nodes = config.r_nodes
-        if self.r_nodes is not None:  # in this case, a NumPy array
-            self.r_nodes = torch.from_numpy(self.r_nodes).cuda()
-        self._require_input_data = True  # Need rhs for computation
-
+        super().__init__(config, lt_weight)
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         laplacian = lapl(output[:,1].unsqueeze(1) * target_norm / data_norm, self.dx, self.dy, r=self.r_nodes)
         return F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
-
+        
 
 class ComposedLoss(BaseLoss):
     """
