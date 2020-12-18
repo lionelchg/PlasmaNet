@@ -6,8 +6,10 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+import sys
 import numpy as np
 import re
+import yaml
 
 from .metric import Grid
 from ..utils import create_dir
@@ -51,6 +53,15 @@ class BaseSim(Grid):
             self.nit = config['params']['nit']
         elif 'end_time' in config['params']:
             self.end_time = config['params']['end_time']
+        
+        # Redirect stdout if necessary and if log_run is in dict
+        if 'log_run' in config['output']:
+            if config['output']['log_run'] == 'file':
+                sys.stdout = open(self.case_dir + 'run.log', 'w')
+
+        # Dump the configuration file in the case
+        with open(self.case_dir + 'config.yml', 'w') as file:
+            yaml.dump(config, file)
 
     def plot(self):
         """ Abstract method for plotting """
