@@ -36,12 +36,18 @@ if __name__ == '__main__':
     #             "fourier_5_4":"/1203_150833/events.out.tfevents.1607004521.krakengpu1.cluster.319624.0",
     #             "target_case":"/1203_095708/events.out.tfevents.1606985836.krakengpu1.cluster.276814.0"}
 
-    data_dir = "../outputs/log/scales/"
-    train_names = {"UNet3":"/random_8/1214_004843/events.out.tfevents.1607903328.krakengpu1.cluster.14719.0",
-                "UNet4":"/random_8//1214_004911/events.out.tfevents.1607903358.krakengpu1.cluster.14829.0",
-                "UNet5":"/random_8/1214_004944/events.out.tfevents.1607903389.krakengpu2.cluster.312923.0",
-                "UNet6":"/random_8/1214_005006/events.out.tfevents.1607903413.krakengpu2.cluster.313030.0",
-                "../nparams/MSNet5_big":"/random_8/1202_183127/events.out.tfevents.1606930293.krakengpu2.cluster.149333.0"}
+    # data_dir = "../outputs/log/scales/"
+    # train_names = {"UNet3":"/random_8/1214_004843/events.out.tfevents.1607903328.krakengpu1.cluster.14719.0",
+    #             "UNet4":"/random_8//1214_004911/events.out.tfevents.1607903358.krakengpu1.cluster.14829.0",
+    #             "UNet5":"/random_8/1214_004944/events.out.tfevents.1607903389.krakengpu2.cluster.312923.0",
+    #             "UNet6":"/random_8/1214_005006/events.out.tfevents.1607903413.krakengpu2.cluster.313030.0",
+    #             "../nparams/MSNet5_big":"/random_8/1202_183127/events.out.tfevents.1606930293.krakengpu2.cluster.149333.0"}
+
+    data_dir = "../outputs/log/nparams/"
+    train_names = {"UNet5_small":"/random_8/1218_114216/events.out.tfevents.1608288142.krakengpu1.cluster.105551.0",
+                "UNet5_big":"/random_8/1218_020719/events.out.tfevents.1608253646.krakengpu2.cluster.193091.0",
+                "../scales/UNet5":"/random_8/1214_004944/events.out.tfevents.1607903389.krakengpu2.cluster.312923.0",
+                "UNet6_big":"/random_8/1218_020632/events.out.tfevents.1608253597.krakengpu2.cluster.192926.0"}
 
     # Figure for losses and metrics
     fig1, axes1 = plt.subplots(nrows=2, ncols=2, figsize=(10, 10))

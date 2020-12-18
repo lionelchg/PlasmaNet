@@ -28,10 +28,11 @@ from PlasmaNet.parse_config import ConfigParser
 from PlasmaNet.trainer.trainer import plot_batch
 import PlasmaNet.model as module_arch
 
-@profile
-def run(cfg_plasma, cfg_dl):
+# @profile
+def run(config):
     """ Main function containing initialization, temporal loop and outputs. Takes a config dict as input. """
-    
+    cfg_dl = ConfigParser(config['network'])
+
     # Load the network
     logger = cfg_dl.get_logger('test')
 
@@ -57,9 +58,8 @@ def run(cfg_plasma, cfg_dl):
     model = model.to(device)
     model.eval()    
     
-    sim = PlasmaEulerDL(cfg_plasma)
+    sim = PlasmaEulerDL(config['plasma'])
     # Print header to sum up the parameters
-    sim.write_init()
     if sim.verbose:
         sim.print_init()
 
@@ -104,20 +104,9 @@ if __name__ == '__main__':
     args = argparse.ArgumentParser(description='PlasmaNet')
     args.add_argument('-c', '--config', default=None, type=str,
                       help='config file path (default: None)')
-    args.add_argument('-r', '--resume', default=None, type=str,
-                      help='path to checkpoint to resume (default: None)')
-    args.add_argument('-d', '--device', default=None, type=str,
-                      help='indices of GPUs to enable (default: all)')
+    args = args.parse_args()
 
-    # Custom CLI options to modify configuration from default values given in yaml file
-    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
-    options = [
-        CustomArgs(['-ds', '--dataset'], type=str, target='data_loader;args;data_dir'),
-        CustomArgs(['-n', '--name'], type=str, target='name')
-    ]
-    cfg_dl = ConfigParser.from_args(args, options)
+    with open(args.config, 'r') as yaml_stream:
+        config = yaml.safe_load(yaml_stream)
 
-    with open('plasma_oscillation.yml', 'r') as yaml_stream:
-        cfg = yaml.safe_load(yaml_stream)
-
-    run(cfg, cfg_dl)
+    run(config)

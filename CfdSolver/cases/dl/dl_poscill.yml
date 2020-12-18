@@ -1,0 +1,128 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                            cfdsolver -- Configuration file                                           #
+#                                                                                                                      #
+#                                           Lionel Cheng, CERFACS, 05.11.2020                                          #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+plasma:
+  casename: 'runs/UNet5/target_case_test/'
+
+  params:
+    n_periods: 2.0
+    geom: 'xy'
+    n_back: 1.0e+16
+    init_func: 'gaussian'
+    n_pert: 1.0e+11
+    sigma: 1.0e-3
+    dt: 1.0e-10
+    nt_oscill: 5000
+
+  poisson:
+    type: 'lin_system'
+    nmax_fourier: 10
+
+  mesh:
+    xmin: 0
+    ymin: 0
+    xmax: 1.0e-2
+    ymax: 1.0e-2
+    nnx: 101
+    nny: 101
+
+  BC: 'full_out'
+
+  output:
+    save: 'plasma_period'
+    log_run: 'file'
+    verbose: True
+    period: 0.1
+    files: 'fig'
+    dl_save: 'no'
+    nmax_fourier: 10
+
+network:
+  name: 'poscill/UNet5/target_case/'                            # Experience name
+  n_gpu: 1                                    # Number of GPUs to use
+  resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/models/nparams/UNet5/target_case/1218_023142/model_best.pth'
+
+  globals:                                    # Domain sizes and others, used to compute global attributes
+      nnx: 101
+      nny: 101
+      lx: 0.01
+      ly: 0.01
+      coord: 'cart'
+
+  arch:
+      type: 'UNet5'
+      args:
+          data_channels: 1                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
+
+  data_loader:
+      type: 'PoissonDataLoader'
+      pipe_config: True
+      args:
+          data_dir: '/scratch/cfd/cheng/DL/datasets/101x101/target_case'
+          batch_size: 64
+          shuffle: True
+          validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
+          num_workers: 4
+          normalize: 'analytical'                   # max, physical or no for normalization types
+          scaling_factor: 1.0e+6
+  initializer: 'off'
+
+  optimizer:
+      type: 'Adam'
+      args:
+          lr: 4.e-4
+          weight_decay: 0
+          amsgrad: False                      # AMSGrad variant from paper 'On the convergence of Adam and Beyond'
+
+  loss:
+      type: 'ComposedLoss'
+      pipe_config: True                       # Object initialization require config as first argument
+      args:
+          loss_list:                          # List of the losses to compose if ComposedLoss is used
+              - InsideLoss
+              - DirichletBoundaryLoss
+              - LaplacianLoss
+          inside_weight: 1.                   # Weighting of the loss inside the domain, excluding boundaries (float)
+          bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
+          lapl_weight: 0.2                    # Weighting of the loss on the Laplacian (float)
+          lt_weight: 0.0                      # Weighting of the lt loss, whoch only has a Laplacian term
+          ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation
+
+  metrics:
+      - 'residual'
+      - 'l2_norm'
+      - 'inf_norm'
+
+  lr_scheduler:
+      type: 'ReduceLROnPlateau'
+      plateau_metric: loss                    # monitoring metric for ReduceLROnPlateau step()
+      args:
+          mode: 'min'
+          factor: 0.9                         # Amount scheduler reduces LR by (float)
+          patience: 50                        # Number of epochs the scheduler waits (int)
+          threshold: 3.e-4                    # Relative improvement the scheduler must see (float)
+          threshold_mode: 'rel'
+          verbose: False
+
+  trainer:
+      epochs: 300
+      save_dir: 'outputs/eval/'
+      save_period: 10
+      plot_period: 10                         # Period to send plots to TensorBoard
+      verbosity: 2
+      monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
+      early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
+      tensorboard: true
+      histograms: false                       # Save weights and bias histograms (turned off to increase TensorBoard perf)

@@ -3,7 +3,6 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=8
 #SBATCH --time=01:00:00
-#SBATCH --partition=gpu
-#SBATCH --nodelist=krakengpu2
+#SBATCH --partition=biggpu
 
 python plasma_oscillation.py -c eval_poscill.yml
