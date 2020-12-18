@@ -231,3 +231,6 @@ def __init__(self):
 ```
 
 ### Results on random_8 dataset
+The UNet are far better than the MSNet for the equivalent scale. There is a similar trend, when we go deeper into the scales the results are better.
+There is an uncertainty as to which one is better between 5 and 6 (even moreso than with MSNet). Why is UNet way better than MSNet is something
+that could be investigated.

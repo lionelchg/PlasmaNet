@@ -182,6 +182,80 @@ class UNet5(BaseModel):
         final_out = self.final(convN_9out)
         return final_out
 
+class UNet5_small(BaseModel):
+    """
+    Define the network. Only input when called is number of data (input) channels.
+        - Perform 4 levels of convolution
+        - When returning to the original size, concatenate output of matching sizes
+        - The smaller domains are upsampled to the desired size with the F.upsample function.
+    """
+    def __init__(self, data_channels):
+        super(UNet5_small, self).__init__()
+        self.convN_1 = _ConvBlockIn(1, 20, 20)
+        self.convN_2 = _ConvBlockDown(20, 20, 20)
+        self.convN_3 = _ConvBlockDown(20, 20, 20)
+        self.convN_4 = _ConvBlockDown(20, 48, 62)
+        self.convN_5 = _ConvBlockDown(62, 60, 62)
+        self.convN_6 = _ConvBlockUp(124, 64, 64)
+        self.convN_7 = _ConvBlockUp(84, 64, 64)
+        self.convN_8 = _ConvBlockUp(84, 20, 20)
+        self.convN_9 = _ConvBlockUp(40, 20, 20)
+        self.final = _ConvBlockOut(20, 1)
+        
+    def forward(self, x):
+        convN_1out = self.convN_1(x)
+        convN_2out = self.convN_2(convN_1out)
+        convN_3out = self.convN_3(convN_2out)
+        convN_4out = self.convN_4(convN_3out)
+        convN_5out = self.convN_5(convN_4out)
+        convN_6out = self.convN_6(torch.cat((F.interpolate(convN_5out, size=convN_4out[0, 0].shape, 
+                                        mode='bilinear', align_corners= False), convN_4out), dim=1))
+        convN_7out = self.convN_7(torch.cat((F.interpolate(convN_6out, size=convN_3out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_3out), dim=1))
+        convN_8out = self.convN_8(torch.cat((F.interpolate(convN_7out, size=convN_2out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_2out), dim=1))
+        convN_9out = self.convN_9(torch.cat((F.interpolate(convN_8out, size=convN_1out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_1out), dim=1))
+        final_out = self.final(convN_9out)
+        return final_out
+
+class UNet5_big(BaseModel):
+    """
+    Define the network. Only input when called is number of data (input) channels.
+        - Perform 4 levels of convolution
+        - When returning to the original size, concatenate output of matching sizes
+        - The smaller domains are upsampled to the desired size with the F.upsample function.
+    """
+    def __init__(self, data_channels):
+        super(UNet5_big, self).__init__()
+        self.convN_1 = _ConvBlockIn(1, 40, 40)
+        self.convN_2 = _ConvBlockDown(40, 40, 40)
+        self.convN_3 = _ConvBlockDown(40, 40, 40)
+        self.convN_4 = _ConvBlockDown(40, 48, 78)
+        self.convN_5 = _ConvBlockDown(78, 78, 78)
+        self.convN_6 = _ConvBlockUp(156, 78, 78)
+        self.convN_7 = _ConvBlockUp(118, 78, 78)
+        self.convN_8 = _ConvBlockUp(118, 40, 40)
+        self.convN_9 = _ConvBlockUp(80, 40, 40)
+        self.final = _ConvBlockOut(40, 1)
+        
+    def forward(self, x):
+        convN_1out = self.convN_1(x)
+        convN_2out = self.convN_2(convN_1out)
+        convN_3out = self.convN_3(convN_2out)
+        convN_4out = self.convN_4(convN_3out)
+        convN_5out = self.convN_5(convN_4out)
+        convN_6out = self.convN_6(torch.cat((F.interpolate(convN_5out, size=convN_4out[0, 0].shape, 
+                                        mode='bilinear', align_corners= False), convN_4out), dim=1))
+        convN_7out = self.convN_7(torch.cat((F.interpolate(convN_6out, size=convN_3out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_3out), dim=1))
+        convN_8out = self.convN_8(torch.cat((F.interpolate(convN_7out, size=convN_2out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_2out), dim=1))
+        convN_9out = self.convN_9(torch.cat((F.interpolate(convN_8out, size=convN_1out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_1out), dim=1))
+        final_out = self.final(convN_9out)
+        return final_out
+
 class UNet6(BaseModel):
     """
     Define the network. Only input when called is number of data (input) channels.
@@ -203,6 +277,48 @@ class UNet6(BaseModel):
         self.convN_10 = _ConvBlockUp(80, 32, 32)
         self.convN_11 = _ConvBlockUp(64, 32, 32)
         self.final = _ConvBlockOut(32, 1)
+        
+    def forward(self, x):
+        convN_1out = self.convN_1(x)
+        convN_2out = self.convN_2(convN_1out)
+        convN_3out = self.convN_3(convN_2out)
+        convN_4out = self.convN_4(convN_3out)
+        convN_5out = self.convN_5(convN_4out)
+        convN_6out = self.convN_6(convN_5out)
+        convN_7out = self.convN_7(torch.cat((F.interpolate(convN_6out, size=convN_5out[0, 0].shape, 
+                                        mode='bilinear', align_corners= False), convN_5out), dim=1))
+        convN_8out = self.convN_8(torch.cat((F.interpolate(convN_7out, size=convN_4out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_4out), dim=1))
+        convN_9out = self.convN_9(torch.cat((F.interpolate(convN_8out, size=convN_3out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_3out), dim=1))
+        convN_10out = self.convN_10(torch.cat((F.interpolate(convN_9out, size=convN_2out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_2out), dim=1))
+        convN_11out = self.convN_11(torch.cat((F.interpolate(convN_10out, size=convN_1out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_1out), dim=1))
+        final_out = self.final(convN_11out)
+        return final_out
+
+class UNet6_big(BaseModel):
+    """
+    Define the network. Only input when called is number of data (input) channels.
+        - Perform 4 levels of convolution
+        - When returning to the original size, concatenate output of matching sizes
+        - The smaller domains are upsampled to the desired size with the F.upsample function.
+    """
+    def __init__(self, data_channels):
+        super(UNet6_big, self).__init__()
+        self.convN_1 = _ConvBlockIn(1, 40, 40)
+        self.convN_2 = _ConvBlockDown(40, 40, 40)
+        self.convN_3 = _ConvBlockDown(40, 40, 40)
+        self.convN_4 = _ConvBlockDown(40, 60, 60)
+        self.convN_5 = _ConvBlockDown(60, 60, 60)
+        self.convN_6 = _ConvBlockDown(60, 60, 60)
+        self.convN_7 = _ConvBlockUp(120, 60, 60)
+        self.convN_8 = _ConvBlockUp(120, 60, 60)
+        self.convN_9 = _ConvBlockUp(100, 60, 60)
+        self.convN_10 = _ConvBlockUp(100, 40, 40)
+        self.convN_11 = _ConvBlockUp(80, 40, 40)
+        self.final = _ConvBlockOut(40, 1)
         
     def forward(self, x):
         convN_1out = self.convN_1(x)

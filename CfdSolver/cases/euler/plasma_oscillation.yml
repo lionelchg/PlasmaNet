@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/gaussian_th/'
+casename: 'runs/kraken/gaussian_th_5/'
 
 params:
   n_periods: 2.0
@@ -27,7 +27,7 @@ params:
 
 poisson:
   type: 'analytical'
-  nmax_fourier: 20
+  nmax_fourier: 5
 
 mesh:
   xmin: 0

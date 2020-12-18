@@ -9,7 +9,7 @@ def ax_prop(ax, x, y, label, title):
     ax.set_yscale('log')
 
 if __name__ == '__main__':    
-    fig_dir = 'figures/MSNet5_big/'
+    fig_dir = 'figures/UNet/nparams/'
     create_dir(fig_dir)
 
     # data_dir = "../outputs/log/scales/"
@@ -30,11 +30,18 @@ if __name__ == '__main__':
     #             "random_16":"/1203_095526/events.out.tfevents.1606985734.krakengpu2.cluster.253310.0",
     #             "target_case":"/1203_095708/events.out.tfevents.1606985836.krakengpu1.cluster.276814.0"}
     
-    data_dir = "../outputs/log/nparams/MSNet5_big/"
-    train_names = {"fourier_5":"/1203_095630/events.out.tfevents.1606985800.krakengpu1.cluster.276690.0",
-                "fourier_5_2":"/1203_150636/events.out.tfevents.1607004403.krakengpu1.cluster.319257.0",
-                "fourier_5_4":"/1203_150833/events.out.tfevents.1607004521.krakengpu1.cluster.319624.0",
-                "target_case":"/1203_095708/events.out.tfevents.1606985836.krakengpu1.cluster.276814.0"}
+    # data_dir = "../outputs/log/nparams/MSNet5_big/"
+    # train_names = {"fourier_5":"/1203_095630/events.out.tfevents.1606985800.krakengpu1.cluster.276690.0",
+    #             "fourier_5_2":"/1203_150636/events.out.tfevents.1607004403.krakengpu1.cluster.319257.0",
+    #             "fourier_5_4":"/1203_150833/events.out.tfevents.1607004521.krakengpu1.cluster.319624.0",
+    #             "target_case":"/1203_095708/events.out.tfevents.1606985836.krakengpu1.cluster.276814.0"}
+
+    data_dir = "../outputs/log/scales/"
+    train_names = {"UNet3":"/random_8/1214_004843/events.out.tfevents.1607903328.krakengpu1.cluster.14719.0",
+                "UNet4":"/random_8//1214_004911/events.out.tfevents.1607903358.krakengpu1.cluster.14829.0",
+                "UNet5":"/random_8/1214_004944/events.out.tfevents.1607903389.krakengpu2.cluster.312923.0",
+                "UNet6":"/random_8/1214_005006/events.out.tfevents.1607903413.krakengpu2.cluster.313030.0",
+                "../nparams/MSNet5_big":"/random_8/1202_183127/events.out.tfevents.1606930293.krakengpu2.cluster.149333.0"}
 
     # Figure for losses and metrics
     fig1, axes1 = plt.subplots(nrows=2, ncols=2, figsize=(10, 10))
@@ -70,5 +77,5 @@ if __name__ == '__main__':
             for j in range(2):
                 axes2[i][j].legend()
 
-    fig1.savefig(fig_dir + "losses_fourier", bbox_inches='tight')
-    fig2.savefig(fig_dir + "metrics_fourier", bbox_inches='tight')
+    fig1.savefig(fig_dir + "losses", bbox_inches='tight')
+    fig2.savefig(fig_dir + "metrics", bbox_inches='tight')
