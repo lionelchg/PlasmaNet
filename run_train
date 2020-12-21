@@ -3,7 +3,6 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=9
 #SBATCH --time=08:00:00
-#SBATCH --partition=gpu
-#SBATCH --nodelist=krakengpu1
+#SBATCH --partition=biggpu
 
 python train.py -c config.yml

@@ -219,6 +219,43 @@ class UNet5_small(BaseModel):
         final_out = self.final(convN_9out)
         return final_out
 
+class UNet5_small_1(BaseModel):
+    """
+    Define the network. Only input when called is number of data (input) channels.
+        - Perform 4 levels of convolution
+        - When returning to the original size, concatenate output of matching sizes
+        - The smaller domains are upsampled to the desired size with the F.upsample function.
+    """
+    def __init__(self, data_channels):
+        super(UNet5_small_1, self).__init__()
+        self.convN_1 = _ConvBlockIn(1, 20, 20)
+        self.convN_2 = _ConvBlockDown(20, 20, 20)
+        self.convN_3 = _ConvBlockDown(20, 20, 20)
+        self.convN_4 = _ConvBlockDown(20, 40, 40)
+        self.convN_5 = _ConvBlockDown(40, 40, 40)
+        self.convN_6 = _ConvBlockUp(80, 40, 40)
+        self.convN_7 = _ConvBlockUp(60, 40, 40)
+        self.convN_8 = _ConvBlockUp(60, 20, 20)
+        self.convN_9 = _ConvBlockUp(40, 20, 20)
+        self.final = _ConvBlockOut(20, 1)
+        
+    def forward(self, x):
+        convN_1out = self.convN_1(x)
+        convN_2out = self.convN_2(convN_1out)
+        convN_3out = self.convN_3(convN_2out)
+        convN_4out = self.convN_4(convN_3out)
+        convN_5out = self.convN_5(convN_4out)
+        convN_6out = self.convN_6(torch.cat((F.interpolate(convN_5out, size=convN_4out[0, 0].shape, 
+                                        mode='bilinear', align_corners= False), convN_4out), dim=1))
+        convN_7out = self.convN_7(torch.cat((F.interpolate(convN_6out, size=convN_3out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_3out), dim=1))
+        convN_8out = self.convN_8(torch.cat((F.interpolate(convN_7out, size=convN_2out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_2out), dim=1))
+        convN_9out = self.convN_9(torch.cat((F.interpolate(convN_8out, size=convN_1out[0, 0].shape, 
+                                        mode='bilinear', align_corners=False), convN_1out), dim=1))
+        final_out = self.final(convN_9out)
+        return final_out
+
 class UNet5_big(BaseModel):
     """
     Define the network. Only input when called is number of data (input) channels.
