@@ -57,7 +57,7 @@ loss:
     pipe_config: True                       # Object initialization require config as first argument
     args:
         loss_list:                          # List of the losses to compose if ComposedLoss is used
-            - InsideLoss             
+            - InsideLoss
             - DirichletBoundaryLoss
             - LaplacianLoss
             - EnergyLoss
