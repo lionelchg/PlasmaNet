@@ -5,4 +5,4 @@
 #SBATCH --time=01:00:00
 #SBATCH --partition=biggpu
 
-python plasma_oscillation.py -c eval_poscill.yml
+python plasma_oscillation.py -c dl_poscill.yml

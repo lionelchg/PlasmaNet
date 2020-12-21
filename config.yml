@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'nparams/UNet5/random_8_energy_4'                      # Experience name
+name: 'simulation/UNet5/target_case'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -36,7 +36,7 @@ data_loader:
     type: 'PoissonDataLoader'
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/101x101/random_8'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/101x101/target_case'
         batch_size: 64
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
@@ -57,15 +57,15 @@ loss:
     pipe_config: True                       # Object initialization require config as first argument
     args:
         loss_list:                          # List of the losses to compose if ComposedLoss is used
-            - InsideLoss
+            # - InsideLoss
             - DirichletBoundaryLoss
             - LaplacianLoss
-            - EnergyLoss
+            # - EnergyLoss
             # - LongTermLaplacianLoss
         inside_weight: 0.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.0                    # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
-        lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
+        lapl_weight: 0.2                    # Weighting of the loss on the Laplacian (float)
         energy_weight: 0.0                  # Weighting of the loss on the energy functional (float)
         lt_weight: 0.0                      # Weighting of the lt loss, whoch only has a Laplacian term
         ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation
@@ -74,6 +74,7 @@ metrics:
     - 'residual'
     - 'l2_norm'
     - 'inf_norm'
+    - 'Eresidual'
 
 lr_scheduler:
     type: 'ReduceLROnPlateau'

@@ -14,7 +14,7 @@
 #         config = yaml.safe_load(yaml_stream)
 
 plasma:
-  casename: 'runs/UNet5/target_case_test/'
+  casename: 'runs/UNet5/target_case_ld/'
 
   params:
     n_periods: 2.0
@@ -52,7 +52,7 @@ plasma:
 network:
   name: 'poscill/UNet5/target_case/'                            # Experience name
   n_gpu: 1                                    # Number of GPUs to use
-  resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/models/nparams/UNet5/target_case/1218_023142/model_best.pth'
+  resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/models/simulation/UNet5/target_case/1221_123107/model_best.pth'
 
   globals:                                    # Domain sizes and others, used to compute global attributes
       nnx: 101
