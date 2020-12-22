@@ -83,11 +83,7 @@ class EnergyLoss(BaseLoss):
         # Need to use data_norm because the rhs has been changed due to scaling
         norm_elec_output = (elec_output[:, 0, :, :] ** 2 + elec_output[:, 1, :, :] ** 2).unsqueeze(1) / data_norm
         energy_output = (0.5 * norm_elec_output - output * data)
-        # elec_target = gradient_scalar(target, self.dx, self.dy)
-        # norm_elec_target = (elec_target[:, 0, :, :] ** 2 + elec_target[:, 1, :, :] ** 2).unsqueeze(1)
-        # energy_target = (0.5 * norm_elec_target - target * data)
         return co.epsilon_0 * torch.sum(energy_output) / self.n_inputs * self.weight
-        # return co.epsilon_0 * F.mse_loss(energy_output, energy_target) * self.weight
 
 
 class ElectricLoss(BaseLoss):

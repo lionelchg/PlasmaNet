@@ -40,10 +40,10 @@ class _ConvscaleFlexible(nn.Module):
             self.scale_filters.append(nn.Conv2d(filters[i], filters[i+1], kernel_size=3, stride=1, padding=0))
 
         if len(filters) > 1:
-          # Final layer, note that there is no ReLU at the end.
-          self.scale_filters.append(nn.ReLU())
-          self.scale_filters.append(nn.ReplicationPad2d(1))
-          self.scale_filters.append(nn.Conv2d(filters[-2], filters[-1], kernel_size=3, stride=1, padding=0))
+            # Final layer, note that there is no ReLU at the end.
+            self.scale_filters.append(nn.ReLU())
+            self.scale_filters.append(nn.ReplicationPad2d(1))
+            self.scale_filters.append(nn.Conv2d(filters[-2], filters[-1], kernel_size=3, stride=1, padding=0))
 
     def forward(self, x):
         for i in range(len(self.scale_filters)):
@@ -101,7 +101,7 @@ class FlexiNet(nn.Module):
             concat_input = filters[i][-1]+filters[i+1][-1]
             self.scales_module.append(_ConvscaleFlexible(concat_input, filters[i]))
 
-        # Final layer to return an output of size 1, when resolution is on its highest
+        # Final layer to return an output of size 1, when resolution is at its highest
         self.final_block = _ConvscaleFlexible(filters[0][-1], [1])
 
 
@@ -119,15 +119,15 @@ class FlexiNet(nn.Module):
             size_int = [int(j * (1/(2**(i)))) for j in list(x.size()[2:])]
 
             # Highest resolution scale only takes input
-            if i ==0:
-              x_out = scale_layer(x)
+            if i == 0:
+                x_out = scale_layer(x)
             else:
-              # Depending if input is added at different scales or not
-              if self.input_val:
-                x_out = scale_layer(torch.cat((F.interpolate(x, size_int, mode='bilinear', align_corners=False),
+                # Depending if input is added at different scales or not
+                if self.input_val:
+                    x_out = scale_layer(torch.cat((F.interpolate(x, size_int, mode='bilinear', align_corners=False),
                                                 F.interpolate(x_out, size_int, mode='bilinear', align_corners=False)), dim=1))
-              else:
-                x_out = scale_layer(F.interpolate(x_out, size_int, mode='bilinear', align_corners=False))
+                else:
+                    x_out = scale_layer(F.interpolate(x_out, size_int, mode='bilinear', align_corners=False))
 
             # Append output of each scale
             self.output_list.append(x_out)
@@ -143,9 +143,9 @@ class FlexiNet(nn.Module):
 
             # First element does not have information from a lower resolution scale           
             if i == 0:
-              x_out = scale_layer(F.interpolate(x_out, size_int, mode='bilinear', align_corners=False))
+                x_out = scale_layer(F.interpolate(x_out, size_int, mode='bilinear', align_corners=False))
             else:
-              x_out = scale_layer(torch.cat((F.interpolate(self.output_list[k], size_int, mode='bilinear', align_corners=False),
+                x_out = scale_layer(torch.cat((F.interpolate(self.output_list[k], size_int, mode='bilinear', align_corners=False),
                                             F.interpolate(x_out, size_int, mode='bilinear', align_corners=False)), dim=1))             
 
         # Final conv to output a single field
