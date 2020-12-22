@@ -14,7 +14,7 @@
 #         config = yaml.safe_load(yaml_stream)
 
 plasma:
-  casename: 'runs/UNet5/target_case_ld/'
+  casename: 'runs/2-networks/config_1/target_case/'
 
   params:
     n_periods: 2.0
