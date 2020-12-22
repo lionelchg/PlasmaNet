@@ -15,4 +15,6 @@ def step(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return (amplitude * np.where(abs(x - x0) / sigma_x < 0.5, np.ones_like(x), np.zeros_like(x))
             * np.where(abs(y - y0) / sigma_y < 0.5, np.ones_like(x), np.zeros_like(x)))
 
-func_dict = {'gaussian': gaussian, 'triangle': triangle, 'step': step}
+def sin2D(x, y, amplitude, Lx, Ly, n, m):
+    """ 2D sines mode """
+    return amplitude * np.sin(n * np.pi * x / Lx) * np.sin(m * np.pi * y / Ly)

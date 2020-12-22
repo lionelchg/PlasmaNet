@@ -13,7 +13,7 @@ from scipy.sparse.linalg import spsolve
 from numba import njit
 
 from .euler import Euler
-from cfdsolver.scalar.init import func_dict
+import cfdsolver.scalar.init as init_funcs
 from poissonsolver.linsystem import matrix_cart, dc_bc
 from poissonsolver.poisson import DatasetPoisson
 from poissonsolver.analytical import PoissonAnalytical
@@ -48,9 +48,8 @@ class PlasmaEuler(Euler):
         self.n_pert = config['params']['n_pert']
 
         sigma = config['params']['sigma']
-        x0, y0, sigma_x, sigma_y = 5e-3, 5e-3, sigma, sigma
-        n_electron = func_dict[config['params']['init_func']](self.X, self.Y, self.n_pert, x0, 
-                            y0, sigma_x, sigma_y) + self.n_back
+        n_electron = getattr(init_funcs, config['params']['init_func'])(self.X, self.Y, self.n_pert, 
+                                *config['params']['init_args']) + self.n_back
         self.U[0] = self.m_e * n_electron
 
         self.omega_p = np.sqrt(self.n_back * co.e**2 / self.m_e / co.epsilon_0)
