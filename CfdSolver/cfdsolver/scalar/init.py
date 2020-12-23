@@ -2,8 +2,13 @@ import numpy as np
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     """ Gaussian function """
-    return amplitude * np.exp(-((x - x0) / sigma_x) ** 2
-                              - ((y - y0) / sigma_y) ** 2)
+    return amplitude * np.exp(-((x - x0) / sigma_x)**2
+                              - ((y - y0) / sigma_y)**2)
+
+def two_gaussians(x, y, amplitude, x0, y0, sigma_x, sigma_y, x01, y01, sigma_x1, sigma_y1):
+    """ Gaussian function """
+    return amplitude * (np.exp(-((x - x0) / sigma_x)**2 - ((y - y0) / sigma_y)**2) + 
+                        np.exp(-((x - x01) / sigma_x1)**2 - ((y - y01) / sigma_y1)**2))
 
 def triangle(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     """ Triangle function """
