@@ -142,7 +142,7 @@ class LongTermLaplacianLoss(LaplacianLoss):
         super().__init__(config, lt_weight)
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         laplacian = lapl(output[:,1].unsqueeze(1) * target_norm / data_norm, self.dx, self.dy, r=self.r_nodes)
-        return F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
+        return F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 1, 1:-1, 1:-1]) * self.weight
         
 
 class ComposedLoss(BaseLoss):

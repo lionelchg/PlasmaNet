@@ -85,14 +85,16 @@ class Trainer(BaseTrainer):
             if self.lt_loss > 0:
                 with torch.no_grad():
                     its_lt = 5 + np.random.randint(5)
-                    long_output = propagate(self.config_sim, output.cpu().numpy(), data.cpu().numpy(), self.model,
-                                            its_lt, self.inference_status, self.ctl_pipes, self.work_pipes)
-                
-                output_lt = self.model(torch.from_numpy(long_output).float().cuda())
+                    data_lt = propagate(self.config_sim, output.cpu().numpy(), data.cpu().numpy(), self.model,
+                                        its_lt, self.inference_status, self.ctl_pipes, self.work_pipes)
+
+                output_lt = self.model(torch.from_numpy(data_lt).float().cuda())
 
                 if multiple_outputs:
                     output = output[:, 0].unsqueeze(1)
-            
+
+                # Add results as a separate channel
+                data = torch.cat((data, data_lt), dim=1)
                 output = torch.cat((output, output_lt), dim=1)
 
             if self.criterion.require_input_data():
@@ -157,7 +159,7 @@ class Trainer(BaseTrainer):
 
         with torch.no_grad():
             for batch_idx, (data, target, data_norm, target_norm) in enumerate(self.valid_data_loader):
-                 
+
                 data, target = data.to(self.device), target.to(self.device)
                 data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
 
@@ -176,15 +178,17 @@ class Trainer(BaseTrainer):
                 if self.lt_loss > 0:
                     its_lt = 5 + np.random.randint(5)
 
-                    long_output = propagate(self.config_sim, output.cpu().numpy(), data.cpu().numpy(), self.model,
-                                            its_lt, self.inference_status, self.ctl_pipes, self.work_pipes)
-                    
-                    output_lt = self.model(torch.from_numpy(long_output).float().cuda())
+                    data_lt = propagate(self.config_sim, output.cpu().numpy(), data.cpu().numpy(), self.model,
+                                        its_lt, self.inference_status, self.ctl_pipes, self.work_pipes)
+
+                    output_lt = self.model(torch.from_numpy(data_lt).float().cuda())
 
                     if multiple_outputs:
                         output = output[:, 0].unsqueeze(1)
-                
-                    output = torch.cat((output, output_lt), dim = 1) 
+
+                    # Add results as a separate channel
+                    data = torch.cat((data, data_lt), dim=1)
+                    output = torch.cat((output, output_lt), dim=1)
 
                 if self.criterion.require_input_data():
                     loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
@@ -269,4 +273,4 @@ class LtTrainer(Trainer):
                  valid_data_loader=None, lr_scheduler=None, len_epoch=None):
         super().__init__(model, criterion, metric_fnts, optimizer, config, data_loader,
                          valid_data_loader, lr_scheduler, len_epoch)
-        self.config_sim = config_sim 
+        self.config_sim = config_sim
