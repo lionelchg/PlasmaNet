@@ -88,7 +88,8 @@ class Trainer(BaseTrainer):
                     data_lt = propagate(self.config_sim, output.cpu().numpy(), data.cpu().numpy(), self.model,
                                         its_lt, self.inference_status, self.ctl_pipes, self.work_pipes)
 
-                output_lt = self.model(torch.from_numpy(data_lt).float().cuda())
+                data_lt = torch.from_numpy(data_lt).float().cuda()
+                output_lt = self.model(data_lt)
 
                 if multiple_outputs:
                     output = output[:, 0].unsqueeze(1)
@@ -181,7 +182,8 @@ class Trainer(BaseTrainer):
                     data_lt = propagate(self.config_sim, output.cpu().numpy(), data.cpu().numpy(), self.model,
                                         its_lt, self.inference_status, self.ctl_pipes, self.work_pipes)
 
-                    output_lt = self.model(torch.from_numpy(data_lt).float().cuda())
+                    data_lt = torch.from_numpy(data_lt).float().cuda()
+                    output_lt = self.model(data_lt)
 
                     if multiple_outputs:
                         output = output[:, 0].unsqueeze(1)
