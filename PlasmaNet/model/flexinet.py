@@ -87,18 +87,18 @@ class FlexiNet(nn.Module):
         for i in range(len(filters)-1):
             concat_input = filters[i][-1]
             if self.input_val:
-                self.scales_module.append(_ConvscaleFlexible(data_channels+
-                      concat_input, filters[i+1]))
+                self.scales_module.append(_ConvscaleFlexible(data_channels +
+                      concat_input, filters[i + 1]))
             else:
-                self.scales_module.append(_ConvscaleFlexible(concat_input, filters[i+1]))
+                self.scales_module.append(_ConvscaleFlexible(concat_input, filters[i + 1]))
 
         # The lowest resolution scale will have two blocks as well (even if not necessary)
         # to ensure a more proportional weight distribution
         self.scales_module.append(_ConvscaleFlexible(filters[-1][-1], filters[-1]))
 
         # Descending loop where scales are added increasing the resolution
-        for i in range(len(filters)-2, -1, -1):
-            concat_input = filters[i][-1]+filters[i+1][-1]
+        for i in range(len(filters) - 2, -1, -1):
+            concat_input = filters[i][-1] + filters[i + 1][-1]
             self.scales_module.append(_ConvscaleFlexible(concat_input, filters[i]))
 
         # Final layer to return an output of size 1, when resolution is at its highest
@@ -116,7 +116,7 @@ class FlexiNet(nn.Module):
 
             # Identify scale and get the size to interpolate
             scale_layer = self.scales_module[i]
-            size_int = [int(j * (1/(2**(i)))) for j in list(x.size()[2:])]
+            size_int = [int(j * (1 / (2**(i)))) for j in list(x.size()[2:])]
 
             # Highest resolution scale only takes input
             if i == 0:
@@ -137,7 +137,7 @@ class FlexiNet(nn.Module):
         for i in range(self.scales):
 
             # Identify scales and get correct size for interpolation
-            scale_layer = self.scales_module[i+scales]
+            scale_layer = self.scales_module[i + self.scales]
             k -= 1 
             size_int = [int(j * (1/(2**(k)))) for j in list(x.size()[2:])]
 

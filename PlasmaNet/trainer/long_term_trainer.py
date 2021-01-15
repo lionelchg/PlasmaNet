@@ -6,6 +6,10 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+import os
+
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+
 import torch
 import numpy as np
 import scipy.constants as co
@@ -82,7 +86,7 @@ def init_subprocesses(num_procs):
         parent_ctl_conns: list of control Pipes parent connections
         parent_work_conns: list of work Pipes parent connections
     """
-    ctx = mp.get_context("fork")  # Faster than "spawn" in our test, which is not needed
+    ctx = mp.get_context("spawn")  # Faster than "spawn" in our test, which is not needed
 
     # Initialize control pipes to manage worker state (sleep, work, return)
     parent_ctl_conns, child_ctl_conns = [], []
@@ -196,7 +200,7 @@ def propagate(config, output, data, model, its, inference_status, ctl_pipes, wor
             # Check if data is available in a Connection and deal with it
             # This should allow asynchronous task execution
             it_count += 1
-            active_pipes = mp.connection.wait(work_pipes, timeout=0.01)  # Lists the connections with pending work
+            active_pipes = mp.connection.wait(work_pipes, timeout=0.0001)  # Lists the connections with pending work
             active_count += len(active_pipes)
             # Send all available data as a single batch
             if len(active_pipes) > 0:

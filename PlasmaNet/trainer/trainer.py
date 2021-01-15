@@ -26,7 +26,6 @@ class Trainer(BaseTrainer):
                  valid_data_loader=None, lr_scheduler=None, len_epoch=None):
         super().__init__(model, criterion, metric_fnts, optimizer, config)
         self.config = config
-        self.lt_loss = config['loss']['args']['lt_weight']
         self.data_loader = data_loader
         if len_epoch is None:
             # epoch-based training
@@ -45,6 +44,7 @@ class Trainer(BaseTrainer):
         self.valid_metrics = MetricTracker('loss', *self.criterion.loss_list,
                                            *[m.__name__ for m in self.metric_ftns], writer=self.writer)
 
+        self.lt_loss = config['loss']['args'].get('lt_weight', 0.0)
         if self.lt_loss > 0:
             # Initializes and launch worker subprocesses for cfdsolver
             (
