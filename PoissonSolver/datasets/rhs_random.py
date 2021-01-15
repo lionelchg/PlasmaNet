@@ -36,6 +36,8 @@ args.add_argument('-nr', '--n_res', default=None, type=int,
                     help='grid of npts/nres on which the random set is taken')
 args.add_argument('-np', '--n_procs', default=None, type=int,
                     help='number of procs')
+args.add_argument('--case', type=str, default=None,
+                  help='Case name')
 args = args.parse_args()
 
 device = args.device
@@ -75,15 +77,18 @@ if __name__ == '__main__':
     # Parameters for the rhs and plotting
     plot = True
     plot_period = int(0.1 * nits)
-    freq_period = int(0.01 * nits)
+    freq_period = int(0.1 * nits)
 
     # Directories declaration and creation if necessary
-    casename = f'{npts:d}x{npts}/random_{n_res:d}/'
+    if args.case is not None:
+        casename = args.case + "/"
+    else:
+        casename = f'{npts:d}x{npts}/random_{n_res:d}/'
     if device == 'mac':
         data_dir = 'outputs/' + casename
         chunksize = 20
     elif device == 'kraken':
-        data_dir = '/scratch/cfd/cheng/DL/datasets/' + casename
+        data_dir = 'outputs/' + casename
         chunksize = 5
 
     fig_dir = data_dir + 'figures/'
@@ -91,6 +96,7 @@ if __name__ == '__main__':
     create_dir(fig_dir)
 
     # Print header of dataset
+    print(f'Casename : {casename:s}')
     print(f'Device : {device:s} - npts = {npts:d} - nits = {nits:d} - n_res = {n_res:d}')
     print(f'Directory : {data_dir:s} - n_procs = {n_procs:d} - chunksize = {chunksize:d}')
 
@@ -111,10 +117,10 @@ if __name__ == '__main__':
         if i % freq_period == 0:
             poisson.physical_rhs = rhs
             poisson.compute_modes()
-    
+
     poisson.plot_pmodes(fig_dir + 'average_modes')
 
     time_stop = time.time()
     np.save(data_dir + 'potential.npy', potential_list)
     np.save(data_dir + 'physical_rhs.npy', physical_rhs_list)
-    print('Elapsed time (s) : %.2e' % (time_stop - time_start))
+    print('Elapsed time (s) : %.2f' % (time_stop - time_start))
