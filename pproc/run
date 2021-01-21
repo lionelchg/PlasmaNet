@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+#SBATCH --job-name=PlasmaNet
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=01:00:00
+#SBATCH --partition=rome
+
+python main.py -c config.yml

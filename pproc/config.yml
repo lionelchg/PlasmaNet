@@ -13,6 +13,24 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: '3-networks/test/'
+casename: '3-networks/nscales/'
 
 data:
+  main_dir: '../outputs/3-networks/log/'
+  trainings: {"UNet5 - random_16":"config_1/random_16/",
+    "UNet5 - random_32":"config_1/random_32/",
+    "UNet6 - random_16":"config_2/random_16/",
+    "UNet6 - random_32":"config_2/random_32/"}
+output:
+  losses:
+    var_dir: 'ComposedLosses'
+    variables: ['DirichletBoundaryLoss', 'LaplacianLoss']
+    data_types: ['train', 'valid']
+  metrics:
+    var_dir: 'Metrics'
+    variables: ['residual', 'Eresidual']
+    data_types: ['train', 'valid']
+  lapl_losses:
+    var_dir: 'ComposedLosses'
+    variables: ['LaplacianLoss']
+    data_types: ['train', 'valid']

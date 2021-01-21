@@ -1,63 +1,85 @@
 import os
+import glob
 import re
 import argparse
-
-from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
+import yaml
 import matplotlib.pyplot as plt
+import glob
+
+# To import the trainings
+from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
+
 from cfdsolver.utils import create_dir
 
-def ax_prop(ax, x, y, label, title):
-    ax.plot(x, y, label=label)
+def ax_prop(ax, title):
+    ax.legend()
     ax.grid(True)
     ax.set_title(title)
     ax.set_yscale('log')
+    ax.legend()
 
-if __name__ == '__main__':
-    fig_dir = 'figures/3-networks/nscales/'
-    create_dir(fig_dir)
-    
-    data_dir = "../outputs/3-networks/log/"
-    train_names = {"UNet5 - random_16":"config_1/random_16/1228_140218/events.out.tfevents.1609160549.krakengpu1.cluster.74639.0",
-                "UNet5 - random_32":"config_1/random_32/1228_140150/events.out.tfevents.1609160519.krakengpu1.cluster.74548.0",
-                "UNet6 - random_16":"config_2/random_16/1228_140113/events.out.tfevents.1609160481.krakengpu2.cluster.26220.0",
-                "UNet6 - random_32":"config_2/random_32/1228_140131/events.out.tfevents.1609160503.krakengpu2.cluster.26294.0"}
-    
-    # Wanted metrics and losses on the plot
-    losses = ["DirichletBoundaryLoss", "LaplacianLoss"]
-    metrics = ["residual", "Eresidual"]
-    data_types = ["train", "valid"]
+def plot_variables(train_names, variables, data_types, figname):
+    """ Plot the variables specified in `variables` and `data_types` for
+    all the training specified in train_names dicitonnary """
+    # Number of variables, data_types
+    nvariables, ndtypes = len(variables), len(data_types)
 
-    # Number of losses, metrics, data_types
-    nlosses, nmetrics, ndtypes = len(losses), len(metrics), len(data_types)
+    # Figure for variables and metrics
+    fig, axes = plt.subplots(nrows=nvariables, ncols=ndtypes, figsize=(5 * ndtypes, 5 * nvariables))
+    axes = axes.reshape(-1)
 
-    # Figure for losses and metrics
-    fig1, axes1 = plt.subplots(nrows=nlosses, ncols=ndtypes, figsize=(5 * nlosses, 5 * ndtypes))
-    fig2, axes2 = plt.subplots(nrows=nmetrics, ncols=ndtypes, figsize=(5 * nmetrics, 5 * ndtypes))
-
-    for train_name, end_folder in train_names.items():
-        case_folder = data_dir + end_folder
-        event_acc = EventAccumulator(case_folder)
+    for train_name, event_file in train_names.items():
+        event_acc = EventAccumulator(event_file)
         event_acc.Reload()
         
-        for i, loss in enumerate(losses):
+        for i, var in enumerate(variables):
             for j, data_type in enumerate(data_types):
                 # E. g. get wall clock, number of steps and value for a scalar 'Accuracy'
-                _, epochs, vals = zip(*event_acc.Scalars(f'ComposedLosses/{loss}/{data_type}'))
-                ax_prop(axes1[i][j], epochs, vals, train_name, f'{loss}/{data_type}')
+                _, epochs, vals = zip(*event_acc.Scalars(f'{var}/{data_type}'))
+                axes[i + j].plot(epochs, vals, label=train_name)
         
-        for i in range(nlosses):
-            for j in range(ndtypes):
-                axes1[i][j].legend()
-        
-        for i, metric in enumerate(metrics):
-            for j, data_type in enumerate(data_types):
-                # E. g. get wall clock, number of steps and value for a scalar 'Accuracy'
-                _, epochs, vals = zip(*event_acc.Scalars(f'Metrics/{metric}/{data_type}'))
-                ax_prop(axes2[i][j], epochs, vals, train_name, f'{metric}/{data_type}')
-        
-        for i in range(nmetrics):
-            for j in range(ndtypes):
-                axes2[i][j].legend()
+    for i in range(nvariables):
+        for j in range(ndtypes):
+            ax_prop(axes[i + j], f'{variables[i]}/{data_types[j]}')
 
-    fig1.savefig(fig_dir + "losses", bbox_inches='tight')
-    fig2.savefig(fig_dir + "metrics", bbox_inches='tight')
+    fig.savefig(figname, bbox_inches='tight')
+
+def autocomplete(data_dir, train_names):
+    """ Autocomplete the path of the trainings events file.
+    Always take the last training in terms of dates """
+    for train_name, end_folder in train_names.items():
+        for sub in os.scandir(data_dir + end_folder):
+            if sub.is_dir():
+                event_file = glob.glob(sub.path + '/events*')[0]
+                train_names[train_name] = event_file
+
+if __name__ == '__main__':
+    args = argparse.ArgumentParser(description='NetworksPostprocessing')
+    args.add_argument('-c', '--config', required=True, type=str,
+                      help='Config file path (default: None)')
+    args = args.parse_args()
+
+    with open(args.config, 'r') as yaml_stream:
+        cfg = yaml.safe_load(yaml_stream)
+
+    # Create directory for the figures
+    fig_dir = 'figures/' + cfg['casename']
+    create_dir(fig_dir)
+    
+    # Directories to find the training data
+    data_dir = cfg['data']['main_dir']
+    train_names = cfg['data']['trainings']
+    autocomplete(data_dir, train_names)
+
+    params_figs = cfg['output']
+
+    for figname in params_figs:
+        # Wanted metrics and losses on the plot
+        var_dir = params_figs[figname]['var_dir']
+        variables = params_figs[figname]['variables']
+        variables = [f'{var_dir}/{tmp_var}' for tmp_var in variables]
+
+        data_types = params_figs[figname]['data_types']
+
+        # Plot the wanted data
+        plot_variables(train_names, variables, data_types, fig_dir + figname)
