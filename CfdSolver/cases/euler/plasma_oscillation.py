@@ -16,6 +16,7 @@ import yaml
 
 from cfdsolver import PlasmaEuler
 
+import argparse
 
 def run(config):
     """ Main function containing initialization, temporal loop and outputs. Takes a config dict as input. """
@@ -63,7 +64,12 @@ def run(config):
 
 if __name__ == '__main__':
 
-    with open('plasma_oscillation.yml', 'r') as yaml_stream:
-        cfg = yaml.safe_load(yaml_stream)
+    args = argparse.ArgumentParser(description='PlasmaNet')
+    args.add_argument('-c', '--config', default=None, type=str,
+                      help='config file path (default: None)')
+    args = args.parse_args()
 
-    run(cfg)
+    with open(args.config, 'r') as yaml_stream:
+        config = yaml.safe_load(yaml_stream)
+
+    run(config)

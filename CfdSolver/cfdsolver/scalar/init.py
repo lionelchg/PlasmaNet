@@ -23,3 +23,12 @@ def step(x, y, amplitude, x0, y0, sigma_x, sigma_y):
 def sin2D(x, y, amplitude, Lx, Ly, n, m):
     """ 2D sines mode """
     return amplitude * np.sin(n * np.pi * x / Lx) * np.sin(m * np.pi * y / Ly)
+
+def gaussians(x, y, params):
+    """ Multiple gaussians with multiple amplitude """
+    profile = np.zeros_like(x)
+    ngauss = int(len(params) / 5)
+    params = np.array(params).reshape(ngauss, 5)
+    for index in range(ngauss):
+        profile += gaussian(x, y, *params[index, :])
+    return profile

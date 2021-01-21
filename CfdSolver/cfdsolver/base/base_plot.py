@@ -27,7 +27,11 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
         field_ticks = [1e14, 1e17, 1e20]
     xmax, ymax = np.max(X), np.max(Y)
     fraction_cbar = 0.1
-    aspect = 1.7 * ymax / fraction_cbar / xmax
+    if geom == 'xr':
+        aspect = 1.7 * ymax / fraction_cbar / xmax
+    else:
+        aspect = 0.85 * ymax / fraction_cbar / xmax
+
     if cmap_scale == 'log':
         cmap = 'Blues'
         pows = np.log10(np.array(field_ticks)).astype(int)
@@ -146,3 +150,7 @@ def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', ax
             vector_field[0, ::arrow_step, ::arrow_step], - vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
     ax.set_title(name)
     ax.set_aspect('equal')
+    scilim_x = int(np.log10(np.max(X)))
+    scilim_y = int(np.log10(np.max(Y)))
+    ax.ticklabel_format(axis='x', style='sci', scilimits=(scilim_x, scilim_x))
+    ax.ticklabel_format(axis='y', style='sci', scilimits=(scilim_y, scilim_y))

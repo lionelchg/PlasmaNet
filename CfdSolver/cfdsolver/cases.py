@@ -59,6 +59,9 @@ def make_cases(cfg):
             elif isinstance(value, list):
                 str_list = [f'{item:.2e}' for item in value]
                 fp.write(key + ' = ' + ' '.join(str_list) + '\n')
+            elif isinstance(value, str):
+                fp.write(f'{key} = {value}\n')
+
     fp.close()
 
     return cases, base_cfg, base_cn

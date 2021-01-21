@@ -47,8 +47,13 @@ class PlasmaEuler(Euler):
         self.n_back = config['params']['n_back']
         self.n_pert = config['params']['n_pert']
 
-        n_electron = getattr(init_funcs, config['params']['init_func'])(self.X, self.Y, self.n_pert, 
-                                *config['params']['init_args']) + self.n_back
+        if config['params']['init_func'] == 'gaussians':
+            n_electron = getattr(init_funcs, config['params']['init_func'])(self.X, self.Y, 
+                                    config['params']['init_args']) + self.n_back
+        else:
+            n_electron = getattr(init_funcs, config['params']['init_func'])(self.X, self.Y, self.n_pert, 
+                                    *config['params']['init_args']) + self.n_back
+
         self.U[0] = self.m_e * n_electron
 
         self.omega_p = np.sqrt(self.n_back * co.e**2 / self.m_e / co.epsilon_0)

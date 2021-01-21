@@ -6,4 +6,4 @@
 #SBATCH --partition=gpu
 #SBATCH --nodelist=krakengpu2
 
-python plasma_oscillation.py -c dl_poscill.yml
+python plasma_oscillation.py -c dl_poscill_3.yml

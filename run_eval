@@ -5,5 +5,6 @@
 #SBATCH --ntasks-per-node=12
 #SBATCH --time=00:10:00
 #SBATCH --partition=gpu
+#SBATCH --nodelist=krakengpu2
 
 python evaluate.py -c eval.yml -r outputs/models/64x64/random_4/0520_164902/model_best.pth
