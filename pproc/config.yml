@@ -1,0 +1,18 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                      Postprocessing networks -- Configuration file                                   #
+#                                                                                                                      #
+#                                           Lionel Cheng, CERFACS, 05.11.2020                                          #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+casename: '3-networks/test/'
+
+data:
