@@ -18,7 +18,7 @@ def ax_prop(ax, title):
     ax.set_yscale('log')
     ax.legend()
 
-def plot_variables(train_names, variables, data_types, figname):
+def plot_variables(train_names, var_dir, variables, data_types, figname):
     """ Plot the variables specified in `variables` and `data_types` for
     all the training specified in train_names dicitonnary """
     # Number of variables, data_types
@@ -32,15 +32,19 @@ def plot_variables(train_names, variables, data_types, figname):
         event_acc = EventAccumulator(event_file)
         event_acc.Reload()
         
+        index = 0
         for i, var in enumerate(variables):
             for j, data_type in enumerate(data_types):
                 # E. g. get wall clock, number of steps and value for a scalar 'Accuracy'
-                _, epochs, vals = zip(*event_acc.Scalars(f'{var}/{data_type}'))
-                axes[i + j].plot(epochs, vals, label=train_name)
-        
+                _, epochs, vals = zip(*event_acc.Scalars(f'{var_dir}/{var}/{data_type}'))
+                axes[index].plot(epochs, vals, label=train_name)
+                index += 1
+
+    index = 0
     for i in range(nvariables):
         for j in range(ndtypes):
-            ax_prop(axes[i + j], f'{variables[i]}/{data_types[j]}')
+            ax_prop(axes[index], f'{variables[i]}/{data_types[j]}')
+            index += 1
 
     fig.savefig(figname, bbox_inches='tight')
 
@@ -77,9 +81,7 @@ if __name__ == '__main__':
         # Wanted metrics and losses on the plot
         var_dir = params_figs[figname]['var_dir']
         variables = params_figs[figname]['variables']
-        variables = [f'{var_dir}/{tmp_var}' for tmp_var in variables]
-
         data_types = params_figs[figname]['data_types']
 
         # Plot the wanted data
-        plot_variables(train_names, variables, data_types, fig_dir + figname)
+        plot_variables(train_names, var_dir, variables, data_types, fig_dir + figname)
