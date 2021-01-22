@@ -30,20 +30,17 @@ class _ConvscaleFlexible(nn.Module):
         self.scale_filters = nn.ModuleList()
 
         # Initialize with input size.
-        self.scale_filters.append(nn.ReplicationPad2d(1))
-        self.scale_filters.append(nn.Conv2d(data_channels, filters[0], kernel_size=3, stride=1, padding=0))
+        self.scale_filters.append(nn.Conv2d(data_channels, filters[0], kernel_size=3, stride=1, padding=1))
 
         # Intermediate layers.
         for i in range(len(filters)-2):
             self.scale_filters.append(nn.ReLU())
-            self.scale_filters.append(nn.ReplicationPad2d(1))
-            self.scale_filters.append(nn.Conv2d(filters[i], filters[i+1], kernel_size=3, stride=1, padding=0))
+            self.scale_filters.append(nn.Conv2d(filters[i], filters[i+1], kernel_size=3, stride=1, padding=1))
 
         if len(filters) > 1:
             # Final layer, note that there is no ReLU at the end.
             self.scale_filters.append(nn.ReLU())
-            self.scale_filters.append(nn.ReplicationPad2d(1))
-            self.scale_filters.append(nn.Conv2d(filters[-2], filters[-1], kernel_size=3, stride=1, padding=0))
+            self.scale_filters.append(nn.Conv2d(filters[-2], filters[-1], kernel_size=3, stride=1, padding=1))
 
     def forward(self, x):
         for i in range(len(self.scale_filters)):

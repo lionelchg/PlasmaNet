@@ -29,6 +29,46 @@ def compl_mul2d(a, b):
         op(a[..., 1], b[..., 0]) + op(a[..., 0], b[..., 1])
     ], dim=-1)
 
+# Ensurer periodicity
+def mirror(x):
+    double_size = []
+    # The input is supposed of dim 4 (bsz, channels, H, W)
+    for i, size in enumerate(list(x.size())):
+        if i < 2:
+            double_size.append(size)
+        # Only double up H and W
+        else:
+            double_size.append(int(2 * size -1))
+
+    # Tensor and mesh_size declaration
+    mirror = torch.zeros(double_size)
+    mesh_size = x.size(3)
+
+    # convert to numpy
+    mirror_np = mirror.cpu().numpy()    
+    x_np = x.cpu().numpy()
+
+    # Mirroring
+    mirror_np[:, :, mesh_size - 1 :, mesh_size - 1 :] = x_np[:,:]
+    mirror_np[:, :, : mesh_size - 1, : mesh_size - 1] = x_np[:, :, -1:0:-1, -1:0:-1]
+    mirror_np[:, :, mesh_size - 1 :, : mesh_size - 1] = - x_np[:, :, :, -1:0:-1]
+    mirror_np[:, :, : mesh_size - 1, mesh_size - 1 :] = - x_np[:, :, -1:0:-1, :]
+
+    # Reconvert to torch
+    mirror = torch.from_numpy(mirror_np).cuda()
+    x = torch.from_numpy(x_np).cuda()
+
+    return mirror
+
+# Not that useful, but just in case, takes simple and doubled up domains.
+def unmirror(x_small, x_big):
+    # Declaration os tensor and mesh size
+    unmirrored = torch.zeros_like(x_small)
+    mesh_size = x_small.size(3)
+
+    # Take correct cuadrant!    
+    unmirrored[:,:] = x_big[:,:, mesh_size - 1 :, mesh_size - 1 :]
+    return unmirrored
 
 ################################################################
 # Fourier layer
@@ -110,13 +150,18 @@ class _SimpleBlock2d(nn.Module):
         self.fc2 = nn.Linear(128, 1)
 
     def forward(self, x):
+
+        # Double up the domain to ensure periodicity
+        # save small domain just in case (not that necessary, but just in case)
+        x_small = x
+        x = mirror(x)
+
         batchsize = x.shape[0]
         size_x, size_y = x.shape[2], x.shape[3]
 
         x = x.permute(0, 2, 3, 1)
         x = self.fc0(x)
         x = x.permute(0, 3, 1, 2)
-        
 
         x1 = self.conv0(x)
         x2 = self.w0(x.view(batchsize, self.width, -1)).view(batchsize, self.width, size_x, size_y)
@@ -141,6 +186,9 @@ class _SimpleBlock2d(nn.Module):
         x = x.permute(0, 2, 3, 1)
         x = self.fc2(x)
         x = x.permute(0, 3, 1, 2)
+
+        # Take the correct cuadrant!
+        x = unmirror(x_small, x)
 
         return x
 
