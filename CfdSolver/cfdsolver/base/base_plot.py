@@ -23,8 +23,11 @@ def round_up(n, decimals=1):
 def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', 
         geom='xr', field_ticks=None, max_value=None):
     # Avoid mutable defaults value
-    if field_ticks is None:
-        field_ticks = [1e14, 1e17, 1e20]
+    if max_value is None:
+        max_value = round_up(np.max(np.abs(field)), decimals=1)
+    else:
+        max_value = round_up(max_value, decimals=1)
+
     xmax, ymax = np.max(X), np.max(Y)
     fraction_cbar = 0.1
     if geom == 'xr':
@@ -33,6 +36,7 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
         aspect = 0.85 * ymax / fraction_cbar / xmax
 
     if cmap_scale == 'log':
+        field_ticks = [max_value * 10**tmp_pow for tmp_pow in range(5)]
         cmap = 'Blues'
         pows = np.log10(np.array(field_ticks)).astype(int)
         levels = np.logspace(pows[0], pows[-1], 100, endpoint=True)
@@ -43,13 +47,12 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
             ax.contourf(X, - Y, field, levels, cmap=cmap, norm=LogNorm())
         fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect, ticks=field_ticks)
     else:
-        if max_value is None:
-            max_value = round_up(np.max(np.abs(field)), decimals=1)
+        field_ticks = np.linspace(-max_value, max_value, 5)
         levels = np.linspace(-max_value, max_value, 101)
         cs1 = ax.contourf(X, Y, field, levels, cmap=cmap)
         if geom == 'xr':
             ax.contourf(X, - Y, field, levels, cmap=cmap)
-        fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect)
+        fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect, ticks=field_ticks)
 
     if geom == 'xr':
         ax.set_yticks([-ymax, -ymax / 2, 0, ymax / 2, ymax])
@@ -134,6 +137,8 @@ def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', ax
     arrow_step = 10
     if max_value is None:
         max_value = round_up(np.max(np.abs(norm_field)), decimals=1)
+    else:
+        max_value = round_up(max_value, decimals=1)
     levels = np.linspace(0, max_value, 101)
     CS = ax.contourf(X, Y, norm_field, levels, cmap=colormap)
     fraction_cbar = 0.1
@@ -142,7 +147,7 @@ def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', ax
         aspect = 1.7 * np.max(Y) / fraction_cbar / np.max(X)
     else:
         aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
-    fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect)
+    fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect, ticks=np.linspace(0, max_value, 5))
     ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
                 vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
     if axi:

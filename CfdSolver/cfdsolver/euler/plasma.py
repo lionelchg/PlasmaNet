@@ -53,7 +53,7 @@ class PlasmaEuler(Euler):
         else:
             n_electron = getattr(init_funcs, config['params']['init_func'])(self.X, self.Y, self.n_pert, 
                                     *config['params']['init_args']) + self.n_back
-
+        
         self.U[0] = self.m_e * n_electron
 
         self.omega_p = np.sqrt(self.n_back * co.e**2 / self.m_e / co.epsilon_0)
@@ -78,15 +78,14 @@ class PlasmaEuler(Euler):
             self.period = (self.period * self.nt_oscill)
 
         self.time = np.zeros(self.nit)
-        # first is center n_e, then n_e at offsets and normE at offsets
-        self.temporals = np.zeros((self.nit, 8))
-        if self.nnx % 2 == 0:
-            tmp_nnx = int(self.nnx / 2)
-            self.nnx_mid = np.array([tmp_nnx, tmp_nnx - 1, tmp_nnx - 1, tmp_nnx], dtype=int)
-            self.nny_mid = np.array([tmp_nnx, tmp_nnx, tmp_nnx - 1, tmp_nnx - 1], dtype=int)
-        else:
-            self.nnx_mid, self.nny_mid = np.array([int(self.nnx / 2)], dtype=int), np.array([int(self.nny / 2)], dtype=int)
-        self.offsets = [0.2, 0.4, 0.6]
+
+        # Retrieve the domain average and the above 0.9 * max values of n_electron
+        self.temporals = np.zeros((self.nit, 2))
+        nep = n_electron - self.n_back
+        self.temporal_indices = get_indices(nep, self.nny, self.nnx, 0.9)
+        self.temporal_ampl = np.zeros(2)
+        self.temporal_ampl[0] = self.domain_ave(nep)
+        self.temporal_ampl[1] = np.mean(nep[self.temporal_indices[:, 0], self.temporal_indices[:, 1]])
 
         # datasets for deep-learning
         self.dl_save = config['output']['dl_save'] == 'yes'
@@ -100,6 +99,7 @@ class PlasmaEuler(Euler):
             # Compute fourier for 100 iterations
             self.dl_plot_period = int(0.1 * self.nit)
             self.fourier_period = int(0.01 * self.nit)
+
 
     def print_init(self):
         """ Print header to sum up the parameters. """
@@ -142,14 +142,22 @@ class PlasmaEuler(Euler):
         E = self.E_field
         E_norm = self.E_norm
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12, 12))
-        plot_ax_scalar(fig, axes[0][0], self.X, self.Y, n_e, r"$n_e$", geom='xy', max_value=1.1*self.n_pert)
-        plot_ax_scalar_1D(fig, axes[0][1], self.X, [0.4, 0.5, 0.6], n_e, r"$n_e$", ylim=[-1.1*self.n_pert, 1.1*self.n_pert])
+        plot_ax_scalar(fig, axes[0][0], self.X, self.Y, n_e, r"$n_e$", geom='xy', max_value=1.2*self.temporal_ampl[1])
+        plot_ax_scalar_1D(fig, axes[0][1], self.X, [0.4, 0.5, 0.6], n_e, r"$n_e$", ylim=[-1.2*self.temporal_ampl[1], 1.2*self.temporal_ampl[1]])
         plot_ax_vector_arrow(fig, axes[1][0], self.X, self.Y, E, 'Electric field', max_value=1.1*self.E_max)
         plot_ax_scalar_1D(fig, axes[1][1], self.X, [0.25, 0.5, 0.75], E_norm, r"$|\mathbf{E}|$", ylim=[0, 1.1*self.E_max])
-        plt.suptitle(rf'$t$ = {self.dtsum:.2e} s')
+        fig.suptitle(rf'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
         fig.savefig(self.fig_dir + f'variables_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
+
+        fig2D, axes2D = plt.subplots(ncols=2, figsize=(12, 6))
+        plot_ax_scalar(fig, axes2D[0], self.X, self.Y, n_e, r"$n_e$", geom='xy', max_value=1.2*self.temporal_ampl[1])
+        plot_ax_vector_arrow(fig, axes2D[1], self.X, self.Y, E, 'Electric field', max_value=1.1*self.E_max)
+        fig2D.suptitle(rf'$t$ = {self.dtsum:.2e} s')
+        fig2D.tight_layout(rect=[0, 0.03, 1, 0.97])
+        fig2D.savefig(self.fig_dir + f'var2D_{self.number:04d}', bbox_inches='tight')
+        plt.close(fig2D)
     
     def postproc(self, it):
         super().postproc(it)
@@ -161,63 +169,66 @@ class PlasmaEuler(Euler):
             if it % self.fourier_period == 0:
                 self.poisson.compute_modes()
 
-    @staticmethod
-    def mean_temp(var, nny_mid, nnx_mid, offset):
-        """ Mean temporal """
-        return 0.25 * (var[nny_mid - offset, nnx_mid] 
-                        + var[nny_mid, nnx_mid + offset] 
-                        + var[nny_mid + offset, nnx_mid] 
-                        + var[nny_mid, nnx_mid - offset])
-    
-    @staticmethod
-    def radial_mean(var, nny_mid, nnx_mid, offset):
-        """ Vector variable with projection onto the e_r vector """
-        return 0.25 * (- var[1, nny_mid - offset, nnx_mid] 
-                        + var[0, nny_mid, nnx_mid + offset] 
-                        + var[1, nny_mid + offset, nnx_mid] 
-                        - var[0, nny_mid, nnx_mid - offset])
-
     def temporal_variables(self, it):
         """ Taking temporal variables in the middle for the single point for nnx
         odd or for the mean of the four points for nnx even """
         nep = self.U[0, :, :] / self.m_e - self.n_back
-        self.temporals[it - 1, 0] = np.mean(nep[self.nny_mid, self.nnx_mid])
-        for i, offset in enumerate(self.offsets):
-            ioffset = int(offset * (self.nnx - 1) / 2)
-            self.temporals[it - 1, 1 + i] = np.mean(self.mean_temp(nep, self.nny_mid, 
-                                                        self.nnx_mid, ioffset))
-            self.temporals[it - 1, 4 + i] = np.mean(self.radial_mean(self.E_field, 
-                                                self.nny_mid, self.nnx_mid, ioffset))
-        self.temporals[it - 1, -1] = self.domain_ave(nep)
+        self.temporals[it - 1, 0] = self.domain_ave(nep)
+        self.temporals[it - 1, 1] = np.mean(nep[self.temporal_indices[:, 0], self.temporal_indices[:, 1]])
 
     def save(self):
         pass
 
     @staticmethod
-    def ax_prop(ax, xlabel, ylabel, axtitle, ylim):
+    def ax_prop(ax, xlabel, ylabel, axtitle, ylim=None, xlim=None):
         ax.grid(True)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.set_title(axtitle)
-        ax.set_ylim(ylim)
         ax.legend()
+        if ylim is not None:
+            ax.set_ylim(ylim)
+        if xlim is not None:
+            ax.set_xlim(xlim)
+    
+    @staticmethod
+    def fft(signal, t):
+        npts = len(t)
+        dt = (t[-1] - t[0]) / (npts - 1)
+        freq = np.fft.rfftfreq(npts, dt)
+        fft_signal = np.abs(np.fft.rfft(signal))**2
+        return freq, fft_signal
 
     def plot_temporal(self):
-        fig, axes = plt.subplots(ncols=2, figsize=(12, 7))
-        axes[0].plot(self.time, self.temporals[:, 0], label='r = 0')
-        for i in range(1):
-            offset = self.offsets[i]
-            axes[0].plot(self.time, self.temporals[:, 1 + i], label=f'r = {offset:.1f} rmax')
-        axes[0].plot(self.time, 10 * self.temporals[:, -1], label=r'10 $\times$ Mean')
-        for i in range(3):
-            offset = self.offsets[i]    
-            axes[1].plot(self.time, self.temporals[:, 4 + i], label=f'r = {offset:.1f} rmax')
-        self.ax_prop(axes[0], '$t$ [s]', r"$n_e$ [m$^{-3}$]", r"Temporal evolution of $n_e$",
-                            [-1.1 * self.n_pert, 1.1 * self.n_pert])
-        self.ax_prop(axes[1], '$t$ [s]', r'$E_r$ [V.m$^{-1}$]', r'Temporal evolution of $E_r$', 
-                                [-1.1 * self.E_max, 1.1 * self.E_max])
+        fig, axes = plt.subplots(ncols=2, nrows=2, figsize=(12, 10))
+        axes = axes.reshape(-1)
+        axes[0].plot(self.time, self.temporals[:, 0], label='Simulation')
+        axes[1].plot(self.time, self.temporals[:, 1], 'k', label='Simulation')
+
+        exact_cos = np.cos(self.omega_p * self.time)
+        axes[0].plot(self.time, self.temporal_ampl[0] * exact_cos, label='Reference')
+        axes[1].plot(self.time, self.temporal_ampl[1] * exact_cos, label='Reference')
+
+        self.ax_prop(axes[0], '$t$ [s]', r"$n_e$ [m$^{-3}$]", r'Domain average of $n_e$',
+                            ylim=[-1.1 * self.temporal_ampl[0], 1.1 * self.temporal_ampl[0]])
+        self.ax_prop(axes[1], '$t$ [s]', r"$n_e$ [m$^{-3}$]", r"$> 0.9\mathrm{max}(n_e)$",
+                            ylim=[-1.1 * self.temporal_ampl[1], 1.1 * self.temporal_ampl[1]])
+
+        freq, fft_nep = self.fft(self.temporals[:, 0], self.time)
+        axes[2].plot(2 * np.pi / self.omega_p * freq, fft_nep, label='Simulation')
+        freq, fft_nep = self.fft(self.temporal_ampl[0] * exact_cos, self.time)
+        axes[2].plot(2 * np.pi / self.omega_p * freq, fft_nep, label='Reference')
+
+        freq, fft_nep = self.fft(self.temporals[:, 1], self.time)
+        axes[3].plot(2 * np.pi / self.omega_p * freq, fft_nep, 'k', label='Simulation')
+        freq, fft_nep = self.fft(self.temporal_ampl[1] * exact_cos, self.time)
+        axes[3].plot(2 * np.pi / self.omega_p * freq, fft_nep, label='Reference')
+
+        self.ax_prop(axes[2], r'$f / f_p$', "", r"PSD of domain average of $n_e$", xlim=[0, 5 * self.omega_p / 2 / np.pi])
+        self.ax_prop(axes[3], r'$f / f_p$', "", r"PSD of $> 0.9\mathrm{max}(n_e)$", xlim=[0, 5 * self.omega_p / 2 / np.pi])
+
         fig.savefig(self.fig_dir + 'temporals', bbox_inches='tight')
-    
+
     def post_temporal(self):
         self.plot_temporal()
         if self.dl_save:
@@ -242,3 +253,15 @@ def compute_flux_cold(U, gamma, r, F):
     # u(rho E + p) - v(rho E + p)
     F[3, 0] = U[1] / U[0] * U[3]
     F[3, 1] = U[2] / U[0] * U[3]
+
+@njit(cache=True)
+def get_indices(profile, nny, nnx, threshold):
+    """ Return the indices [j, i] associated to the number of points which
+    are strictly above threshold * max of the profile """
+    indices = []
+    max_profile = np.max(np.abs(profile))
+    for i in range(nnx):
+        for j in range(nny):
+            if profile[j, i] > threshold * max_profile:
+                indices.append([j, i])
+    return np.array(indices)

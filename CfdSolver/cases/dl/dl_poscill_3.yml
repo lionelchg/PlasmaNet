@@ -59,8 +59,15 @@ network:
   n_gpu: 1                                    # Number of GPUs to use
   # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_1/random_16/1228_140218/model_best.pth'
   # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_1/random_32/1228_140150/model_best.pth'
+
+  # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_2/random_8/0114_115735/model_best.pth'
   resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_2/random_16/1228_140113/model_best.pth'
   # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_2/random_32/1228_140131/model_best.pth'
+
+  # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_4/random_4/0121_111125/model_best.pth'
+  # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_4/random_8/0121_105057/model_best.pth'
+  # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_4/random_16/0121_110053/model_best.pth'
+  # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_4/random_32/0121_110845/model_best.pth'
 
   globals:                                    # Domain sizes and others, used to compute global attributes
       nnx: 201

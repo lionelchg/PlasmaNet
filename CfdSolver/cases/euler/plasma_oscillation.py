@@ -65,7 +65,7 @@ def run(config):
 if __name__ == '__main__':
 
     args = argparse.ArgumentParser(description='PlasmaNet')
-    args.add_argument('-c', '--config', default=None, type=str,
+    args.add_argument('-c', '--config', required=True, type=str,
                       help='config file path (default: None)')
     args = args.parse_args()
 

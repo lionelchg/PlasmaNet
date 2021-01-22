@@ -25,7 +25,7 @@ def plot_variables(train_names, var_dir, variables, data_types, figname):
     nvariables, ndtypes = len(variables), len(data_types)
 
     # Figure for variables and metrics
-    fig, axes = plt.subplots(nrows=nvariables, ncols=ndtypes, figsize=(5 * ndtypes, 5 * nvariables))
+    fig, axes = plt.subplots(nrows=nvariables, ncols=ndtypes, figsize=(6 * ndtypes, 5 * nvariables))
     axes = axes.reshape(-1)
 
     for train_name, event_file in train_names.items():
