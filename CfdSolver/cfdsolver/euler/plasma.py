@@ -156,14 +156,6 @@ class PlasmaEuler(Euler):
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
         fig.savefig(self.fig_dir + f'variables_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
-
-        fig2D, axes2D = plt.subplots(ncols=2, figsize=(12, 6))
-        plot_ax_scalar(fig, axes2D[0], self.X, self.Y, n_e, r"$n_e$", geom='xy', max_value=1.2*self.temporal_ampl[1])
-        plot_ax_vector_arrow(fig, axes2D[1], self.X, self.Y, E, 'Electric field', max_value=1.1*self.E_max)
-        fig2D.suptitle(rf'$t$ = {self.dtsum:.2e} s')
-        fig2D.tight_layout(rect=[0, 0.03, 1, 0.97])
-        fig2D.savefig(self.fig_dir + f'var2D_{self.number:04d}', bbox_inches='tight')
-        plt.close(fig2D)
     
     def postproc(self, it):
         super().postproc(it)

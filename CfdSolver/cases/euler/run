@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 #SBATCH --job-name=PlasmaNet
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=3
+#SBATCH --ntasks-per-node=1
 #SBATCH --time=01:00:00
 #SBATCH --partition=rome
 
-python run_cases.py -np 3
+python plasma_oscillation.py -c poscill_101.yml
