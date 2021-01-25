@@ -14,10 +14,11 @@
 #         config = yaml.safe_load(yaml_stream)
 
 plasma:
-  casename: 'runs/3-networks/config_4/random_16/gaussian/'
+  # casename: 'runs/3-networks/config_4/random_16/gaussian/'
+  casename: 'runs/test_mini/'
 
   params:
-    n_periods: 3.0
+    n_periods: 0.1
     geom: 'xy'
     n_back: 1.0e+16
     n_pert: 1.0e+11
@@ -51,7 +52,7 @@ plasma:
     save: 'plasma_period'
     log_run: 'file'
     verbose: True
-    period: 0.1
+    period: 0.05
     files: 'fig'
     dl_save: 'no'
     nmax_fourier: 10
@@ -96,50 +97,7 @@ network:
           scaling_factor: 1.0e+6
   initializer: 'off'
 
-  optimizer:
-      type: 'Adam'
-      args:
-          lr: 4.e-4
-          weight_decay: 0
-          amsgrad: False                      # AMSGrad variant from paper 'On the convergence of Adam and Beyond'
-
-  loss:
-      type: 'ComposedLoss'
-      pipe_config: True                       # Object initialization require config as first argument
-      args:
-          loss_list:                          # List of the losses to compose if ComposedLoss is used
-              - InsideLoss
-              - DirichletBoundaryLoss
-              - LaplacianLoss
-          inside_weight: 1.                   # Weighting of the loss inside the domain, excluding boundaries (float)
-          bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
-          lapl_weight: 0.2                    # Weighting of the loss on the Laplacian (float)
-          lt_weight: 0.0                      # Weighting of the lt loss, whoch only has a Laplacian term
-          ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation
-
-  metrics:
-      - 'residual'
-      - 'l2_norm'
-      - 'inf_norm'
-
-  lr_scheduler:
-      type: 'ReduceLROnPlateau'
-      plateau_metric: loss                    # monitoring metric for ReduceLROnPlateau step()
-      args:
-          mode: 'min'
-          factor: 0.9                         # Amount scheduler reduces LR by (float)
-          patience: 50                        # Number of epochs the scheduler waits (int)
-          threshold: 3.e-4                    # Relative improvement the scheduler must see (float)
-          threshold_mode: 'rel'
-          verbose: False
 
   trainer:
-      epochs: 300
       save_dir: 'outputs/eval/'
-      save_period: 10
-      plot_period: 10                         # Period to send plots to TensorBoard
       verbosity: 2
-      monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
-      early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
-      tensorboard: true
-      histograms: false                       # Save weights and bias histograms (turned off to increase TensorBoard perf)

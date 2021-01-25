@@ -42,9 +42,9 @@ def run(config):
     # Build model architecture
     model = cfg_dl.init_obj('arch', module_arch)
 
-    # Get function handles of loss and metrics
-    loss_fn = cfg_dl.init_obj('loss', module_loss)
-    metric_fns = [getattr(module_metric, metric) for metric in cfg_dl['metrics']]
+    # # Get function handles of loss and metrics
+    # loss_fn = cfg_dl.init_obj('loss', module_loss)
+    # metric_fns = [getattr(module_metric, metric) for metric in cfg_dl['metrics']]
 
     logger.info('Loading checkpoint: {} ...'.format(cfg_dl['resume']))
     checkpoint = torch.load(cfg_dl['resume'])
