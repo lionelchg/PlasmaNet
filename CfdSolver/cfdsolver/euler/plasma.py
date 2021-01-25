@@ -75,7 +75,7 @@ class PlasmaEuler(Euler):
         # Save every fraction of period
         if self.save_type == 'plasma_period':
             self.save_type = 'iteration'
-            self.period = (self.period * self.nt_oscill)
+            self.period = int(self.period * self.nt_oscill)
 
         self.time = np.zeros(self.nit)
 
@@ -100,6 +100,12 @@ class PlasmaEuler(Euler):
             self.dl_plot_period = int(0.1 * self.nit)
             self.fourier_period = int(0.01 * self.nit)
 
+        # Global figure for article, the list is the times at each we want the plots
+        # in period units
+        if 'global_fig' in config['output']:
+            self.gfig = plt.figure(figsize=(11, 6))
+            self.gperiod = [int(per * self.nt_oscill) for per in config['output']['global_fig']]
+            self.gindex = 0
 
     def print_init(self):
         """ Print header to sum up the parameters. """
@@ -168,6 +174,21 @@ class PlasmaEuler(Euler):
                 self.poisson.plot_2D(self.dl_fig + f'input_{it:05d}')
             if it % self.fourier_period == 0:
                 self.poisson.compute_modes()
+        if it % self.gperiod[self.gindex] == 0 and hasattr(self, 'gfig'):
+            n_e = self.U[0] / self.m_e - self.n_back
+            E = self.E_field
+            tmp_ax1 = self.gfig.add_subplot(2, 3, 2 + self.gindex)
+            plot_ax_scalar(self.gfig, tmp_ax1, self.X, self.Y, n_e, 
+                rf"$n_e(t_{self.gindex+1:d})$", geom='xy', 
+                max_value=1.2*self.temporal_ampl[1],
+                cbar=True if self.gindex == len(self.gperiod) - 1 else False)
+            tmp_ax2 = self.gfig.add_subplot(2, 3, 5 + self.gindex)
+            plot_ax_vector_arrow(self.gfig, tmp_ax2, self.X, self.Y, E, 
+                rf"$\mathbf{{E}}(t_{self.gindex+1:d})$", 
+                max_value=1.1*self.E_max,
+                cbar=True if self.gindex == len(self.gperiod) - 1 else False)
+            
+            self.gindex = min(self.gindex + 1, len(self.gperiod) - 1)
 
     def temporal_variables(self, it):
         """ Taking temporal variables in the middle for the single point for nnx
@@ -180,12 +201,13 @@ class PlasmaEuler(Euler):
         pass
 
     @staticmethod
-    def ax_prop(ax, xlabel, ylabel, axtitle, ylim=None, xlim=None):
+    def ax_prop(ax, xlabel, ylabel, axtitle, ylim=None, xlim=None, legend=True):
         ax.grid(True)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.set_title(axtitle)
-        ax.legend()
+        if legend:
+            ax.legend()
         if ylim is not None:
             ax.set_ylim(ylim)
         if xlim is not None:
@@ -228,6 +250,34 @@ class PlasmaEuler(Euler):
         self.ax_prop(axes[3], r'$f / f_p$', "", r"PSD of $> 0.9\mathrm{max}(n_e)$", xlim=[0, 5])
 
         fig.savefig(self.fig_dir + 'temporals', bbox_inches='tight')
+
+        if hasattr(self, 'gfig'):
+            # Global plot of temporals + 2D snapshots
+            rect = 0.05, 0.25, 0.3, 0.5
+            tmp_ax = self.gfig.add_axes(rect)
+            tmp_ax.plot(self.time, self.temporals[:, 0], color='k')
+
+            self.ax_prop(tmp_ax, '$t$ [s]', r"$n_e$ [m$^{-3}$]", r'Domain average of $n_e(x, y)$',
+                                ylim=[-1.1 * self.temporal_ampl[0], 1.1 * self.temporal_ampl[0]], 
+                                legend=False)
+            self.gfig.axes[0].set_xticks([])
+            self.gfig.axes[2].set_xticks([])
+            self.gfig.axes[2].set_yticks([])
+            self.gfig.axes[4].set_yticks([])
+            for i in range(2, 6):
+                tmp_pos = self.gfig.axes[i].get_position()
+                tmp_pos.x0 -= 0.04
+                tmp_pos.x1 -= 0.04
+                self.gfig.axes[i].set_position(tmp_pos)
+            
+            for i in range(len(self.gperiod)):
+                tmp_ind = self.gperiod[i]
+                tmp_time = self.time[tmp_ind]
+                tmp_ne = self.temporals[tmp_ind, 0]
+                self.gfig.axes[-1].text(tmp_time - 0.04 * self.time[-1], - self.temporal_ampl[0], rf"$t_{i+1:d}$", ha='right', size=15)
+                tmp_ax.plot(tmp_time * np.ones(2), [-1.1 * self.temporal_ampl[0], tmp_ne], 'k--', lw=1.0)
+
+            self.gfig.savefig(self.fig_dir + 'global', bbox_inches='tight')
 
     def post_temporal(self):
         self.plot_temporal()

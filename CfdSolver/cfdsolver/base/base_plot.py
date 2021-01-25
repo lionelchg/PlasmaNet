@@ -21,7 +21,7 @@ def round_up(n, decimals=1):
 
 
 def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', 
-        geom='xr', field_ticks=None, max_value=None):
+        geom='xr', field_ticks=None, max_value=None, cbar=True):
     # Avoid mutable defaults value
     if max_value is None:
         max_value = round_up(np.max(np.abs(field)), decimals=1)
@@ -45,19 +45,19 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
         cs1 = ax.contourf(X, Y, field, levels, cmap=cmap, norm=LogNorm())
         if geom == 'xr':
             ax.contourf(X, - Y, field, levels, cmap=cmap, norm=LogNorm())
-        fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect, ticks=field_ticks)
     else:
         field_ticks = np.linspace(-max_value, max_value, 5)
         levels = np.linspace(-max_value, max_value, 101)
         cs1 = ax.contourf(X, Y, field, levels, cmap=cmap)
         if geom == 'xr':
             ax.contourf(X, - Y, field, levels, cmap=cmap)
+    if cbar:
         fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect, ticks=field_ticks)
 
     if geom == 'xr':
         ax.set_yticks([-ymax, -ymax / 2, 0, ymax / 2, ymax])
 
-    scilimx = int(np.log10(xmax) - 1)
+    scilimx = int(np.log10(xmax))
     ax.ticklabel_format(axis='x', style='sci', scilimits=(scilimx, scilimx))
     ax.ticklabel_format(axis='y', style='sci', scilimits=(scilimx, scilimx))
 
@@ -132,7 +132,8 @@ def plot_global(gstreamer, xrange, figname):
     plt.savefig(figname, bbox_inches='tight')
 
 
-def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', axi=False, max_value=None):
+def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', 
+                            axi=False, max_value=None, cbar=True):
     norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
     arrow_step = 10
     if max_value is None:
@@ -147,7 +148,8 @@ def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', ax
         aspect = 1.7 * np.max(Y) / fraction_cbar / np.max(X)
     else:
         aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
-    fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect, ticks=np.linspace(0, max_value, 5))
+    if cbar: 
+        fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect, ticks=np.linspace(0, max_value, 5))
     ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
                 vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
     if axi:

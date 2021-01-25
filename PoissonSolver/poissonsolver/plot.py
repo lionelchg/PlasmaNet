@@ -164,7 +164,7 @@ def plot_potential(X, Y, dx, dy, potential, nx, ny, figname, figtitle=None, r=No
         lapl_trial = lapl(potential, dx, dy, nx, ny, r=r)
     else:
         lapl_trial = lapl(potential, dx, dy, nx, ny)
-    plot_ax_scalar(fig, axes[2, 0], X, Y, - lapl_trial, '- Laplacian')
+    plot_ax_scalar(fig, axes[2, 0], X, Y, - lapl_trial, 'Charge distribution')
     plot_ax_trial_1D(axes[2][1], x, -  lapl_trial, ny, '1D cuts')
 
     if figtitle is not None:
