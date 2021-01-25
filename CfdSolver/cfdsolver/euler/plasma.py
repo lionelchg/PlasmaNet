@@ -174,21 +174,22 @@ class PlasmaEuler(Euler):
                 self.poisson.plot_2D(self.dl_fig + f'input_{it:05d}')
             if it % self.fourier_period == 0:
                 self.poisson.compute_modes()
-        if it % self.gperiod[self.gindex] == 0 and hasattr(self, 'gfig'):
-            n_e = self.U[0] / self.m_e - self.n_back
-            E = self.E_field
-            tmp_ax1 = self.gfig.add_subplot(2, 3, 2 + self.gindex)
-            plot_ax_scalar(self.gfig, tmp_ax1, self.X, self.Y, n_e, 
-                rf"$n_e(t_{self.gindex+1:d})$", geom='xy', 
-                max_value=1.2*self.temporal_ampl[1],
-                cbar=True if self.gindex == len(self.gperiod) - 1 else False)
-            tmp_ax2 = self.gfig.add_subplot(2, 3, 5 + self.gindex)
-            plot_ax_vector_arrow(self.gfig, tmp_ax2, self.X, self.Y, E, 
-                rf"$\mathbf{{E}}(t_{self.gindex+1:d})$", 
-                max_value=1.1*self.E_max,
-                cbar=True if self.gindex == len(self.gperiod) - 1 else False)
-            
-            self.gindex = min(self.gindex + 1, len(self.gperiod) - 1)
+        if hasattr(self, 'gfig'):
+            if it == self.gperiod[self.gindex]:
+                n_e = self.U[0] / self.m_e - self.n_back
+                E = self.E_field
+                tmp_ax1 = self.gfig.add_subplot(2, 3, 2 + self.gindex)
+                plot_ax_scalar(self.gfig, tmp_ax1, self.X, self.Y, n_e, 
+                    rf"$n_e(t_{self.gindex+1:d})$", geom='xy', 
+                    max_value=1.2*self.temporal_ampl[1],
+                    cbar=True if self.gindex == len(self.gperiod) - 1 else False)
+                tmp_ax2 = self.gfig.add_subplot(2, 3, 5 + self.gindex)
+                plot_ax_vector_arrow(self.gfig, tmp_ax2, self.X, self.Y, E, 
+                    rf"$\mathbf{{E}}(t_{self.gindex+1:d})$", 
+                    max_value=1.1*self.E_max,
+                    cbar=True if self.gindex == len(self.gperiod) - 1 else False)
+                
+                self.gindex = min(self.gindex + 1, len(self.gperiod) - 1)
 
     def temporal_variables(self, it):
         """ Taking temporal variables in the middle for the single point for nnx

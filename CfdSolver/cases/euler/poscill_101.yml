@@ -13,10 +13,10 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/local/101x101/gaussian_img_tests/'
+casename: 'runs/kraken/101x101/gaussian_1p/'
 
 params:
-  n_periods: 0.05
+  n_periods: 1.0
   geom: 'xy'
   n_back: 1.0e+16
   n_pert: 1.0e+11
@@ -47,9 +47,9 @@ BC: 'full_out'
 
 output:
   save: 'plasma_period'
-  log_run: 'terminal'
+  log_run: 'file'
   verbose: True
   period: 0.05
   files: 'fig'
   dl_save: 'no'
-  global_fig: [0.02, 0.04]
+  global_fig: [0.12, 0.5]

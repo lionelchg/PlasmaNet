@@ -14,7 +14,7 @@
 #         config = yaml.safe_load(yaml_stream)
 
 plasma:
-  casename: 'runs/3-networks/config_2/random_16/gaussian_offcenter/'
+  casename: 'runs/3-networks/config_4/random_16/gaussian/'
 
   params:
     n_periods: 3.0
@@ -22,7 +22,9 @@ plasma:
     n_back: 1.0e+16
     n_pert: 1.0e+11
     init_func: 'gaussian'
-    init_args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3]
+    init_args: [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]
+    # init_func: 'gaussian'
+    # init_args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3]
     # init_func: 'two_gaussians'
     # init_args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 
     #             0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]
@@ -61,12 +63,12 @@ network:
   # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_1/random_32/1228_140150/model_best.pth'
 
   # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_2/random_8/0114_115735/model_best.pth'
-  resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_2/random_16/1228_140113/model_best.pth'
+  # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_2/random_16/1228_140113/model_best.pth'
   # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_2/random_32/1228_140131/model_best.pth'
 
   # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_4/random_4/0121_111125/model_best.pth'
   # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_4/random_8/0121_105057/model_best.pth'
-  # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_4/random_16/0121_110053/model_best.pth'
+  resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_4/random_16/0121_110053/model_best.pth'
   # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/3-networks/models/config_4/random_32/0121_110845/model_best.pth'
 
   globals:                                    # Domain sizes and others, used to compute global attributes
