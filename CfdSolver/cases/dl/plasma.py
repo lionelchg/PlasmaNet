@@ -25,10 +25,12 @@ class StreamerMorrowDL(StreamerMorrow):
 class PlasmaEulerDL(PlasmaEuler):
     """ Solve poisson with PlasmaNet. """
     def __init__(self, config):
-        super().__init__(config)
+        super().__init__(config, config_dl)
         self.alpha = 0.1
         self.ratio = self.alpha / (np.pi**2 / 4)**2 / (1 / self.Lx**2 + 1 / self.Ly**2)
         self.scaling_factor = 1.0e+6
+        self.res_sim = config['mesh']['nnx']
+        self.res_train = config_dl['globals']['nnx']
 
     def solve_poisson_dl(self, model):
         """ Solve poisson equation with PlasmaNet. """
@@ -37,7 +39,8 @@ class PlasmaEulerDL(PlasmaEuler):
         physical_rhs_torch = torch.from_numpy(self.physical_rhs[np.newaxis, np.newaxis, :, :] 
                                                 * self.ratio * self.scaling_factor).float().cuda()
         potential_torch = model(physical_rhs_torch)
-        potential_rhs = potential_torch.detach().cpu().numpy()[0, 0] / self.scaling_factor
+        potential_rhs = ((self.res_train**2)/(self.res_sim**2))*potential_torch.detach().cpu().numpy()[0, 0] 
+                                                / self.scaling_factor
         
         self.poisson.potential = potential_rhs
         self.E_field = self.poisson.E_field

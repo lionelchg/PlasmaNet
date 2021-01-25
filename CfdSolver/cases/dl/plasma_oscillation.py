@@ -58,7 +58,7 @@ def run(config):
     model = model.to(device)
     model.eval()    
     
-    sim = PlasmaEulerDL(config['plasma'])
+    sim = PlasmaEulerDL(config['plasma'], config['network'])
     # Print header to sum up the parameters
     if sim.verbose:
         sim.print_init()
