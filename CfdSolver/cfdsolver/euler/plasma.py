@@ -224,8 +224,8 @@ class PlasmaEuler(Euler):
         freq, fft_nep = self.fft(self.temporal_ampl[1] * exact_cos, self.time)
         axes[3].plot(2 * np.pi / self.omega_p * freq, fft_nep, label='Reference')
 
-        self.ax_prop(axes[2], r'$f / f_p$', "", r"PSD of domain average of $n_e$", xlim=[0, 5 * self.omega_p / 2 / np.pi])
-        self.ax_prop(axes[3], r'$f / f_p$', "", r"PSD of $> 0.9\mathrm{max}(n_e)$", xlim=[0, 5 * self.omega_p / 2 / np.pi])
+        self.ax_prop(axes[2], r'$f / f_p$', "", r"PSD of domain average of $n_e$", xlim=[0, 5])
+        self.ax_prop(axes[3], r'$f / f_p$', "", r"PSD of $> 0.9\mathrm{max}(n_e)$", xlim=[0, 5])
 
         fig.savefig(self.fig_dir + 'temporals', bbox_inches='tight')
 

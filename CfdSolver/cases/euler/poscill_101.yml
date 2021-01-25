@@ -13,18 +13,18 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/101x101/gaussian_3p/'
+casename: 'runs/kraken/101x101/two_gaussians_3p/'
 
 params:
   n_periods: 3.0
   geom: 'xy'
   n_back: 1.0e+16
   n_pert: 1.0e+11
-  init_func: 'gaussian'
-  init_args: [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]
-  # init_func: 'two_gaussians'
-  # init_args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 
-  #             0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]
+  # init_func: 'gaussian'
+  # init_args: [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]
+  init_func: 'two_gaussians'
+  init_args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 
+              0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]
   # init_func: 'sin2D'
   # init_args: [1.0e-2, 1.0e-2, 2.0, 2.0]
   sigma: 1.0e-3
