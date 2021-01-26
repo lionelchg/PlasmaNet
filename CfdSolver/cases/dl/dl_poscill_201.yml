@@ -14,8 +14,7 @@
 #         config = yaml.safe_load(yaml_stream)
 
 plasma:
-  # casename: 'runs/3-networks/config_4/random_16/gaussian/'
-  casename: 'runs/test_mini/'
+  casename: 'runs/3-networks/config_4/random_16/gaussian/'
 
   params:
     n_periods: 0.1

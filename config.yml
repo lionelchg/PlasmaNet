@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'config_5/target_case'                      # Experience name
+name: 'config_1/random_2'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -36,7 +36,7 @@ data_loader:
     type: 'PoissonDataLoader'
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/101x101/target_case'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/101x101/random_2'
         batch_size: 64
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion

@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 #SBATCH --job-name=POscillNet
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=5
+#SBATCH --ntasks-per-node=10
 #SBATCH --time=01:00:00
 #SBATCH --partition=gpu
 
-python plasma_oscillation.py -c dl_poscill_101.yml
+python run_cases.py -c dl_poscill_101_cases.yml -np 2

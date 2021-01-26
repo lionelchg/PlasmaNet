@@ -19,8 +19,7 @@ from poissonsolver.poisson import DatasetPoisson
 from poissonsolver.analytical import PoissonAnalytical
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D, plot_ax_vector_arrow
 from ..base.operators import grad
-from ..utils import create_dir
-
+from ..utils import create_dir, save_obj
 
 class PlasmaEuler(Euler):
     def __init__(self, config):
@@ -100,12 +99,23 @@ class PlasmaEuler(Euler):
             self.dl_plot_period = int(0.1 * self.nit)
             self.fourier_period = int(0.01 * self.nit)
 
-        # Global figure for article, the list is the times at each we want the plots
-        # in period units
-        if 'global_fig' in config['output']:
-            self.gfig = plt.figure(figsize=(11, 6))
-            self.gperiod = [int(per * self.nt_oscill) for per in config['output']['global_fig']]
-            self.gindex = 0
+
+        if 'globals' in config['output']:
+            globals_cfg = config['output']['globals']
+
+            # Global figure for article, the list is the times at each we want the plots
+            # in period units
+            if 'fig' in globals_cfg:
+                self.gfig = plt.figure(figsize=(11, 6))
+                self.gperiod = [int(per * self.nt_oscill) for per in globals_cfg['fig']]
+                self.gindex = 0
+
+            # Declaration of globals dictionnary which holds, norm2 of signal, norm2 of FFT 
+            # for domain average and > 0.9 max points as well as onset of instabilities
+            # The instability is in [it, iy, ix] format
+            if globals_cfg['vars'] == 'yes':
+                self.globals = dict()
+                self.globals['instability'] = [self.nit, 0, 0]
 
     def print_init(self):
         """ Print header to sum up the parameters. """
@@ -182,6 +192,8 @@ class PlasmaEuler(Euler):
                     cbar=True if self.gindex == len(self.gperiod) - 1 else False)
                 
                 self.gindex = min(self.gindex + 1, len(self.gperiod) - 1)
+        
+        # Detection of values above max
 
     def temporal_variables(self, it):
         """ Taking temporal variables in the middle for the single point for nnx
@@ -213,6 +225,10 @@ class PlasmaEuler(Euler):
         freq = np.fft.rfftfreq(npts, dt)
         fft_signal = np.abs(np.fft.rfft(signal))**2
         return freq, fft_signal
+    
+    @staticmethod
+    def norm2(y1, y2):
+        return np.sqrt(np.sum((y1 - y2)**2)) / len(y1)
 
     def plot_temporal(self):
         fig, axes = plt.subplots(ncols=2, nrows=2, figsize=(12, 10))
@@ -229,15 +245,15 @@ class PlasmaEuler(Euler):
         self.ax_prop(axes[1], '$t$ [s]', r"$n_e$ [m$^{-3}$]", r"$> 0.9\mathrm{max}(n_e)$",
                             ylim=[-1.1 * self.temporal_ampl[1], 1.1 * self.temporal_ampl[1]])
 
-        freq, fft_nep = self.fft(self.temporals[:, 0], self.time)
-        axes[2].plot(2 * np.pi / self.omega_p * freq, fft_nep, label='Simulation')
-        freq, fft_nep = self.fft(self.temporal_ampl[0] * exact_cos, self.time)
-        axes[2].plot(2 * np.pi / self.omega_p * freq, fft_nep, label='Reference')
+        freq, fft_nep_de = self.fft(self.temporals[:, 0], self.time)
+        axes[2].plot(2 * np.pi / self.omega_p * freq, fft_nep_de, label='Simulation')
+        _, fft_ref_de = self.fft(self.temporal_ampl[0] * exact_cos, self.time)
+        axes[2].plot(2 * np.pi / self.omega_p * freq, fft_ref_de, label='Reference')
 
-        freq, fft_nep = self.fft(self.temporals[:, 1], self.time)
-        axes[3].plot(2 * np.pi / self.omega_p * freq, fft_nep, 'k', label='Simulation')
-        freq, fft_nep = self.fft(self.temporal_ampl[1] * exact_cos, self.time)
-        axes[3].plot(2 * np.pi / self.omega_p * freq, fft_nep, label='Reference')
+        _, fft_nep_max = self.fft(self.temporals[:, 1], self.time)
+        axes[3].plot(2 * np.pi / self.omega_p * freq, fft_nep_max, 'k', label='Simulation')
+        _, fft_ref_max = self.fft(self.temporal_ampl[1] * exact_cos, self.time)
+        axes[3].plot(2 * np.pi / self.omega_p * freq, fft_ref_max, label='Reference')
 
         self.ax_prop(axes[2], r'$f / f_p$', "", r"PSD of domain average of $n_e$", xlim=[0, 5])
         self.ax_prop(axes[3], r'$f / f_p$', "", r"PSD of $> 0.9\mathrm{max}(n_e)$", xlim=[0, 5])
@@ -248,9 +264,10 @@ class PlasmaEuler(Euler):
             # Global plot of temporals + 2D snapshots
             rect = 0.05, 0.25, 0.3, 0.5
             tmp_ax = self.gfig.add_axes(rect)
+            self.time /= self.T_p
             tmp_ax.plot(self.time, self.temporals[:, 0], color='k')
 
-            self.ax_prop(tmp_ax, '$t$ [s]', r"$n_e$ [m$^{-3}$]", r'Domain average of $n_e(x, y)$',
+            self.ax_prop(tmp_ax, '$t / T_p$', r"$n_e$ [m$^{-3}$]", r'Domain average of $n_e(x, y)$',
                                 ylim=[-1.1 * self.temporal_ampl[0], 1.1 * self.temporal_ampl[0]], 
                                 legend=False)
             self.gfig.axes[0].set_xticks([])
@@ -271,9 +288,17 @@ class PlasmaEuler(Euler):
                 tmp_ax.plot(tmp_time * np.ones(2), [-1.1 * self.temporal_ampl[0], tmp_ne], 'k--', lw=1.0)
 
             self.gfig.savefig(self.fig_dir + 'global', bbox_inches='tight')
+        
+        if hasattr(self, 'globals'):
+            self.globals['Norm2 Temporal DE'] = self.norm2(self.temporals[:, 0], self.temporal_ampl[0] * exact_cos)
+            self.globals['Norm2 Frequency DE'] = self.norm2(fft_nep_de, fft_ref_de)
+            self.globals['Norm2 Temporal > 0.9 max'] = self.norm2(self.temporals[:, 1], self.temporal_ampl[1] * exact_cos)
+            self.globals['Norm2 Frequency > 0.9 max'] = self.norm2(fft_nep_max, fft_ref_max)
 
     def post_temporal(self):
         self.plot_temporal()
+        if hasattr(self, 'globals'):
+            save_obj(self.globals, self.case_dir + 'globals')
         if self.dl_save:
             np.save(self.dl_dir + 'potential.npy', self.potential_list)
             np.save(self.dl_dir + 'physical_rhs.npy', self.physical_rhs_list)
