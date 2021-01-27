@@ -119,7 +119,7 @@ class PlasmaEuler(Euler):
                 self.globals['casename'] = self.case_dir
                 self.globals['nnx_sim'] = self.nnx
                 self.globals['Lx_sim'] = self.Lx
-                self.globals['init_profile'] = re_casename.search(self.case_dir).group(2)
+                self.globals['init_profile'] = config['params']['init_func'][0] + str(config['params']['init_func'][1])
                 self.globals['instability_de'] = -1
                 self.globals['instability_max'] = -1
 

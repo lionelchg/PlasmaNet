@@ -37,15 +37,15 @@ def make_cases(cfg):
 
         cases = {}
         for index, element in enumerate(product_params):
-            cases[index] = {}
+            cases[index + 1] = {}
             for i in range(len(list_keys)):
-                cases[index][list_keys[i]] = element[i]
+                cases[index + 1][list_keys[i]] = element[i]
 
     elif mode == 'seq':
         for ncase in range(len(list_params[0])):
-            cases[ncase] = {}
+            cases[ncase + 1] = {}
             for nkey in range(len(list_keys)):
-                cases[ncase][list_keys[nkey]] = list_params[nkey][ncase]
+                cases[ncase + 1][list_keys[nkey]] = list_params[nkey][ncase]
 
     # Write in cases.log the difference cases and their description
     create_dir(base_cn)
