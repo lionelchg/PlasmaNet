@@ -14,10 +14,19 @@ class Mesh:
     def __init__(self, config):
         # Mesh properties
         self.ndim = 2
-        self.nnx, self.nny = config['mesh']['nnx'], config['mesh']['nny']
-        self.ncx, self.ncy = self.nnx - 1, self.nny - 1  # Number of cells
+        self.nnx = config['mesh']['nnx']
         self.xmin, self.xmax = config['mesh']['xmin'], config['mesh']['xmax']
-        self.ymin, self.ymax = config['mesh']['ymin'], config['mesh']['ymax']
+
+        # if there is no y properties a square is assumed with same properties on
+        # x and y axis
+        if 'nny' in config['mesh']: 
+            self.nny = config['mesh']['nny']
+            self.ymin, self.ymax = config['mesh']['ymin'], config['mesh']['ymax']
+        else:
+            self.nny = self.nnx
+            self.ymin, self.ymax = self.xmin, self.xmax
+
+        self.ncx, self.ncy = self.nnx - 1, self.nny - 1  # Number of cells
         self.Lx, self.Ly = self.xmax - self.xmin, self.ymax - self.ymin
         self.dx = (self.xmax - self.xmin) / self.ncx
         self.dy = (self.ymax - self.ymin) / self.ncy

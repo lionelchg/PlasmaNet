@@ -13,29 +13,21 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/2-networks/config_1/random_16/profiles_4p/'
-description: 'Four periods runs of different profiles in 101x101'
-mode: 'seq'
-plasma/params/init_func: ['gaussian', 'gaussian', 'two_gaussians']
-plasma/params/init_args: [[0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3], [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3],
-                    [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]]
+casename: 'runs/article/2-networks/config_1/resolution/'
+description: 'Four periods runs of different profiles in multiple resolutions'
+mode: 'tree'
+plasma/params/init_func: [['gaussian', [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
+                          ['gaussian', [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
+                          ['two_gaussians', [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]]]
+plasma/mesh/nnx: [61, 81, 101, 121, 141, 201]
 
 base:
   plasma:
-    casename: 'runs/2-networks/config_1/random_16/two_gaussians/'
-
     params:
       n_periods: 4.01
       geom: 'xy'
       n_back: 1.0e+16
       n_pert: 1.0e+11
-      # init_func: 'gaussian'
-      # init_args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3]
-      init_func: 'two_gaussians'
-      init_args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 
-                  0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]
-      # init_func: 'sin2D'
-      # init_args: [1.0e-2, 1.0e-2, 2.0, 2.0]
       dt: 1.0e-10
       nt_oscill: 5000
 
@@ -45,11 +37,8 @@ base:
 
     mesh:
       xmin: 0
-      ymin: 0
       xmax: 1.0e-2
-      ymax: 1.0e-2
       nnx: 101
-      nny: 101
 
     BC: 'full_out'
 
@@ -72,8 +61,11 @@ base:
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_0/fourier_5_4/1223_160647/model_best.pth'
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/fourier_5_2/1223_160744/model_best.pth'
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/fourier_5_4/1223_160720/model_best.pth'
+    resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_2/0126_132232/model_best.pth'
+    # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_4/1228_180907/model_best.pth'
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_8/1222_123839/model_best.pth'
-    resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_16/1222_123943/model_best.pth'
+    # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_16/1222_123943/model_best.pth'
+
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/sim_gaussian/1223_165138/model_best.pth'
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_0/target_case/1221_123107/model_best.pth'
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/target_case/1222_133416/model_best.pth'

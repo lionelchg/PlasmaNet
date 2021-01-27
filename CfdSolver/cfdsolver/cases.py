@@ -58,8 +58,7 @@ def make_cases(cfg):
             if isinstance(value, float):
                 fp.write(f'{key} = {value:.2e}\n')
             elif isinstance(value, list):
-                str_list = [f'{item:.2e}' for item in value]
-                fp.write(key + ' = ' + ' '.join(str_list) + '\n')
+                fp.write(key + ' = ' + str(value) + '\n')
             elif isinstance(value, str):
                 fp.write(f'{key} = {value}\n')
 
