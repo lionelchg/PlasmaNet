@@ -31,6 +31,7 @@ import PlasmaNet.model as module_arch
 # @profile
 def run(config):
     """ Main function containing initialization, temporal loop and outputs. Takes a config dict as input. """
+    config['network']['casename'] = config['plasma']['casename']
     cfg_dl = ConfigParser(config['network'])
 
     # Load the network

@@ -1,5 +1,7 @@
+import re
 import numpy as np
 import scipy.constants as co
+
 import torch
 from cfdsolver import StreamerMorrow, PlasmaEuler
 
@@ -31,6 +33,20 @@ class PlasmaEulerDL(PlasmaEuler):
         self.scaling_factor = 1.0e+6
         self.res_sim = config['mesh']['nnx']
         self.res_train = config_dl['globals']['nnx']
+
+        if hasattr(self, 'globals'):
+            self.globals['casename'] = self.case_dir
+            self.globals['nnx_sim'] = self.res_sim
+            self.globals['Lx_sim'] = config['mesh']['xmax']
+            self.globals['nnx_nn'] = self.res_train
+            self.globals['Lx_nn'] = config_dl['globals']['lx']
+            self.globals['arch'] = config_dl['arch']['type']
+            
+            re_casename = re.compile(r'.*/(\w*)/(\w*)/')
+            if re_casename.search(self.case_dir):
+                self.globals['train_dataset'] = re_casename.search(self.case_dir).group(1)
+                self.globals['init_profile'] = re_casename.search(self.case_dir).group(2)
+            
 
     def solve_poisson_dl(self, model):
         """ Solve poisson equation with PlasmaNet. """

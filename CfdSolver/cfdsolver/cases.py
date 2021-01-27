@@ -29,6 +29,7 @@ def make_cases(cfg):
     for key, value in cfg.items():
         list_keys.append(key)
         list_params.append(value)
+    
 
     cases = {}
     if mode == 'tree':

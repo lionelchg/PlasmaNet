@@ -17,7 +17,7 @@ plasma:
   casename: 'runs/2-networks/config_1/random_8/gaussian/'
 
   params:
-    n_periods: 3.01
+    n_periods: 1.01
     geom: 'xy'
     n_back: 1.0e+16
     n_pert: 1.0e+11
@@ -54,7 +54,7 @@ plasma:
     dl_save: 'no'
     nmax_fourier: 10
     globals:
-      fig: [1.7, 2.5]
+      fig: [0.5, 0.9]
       vars: 'yes'
 
 network:
@@ -91,7 +91,5 @@ network:
           scaling_factor: 1.0e+6
   initializer: 'off'
 
-
   trainer:
-      save_dir: 'outputs/eval/'
       verbosity: 2

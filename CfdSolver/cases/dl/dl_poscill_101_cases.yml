@@ -25,7 +25,7 @@ base:
     casename: 'runs/2-networks/config_1/random_16/two_gaussians/'
 
     params:
-      n_periods: 3.0
+      n_periods: 4.01
       geom: 'xy'
       n_back: 1.0e+16
       n_pert: 1.0e+11
@@ -61,9 +61,12 @@ base:
       files: 'fig'
       dl_save: 'no'
       nmax_fourier: 10
+      globals:
+        fig: [2.0, 4.0]
+        vars: 'yes'
 
   network:
-    name: 'poscill/UNet5/target_case/'                            # Experience name
+    name: 'poscill/UNet5/'                            # Experience name
     n_gpu: 1                                    # Number of GPUs to use
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_0/fourier_5_2/1223_160606/model_best.pth'
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_0/fourier_5_4/1223_160647/model_best.pth'
@@ -103,7 +106,5 @@ base:
             scaling_factor: 1.0e+6
     initializer: 'off'
 
-
     trainer:
-        save_dir: 'outputs/eval/'
         verbosity: 2

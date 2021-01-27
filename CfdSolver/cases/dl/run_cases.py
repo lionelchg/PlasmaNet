@@ -7,19 +7,36 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import argparse
 import time
 import yaml
+import copy
+import re
 
 from plasma_oscillation import run
 from cfdsolver.cases import make_cases
 from cfdsolver.utils import create_dir
 
+def set_nested(data, value, *args):
+    """ Function to set arguments with value in nested dictionnary """
+    element = args[0]
+    if len(args) == 1:
+        data[element] = value 
+    else:
+        set_nested(data[element], value, *args[1:])
+
 def params(cases, base_cfg, base_cn):
+    """ Create the configuration files for each run and yield it to be read by
+    each run function """
     for ncase, case in cases.items():
         # deepcopy is very important for recursive copy
         case_cfg = copy.deepcopy(base_cfg)
         for key, value in case.items():
-            keys_search = re_keys.search(key)
-            group_key, inner_key = keys_search.group(1), keys_search.group(2)
-            case_cfg[group_key][inner_key] = value
+            n_slash = key.count("/")
+            nstr = n_slash + 1
+            str_re = r'(\w*)/' * n_slash + r'(\w*)'
+            re_keys = re.search(str_re, key)
+            keys_tmp = []
+            for i in range(nstr):
+                keys_tmp.append(re_keys.group(i + 1))
+            set_nested(case_cfg, value, *keys_tmp)
         case_cfg['plasma']['casename'] = f'{base_cn}case_{ncase:d}/'
         yield case_cfg
 

@@ -44,24 +44,28 @@ class ConfigParser:
         self._config = _update_config(config, modification)
         self.resume = resume
 
-        # Set save_dir where trained model and log will be saved
-        save_dir = Path(self.config['trainer']['save_dir'])
+        if 'save_dir' in self.config['trainer']:
+            # Set save_dir where trained model and log will be saved
+            save_dir = Path(self.config['trainer']['save_dir'])
 
-        exper_name = self.config['name']
-        if run_id is None:  # use timestamp as default run-id
-            run_id = datetime.now().strftime(r'%m%d_%H%M%S')
-        self._save_dir = save_dir / 'models' / exper_name / run_id
-        self._log_dir = save_dir / 'log' / exper_name / run_id
-        self._fig_dir = save_dir / 'figures' / exper_name / run_id
+            exper_name = self.config['name']
+            if run_id is None:  # use timestamp as default run-id
+                run_id = datetime.now().strftime(r'%m%d_%H%M%S')
+            self._save_dir = save_dir / 'models' / exper_name / run_id
+            self._log_dir = save_dir / 'log' / exper_name / run_id
+            self._fig_dir = save_dir / 'figures' / exper_name / run_id
 
-        # Make directories for checkpoints saving and logs
-        exist_ok = run_id == ''  # if True, mkdir ignores FilesExistsError (similar to `mkdir -p`)
-        self.save_dir.mkdir(parents=True, exist_ok=exist_ok)
-        self.log_dir.mkdir(parents=True, exist_ok=exist_ok)
-        self.fig_dir.mkdir(parents=True, exist_ok=exist_ok)
+            # Make directories for checkpoints saving and logs
+            exist_ok = run_id == ''  # if True, mkdir ignores FilesExistsError (similar to `mkdir -p`)
+            self.save_dir.mkdir(parents=True, exist_ok=exist_ok)
+            self.log_dir.mkdir(parents=True, exist_ok=exist_ok)
+            self.fig_dir.mkdir(parents=True, exist_ok=exist_ok)
 
-        # Save updated config file to the checkpoint directory
-        write_yaml(self.config, self.save_dir / 'config.yml')
+            # Save updated config file to the checkpoint directory
+            write_yaml(self.config, self.save_dir / 'config.yml')
+        elif 'casename' in self.config:
+            self._log_dir = Path(self.config['casename'])
+            self.log_dir.mkdir(parents=True, exist_ok=True)
 
         # Declare global runtime parameters attributes
         self.nnx = self.config['globals']['nnx']
@@ -90,7 +94,7 @@ class ConfigParser:
             self.r_nodes = r_nodes
         else:
             self.r_nodes = None
-        
+
         # Configure logging module
         setup_logging(self.log_dir)
         self.log_levels = {

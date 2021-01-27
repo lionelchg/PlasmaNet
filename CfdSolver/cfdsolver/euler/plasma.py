@@ -112,10 +112,12 @@ class PlasmaEuler(Euler):
 
             # Declaration of globals dictionnary which holds, norm2 of signal, norm2 of FFT 
             # for domain average and > 0.9 max points as well as onset of instabilities
-            # The instability is in [it, iy, ix] format
+            # The instability is in [it, iy, ix] format and is triggered if the value goes above
+            # 1.2 of the value at the beginning of the simulation
             if globals_cfg['vars'] == 'yes':
                 self.globals = dict()
-                self.globals['instability'] = [self.nit, 0, 0]
+                self.globals['instability_de'] = self.nit - 1
+                self.globals['instability_max'] = self.nit - 1
 
     def print_init(self):
         """ Print header to sum up the parameters. """
@@ -192,8 +194,6 @@ class PlasmaEuler(Euler):
                     cbar=True if self.gindex == len(self.gperiod) - 1 else False)
                 
                 self.gindex = min(self.gindex + 1, len(self.gperiod) - 1)
-        
-        # Detection of values above max
 
     def temporal_variables(self, it):
         """ Taking temporal variables in the middle for the single point for nnx
@@ -201,6 +201,13 @@ class PlasmaEuler(Euler):
         nep = self.U[0, :, :] / self.m_e - self.n_back
         self.temporals[it - 1, 0] = self.domain_ave(nep)
         self.temporals[it - 1, 1] = np.mean(nep[self.temporal_indices[:, 0], self.temporal_indices[:, 1]])
+
+        # Detection of values above 1.2 * max
+        if hasattr(self, 'globals'):
+            if self.temporals[it - 1, 0] > 1.2 * self.temporal_ampl[0] and self.globals['instability_de'] != self.nit - 1:
+                self.globals['instability_de'] = it - 1
+            if self.temporals[it - 1, 1] > 1.2 * self.temporal_ampl[1] and self.globals['instability_max'] != self.nit - 1:
+                self.globals['instability_max'] = it - 1
 
     def save(self):
         pass
@@ -298,6 +305,9 @@ class PlasmaEuler(Euler):
     def post_temporal(self):
         self.plot_temporal()
         if hasattr(self, 'globals'):
+            # Time has already been divided by T_p above
+            self.globals['instability_de'] = self.time[self.globals['instability_de']]
+            self.globals['instability_max'] = self.time[self.globals['instability_max']]
             save_obj(self.globals, self.case_dir + 'globals')
         if self.dl_save:
             np.save(self.dl_dir + 'potential.npy', self.potential_list)
