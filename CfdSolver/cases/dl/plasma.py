@@ -35,17 +35,13 @@ class PlasmaEulerDL(PlasmaEuler):
         self.res_train = config_dl['globals']['nnx']
 
         if hasattr(self, 'globals'):
-            self.globals['casename'] = self.case_dir
-            self.globals['nnx_sim'] = self.res_sim
-            self.globals['Lx_sim'] = config['mesh']['xmax']
             self.globals['nnx_nn'] = self.res_train
             self.globals['Lx_nn'] = config_dl['globals']['lx']
             self.globals['arch'] = config_dl['arch']['type']
             
-            re_casename = re.compile(r'.*/(\w*)/(\w*)/')
-            if re_casename.search(self.case_dir):
-                self.globals['train_dataset'] = re_casename.search(self.case_dir).group(1)
-                self.globals['init_profile'] = re_casename.search(self.case_dir).group(2)
+            re_casename = re.compile(r'.*/(\w*)/(\w*)/(\w*)/(\w*)/')
+            if re_casename.search(config_dl['resume']):
+                self.globals['train_dataset'] = re_casename.search(config_dl['resume']).group(2)
             
 
     def solve_poisson_dl(self, model):

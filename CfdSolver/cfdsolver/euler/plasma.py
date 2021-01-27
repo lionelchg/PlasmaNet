@@ -116,8 +116,12 @@ class PlasmaEuler(Euler):
             # 1.2 of the value at the beginning of the simulation
             if globals_cfg['vars'] == 'yes':
                 self.globals = dict()
-                self.globals['instability_de'] = self.nit - 1
-                self.globals['instability_max'] = self.nit - 1
+                self.globals['casename'] = self.case_dir
+                self.globals['nnx_sim'] = self.nnx
+                self.globals['Lx_sim'] = self.Lx
+                self.globals['init_profile'] = re_casename.search(self.case_dir).group(2)
+                self.globals['instability_de'] = -1
+                self.globals['instability_max'] = -1
 
     def print_init(self):
         """ Print header to sum up the parameters. """
@@ -204,9 +208,9 @@ class PlasmaEuler(Euler):
 
         # Detection of values above 1.2 * max
         if hasattr(self, 'globals'):
-            if self.temporals[it - 1, 0] > 1.2 * self.temporal_ampl[0] and self.globals['instability_de'] != self.nit - 1:
+            if self.temporals[it - 1, 0] > 1.2 * self.temporal_ampl[0] and self.globals['instability_de'] == -1:
                 self.globals['instability_de'] = it - 1
-            if self.temporals[it - 1, 1] > 1.2 * self.temporal_ampl[1] and self.globals['instability_max'] != self.nit - 1:
+            if self.temporals[it - 1, 1] > 1.2 * self.temporal_ampl[1] and self.globals['instability_max'] == -1:
                 self.globals['instability_max'] = it - 1
 
     def save(self):
@@ -306,8 +310,8 @@ class PlasmaEuler(Euler):
         self.plot_temporal()
         if hasattr(self, 'globals'):
             # Time has already been divided by T_p above
-            self.globals['instability_de'] = self.time[self.globals['instability_de']]
-            self.globals['instability_max'] = self.time[self.globals['instability_max']]
+            self.globals['instability_de'] = self.time[self.globals['instability_de']] if self.globals['instability_de'] != - 1 else 100.0
+            self.globals['instability_max'] = self.time[self.globals['instability_max']] if self.globals['instability_max'] != - 1 else 100.0
             save_obj(self.globals, self.case_dir + 'globals')
         if self.dl_save:
             np.save(self.dl_dir + 'potential.npy', self.potential_list)

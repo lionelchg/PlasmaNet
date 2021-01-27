@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/article/2-networks/config_1/resolution/'
+casename: 'runs/article/2-networks/config_1/resolution/random_8/'
 description: 'Four periods runs of different profiles in multiple resolutions'
 mode: 'tree'
 plasma/params/init_func: [['gaussian', [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
@@ -61,9 +61,9 @@ base:
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_0/fourier_5_4/1223_160647/model_best.pth'
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/fourier_5_2/1223_160744/model_best.pth'
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/fourier_5_4/1223_160720/model_best.pth'
-    resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_2/0126_132232/model_best.pth'
+    # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_2/0126_132232/model_best.pth'
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_4/1228_180907/model_best.pth'
-    # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_8/1222_123839/model_best.pth'
+    resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_8/1222_123839/model_best.pth'
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_16/1222_123943/model_best.pth'
 
     # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/sim_gaussian/1223_165138/model_best.pth'
