@@ -39,9 +39,9 @@ class PlasmaEulerDL(PlasmaEuler):
             self.globals['Lx_nn'] = config_dl['globals']['lx']
             self.globals['arch'] = config_dl['arch']['type']
             
-            re_casename = re.compile(r'.*/(\w*)/(\w*)/(\w*)/(\w*)/')
+            re_casename = re.compile(r'.*/(\w*)/(\w*)/(\w*)')
             if re_casename.search(config_dl['resume']):
-                self.globals['train_dataset'] = re_casename.search(config_dl['resume']).group(2)
+                self.globals['train_dataset'] = re_casename.search(config_dl['resume']).group(1)
             
 
     def solve_poisson_dl(self, model):
