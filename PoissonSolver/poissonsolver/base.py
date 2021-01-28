@@ -70,7 +70,7 @@ class BasePoisson:
         plot_ax_vector_arrow(fig, axes[1], self.X, self.Y, E, 'Electric field', axi=axi)
 
         lapl_field = self.lapl
-        plot_ax_scalar(fig, axes[2], self.X, self.Y, - lapl_field, 'Charge distribution', axi=axi)
+        plot_ax_scalar(fig, axes[2], self.X, self.Y, - lapl_field, 'Charge density', axi=axi)
 
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
         plt.savefig(figname, bbox_inches='tight')
