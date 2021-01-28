@@ -13,12 +13,12 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/201x201/profiles_4p/'
-description: 'Four periods runs of different profiles in 201x201'
+casename: 'runs/kraken/101x101/profiles_4p/'
+description: 'Four periods runs of different profiles in 101x101'
 mode: 'seq'
-params/init_func: ['gaussian', 'gaussian', 'two_gaussians']
-params/init_args: [[0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3], [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3],
-                    [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]]
+params/init_func: [['gaussian', [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
+                  ['gaussian', [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
+                  ['two_gaussians', [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]]]
 
 base:
 
@@ -27,13 +27,6 @@ base:
     geom: 'xy'
     n_back: 1.0e+16
     n_pert: 1.0e+11
-    init_func: 'gaussian'
-    init_args: [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]
-    # init_func: 'two_gaussians'
-    # init_args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 
-    #             0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]
-    # init_func: 'sin2D'
-    # init_args: [1.0e-2, 1.0e-2, 2.0, 2.0]
     sigma: 1.0e-3
     dt: 1.0e-10
     nt_oscill: 5000
@@ -47,8 +40,8 @@ base:
     ymin: 0
     xmax: 1.0e-2
     ymax: 1.0e-2
-    nnx: 201
-    nny: 201
+    nnx: 101
+    nny: 101
 
   BC: 'full_out'
 
@@ -59,4 +52,6 @@ base:
     period: 0.1
     files: 'fig'
     dl_save: 'no'
-    global_fig: [0.12, 0.5]
+    globals:
+      fig: [2.0, 4.01]
+      vars: 'yes'
