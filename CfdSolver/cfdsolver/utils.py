@@ -12,5 +12,5 @@ def save_obj(obj, name):
 
 def load_obj(name):
     """ Load object using pickle """
-    with open(name + '.pkl', 'rb') as f:
+    with open(name, 'rb') as f:
         return pickle.load(f)

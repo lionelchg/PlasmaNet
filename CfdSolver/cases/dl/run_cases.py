@@ -44,9 +44,9 @@ if __name__ == '__main__':
 
     args = argparse.ArgumentParser(description='Multiple cases run')
     args.add_argument('-c', '--config', required=True, type=str,
-                      help='config file path (default: None)')
-    args.add_argument('-np', '--n_procs', default=None, type=int,
-                        help='number of procs')
+                      help='Config file path (default: None)')
+    args.add_argument('-np', '--n_procs', default=1, type=int,
+                        help='Number of procs')
     args = args.parse_args()
 
     with open(args.config, 'r') as yaml_stream:
