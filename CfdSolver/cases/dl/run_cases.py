@@ -11,16 +11,8 @@ import copy
 import re
 
 from plasma_oscillation import run
-from cfdsolver.cases import make_cases
+from cfdsolver.cases import make_cases, set_nested
 from cfdsolver.utils import create_dir
-
-def set_nested(data, value, *args):
-    """ Function to set arguments with value in nested dictionnary """
-    element = args[0]
-    if len(args) == 1:
-        data[element] = value 
-    else:
-        set_nested(data[element], value, *args[1:])
 
 def params(cases, base_cfg, base_cn):
     """ Create the configuration files for each run and yield it to be read by
