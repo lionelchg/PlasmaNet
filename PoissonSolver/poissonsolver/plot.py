@@ -121,7 +121,7 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap='RdBu', axi=False):
 
 def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', axi=False):
     norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
-    arrow_step = 20
+    arrow_step = 10
     max_value = round_up(np.max(np.abs(norm_field)))
     levels = np.linspace(0, max_value, 101)
     ticks = np.linspace(0, max_value, 5)

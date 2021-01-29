@@ -26,8 +26,8 @@ if not os.path.exists(fig_dir):
 
 if __name__ == '__main__':
 
-    n_points = 64
-    n_res = 8
+    n_points = 101
+    n_res = 16
     xmin, xmax = 0, 1
     ymin, ymax = 0, 1
     dx, dy = (xmax - xmin) / (n_points - 1), (ymax - ymin) / (n_points - 1)
@@ -48,15 +48,19 @@ if __name__ == '__main__':
     potential = np.zeros((n_points, n_points))
     physical_rhs = np.zeros((n_points, n_points))
 
-    fig, [ax1, ax2] = plt.subplots(ncols=2, figsize=(14, 7))
-    CS1 = ax1.contourf(X_lower, Y_lower, z_lower, 100, cmap=colormap)
-    cbar1 = fig.colorbar(CS1, pad = 0.05, fraction=0.08, ax=ax1, aspect=5)
-    cbar1.ax.set_ylabel('Under-resolved')
+    fig, [ax1, ax2] = plt.subplots(ncols=2, figsize=(11, 7))
+    CS1 = ax1.imshow(z_lower, cmap=colormap)
+    ax1.set_xticks([])
+    ax1.set_yticks([])
+    ax1.set_xlim([0, n_lower - 1])
+    ax1.set_ylim([0, n_lower - 1])
     ax1.set_aspect("equal")
+    ax1.set_title("Coarse grid")
     CS2 = ax2.contourf(X, Y, z, 100, cmap=colormap)
-    cbar2 = fig.colorbar(CS2, pad = 0.05, fraction=0.08, ax=ax2, aspect=5)
-    cbar2.ax.set_ylabel('Bicubic random')
     ax2.set_aspect("equal")
+    ax2.set_xticks([])
+    ax2.set_yticks([])
+    ax1.set_title("Fine grid")
     plt.savefig(fig_dir + 'bicubic', bbox_inches='tight')
 
     # creating the rhs

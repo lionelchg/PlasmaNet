@@ -36,6 +36,8 @@ args.add_argument('-nm', '--nmax_fourier', default=None, type=int,
                     help='number of fourier modes included')
 args.add_argument('-np', '--n_procs', default=None, type=int,
                     help='number of procs')
+args.add_argument('--case', type=str, default=None,
+                  help='Case name')
 args = args.parse_args()
 
 device = args.device
@@ -56,15 +58,18 @@ rhs0 = ni0 * co.e / co.epsilon_0
 # Parameters for the plotting
 plot = True
 plot_period = int(0.1 * nits)
-freq_period = int(0.01 * nits)
+freq_period = int(0.1 * nits)
 
 # Directories declaration and creation if necessary
-casename = f'{npts:d}x{npts}/fourier_{nmax_fourier:d}_4/'
+if args.case is not None:
+    casename = args.case + "/"
+else:
+    casename = f'{npts:d}x{npts}/fourier_{nmax_fourier:d}_2/'
 if device == 'mac':
     data_dir = 'outputs/' + casename
     chunksize = 20
 elif device == 'kraken':
-    data_dir = '/scratch/cfd/cheng/DL/datasets/' + casename
+    data_dir = 'outputs/' + casename
     chunksize = 5
 
 fig_dir = data_dir + 'figures/'
@@ -76,7 +81,7 @@ def params(nits):
     for i in range(nits):
         random_array = np.random.random((poisson.nmax, poisson.mmax))
         rhs_coefs = rhs0 * (2 * random_array - 1)
-        yield rhs_coefs / (poisson.N**4 + poisson.M**4)
+        yield rhs_coefs / (poisson.N**2 + poisson.M**2)
         # yield rhs_coefs
 
 def compute(args):
