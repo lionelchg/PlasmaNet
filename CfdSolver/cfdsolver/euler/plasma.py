@@ -242,46 +242,54 @@ class PlasmaEuler(Euler):
         return np.sqrt(np.sum((y1 - y2)**2)) / len(y1)
 
     def plot_temporal(self):
-        """ Plot the global temporals with time normalized to plasma period units """ 
+        """ Plot the global temporals with time normalized to plasma period units.
+        Apply the normalization on temporals as well """
+        self.time /= self.T_p
+        self.temporals[:, 0] /= self.temporal_ampl[0]
+        self.temporals[:, 1] /= self.temporal_ampl[1]
+        self.omega_p *= self.T_p
+
         fig, axes = plt.subplots(ncols=2, nrows=2, figsize=(12, 10))
         axes = axes.reshape(-1)
-        axes[0].plot(self.time / self.T_p, self.temporals[:, 0], label='Simulation')
-        axes[1].plot(self.time / self.T_p, self.temporals[:, 1], 'k', label='Simulation')
+        axes[0].plot(self.time, self.temporals[:, 0], label='Simulation')
+        axes[1].plot(self.time, self.temporals[:, 1], 'k', label='Simulation')
 
         exact_cos = np.cos(self.omega_p * self.time)
-        axes[0].plot(self.time / self.T_p, self.temporal_ampl[0] * exact_cos, label='Reference')
-        axes[1].plot(self.time / self.T_p, self.temporal_ampl[1] * exact_cos, label='Reference')
+        axes[0].plot(self.time, exact_cos, label='Reference')
+        axes[1].plot(self.time, exact_cos, label='Reference')
 
         self.ax_prop(axes[0], '$t / T_p$', r"$n_e$ [m$^{-3}$]", r'Domain average of $n_e$',
-                            ylim=[-1.5 * self.temporal_ampl[0], 1.5 * self.temporal_ampl[0]])
+                            ylim=[-1.5, 1.5])
         self.ax_prop(axes[1], '$t / T_p$', r"$n_e$ [m$^{-3}$]", r"$> 0.9\mathrm{max}(n_e)$",
-                            ylim=[-1.5 * self.temporal_ampl[1], 1.5 * self.temporal_ampl[1]])
+                            ylim=[-1.5, 1.5])
 
         freq, fft_nep_de = self.fft(self.temporals[:, 0], self.time)
-        axes[2].plot(2 * np.pi / self.omega_p * freq, fft_nep_de, label='Simulation')
-        _, fft_ref_de = self.fft(self.temporal_ampl[0] * exact_cos, self.time)
-        axes[2].plot(2 * np.pi / self.omega_p * freq, fft_ref_de, label='Reference')
+        freq *= 2 * np.pi / self.omega_p
+        axes[2].plot(freq, fft_nep_de, label='Simulation')
+        _, fft_ref_de = self.fft(exact_cos, self.time)
+        axes[2].plot(freq, fft_ref_de, label='Reference')
 
         _, fft_nep_max = self.fft(self.temporals[:, 1], self.time)
-        axes[3].plot(2 * np.pi / self.omega_p * freq, fft_nep_max, 'k', label='Simulation')
-        _, fft_ref_max = self.fft(self.temporal_ampl[1] * exact_cos, self.time)
-        axes[3].plot(2 * np.pi / self.omega_p * freq, fft_ref_max, label='Reference')
+        axes[3].plot(freq, fft_nep_max, 'k', label='Simulation')
+        _, fft_ref_max = self.fft(exact_cos, self.time)
+        axes[3].plot(freq, fft_ref_max, label='Reference')
 
         self.ax_prop(axes[2], r'$f / f_p$', "", r"PSD of domain average of $n_e$", xlim=[0, 5])
         self.ax_prop(axes[3], r'$f / f_p$', "", r"PSD of $> 0.9\mathrm{max}(n_e)$", xlim=[0, 5])
 
         fig.savefig(self.fig_dir + 'temporals', bbox_inches='tight')
 
-        self.time /= self.T_p
         if hasattr(self, 'gfig'):
             # Global plot of temporals + 2D snapshots
             rect = 0.05, 0.25, 0.3, 0.5
             tmp_ax = self.gfig.add_axes(rect)
             tmp_ax.plot(self.time, self.temporals[:, 0], color='k')
+            tmp_ax.plot(self.time, self.temporals[:, 1], 'k--')
 
-            self.ax_prop(tmp_ax, '$t / T_p$', r"$n_e$ [m$^{-3}$]", r'Domain average of $n_e(x, y)$',
-                                ylim=[-1.5 * self.temporal_ampl[0], 1.5 * self.temporal_ampl[0]], 
+            self.ax_prop(tmp_ax, '$t / T_p$', r"$n_e / n_e^\mathrm{max}$", '',
+                                xlim=[0, self.n_periods], ylim=[-1.5, 1.5], 
                                 legend=False)
+            tmp_ax.grid(False)
             self.gfig.axes[0].set_xticks([])
             self.gfig.axes[2].set_xticks([])
             self.gfig.axes[2].set_yticks([])
@@ -296,15 +304,15 @@ class PlasmaEuler(Euler):
                 tmp_ind = self.gperiod[i]
                 tmp_time = self.time[tmp_ind]
                 tmp_ne = self.temporals[tmp_ind, 0]
-                self.gfig.axes[-1].text(tmp_time - 0.04 * self.time[-1], - 1.35 * self.temporal_ampl[0], rf"$t_{i+1:d}$", ha='right', size=15)
-                tmp_ax.plot(tmp_time * np.ones(2), [-1.5 * self.temporal_ampl[0], tmp_ne], 'k--', lw=1.0)
+                self.gfig.axes[-1].text(tmp_time - 0.04 * self.time[-1], - 1.35, rf"$t_{i+1:d}$", ha='right', size=15)
+                tmp_ax.plot(tmp_time * np.ones(2), [-1.5, tmp_ne], 'k--', lw=1.0)
 
             self.gfig.savefig(self.fig_dir + 'global', bbox_inches='tight')
         
         if hasattr(self, 'globals'):
-            self.globals['Norm2 Temporal DE'] = self.norm2(self.temporals[:, 0], self.temporal_ampl[0] * exact_cos)
+            self.globals['Norm2 Temporal DE'] = self.norm2(self.temporals[:, 0], exact_cos)
             self.globals['Norm2 Frequency DE'] = self.norm2(fft_nep_de, fft_ref_de)
-            self.globals['Norm2 Temporal > 0.9 max'] = self.norm2(self.temporals[:, 1], self.temporal_ampl[1] * exact_cos)
+            self.globals['Norm2 Temporal > 0.9 max'] = self.norm2(self.temporals[:, 1], exact_cos)
             self.globals['Norm2 Frequency > 0.9 max'] = self.norm2(fft_nep_max, fft_ref_max)
 
     def post_temporal(self):
