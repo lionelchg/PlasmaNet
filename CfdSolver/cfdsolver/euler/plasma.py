@@ -243,20 +243,19 @@ class PlasmaEuler(Euler):
 
     def plot_temporal(self):
         """ Plot the global temporals with time normalized to plasma period units """ 
-        self.time /= self.T_p
         fig, axes = plt.subplots(ncols=2, nrows=2, figsize=(12, 10))
         axes = axes.reshape(-1)
-        axes[0].plot(self.time, self.temporals[:, 0], label='Simulation')
-        axes[1].plot(self.time, self.temporals[:, 1], 'k', label='Simulation')
+        axes[0].plot(self.time / self.T_p, self.temporals[:, 0], label='Simulation')
+        axes[1].plot(self.time / self.T_p, self.temporals[:, 1], 'k', label='Simulation')
 
         exact_cos = np.cos(self.omega_p * self.time)
-        axes[0].plot(self.time, self.temporal_ampl[0] * exact_cos, label='Reference')
-        axes[1].plot(self.time, self.temporal_ampl[1] * exact_cos, label='Reference')
+        axes[0].plot(self.time / self.T_p, self.temporal_ampl[0] * exact_cos, label='Reference')
+        axes[1].plot(self.time / self.T_p, self.temporal_ampl[1] * exact_cos, label='Reference')
 
         self.ax_prop(axes[0], '$t / T_p$', r"$n_e$ [m$^{-3}$]", r'Domain average of $n_e$',
-                            ylim=[-1.1 * self.temporal_ampl[0], 1.1 * self.temporal_ampl[0]])
+                            ylim=[-1.5 * self.temporal_ampl[0], 1.5 * self.temporal_ampl[0]])
         self.ax_prop(axes[1], '$t / T_p$', r"$n_e$ [m$^{-3}$]", r"$> 0.9\mathrm{max}(n_e)$",
-                            ylim=[-1.1 * self.temporal_ampl[1], 1.1 * self.temporal_ampl[1]])
+                            ylim=[-1.5 * self.temporal_ampl[1], 1.5 * self.temporal_ampl[1]])
 
         freq, fft_nep_de = self.fft(self.temporals[:, 0], self.time)
         axes[2].plot(2 * np.pi / self.omega_p * freq, fft_nep_de, label='Simulation')
@@ -273,6 +272,7 @@ class PlasmaEuler(Euler):
 
         fig.savefig(self.fig_dir + 'temporals', bbox_inches='tight')
 
+        self.time /= self.T_p
         if hasattr(self, 'gfig'):
             # Global plot of temporals + 2D snapshots
             rect = 0.05, 0.25, 0.3, 0.5
@@ -280,7 +280,7 @@ class PlasmaEuler(Euler):
             tmp_ax.plot(self.time, self.temporals[:, 0], color='k')
 
             self.ax_prop(tmp_ax, '$t / T_p$', r"$n_e$ [m$^{-3}$]", r'Domain average of $n_e(x, y)$',
-                                ylim=[-1.1 * self.temporal_ampl[0], 1.1 * self.temporal_ampl[0]], 
+                                ylim=[-1.5 * self.temporal_ampl[0], 1.5 * self.temporal_ampl[0]], 
                                 legend=False)
             self.gfig.axes[0].set_xticks([])
             self.gfig.axes[2].set_xticks([])
@@ -296,8 +296,8 @@ class PlasmaEuler(Euler):
                 tmp_ind = self.gperiod[i]
                 tmp_time = self.time[tmp_ind]
                 tmp_ne = self.temporals[tmp_ind, 0]
-                self.gfig.axes[-1].text(tmp_time - 0.04 * self.time[-1], - self.temporal_ampl[0], rf"$t_{i+1:d}$", ha='right', size=15)
-                tmp_ax.plot(tmp_time * np.ones(2), [-1.1 * self.temporal_ampl[0], tmp_ne], 'k--', lw=1.0)
+                self.gfig.axes[-1].text(tmp_time - 0.04 * self.time[-1], - 1.35 * self.temporal_ampl[0], rf"$t_{i+1:d}$", ha='right', size=15)
+                tmp_ax.plot(tmp_time * np.ones(2), [-1.5 * self.temporal_ampl[0], tmp_ne], 'k--', lw=1.0)
 
             self.gfig.savefig(self.fig_dir + 'global', bbox_inches='tight')
         

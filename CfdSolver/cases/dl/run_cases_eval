@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 #SBATCH --job-name=POscillNet
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=30
+#SBATCH --ntasks-per-node=15
 #SBATCH --time=02:00:00
 #SBATCH --partition=biggpu
 
-python run_cases.py -c dl_poscill_101_cases.yml -np 6
+python run_cases.py -c dl_poscill_101_cases.yml -np 3
