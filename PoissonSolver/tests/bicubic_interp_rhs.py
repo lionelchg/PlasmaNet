@@ -55,12 +55,10 @@ if __name__ == '__main__':
     ax1.set_xlim([0, n_lower - 1])
     ax1.set_ylim([0, n_lower - 1])
     ax1.set_aspect("equal")
-    ax1.set_title("Coarse grid")
     CS2 = ax2.contourf(X, Y, z, 100, cmap=colormap)
     ax2.set_aspect("equal")
     ax2.set_xticks([])
     ax2.set_yticks([])
-    ax1.set_title("Fine grid")
     plt.savefig(fig_dir + 'bicubic', bbox_inches='tight')
 
     # creating the rhs
