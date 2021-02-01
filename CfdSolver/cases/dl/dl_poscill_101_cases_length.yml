@@ -1,0 +1,99 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                            cfdsolver -- Configuration file                                           #
+#                                                                                                                      #
+#                                           Lionel Cheng, CERFACS, 05.11.2020                                          #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+casename: 'runs/article/2-networks/config_1/length/'
+description: 'Four periods runs of different profiles in multiple domain lengths and for different training datasets'
+mode: 'tree'
+plasma/params/init_func: [['gaussian', [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
+                          ['gaussian', [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
+                          ['two_gaussians', [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]]]
+plasma/mesh/xmax: [1.0e-3, 1.0e-2, 1.0e-1]
+network/resume: ['/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_4/1228_180907/model_best.pth',
+                '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_8/1222_123839/model_best.pth',
+                '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_16/1222_123943/model_best.pth']
+
+base:
+  plasma:
+    params:
+      n_periods: 4.0
+      geom: 'xy'
+      n_back: 1.0e+16
+      n_pert: 1.0e+11
+      dt: 1.0e-10
+      nt_oscill: 5000
+
+    poisson:
+      type: 'lin_system'
+      nmax_fourier: 10
+
+    mesh:
+      xmin: 0
+      xmax: 1.0e-2
+      nnx: 101
+
+    BC: 'full_out'
+
+    output:
+      save: 'plasma_period'
+      log_run: 'file'
+      verbose: True
+      period: 0.25
+      files: 'fig'
+      dl_save: 'no'
+      nmax_fourier: 10
+      globals:
+        fig: [2.0, 3.5]
+        vars: 'yes'
+
+  network:
+    name: 'poscill/UNet5/'                            # Experience name
+    n_gpu: 1                                    # Number of GPUs to use
+    # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_0/fourier_5_2/1223_160606/model_best.pth'
+    # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_0/fourier_5_4/1223_160647/model_best.pth'
+    # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/fourier_5_2/1223_160744/model_best.pth'
+    # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/fourier_5_4/1223_160720/model_best.pth'
+    # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_2/0126_132232/model_best.pth'
+    resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_4/1228_180907/model_best.pth'
+    # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_8/1222_123839/model_best.pth'
+    # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_16/1222_123943/model_best.pth'
+
+
+    globals:                                    # Domain sizes and others, used to compute global attributes
+        nnx: 101
+        nny: 101
+        lx: 0.01
+        ly: 0.01
+        coord: 'cart'
+
+    arch:
+        type: 'UNet5'
+        args:
+            data_channels: 1                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
+
+    data_loader:
+        type: 'PoissonDataLoader'
+        pipe_config: True
+        args:
+            data_dir: '/scratch/cfd/cheng/DL/datasets/101x101/target_case'
+            batch_size: 64
+            shuffle: True
+            validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
+            num_workers: 4
+            normalize: 'analytical'                   # max, physical or no for normalization types
+            scaling_factor: 1.0e+6
+    initializer: 'off'
+
+    trainer:
+        verbosity: 2
