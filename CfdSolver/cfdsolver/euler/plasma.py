@@ -310,10 +310,10 @@ class PlasmaEuler(Euler):
             self.gfig.savefig(self.fig_dir + 'global', bbox_inches='tight')
         
         if hasattr(self, 'globals'):
-            self.globals['Norm2 Temporal DE'] = self.norm2(self.temporals[:, 0], exact_cos)
-            self.globals['Norm2 Frequency DE'] = self.norm2(fft_nep_de, fft_ref_de)
-            self.globals['Norm2 Temporal > 0.9 max'] = self.norm2(self.temporals[:, 1], exact_cos)
-            self.globals['Norm2 Frequency > 0.9 max'] = self.norm2(fft_nep_max, fft_ref_max)
+            self.globals['error_temporal_de'] = self.norm2(self.temporals[:, 0], exact_cos)
+            self.globals['error_spectral_de'] = self.norm2(fft_nep_de, fft_ref_de)
+            self.globals['error_temporal_max'] = self.norm2(self.temporals[:, 1], exact_cos)
+            self.globals['error_spectral_max'] = self.norm2(fft_nep_max, fft_ref_max)
 
     def post_temporal(self):
         self.plot_temporal()
