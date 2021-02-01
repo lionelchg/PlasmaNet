@@ -13,6 +13,7 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import numpy as np
 import scipy.constants as co
 import yaml
+import re
 
 from plasma import PlasmaEulerDL
 
@@ -28,10 +29,24 @@ from PlasmaNet.parse_config import ConfigParser
 from PlasmaNet.trainer.trainer import plot_batch
 import PlasmaNet.model as module_arch
 
+def search_arch(resume_fn):
+    """ Searches the network architecture from the resume file """
+    info_fn = re.sub('model_best.pth', 'info.log', resume_fn)
+    info_fn = re.sub('models', 'log', info_fn)
+    re_arch = re.compile(r'.* - (.*)\(')
+    with open(info_fn, 'r') as fp:
+        fp.readline()
+        line = fp.readline()
+        if re_arch.search(line):
+            arch = re_arch.search(line).group(1)
+            return arch
+
 # @profile
 def run(config):
     """ Main function containing initialization, temporal loop and outputs. Takes a config dict as input. """
     config['network']['casename'] = config['plasma']['casename']
+    config['network']['arch']['type'] = search_arch(config['network']['resume'])
+
     cfg_dl = ConfigParser(config['network'])
 
     # Load the network
