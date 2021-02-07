@@ -208,9 +208,9 @@ class PlasmaEuler(Euler):
 
         # Detection of values above 1.2 * max
         if hasattr(self, 'globals'):
-            if self.temporals[it - 1, 0] > 1.2 * self.temporal_ampl[0] and self.globals['instability_de'] == -1:
+            if abs(self.temporals[it - 1, 0]) > 1.2 * self.temporal_ampl[0] and self.globals['instability_de'] == -1:
                 self.globals['instability_de'] = it - 1
-            if self.temporals[it - 1, 1] > 1.2 * self.temporal_ampl[1] and self.globals['instability_max'] == -1:
+            if abs(self.temporals[it - 1, 1]) > 1.2 * self.temporal_ampl[1] and self.globals['instability_max'] == -1:
                 self.globals['instability_max'] = it - 1
 
     def save(self):
@@ -314,13 +314,22 @@ class PlasmaEuler(Euler):
             self.globals['error_spectral_de'] = self.norm2(fft_nep_de, fft_ref_de)
             self.globals['error_temporal_max'] = self.norm2(self.temporals[:, 1], exact_cos)
             self.globals['error_spectral_max'] = self.norm2(fft_nep_max, fft_ref_max)
+    
+    def set_instability(self, entry):
+        """ Fill the value of instability (max or de) into the globals dictionnary """
+        if self.globals[entry] != - 1:
+            self.globals[f'{entry}_value'] = self.time[self.globals[entry]]
+            self.globals[entry] = 1
+        else:
+            self.globals[f'{entry}_value'] = np.nan
+            self.globals[entry] = 0
 
     def post_temporal(self):
         self.plot_temporal()
         if hasattr(self, 'globals'):
-            # Time has already been divided by T_p above
-            self.globals['instability_de'] = self.time[self.globals['instability_de']] if self.globals['instability_de'] != - 1 else 100.0
-            self.globals['instability_max'] = self.time[self.globals['instability_max']] if self.globals['instability_max'] != - 1 else 100.0
+            self.set_instability('instability_de')
+            self.set_instability('instability_max')
+
             save_obj(self.globals, self.case_dir + 'globals')
         if self.dl_save:
             np.save(self.dl_dir + 'potential.npy', self.potential_list)

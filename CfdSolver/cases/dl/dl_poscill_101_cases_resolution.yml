@@ -18,7 +18,10 @@ description: 'Four periods runs of different profiles in multiple resolutions an
 mode: 'tree'
 plasma/params/init_func: [['gaussian', [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
                           ['gaussian', [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
-                          ['two_gaussians', [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]]]
+                          ['two_gaussians', [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
+                          ['random', [4, 3.0e-3]],
+                          ['random', [8, 3.0e-3]],
+                          ['random', [16, 3.0e-3]]]
 plasma/mesh/nnx: [61, 81, 101, 121, 141, 201]
 network/resume: ['/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_4/1228_180907/model_best.pth',
                 '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_8/1222_123839/model_best.pth',
