@@ -22,7 +22,7 @@ def frame_to_latex(filename, groupname, groupby_name):
     latex_dataset = latex_dataset.reindex(columns=columns_ordered)
     latex_dataset.iloc[:, 0] *= 100
     latex_dataset.iloc[:, 3] *= 100
-    latex_dataset.to_latex('tab_tmp.tex', formatters=format_dict, 
+    latex_dataset.to_latex('tab_tmp.tex', formatters=format_dict, column_format='lcccccc',
                     label='Training datasets comparison', na_rep='-')
     
     fin = open('tab_tmp.tex', 'r')
