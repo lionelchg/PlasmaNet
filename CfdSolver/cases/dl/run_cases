@@ -3,6 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=36
 #SBATCH --time=10:00:00
-#SBATCH --partition=biggpu
+#SBATCH --partition=gpu
+#SBATCH --nodelist=krakengpu2
 
-python run_cases.py -c dl_poscill_101_cases_dataset.yml -np 6
+python run_cases.py -c dl_poscill_101_cases_scales.yml -np 6

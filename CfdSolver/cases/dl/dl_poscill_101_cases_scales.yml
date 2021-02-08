@@ -23,8 +23,13 @@ plasma/params/init_func: [['gaussian', [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
                           ['random', [8, 3.0e-3]],
                           ['random', [16, 3.0e-3]]]
 network/resume: ['/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_6/random_8/0201_022506/model_best.pth',
+                '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_6/random_8_center/0207_122138/model_best.pth',
                 '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_7/random_8/0201_022442/model_best.pth',
-                '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_8/random_8/0201_022412/model_best.pth']
+                '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_7/random_8_center/0207_122229/model_best.pth',
+                '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_8/1222_123839/model_best.pth',
+                '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_8_center/0201_022708/model_best.pth',
+                '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_8/random_8/0201_022412/model_best.pth',
+                '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_8/random_8_center/0207_122312/model_best.pth']
 
 base:
   plasma:
