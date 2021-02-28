@@ -14,8 +14,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.constants as co
 
-from poissonsolver.poisson import Poisson
-from poissonsolver.funcs import gaussian
+from PlasmaNet.poissonsolver.poisson import Poisson
+from PlasmaNet.common.profiles import gaussian
+from PlasmaNet.common.utils import create_dir
 
 
 def th_solution(X, Y, n, m, Lx, Ly):
@@ -23,8 +24,7 @@ def th_solution(X, Y, n, m, Lx, Ly):
 
 if __name__ == '__main__':
     fig_dir = 'figures/convergence/'
-    if not os.path.exists(fig_dir):
-        os.makedirs(fig_dir)
+    create_dir(fig_dir)
 
     xmin, xmax = 0.0, 0.01
     ymin, ymax = 0.0, 0.01

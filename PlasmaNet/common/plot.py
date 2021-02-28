@@ -10,10 +10,22 @@ mpl.rcParams['lines.linewidth'] = 2
 mpl.rcParams['contour.negative_linestyle'] = 'solid'
 default_cmap = 'RdBu'  # 'RdBu'
 
-def round_up(n, decimals=1):
-    power = int(np.log10(n))
-    digit = n / 10**power * 10**decimals
-    return np.ceil(digit) * 10**(power - decimals)
+def round_up(number: float, decimals:int=1) -> float:
+    """ Round function of number
+
+    Args:
+        number (float): a number to round
+        decimals (int, optional): [description]. Defaults to 1.
+
+    Returns:
+        [float]: Round number to *decimals* decimals
+    """
+    if number != 0.0:
+        power = int(np.log10(number))
+        digit = number / 10**power * 10**decimals
+        return np.ceil(digit) * 10**(power - decimals)
+    else:
+        return 1.0
 
 
 def plot_ax_set_1D(axes, x, pot, E_field_norm, lapl_pot, n_points, M, direction='x'):
@@ -66,21 +78,21 @@ def plot_set_1D(x, physical_rhs, pot, E_field_norm, lapl_pot, n_points, figtitle
     plt.close()
 
 
-def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, axi=False):
+def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, geom='xy'):
     """ 2D Matplotlib plots. """
     if no_rhs:
         fig, axes = plt.subplots(ncols=2, figsize=(11, 4))
-        plot_ax_scalar(fig, axes[0], X, Y, pot, r'$\phi$', axi=axi)
-        plot_ax_vector_arrow(fig, axes[1], X, Y, E, r'$\mathbf{E}$', axi=axi)
+        plot_ax_scalar(fig, axes[0], X, Y, pot, r'$\phi$', geom=geom)
+        plot_ax_vector_arrow(fig, axes[1], X, Y, E, r'$\mathbf{E}$', geom=geom)
     else:
-        if axi:
+        if geom == 'xy':
             fig = plt.figure(figsize=(12, 8))
             ax = fig.add_subplot(221)
-            plot_ax_scalar(fig, ax, X, Y, physical_rhs, r'$\rho / \epsilon_0$', axi=axi)
+            plot_ax_scalar(fig, ax, X, Y, physical_rhs, r'$\rho / \epsilon_0$', geom=geom)
             ax = fig.add_subplot(222)
-            plot_ax_scalar(fig, ax, X, Y, pot, r'$\phi$', axi=axi)
+            plot_ax_scalar(fig, ax, X, Y, pot, r'$\phi$', geom=geom)
             ax = fig.add_subplot(212)
-            plot_ax_vector_arrow(fig, ax, X, Y, E, r'$\mathbf{E}$', axi=axi)
+            plot_ax_vector_arrow(fig, ax, X, Y, E, r'$\mathbf{E}$', geom=geom)
         else:
             fig, axes = plt.subplots(ncols=3, figsize=(14, 4))
             plot_ax_scalar(fig, axes[0], X, Y, physical_rhs, r'$\rho / \epsilon_0$')
@@ -92,7 +104,7 @@ def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, axi
     plt.close()
 
 
-# def plot_ax_scalar(fig, ax, X, Y, field, title, cmap='RdBu', axi=False):
+# def plot_ax_scalar(fig, ax, X, Y, field, title, cmap='RdBu', geom=geom):
 #     max_value = round_up(np.max(np.abs(field)))
 #     if cmap == 'RdBu':
 #         # max_value = np.max(np.abs(field))
@@ -161,25 +173,35 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
     ax.set_aspect("equal")
     ax.set_title(title)
 
-def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', axi=False):
+def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', 
+                            geom='xy', max_value=None, cbar=True):
     norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
     arrow_step = 10
-    max_value = round_up(np.max(np.abs(norm_field)))
+
+    if max_value is None:
+        max_value = round_up(np.max(np.abs(norm_field)), decimals=1)
+    else:
+        max_value = round_up(max_value, decimals=1)
+
     levels = np.linspace(0, max_value, 101)
-    ticks = np.linspace(0, max_value, 5)
     CS = ax.contourf(X, Y, norm_field, levels, cmap=colormap)
     fraction_cbar = 0.1
-    if axi:
+
+    if geom == 'xr':
         ax.contourf(X, - Y, norm_field, levels, cmap=colormap)
         aspect = 1.7 * np.max(Y) / fraction_cbar / np.max(X)
     else:
         aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
-    fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect, ticks=ticks)
+
+    if cbar: 
+        fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect, ticks=np.linspace(0, max_value, 5))
     ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
                 vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
-    if axi:
+
+    if geom == 'xr':
         ax.quiver(X[::arrow_step, ::arrow_step], - Y[::arrow_step, ::arrow_step], 
             vector_field[0, ::arrow_step, ::arrow_step], - vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
+    
     ax.set_title(name)
     ax.set_aspect('equal')
     scilim_x = int(np.log10(np.max(X)))

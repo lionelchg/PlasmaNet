@@ -16,7 +16,7 @@ import copy
 from poissonsolver.poisson import Poisson
 from poissonsolver.funcs import gaussian
 
-fig_dir = 'figures/rhs_2D_axi/'
+fig_dir = 'figures/rhs/axi/'
 if not os.path.exists(fig_dir):
     os.makedirs(fig_dir)
 
@@ -38,5 +38,5 @@ if __name__ == '__main__':
     physical_rhs = gaussian(poisson_rx.X.reshape(-1), poisson_rx.Y.reshape(-1), ni0, x0, y0,
                         sigma_x, sigma_y)
     poisson_rx.solve(physical_rhs, zeros_x, zeros_r, zeros_r)
-    poisson_rx.plot_2D(fig_dir + '2D', axi=True)
-    poisson_rx.plot_1D2D(fig_dir + 'full', axi=True)
+    poisson_rx.plot_2D(fig_dir + '2D', geom='xr')
+    poisson_rx.plot_1D2D(fig_dir + 'full', geom='xr')

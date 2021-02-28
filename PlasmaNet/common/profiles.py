@@ -58,17 +58,17 @@ def random1D(x, amplitude, n_res, sigma=None):
     Returns:
         (numpy.ndarray): 1D random profile
     """
-    xmin, xmax, npts = np.min(x), np.max(x), len(x[0, :])
+    xmin, xmax, npts = np.min(x), np.max(x), len(x)
     n_lower = int(npts / n_res)
     x_lower = np.linspace(xmin, xmax, n_lower)
-    z_lower = amplitude * (2 * np.random.random((n_lower, n_lower)) - 1)
-    f = interpolate.interp1d(x_lower, z_lower, kind='cubic')
-    x, y = np.linspace(xmin, xmax, npts), np.linspace(xmin, xmax, npts)
+    random_1D = amplitude * (2 * np.random.random(n_lower) - 1)
+    f = interpolate.interp1d(x_lower, random_1D, kind='cubic')
+    x = np.linspace(xmin, xmax, npts)
     if sigma is None:
-        return f(x, y)
+        return f(x)
     else:
         x0 = (xmax + xmin) / 2
-        return f(x, y) * np.exp(-((x - x0)**2 / sigma**2))
+        return f(x) * np.exp(-((x - x0)**2 / sigma**2))
 
 
 def random2D(X, Y, amplitude, n_res, sigma=None):
