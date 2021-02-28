@@ -84,6 +84,7 @@ if __name__ == '__main__':
         casename = args.case + "/"
     else:
         casename = f'{npts:d}x{npts}/random_{n_res:d}/'
+        
     if device == 'mac':
         data_dir = 'outputs/' + casename
         chunksize = 20

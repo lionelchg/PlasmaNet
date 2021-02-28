@@ -1,8 +1,8 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                        2D Poisson analytical solution tests                                          #
+#                        2D Poisson analytical solution performance against linear system solution                     #
 #                                                                                                                      #
-#                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
+#                                          Lionel Cheng, CERFACS, 28.02.2021                                           #
 #                                                                                                                      #
 ########################################################################################################################
 import os
@@ -11,14 +11,14 @@ import numpy as np
 import scipy.constants as co
 from scipy import interpolate
 
-from poissonsolver.poisson import Poisson
-from poissonsolver.analytical import PoissonAnalytical
-from poissonsolver.funcs import gaussian
-from poissonsolver.utils import create_dir
+from PlasmaNet.poissonsolver.poisson import Poisson
+from PlasmaNet.poissonsolver.analytical import PoissonAnalytical
+from PlasmaNet.common.profiles import gaussian
+from PlasmaNet.common.utils import create_dir
 
 @profile
 def main():
-    fig_dir = 'figures/lsys_vs_th/'
+    fig_dir = 'figures/perfs/'
     create_dir(fig_dir)
 
     nsolv = 3

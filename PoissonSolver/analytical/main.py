@@ -9,14 +9,14 @@ import os
 import numpy as np
 import scipy.constants as co
 
-from poissonsolver.poisson import Poisson
-from poissonsolver.analytical import PoissonAnalytical
-from poissonsolver.funcs import gaussian
+from PlasmaNet.poissonsolver.poisson import Poisson
+from PlasmaNet.poissonsolver.analytical import PoissonAnalytical
+from PlasmaNet.common.profiles import gaussian
+from PlasmaNet.common.utils import create_dir
 
 if __name__ == '__main__':
     fig_dir = 'figures/rhs_class/'
-    if not os.path.exists(fig_dir):
-        os.makedirs(fig_dir)
+    create_dir(fig_dir)
         
     xmin, xmax, nnx = 0, 0.01, 101
     ymin, ymax, nny = 0, 0.01, 101
