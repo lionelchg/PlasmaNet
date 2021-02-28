@@ -12,10 +12,10 @@ from mpl_toolkits.mplot3d import Axes3D
 import copy
 from scipy.sparse.linalg import spsolve
 
-from poissonsolver.linsystem import matrix_cart, matrix_axisym, dc_bc
-from poissonsolver.operators import grad, lapl
-from poissonsolver.base import BasePoisson
-from poissonsolver.plot import plot_modes
+from .linsystem import matrix_cart, matrix_axisym, dc_bc
+from .operators import grad, lapl
+from .base import BasePoisson
+from .plot import plot_modes
 
 
 class Poisson(BasePoisson):

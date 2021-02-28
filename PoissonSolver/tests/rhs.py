@@ -12,15 +12,15 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import numpy as np
 import scipy.constants as co
 
-from poissonsolver.poisson import Poisson
-from poissonsolver.funcs import gaussian
-import cfdsolver.scalar.init as init_funcs
-
-fig_dir = 'figures/rhs_2D/step/'
-if not os.path.exists(fig_dir):
-    os.makedirs(fig_dir)
+from PlasmaNet.common.utils import create_dir
+from PlasmaNet.poissonsolver.poisson import Poisson
+from PlasmaNet.poissonsolver.funcs import gaussian
+import PlasmaNet.common.profiles as init_funcs
 
 if __name__ == '__main__':
+    fig_dir = 'figures/rhs_2D/step/'
+    create_dir(fig_dir)
+
     xmin, xmax, nnx = 0, 0.01, 101
     ymin, ymax, nny = 0, 0.01, 101
     x, y = np.linspace(xmin, xmax, nnx), np.linspace(ymin, ymax, nny)

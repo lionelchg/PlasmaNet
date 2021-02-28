@@ -21,7 +21,6 @@ from poissonsolver.funcs import gaussian
 def th_solution(X, Y, n, m, Lx, Ly):
     return np.sin(n * np.pi * X / Lx) * np.sin(n * np.pi * Y / Ly)
 
-
 if __name__ == '__main__':
     fig_dir = 'figures/convergence/'
     if not os.path.exists(fig_dir):
@@ -36,6 +35,7 @@ if __name__ == '__main__':
     
     nnxs = np.array([51, 101, 201, 401])
     errors = np.zeros(len(nnxs))
+
     for i_err, nnx in enumerate(nnxs):
         print(f'nnx = {nnx:d}')
         nny = nnx

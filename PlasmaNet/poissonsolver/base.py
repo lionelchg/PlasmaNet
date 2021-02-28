@@ -1,10 +1,10 @@
-########################################################################################################################
-#                                                                                                                      #
-#                                            Base class for Poisson solver                                             #
-#                                                                                                                      #
-#                                          Lionel Cheng, CERFACS, 04.11.2020                                           #
-#                                                                                                                      #
-########################################################################################################################
+###########################################################################################################
+#                                                                                                         #
+#                                       Base class for Poisson solver                                     #
+#                                                                                                         #
+#                                     Lionel Cheng, CERFACS, 04.11.2020                                   #
+#                                                                                                         #
+###########################################################################################################
 
 import numpy as np
 import scipy.constants as co
@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib as mpl
 
-from poissonsolver.operators import grad, lapl
-from poissonsolver.plot import plot_ax_scalar, plot_ax_vector_arrow, plot_ax_trial_1D, plot_modes
+from ..common.operators import grad, lapl
+from ..common.plot import plot_ax_scalar, plot_ax_vector_arrow, plot_ax_trial_1D, plot_modes
 
 
 class BasePoisson:
