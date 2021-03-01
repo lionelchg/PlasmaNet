@@ -4,7 +4,6 @@ import mpl_toolkits.mplot3d.axes3d as axes3d
 
 from poissonsolver.operators import lapl, grad
 from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_ax_set_1D, plot_ax_scalar, plot_ax_vector_arrow
-from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from poissonsolver.postproc import lapl_diff, compute_voln, func_energy, func_energy_torch
 import poissonsolver.operators_torch as optorch
 

@@ -74,13 +74,31 @@ class BasePoisson:
 
     @property
     def E_field(self):
+        """ Electric field computation through the gradient of the potential 
+
+        :return: Electric field
+        :rtype: ndarray
+        """
         return - grad(self.potential, self.dx, self.dy, self.nnx, self.nny)
     
     @property
     def lapl(self):
+        """ Laplacian computation of the potential
+
+        :return: the Laplacian of the potential
+        :rtype: ndarray
+        """
         return lapl(self.potential, self.dx, self.dy, self.nnx, self.nny, r=self.R_nodes)
 
     def plot_2D(self, figname, geom='xy'):
+        """ Plot the potential, electric field and laplacian of the Poisson problem
+        at hand in 2D fields
+
+        :param figname: Name of the figure
+        :type figname: str
+        :param geom: Geometry of the problem either xy for cartesian and xr for axisymmetric, defaults to 'xy'
+        :type geom: str, optional
+        """
 
         fig, axes = plt.subplots(ncols=3, figsize=(11, 14))
 
@@ -97,9 +115,15 @@ class BasePoisson:
         plt.close()
 
     def plot_1D2D(self, figname, geom='xy'):
-        # 1D vector
-        x = self.X[0, :]
+        """ Plot the potential, electric field and laplacian of the Poisson problem
+        at hand in 1D cuts and 2D fields
 
+        :param figname: Name of the figure
+        :type figname: str
+        :param geom: Geometry of the problem either xy for cartesian and xr for axisymmetric, defaults to 'xy'
+        :type geom: str, optional
+        """
+        x = self.X[0, :]
         fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(11, 14))
 
         plot_ax_scalar(fig, axes[0][0], self.X, self.Y, self.potential, 'Potential', geom=geom)

@@ -45,7 +45,6 @@ from numba import njit
 
 from poissonsolver.plot import plot_set_2D
 from poissonsolver.operators import grad
-from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from scipy.sparse.linalg import spsolve
 from scipy import interpolate
 from interpolated_plot import plot_fields, plot_fields_all, plot_a_f_fields
