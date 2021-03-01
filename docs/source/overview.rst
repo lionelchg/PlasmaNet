@@ -1,5 +1,5 @@
 Overview of the library
-========================
+=========================
 
 The library contains four main modules:
 

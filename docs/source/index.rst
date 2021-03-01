@@ -9,11 +9,13 @@ PlasmaNet Manual
 Welcome! This is the documentation for ``PlasmaNet``, last updated Mar 1, 2021.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    intro
    overview
+   users
+   developers
 
 
 Indices and tables
