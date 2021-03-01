@@ -94,6 +94,16 @@ and simply adding the target field in the configuration file given by its path.
 More information about the configuration file and its use can be found in the README of the template project
 [here](https://github.com/victoresque/pytorch-template).
 
+### Sphinx documentation
+
+To generate the html documentation of the package go to `docs/` directory and:
+
+```bash
+make html
+```
+
+The generated html documentation will be located in `docs/build/html` and to access it `docs/build/html/index.html` needs to be opened on a web browser.
+
 ## Credits
 
 - Ekhi Ajuria-Illarramendi, for the original work during the summer 2019 workshop
