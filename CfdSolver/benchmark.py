@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 
 from main import main
 
-
 def tts_vs_nnodes(config):
     """ Parametric study of the time to solution vs. number of nodes in the domain. """
     sizes = np.array([17, 33, 65, 101, 151, 201, 283, 501, 751, 1001, 1501, 2001])
@@ -37,7 +36,6 @@ def tts_vs_nnodes(config):
     ax.set_ylabel('simulation duration')
     ax.set_title('Time to solution vs domain size over 100 iterations')
     fig.savefig('tts_vs_nnodes.png', dpi=150, bbox_inches='tight')
-
 
 if __name__ == '__main__':
 

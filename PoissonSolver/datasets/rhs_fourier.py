@@ -91,7 +91,6 @@ def compute(args):
 
     return tmp_potential, tmp_rhs
 
-
 if __name__ == '__main__':
 
     # Print header of dataset
