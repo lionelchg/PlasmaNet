@@ -79,13 +79,13 @@ class DirichletNet(BaseModel):
     rectangular shape (x,y) needs further modifications
     Takes one input, x (BC tensor) of size [bsz,1,1,N]
     Procedure:
-        - Make a series of 1D convolutions on the BC input (array of lenght [bsz, 1, 1, N])
-        - Output of 1D arrays is [bsz,64,N]
-        - Transpose the output to [bsz, N, 64]. This changes stack the channels in a way that gives
-            a priori better results.
-        - Unsqueeze to size [bsz, 1, N, 64] so that it can be used on the 2D convs
-        - Interpolate into size [ bsz, 1, N, N] (useless for the 64x64 case, but useful if
-        - Perform a series of 2D Convolution until the final output is reached [bsz,1, N, N])
+    - Make a series of 1D convolutions on the BC input (array of lenght [bsz, 1, 1, N])
+    - Output of 1D arrays is [bsz,64,N]
+    - Transpose the output to [bsz, N, 64]. This changes stack the channels in a way that gives
+        a priori better results.
+    - Unsqueeze to size [bsz, 1, N, 64] so that it can be used on the 2D convs
+    - Interpolate into size [ bsz, 1, N, N] (useless for the 64x64 case, but useful if
+    - Perform a series of 2D Convolution until the final output is reached [bsz,1, N, N])
     """
     def __init__(self, data_channels):
         super(DirichletNet, self).__init__()

@@ -18,7 +18,27 @@ from ..common.plot import plot_ax_scalar, plot_ax_vector_arrow, plot_ax_trial_1D
 
 
 class BasePoisson:
+    """ Base class for Poisson resolution in 2D cartesian geometry
+    """
     def __init__(self, xmin, xmax, nnx, ymin, ymax, nny, nmax=None):
+        """ Initialize BasePoissson class with the box boundaries and number of
+        nodes in x and y directions
+
+        :param xmin: Minimum x
+        :type xmin: float
+        :param xmax: Maximum x
+        :type xmax: float
+        :param nnx: Number of nodes in x direction
+        :type nnx: int
+        :param ymin: Minimum y
+        :type ymin: float
+        :param ymax: Maximum y
+        :type ymax: float
+        :param nny: Number of nodse in y direction
+        :type nny: int
+        :param nmax: Number of modes included in the postprocessing, defaults to None
+        :type nmax: int, optional
+        """
         self.xmin, self.xmax, self.ymin, self.ymax = xmin, xmax, ymin, ymax
         self.Lx, self.Ly = xmax - xmin, ymax - ymin
         self.dx, self.dy = (xmax - xmin) / (nnx - 1), (ymax - ymin) / (nny - 1)
@@ -44,7 +64,7 @@ class BasePoisson:
             self.coeffs_pot = np.zeros(self.N.shape)
 
     def compute_voln(self):
-        """ Computes the nodal volume associated to each node (i, j) """
+        """ Computes the nodal volume associated to each node (j, i) """
         voln = np.ones_like(self.X) * self.dx * self.dy
         voln[:, 0], voln[:, -1], voln[0, :], voln[-1, :] = \
             self.dx * self.dy / 2, self.dx * self.dy / 2, self.dx * self.dy / 2, self.dx * self.dy / 2

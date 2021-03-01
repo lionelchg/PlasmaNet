@@ -338,9 +338,9 @@ class UNet6(BaseModel):
 class UNet6_big(BaseModel):
     """
     Define the network. Only input when called is number of data (input) channels.
-        - Perform 4 levels of convolution
-        - When returning to the original size, concatenate output of matching sizes
-        - The smaller domains are upsampled to the desired size with the F.upsample function.
+    - Perform 4 levels of convolution
+    - When returning to the original size, concatenate output of matching sizes
+    - The smaller domains are upsampled to the desired size with the F.upsample function.
     """
     def __init__(self, data_channels):
         super(UNet6_big, self).__init__()
@@ -381,9 +381,9 @@ class MSUNet5(BaseModel):
     """
     Define the network, merge between UNet and MSNet.
     Only input when called is number of data (input) channels.
-        - Perform 5 levels of convolution
-        - When returning to the original size, concatenate output of matching sizes
-        - The smaller domains are upsampled to the desired size with the F.upsample function.
+    - Perform 5 levels of convolution
+    - When returning to the original size, concatenate output of matching sizes
+    - The smaller domains are upsampled to the desired size with the F.upsample function.
     """
     def __init__(self, data_channels):
         super(MSUNet5, self).__init__()
@@ -421,9 +421,9 @@ class MSUNet5(BaseModel):
 class UNet5_gen(BaseModel):
     """
     Define the network. Only input when called is number of data (input) channels.
-        - Perform 4 levels of convolution
-        - When returning to the original size, concatenate output of matching sizes
-        - The smaller domains are upsampled to the desired size with the F.upsample function.
+    - Perform 4 levels of convolution
+    - When returning to the original size, concatenate output of matching sizes
+    - The smaller domains are upsampled to the desired size with the F.upsample function.
     """
     def __init__(self, data_channels):
         super(UNet5_gen, self).__init__()

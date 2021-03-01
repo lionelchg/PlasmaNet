@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 def plot_dataloader_complete(d_1, d_2, d_3, d_4, potential, physical_rhs, x_tensor, y_tensor, folder):
     """
     Takes as inputs:
-
     - 4 boundary channels, which follow:
                      4
                  - - - - -

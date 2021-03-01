@@ -16,13 +16,15 @@ import numpy as np
 import torch
 
 def fourier_guess(BC, modes):
-    ''' Will give a guess for the 2D network
-    Inputs:
-        - BC (array of size [bsz, 1, resY]): Potential on the BC for Dirichlet Network
-        - modes (int): Number of modes to take into account in order to make the gues
-    Output:
-        - guess (array of size [bsz, 1, resY, resX]): Potential guess
-    '''
+    """ Give a guess for the 2D network
+
+    Args:
+        BC (array[bsz, 1, resY]): Potential on the BC for Dirichlet Network
+        modes (int): Number of modes to take into account in order to make the gues
+
+    Returns:
+        [array[bsz, 1, resY, resX]]: Guessed potential
+    """
     assert BC.size(1) == 1, "Size for array not OK, dim should be 1, not {}".format(BC.size(1))
     bsz  = BC.size(0)
     resY = BC.size(2)
