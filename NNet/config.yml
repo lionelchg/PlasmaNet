@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'config_8/random_8_center'                      # Experience name
+name: 'config_1/random_8_center'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -28,7 +28,7 @@ globals:                                    # Domain sizes and others, used to c
     coord: 'cart'
 
 arch:
-    type: 'UNet6'
+    type: 'UNet5'
     args:
         data_channels: 1                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
 

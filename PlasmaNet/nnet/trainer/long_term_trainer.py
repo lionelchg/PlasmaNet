@@ -18,8 +18,7 @@ from ctypes import c_bool
 from time import sleep, perf_counter
 from more_itertools import grouper
 
-from CfdSolver.cfdsolver.euler.plasma import PlasmaEuler
-
+from ...cfdsolver.euler.plasma import PlasmaEuler
 
 class LongTermPlasmaEuler(PlasmaEuler):
     def __init__(self, config, data, output):
