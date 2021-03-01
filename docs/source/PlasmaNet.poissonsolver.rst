@@ -28,14 +28,6 @@ PlasmaNet.poissonsolver.linsystem module
    :undoc-members:
    :show-inheritance:
 
-PlasmaNet.poissonsolver.plot\_comp module
------------------------------------------
-
-.. automodule:: PlasmaNet.poissonsolver.plot_comp
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 PlasmaNet.poissonsolver.poisson module
 --------------------------------------
 

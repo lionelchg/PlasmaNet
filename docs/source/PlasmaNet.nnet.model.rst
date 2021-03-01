@@ -60,10 +60,10 @@ PlasmaNet.nnet.model.mono\_scale module
    :undoc-members:
    :show-inheritance:
 
-PlasmaNet.nnet.model.msnet\_tests module
-----------------------------------------
+PlasmaNet.nnet.model.msnets module
+----------------------------------
 
-.. automodule:: PlasmaNet.nnet.model.msnet_tests
+.. automodule:: PlasmaNet.nnet.model.msnets
    :members:
    :undoc-members:
    :show-inheritance:
@@ -132,10 +132,10 @@ PlasmaNet.nnet.model.unet3 module
    :undoc-members:
    :show-inheritance:
 
-PlasmaNet.nnet.model.unet\_tests module
----------------------------------------
+PlasmaNet.nnet.model.unets module
+---------------------------------
 
-.. automodule:: PlasmaNet.nnet.model.unet_tests
+.. automodule:: PlasmaNet.nnet.model.unets
    :members:
    :undoc-members:
    :show-inheritance:
