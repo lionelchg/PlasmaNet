@@ -103,32 +103,6 @@ def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, geo
     plt.savefig(figname, bbox_inches='tight')
     plt.close()
 
-
-# def plot_ax_scalar(fig, ax, X, Y, field, title, cmap='RdBu', geom=geom):
-#     max_value = round_up(np.max(np.abs(field)))
-#     if cmap == 'RdBu':
-#         # max_value = np.max(np.abs(field))
-#         levels = np.linspace(- max_value, max_value, 101)
-#         ticks = np.linspace(-max_value, max_value, 5)
-#     else:
-#         levels = 101
-#         ticks = np.linspace(0, max_value, 5)
-#     cs1 = ax.contourf(X, Y, field, levels, cmap=cmap)
-#     fraction_cbar = 0.1
-#     if axi: 
-#         ax.contourf(X, - Y, field, levels, cmap=cmap)
-#         aspect = 1.7 * np.max(Y) / fraction_cbar / np.max(X)
-#     else:
-#         aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
-#     fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, 
-#                     aspect=aspect, ticks=ticks)
-#     scilim_x = int(np.log10(np.max(X)))
-#     scilim_y = int(np.log10(np.max(Y)))
-#     ax.ticklabel_format(axis='x', style='sci', scilimits=(scilim_x, scilim_x))
-#     ax.ticklabel_format(axis='y', style='sci', scilimits=(scilim_y, scilim_y))
-#     ax.set_aspect("equal")
-#     ax.set_title(title)
-
 def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', 
         geom='xy', field_ticks=None, max_value=None, cbar=True):
     # Avoid mutable defaults value
@@ -145,10 +119,14 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
         aspect = 0.85 * ymax / fraction_cbar / xmax
 
     if cmap_scale == 'log':
-        field_ticks = [max_value * 10**tmp_pow for tmp_pow in range(5)]
         cmap = 'Blues'
-        pows = np.log10(np.array(field_ticks)).astype(int)
-        levels = np.logspace(pows[0], pows[-1], 100, endpoint=True)
+        if field_ticks is None:
+            field_ticks = [10**int(np.log10(max_value)) / 10**(3 - tmp_pow) for tmp_pow in range(5)]
+            pows = np.log10(np.array(field_ticks)).astype(int)
+            levels = np.logspace(pows[0], pows[-1], 100, endpoint=True)
+        else:
+            pows = np.log10(np.array(field_ticks)).astype(int)
+            levels = np.logspace(pows[0], pows[-1], 100, endpoint=True)
         field = np.maximum(field, field_ticks[0])
         field = np.minimum(field, field_ticks[-1])
         cs1 = ax.contourf(X, Y, field, levels, cmap=cmap, norm=LogNorm())

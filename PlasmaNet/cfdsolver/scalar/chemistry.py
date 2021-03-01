@@ -13,7 +13,7 @@ from numba import njit
 
 # From current library
 from .photo import photo_coeff
-from ..utils import create_dir
+from ...common.utils import create_dir
 
 
 @njit(cache=True)

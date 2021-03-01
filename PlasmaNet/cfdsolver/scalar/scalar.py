@@ -173,7 +173,7 @@ def edge_flux(res, a, u, diff_flux, sij, i1, j1, i2, j2, dim):
 
 
 if __name__ == '__main__':
-    args = argparse.ArgumentParser(description='Single case run')
+    args = argparse.ArgumentParser(description='ScalarTransport run')
     args.add_argument('-c', '--config', type=str,
                         help='Config filename', required=True)
     args = args.parse_args()
