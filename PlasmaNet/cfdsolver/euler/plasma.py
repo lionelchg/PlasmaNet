@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import scipy.constants as co
 from scipy.sparse.linalg import spsolve
 from numba import njit
+import argparse
+import yaml
 
 from .euler import Euler
 import PlasmaNet.common.profiles as pf
@@ -335,7 +337,51 @@ class PlasmaEuler(Euler):
             np.save(self.dl_dir + 'potential.npy', self.potential_list)
             np.save(self.dl_dir + 'physical_rhs.npy', self.physical_rhs_list)
             self.poisson.plot_pmodes(self.dl_fig + 'modes')
+    
+    @classmethod
+    def run(cls, config):
+        """ Main function containing initialization, temporal loop and outputs. Takes a config dict as input. """
+        sim = cls(config)
+        # Print header to sum up the parameters
+        if sim.verbose:
+            sim.print_init()
 
+        # Iterations
+        for it in range(1, sim.nit + 1):
+            sim.it = it
+            sim.dtsum += sim.dt
+            sim.time[it - 1] = sim.dtsum
+            
+            # Update of the residual to zero
+            sim.res[:], sim.res_c[:] = 0, 0
+
+            # Solve poisson equation
+            sim.solve_poisson()
+
+            # Compute euler fluxes (without pressure)
+            # sim.compute_flux()
+            sim.compute_flux_cold()
+
+            # Compute residuals in cell-vertex method
+            sim.compute_res()
+
+            # Compute residuals from electro-magnetic terms
+            sim.compute_EM_source()
+
+            # boundary conditions
+            sim.impose_bc_euler()
+            
+            # Apply residual
+            sim.update_res()
+
+            # Post processing
+            sim.postproc(it)
+
+            # Retrieve center variables 
+            sim.temporal_variables(it)
+
+        # Plot temporals
+        sim.post_temporal()
 
 @njit(cache=True)
 def compute_flux_cold(U, gamma, r, F):
@@ -365,3 +411,15 @@ def get_indices(profile, nny, nnx, threshold):
             if profile[j, i] > threshold * max_profile:
                 indices.append([j, i])
     return np.array(indices)
+
+if __name__ == '__main__':
+
+    args = argparse.ArgumentParser(description='PlasmaEuler oscillation run')
+    args.add_argument('-c', '--config', required=True, type=str,
+                      help='config file path (default: None)')
+    args = args.parse_args()
+
+    with open(args.config, 'r') as yaml_stream:
+        config = yaml.safe_load(yaml_stream)
+
+    PlasmaEuler.run(config)
