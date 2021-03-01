@@ -13,9 +13,10 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'a_D_perio/'
+casename: 'runs/a_D_perio/gaussian/'
 
 params:
+  init_func: ['gaussian', [1.0, 0.5, 0.5, 1.0e-1, 1.0e-1]]
   nit: 200
   cfl: 0.5
   fourier: 0.15

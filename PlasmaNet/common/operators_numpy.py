@@ -39,7 +39,8 @@ def dv2(y, x, dx):
     dy[-1] = (y[-3] - 2 * y[-2] + y[-1]) / dx**2
     return dy
 
-def div(field, dx, dy, nx, ny, order=2, r=None):
+def div(field, dx, dy, nx, ny, order=2):
+    """ Compute the divergence of the given field using 2nd or 4th order on the inside of the domain. """
 
     divergence = np.zeros((ny, nx))
 
@@ -73,14 +74,11 @@ def div(field, dx, dy, nx, ny, order=2, r=None):
                         (4 * field[1, 1, -1] - 3 * field[1, 0, -1] - field[1, 2, -1]) / (2 * dy)
     divergence[-1, -1] = (3 * field[0, -1, -1] - 4 * field[0, -1, -2] + field[0, -1, -3]) / (2 * dx) + \
                          (3 * field[1, -1, -1] - 4 * field[1, -2, -1] + field[1, -3, -1]) / (2 * dy)
-
-    if r is not None:
-        divergence += field / r
-
     return divergence
 
 
-def lapl(field, dx, dy, nx, ny, order=2, b=0, r=None):
+def lapl(field, dx, dy, nx, ny, order=2, b=0):
+    """ Compute the laplacian of the given field using 2nd or 4th order on the inside of the domain. """
 
     laplacian = np.zeros((ny, nx))
 
@@ -105,12 +103,9 @@ def lapl(field, dx, dy, nx, ny, order=2, b=0, r=None):
         laplacian[1:-1, -2] = (field[2:, -2] + field[:-2, -2] - 2 * field[1:-1, -2]) / dy**2 + \
                               (field[1:-1, -1] + field[1:-1, -3] - 2 * field[1:-1, -2]) / dx**2
 
-    if r is None:
-        laplacian[0, 1:-1] = \
-            (2 * field[0, 1:-1] - 5 * field[1, 1:-1] + 4 * field[2, 1:-1] - field[3, 1:-1]) / dy**2 + \
-            (field[0, 2:] + field[0, :-2] - 2 * field[0, 1:-1]) / dx**2
-    else:
-        laplacian[0, 1:-1] = (field[0, 2:] + field[0, :-2] - 2 * field[0, 1:-1]) / dx**2
+    laplacian[0, 1:-1] = \
+        (2 * field[0, 1:-1] - 5 * field[1, 1:-1] + 4 * field[2, 1:-1] - field[3, 1:-1]) / dy**2 + \
+        (field[0, 2:] + field[0, :-2] - 2 * field[0, 1:-1]) / dx**2
     laplacian[-1, 1:-1] = \
         (2 * field[-1, 1:-1] - 5 * field[-2, 1:-1] + 4 * field[-3, 1:-1] - field[-4, 1:-1]) / dy**2 + \
         (field[-1, 2:] + field[-1, :-2] - 2 * field[-1, 1:-1]) / dx**2
@@ -122,16 +117,12 @@ def lapl(field, dx, dy, nx, ny, order=2, b=0, r=None):
         (2 * field[1:-1, -1] - 5 * field[1:-1, -2] + 4 * field[1:-1, -3] - field[1:-1, -4]) / dx**2
 
     # corners (respectively upper left, upper right, lower left and lower right)
-    if r is None:
-        laplacian[0, 0] = \
-            (2 * field[0, 0] - 5 * field[1, 0] + 4 * field[2, 0] - field[3, 0]) / dy**2 + \
-            (2 * field[0, 0] - 5 * field[0, 1] + 4 * field[0, 2] - field[0, 3]) / dx**2
-        laplacian[0, -1] = \
-            (2 * field[0, -1] - 5 * field[1, -1] + 4 * field[2, -1] - field[3, -1]) / dy**2 + \
-            (2 * field[0, -1] - 5 * field[0, -2] + 4 * field[0, -3] - field[0, -4]) / dx**2
-    else:
-        laplacian[0, 0] = (2 * field[0, 0] - 5 * field[0, 1] + 4 * field[0, 2] - field[0, 3]) / dx**2
-        laplacian[0, -1] = (2 * field[0, -1] - 5 * field[0, -2] + 4 * field[0, -3] - field[0, -4]) / dx**2
+    laplacian[0, 0] = \
+        (2 * field[0, 0] - 5 * field[1, 0] + 4 * field[2, 0] - field[3, 0]) / dy**2 + \
+        (2 * field[0, 0] - 5 * field[0, 1] + 4 * field[0, 2] - field[0, 3]) / dx**2
+    laplacian[0, -1] = \
+        (2 * field[0, -1] - 5 * field[1, -1] + 4 * field[2, -1] - field[3, -1]) / dy**2 + \
+        (2 * field[0, -1] - 5 * field[0, -2] + 4 * field[0, -3] - field[0, -4]) / dx**2
     laplacian[-1, 0] = \
         (2 * field[-1, 0] - 5 * field[-2, 0] + 4 * field[-3, 0] - field[-4, 0]) / dy**2 + \
         (2 * field[-1, 0] - 5 * field[-1, 1] + 4 * field[-1, 2] - field[-1, 3]) / dx**2
@@ -139,15 +130,11 @@ def lapl(field, dx, dy, nx, ny, order=2, b=0, r=None):
         (2 * field[-1, -1] - 5 * field[-2, -1] + 4 * field[-3, -1] - field[-4, -1]) / dy**2 + \
         (2 * field[0, -1] - 5 * field[0, -2] + 4 * field[0, -3] - field[0, -4]) / dx**2
 
-    if r is not None:
-        laplacian[1:-1, :] += (field[2:, :] - field[:-2, :]) / (2 * dy) / r[1:-1, :]
-        laplacian[0, :] += 4 * (field[1, :] - field[0, :]) / dy**2
-        laplacian[-1, :] += (3 * field[-1, :] - 4 * field[-2, :] + field[-3, :]) / (2 * dy) / r[-1, :]
-
     return laplacian
 
 
 def grad(field, dx, dy, nx, ny):
+    """ Compute 2nd order gradient of 2-dimensional field. """
     gradient = np.zeros((2, ny, nx))
 
     gradient[0, :, 1:-1] = (field[:, 2:] - field[:, :-2]) / (2 * dx)
@@ -160,7 +147,9 @@ def grad(field, dx, dy, nx, ny):
 
     return gradient
 
+
 def scalar_rot(field, dx, dy, nx, ny):
+    """ Compute scalar rotational of 2-dimensional field. """
     rotational = np.zeros((ny, nx))
 
     # first compute dfield_y / dx

@@ -13,17 +13,16 @@ import re
 
 from scipy.sparse.linalg import spsolve
 
-from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
 from ..base.basesim import BaseSim
-from ..base.operators import grad
-from .init import gaussian
 from .scalar import compute_flux
 from .chemistry import morrow
 from .photo import photo_axisym, A_j_two, A_j_three, lambda_j_two, lambda_j_three
 from .boundary import outlet_x, outlet_y
+from ...common.plot import plot_ax_scalar, plot_ax_scalar_1D
+from ...common.operators_numpy import grad
+from ...common.profiles import gaussian
 
-from poissonsolver.linsystem import matrix_axisym, dirichlet_bc_axi
-
+from ...poissonsolver.linsystem import matrix_axisym, dirichlet_bc_axi
 
 class StreamerMorrow(BaseSim):
     def __init__(self, config):

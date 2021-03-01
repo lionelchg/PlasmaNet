@@ -13,13 +13,13 @@ from scipy.sparse.linalg import spsolve
 from numba import njit
 
 from .euler import Euler
-import cfdsolver.scalar.init as init_funcs
-from poissonsolver.linsystem import matrix_cart, dc_bc
-from poissonsolver.poisson import DatasetPoisson
-from poissonsolver.analytical import PoissonAnalytical
-from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D, plot_ax_vector_arrow
-from ..base.operators import grad
-from ..utils import create_dir, save_obj
+import PlasmaNet.common.profiles as pf
+from ...poissonsolver.linsystem import matrix_cart, dc_bc
+from ...poissonsolver.poisson import DatasetPoisson
+from ...poissonsolver.analytical import PoissonAnalytical
+from ...common.plot import plot_ax_scalar, plot_ax_scalar_1D, plot_ax_vector_arrow
+from ...common.operators_numpy import grad
+from ...common.utils import create_dir, save_obj
 
 class PlasmaEuler(Euler):
     def __init__(self, config):
@@ -47,10 +47,10 @@ class PlasmaEuler(Euler):
         self.n_pert = config['params']['n_pert']
 
         if config['params']['init_func'][0] == 'gaussians':
-            n_electron = getattr(init_funcs, config['params']['init_func'][0])(self.X, self.Y, 
+            n_electron = getattr(pf, config['params']['init_func'][0])(self.X, self.Y, 
                                     config['params']['init_func'][1]) + self.n_back
         else:
-            n_electron = getattr(init_funcs, config['params']['init_func'][0])(self.X, self.Y, self.n_pert, 
+            n_electron = getattr(pf, config['params']['init_func'][0])(self.X, self.Y, self.n_pert, 
                                     *config['params']['init_func'][1]) + self.n_back
         
         self.U[0] = self.m_e * n_electron

@@ -173,6 +173,21 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
     ax.set_aspect("equal")
     ax.set_title(title)
 
+def plot_ax_scalar_1D(fig, ax, X, list_cut, field, title, yscale='linear', ylim=None):
+    x = X[0, :]
+    n_points = len(X[:, 0])
+
+    for cut_pos in list_cut:
+        n = int(cut_pos * (n_points - 1))
+        ax.plot(x, field[n, :], label='y = %.2f ymax' % cut_pos)
+    ax.legend()
+    ax.set_yscale(yscale)
+    if ylim is not None:
+        ax.set_ylim(ylim)
+    ax.grid(True)
+
+    ax.set_title(title)
+
 def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', 
                             geom='xy', max_value=None, cbar=True):
     norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)

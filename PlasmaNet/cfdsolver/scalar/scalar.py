@@ -8,18 +8,20 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import yaml
+import argparse
 from numba import njit
 
-from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
+import PlasmaNet.common.profiles as pf
 from ..base.basesim import BaseSim
-from ..base.operators import grad
 from .boundary import outlet_x, outlet_y, full_perio, perio_x, perio_y
+from ...common.operators_numpy import grad
+from ...common.plot import plot_ax_scalar, plot_ax_scalar_1D
 
 
 class ScalarTransport(BaseSim):
     def __init__(self, config):
         super().__init__(config)
-
         # Convection speed
         self.a = np.zeros((self.ndim, self.nny, self.nnx))
         self.a[0, :, :] = config['transport']['convection_x']
@@ -36,7 +38,8 @@ class ScalarTransport(BaseSim):
         self.dt = min(self.cfl * self.dx / self.max_speed, self.fourier * self.dx ** 2 / self.max_D)
 
         # Scalar and Residual declaration
-        self.u, self.res = np.zeros_like(self.X), np.zeros_like(self.X)
+        self.res = np.zeros_like(self.X)
+        self.u = getattr(pf, config['params']['init_func'][0])(self.X, self.Y, *config['params']['init_func'][1])
 
     def print_init(self):
         """ Print header to sum up the parameters. """
@@ -105,6 +108,36 @@ class ScalarTransport(BaseSim):
         plt.savefig(self.fig_dir + 'instant_%04d' % self.number, bbox_inches='tight')
         plt.close(fig)
 
+    @classmethod
+    def run(cls, config):
+        """ Main function containing initialisation, temporal loop and outputs. Takes a config dict as input. """
+
+        sim = cls(config)
+
+        # Print header to sum up the parameters
+        sim.print_init()
+
+        # Iterations
+        for it in range(1, sim.nit + 1):
+            sim.dtsum += sim.dt
+
+            # Calculation of diffusive flux
+            sim.compute_dflux()
+
+            # Update of the residual to zero
+            sim.res[:] = 0
+
+            # Loop on the cells to compute the interior flux and update residuals
+            sim.compute_flux()
+
+            # Impose boundary conditions
+            sim.impose_bc()
+
+            # Update residuals u -= res * dt / voln
+            sim.update_res()
+
+            # Post processing (printing and plotting)
+            sim.postproc(it)
 
 @njit(cache=True)
 def compute_flux(res, a, u, diff_flux, sij, ncx, ncy, r=None):
@@ -137,3 +170,15 @@ def edge_flux(res, a, u, diff_flux, sij, i1, j1, i2, j2, dim):
     flux -= 0.5 * (diff_flux[dim, j1, i1] + diff_flux[dim, j2, i2]) * sij[dim]
     res[j1, i1] += flux
     res[j2, i2] -= flux
+
+
+if __name__ == '__main__':
+    args = argparse.ArgumentParser(description='Single case run')
+    args.add_argument('-c', '--config', type=str,
+                        help='Config filename', required=True)
+    args = args.parse_args()
+
+    with open(args.config, 'r') as yaml_stream:
+        cfg = yaml.safe_load(yaml_stream)
+
+    ScalarTransport.run(cfg)
