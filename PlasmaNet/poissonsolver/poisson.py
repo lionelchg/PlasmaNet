@@ -19,6 +19,10 @@ from .base import BasePoisson
 
 
 class Poisson(BasePoisson):
+    """ Class for linear system solver of Poisson problem
+
+    :param BasePoisson: Base class for Poisson routines
+    """
     def __init__(self, xmin, xmax, nnx, ymin, ymax, nny, config, nmax=None):
         super().__init__(xmin, xmax, nnx, ymin, ymax, nny, nmax)
         self.config = config
@@ -35,12 +39,25 @@ class Poisson(BasePoisson):
         self.bc = dc_bc
 
     def solve(self, physical_rhs, *args):
+        """ Solve the Poisson problem with physical_rhs and args
+        boundary conditions
+
+        :param physical_rhs: - rho / epsilon_0 
+        :type physical_rhs: ndarray
+        """
         rhs = - physical_rhs * self.scale
         self.physical_rhs = physical_rhs.reshape(self.nny, self.nnx)
         self.bc(rhs, self.nnx, self.nny, args)
         self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
 
     def L2error(self, th_potential):
+        """ MSE error of the potential with a theoretical one
+
+        :param th_potential: theoretical potential
+        :type th_potential: ndarray
+        :return: MSE error
+        :rtype: float
+        """
         return np.sqrt(np.sum(self.compute_voln() * 
                     (self.potential - th_potential)**2)) / self.Lx / self.Ly
 

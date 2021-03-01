@@ -84,20 +84,24 @@ def series_term(X, Y, Lx, Ly, voln, rhs, n, m):
 
 
 def series_term_dup(V_u, X, Y, Lx, Ly, n):
+    """ Series term for the up dirichlet problem """
     return (fourier_coef_1D(V_u, n, X[0, :], Lx) * np.sin(n * np.pi * X / Lx)
             * np.sinh(n * np.pi * Y / Lx) / np.sinh(n * np.pi * Ly / Lx))
 
 
 def series_term_ddown(V_u, X, Y, Lx, Ly, n):
+    """ Series term for the down dirichlet problem """
     return (fourier_coef_1D(V_u, n, X[0, :], Lx) * np.sin(n * np.pi * X / Lx)
             * np.sinh(n * np.pi * (Y - Ly) / Lx) / np.sinh(- n * np.pi * Ly / Lx))
 
 
 def series_term_dleft(V_u, X, Y, Lx, Ly, n):
+    """ Series term for the left dirichlet problem """
     return (fourier_coef_1D(V_u, n, Y[:, 0], Ly) * np.sin(n * np.pi * Y / Ly)
             * np.sinh(n * np.pi * (X - Lx) / Ly) / np.sinh(- n * np.pi * Lx / Ly))
 
 
 def series_term_dright(V_u, X, Y, Lx, Ly, n):
+    """ Series term for the right dirichlet problem """
     return (fourier_coef_1D(V_u, n, Y[:, 0], Ly) * np.sin(n * np.pi * Y / Ly)
             * np.sinh(n * np.pi * X / Ly) / np.sinh(n * np.pi * Lx / Ly))
