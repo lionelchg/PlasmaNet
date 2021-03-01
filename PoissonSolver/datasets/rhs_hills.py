@@ -20,13 +20,11 @@ from scipy import interpolate
 from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
 
-from poissonsolver.plot import plot_set_2D
-from poissonsolver.operators import grad
-from poissonsolver.poisson import DatasetPoisson
-from poissonsolver.utils import create_dir
-from poissonsolver.funcs import gaussian
+from PlasmaNet.poissonsolver.poisson import DatasetPoisson
+from PlasmaNet.common.utils import create_dir
+from PlasmaNet.common.profiles import gaussian
 
-args = argparse.ArgumentParser(description='Rhs random dataset')
+args = argparse.ArgumentParser(description='RHS hills dataset')
 args.add_argument('-d', '--device', default=None, type=str,
                     help='device on which the dataset is run')
 args.add_argument('-n', '--npts', default=101, type=int,
@@ -53,8 +51,11 @@ ni0 = 1e11
 rhs0 = ni0 * co.e / co.epsilon_0
 ampl_min, ampl_max = 0.01, 1
 sigma_min, sigma_max = 1e-3, 3e-3
-x_middle, y_middle = (xmax - xmin) / 2, (ymax - ymin) / 2
+x_middle_min, x_middle_max = 0.35e-2, 0.65e-2
 
+# Parameters for postprocessing the dataset
+# plot_period is the frequency of the plots and 
+# freq period is the frequency of modes computation
 plot = True
 plot_period = int(0.1 * nits)
 freq_period = int(0.01 * nits)
@@ -78,15 +79,17 @@ def params(nits):
     for i in range(nits):
         coefs = np.random.random(5)
         ampl = rhs0 * ((ampl_max - ampl_min) * coefs[0] + ampl_min)
-        sigma0 = (sigma_max - sigma_min) * coefs[1] + sigma_min
-        yield ampl, sigma0
-
+        sigma_x = (sigma_max - sigma_min) * coefs[1] + sigma_min
+        sigma_y = (sigma_max - sigma_min) * coefs[2] + sigma_min
+        x_gauss = (x_middle_max - x_middle_min) * coefs[3] + x_middle_min
+        y_gauss = (x_middle_max - x_middle_min) * coefs[4] + x_middle_min
+        yield ampl, x_gauss, y_gauss, sigma_x, sigma_y
 
 def compute(args):
     """ Compute function for imap (multiprocessing) """
-    ampl, sigma0 = args
+    ampl, x_gauss, y_gauss, sigma_x, sigma_y = args
     physical_rhs = gaussian(poisson.X.reshape(-1), poisson.Y.reshape(-1), ampl, 
-                        x_middle, y_middle, sigma0, sigma0)
+                        x_gauss, y_gauss, sigma_x, sigma_y)
 
     poisson.solve(physical_rhs, zeros_x, zeros_x, zeros_y, zeros_y)
 

@@ -6,7 +6,6 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import sys
 import os
 import time
 from multiprocessing import get_context
@@ -17,13 +16,10 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import numpy as np
 import scipy.constants as co
 from scipy import interpolate
-from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
 
-from poissonsolver.plot import plot_set_2D
-from poissonsolver.operators import grad
-from poissonsolver.poisson import DatasetPoisson
-from poissonsolver.utils import create_dir
+from PlasmaNet.poissonsolver.poisson import DatasetPoisson
+from PlasmaNet.common.utils import create_dir
 
 args = argparse.ArgumentParser(description='Rhs random dataset')
 args.add_argument('-d', '--device', default=None, type=str,
@@ -37,7 +33,7 @@ args.add_argument('-nr', '--n_res', default=None, type=int,
 args.add_argument('-np', '--n_procs', default=None, type=int,
                     help='number of procs')
 args.add_argument('--case', type=str, default=None,
-                  help='Case name')
+                help='Case name')
 args = args.parse_args()
 
 device = args.device
@@ -73,7 +69,6 @@ def compute(args):
     return poisson.potential, poisson.physical_rhs
 
 if __name__ == '__main__':
-
     # Parameters for the rhs and plotting
     plot = True
     plot_period = int(0.1 * nits)
@@ -121,7 +116,7 @@ if __name__ == '__main__':
 
     poisson.plot_pmodes(fig_dir + 'average_modes')
 
-    time_stop = time.time()
     np.save(data_dir + 'potential.npy', potential_list)
     np.save(data_dir + 'physical_rhs.npy', physical_rhs_list)
+    time_stop = time.time()
     print('Elapsed time (s) : %.2f' % (time_stop - time_start))

@@ -1,12 +1,11 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                              2D Poisson datasets using random generation of rhs points                               #
+#                    2D Poisson datasets using random generation of rhs points with gaussian mask                      #
 #                                                                                                                      #
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
 
-import sys
 import os
 import time
 from multiprocessing import get_context
@@ -17,13 +16,10 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import numpy as np
 import scipy.constants as co
 from scipy import interpolate
-from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
 
-from poissonsolver.plot import plot_set_2D
-from poissonsolver.operators import grad
-from poissonsolver.poisson import DatasetPoisson
-from poissonsolver.utils import create_dir
+from PlasmaNet.poissonsolver.poisson import DatasetPoisson
+from PlasmaNet.common.utils import create_dir
 
 args = argparse.ArgumentParser(description='Rhs random dataset')
 args.add_argument('-d', '--device', default=None, type=str,
