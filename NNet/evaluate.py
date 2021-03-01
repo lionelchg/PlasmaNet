@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                              PlasmaNet: evaluate model                                               #
+#                                              PlasmaNet.nnet: evaluate model                                               #
 #                                                                                                                      #
 #                         Guillaume Bogopolsky, Lionel Cheng, Ekhi Ajuria, CERFACS, 10.03.2020                         #
 #                                                                                                                      #
@@ -12,12 +12,12 @@ import collections
 import torch
 from tqdm import tqdm
 
-import PlasmaNet.data.data_loaders as module_data
-import PlasmaNet.model.loss as module_loss
-import PlasmaNet.model.metric as module_metric
-import PlasmaNet.model.multiscalenet as module_arch
-from PlasmaNet.parse_config import ConfigParser
-from PlasmaNet.trainer.trainer import plot_batch
+import PlasmaNet.nnet.data.data_loaders as module_data
+import PlasmaNet.nnet.model.loss as module_loss
+import PlasmaNet.nnet.model.metric as module_metric
+import PlasmaNet.nnet.model.multiscalenet as module_arch
+from PlasmaNet.nnet.parse_config import ConfigParser
+from PlasmaNet.nnet.trainer.trainer import plot_batch
 
 
 def main(config):
@@ -153,7 +153,7 @@ def main(config):
 
 
 if __name__ == '__main__':
-    args = argparse.ArgumentParser(description='PlasmaNet')
+    args = argparse.ArgumentParser(description='PlasmaNet.nnet')
     args.add_argument('-c', '--config', default=None, type=str,
                       help='config file path (default: None)')
     args.add_argument('-r', '--resume', default=None, type=str,

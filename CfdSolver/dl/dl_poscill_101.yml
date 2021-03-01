@@ -57,9 +57,9 @@ network:
   name: 'poscill/UNet5/target_case/'                            # Experience name
   n_gpu: 1                                    # Number of GPUs to use
 
-  # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_4/1228_180907/model_best.pth'
-  resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_8/1222_123839/model_best.pth'
-  # resume: '/scratch/cfd/cheng/DL/plasmanet/outputs/2-networks/models/config_1/random_16/1222_123943/model_best.pth'
+  # resume: '/scratch/cfd/cheng/DL/plasmanet/NNet/outputs/2-networks/models/config_1/random_4/1228_180907/model_best.pth'
+  resume: '/scratch/cfd/cheng/DL/plasmanet/NNet/outputs/2-networks/models/config_1/random_8/1222_123839/model_best.pth'
+  # resume: '/scratch/cfd/cheng/DL/plasmanet/NNet/outputs/2-networks/models/config_1/random_16/1222_123943/model_best.pth'
 
 
   globals:                                    # Domain sizes and others, used to compute global attributes

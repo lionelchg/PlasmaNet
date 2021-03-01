@@ -3,7 +3,8 @@ import numpy as np
 import scipy.constants as co
 
 import torch
-from cfdsolver import StreamerMorrow, PlasmaEuler
+from PlasmaNet.cfdsolver.euler.plasma import PlasmaEuler
+from PlasmaNet.cfdsolver.scalar.streamer import StreamerMorrow
 
 
 class StreamerMorrowDL(StreamerMorrow):
@@ -45,7 +46,7 @@ class PlasmaEulerDL(PlasmaEuler):
             
 
     def solve_poisson_dl(self, model):
-        """ Solve poisson equation with PlasmaNet. """
+        """ Solve poisson equation with neural network model (pytorch object) """
         self.physical_rhs = - (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
         physical_rhs_torch = torch.from_numpy(self.physical_rhs[np.newaxis, np.newaxis, :, :] 

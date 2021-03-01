@@ -22,12 +22,12 @@ import torch
 import argparse
 import collections
 
-import PlasmaNet.data.data_loaders as module_data
-import PlasmaNet.model.loss as module_loss
-import PlasmaNet.model.metric as module_metric
-from PlasmaNet.parse_config import ConfigParser
-from PlasmaNet.trainer.trainer import plot_batch
-import PlasmaNet.model as module_arch
+import PlasmaNet.nnet.data.data_loaders as module_data
+import PlasmaNet.nnet.model.loss as module_loss
+import PlasmaNet.nnet.model.metric as module_metric
+from PlasmaNet.nnet.parse_config import ConfigParser
+from PlasmaNet.nnet.trainer.trainer import plot_batch
+import PlasmaNet.nnet.model as module_arch
 
 def search_arch(resume_fn):
     """ Searches the network architecture from the resume file """
@@ -59,6 +59,7 @@ def run(config):
     model = cfg_dl.init_obj('arch', module_arch)
 
     logger.info('Loading checkpoint: {} ...'.format(cfg_dl['resume']))
+    print(cfg_dl['resume'])
     checkpoint = torch.load(cfg_dl['resume'])
     state_dict = checkpoint['state_dict']
     if cfg_dl['n_gpu'] > 1:
@@ -113,7 +114,7 @@ def run(config):
 
 if __name__ == '__main__':
 
-    args = argparse.ArgumentParser(description='PlasmaNet')
+    args = argparse.ArgumentParser(description='PlasmaNet.nnet')
     args.add_argument('-c', '--config', default=None, type=str,
                       help='config file path (default: None)')
     args = args.parse_args()

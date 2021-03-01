@@ -23,12 +23,12 @@ import torch
 import argparse
 import collections
 
-import PlasmaNet.data.data_loaders as module_data
-import PlasmaNet.model.loss as module_loss
-import PlasmaNet.model.metric as module_metric
-from PlasmaNet.parse_config import ConfigParser
-from PlasmaNet.trainer.trainer import plot_batch
-import PlasmaNet.model as module_arch
+import PlasmaNet.nnet.data.data_loaders as module_data
+import PlasmaNet.nnet.model.loss as module_loss
+import PlasmaNet.nnet.model.metric as module_metric
+from PlasmaNet.nnet.parse_config import ConfigParser
+from PlasmaNet.nnet.trainer.trainer import plot_batch
+import PlasmaNet.nnet.model as module_arch
 
 
 def main(cfg_streamer, cfg_dl):
@@ -97,7 +97,7 @@ def main(cfg_streamer, cfg_dl):
 
 if __name__ == '__main__':
 
-    args = argparse.ArgumentParser(description='PlasmaNet')
+    args = argparse.ArgumentParser(description='PlasmaNet.nnet')
     args.add_argument('-c', '--config', default=None, type=str,
                       help='config file path (default: None)')
     args.add_argument('-r', '--resume', default=None, type=str,
