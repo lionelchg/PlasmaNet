@@ -231,10 +231,12 @@ class Trainer(BaseTrainer):
         fig = plot_batch(output, target, data, epoch, batch_idx, self.config)
         fig.savefig(self.config.fig_dir / '{}_{:05d}.png'.format(mode, epoch), dpi=150, bbox_inches='tight')
         self.writer.add_figure('ComparisonWithResiduals', fig)
+
         # Plot output vs target distribution
         fig = plot_batch_Efield(output, target, data, epoch, batch_idx, self.config)
-        fig.savefig(self.config.fig_dir / '{}_{:05d}.png'.format(mode, epoch), dpi=150, bbox_inches='tight')
+        fig.savefig(self.config.fig_dir / '{}_E_{:05d}.png'.format(mode, epoch), dpi=150, bbox_inches='tight')
         self.writer.add_figure('ComparisonWithEfield', fig)
+
         # Plot output vs target distribution
         fig = plot_distrib(output, target, epoch, batch_idx)
         fig.savefig(self.config.fig_dir / '{}_distrib_{:05d}.png'.format(mode, epoch), dpi=150, bbox_inches='tight')

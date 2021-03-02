@@ -84,7 +84,7 @@ if __name__ == '__main__':
         data_dir = 'outputs/' + casename
         chunksize = 20
     elif device == 'kraken':
-        data_dir = 'outputs/' + casename
+        data_dir = '/scratch/cfd/cheng/DL/datasets/' + casename
         chunksize = 5
 
     fig_dir = data_dir + 'figures/'
