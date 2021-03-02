@@ -6,24 +6,26 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 class _ConvscaleFlexible(nn.Module):
     """
-    Fleixble.
-    Input:
-    - data_channels: number of input images
-    - filters (list): number of filters in the network's layers.
-
+    Flexible convolutional layer.
     The network will have conv2D layers with an intermediate activation function at each scale.
-    Each layer will have a kernel of size 3x3 and no stride. Padding is only done with replication padding.
-    The order is: Pad Conv ReLu Pad Conv.
+    Each layer will have a kernel of size 3x3 and no stride. Padding is done with zero padding
+    (default behavior of nn.Conv2d).
     """
     def __init__(self, data_channels, filters):
+        """ Initialization of the convolutional layer
+        The order is: Pad Conv (ReLu Pad Conv) * len(filters).
+
+        :param data_channels: number of input images
+        :type data_channels: int
+        :param filters: number of filters in the network's layers
+        :type filters: list
+        """
         super(_ConvscaleFlexible, self).__init__()
 
         # Module list containing all the layers
@@ -47,19 +49,14 @@ class _ConvscaleFlexible(nn.Module):
             x = self.scale_filters[i](x)
         return x
 
-
-
-
 class FlexiNet(nn.Module):
     """
-    Define the network. The inputs needed are:
-    - data_channels (int): The number of data (input) channels
-    - filters (list of list)s: number of filters of each layer and scale, thus containing how many scales will be needed.
+    Define the network with *data_channels* number of inputs while *filters* hold the size of 
+    all the convolutional layers applied. The first element of the list will corrrespond to the lowest resolution scale, 
+    whereas the last one will be the scale with the original size.
+
     The number of scales MUST correspond to the number of lists in the filters list.
-    The first element of the list will corrrespond to the lowest resolution scale, whereas the last one will be the scale
-    with the original size.
-    - scales (int): number of scales
-    - input_val (bool): boolean to check if the input is forwarded to all the blocks.
+
     The network is supposed symmetric, so the conv blocks of a same scale are equal, and
     have as many conv2D layers with an intermediate activation function at each scale as indicated on the
     scales lists.
@@ -68,6 +65,17 @@ class FlexiNet(nn.Module):
     All the outputs will be added at the end.
     """
     def __init__(self, data_channels, filters, scales, input_val):
+        """ Initialization of FlexiNet with data_channels in in
+
+        :param data_channels: The nunmber of data (input) channels
+        :type data_channels: int
+        :param filters: List of integers for the number of filters of each layer
+        :type filters: list
+        :param scales: number of scales
+        :type scales: int
+        :param input_val: boolean to check if the input is forwarded to all the blocks.
+        :type input_val: bool
+        """
         super(FlexiNet, self).__init__()
 
         self.scales = scales
@@ -80,7 +88,7 @@ class FlexiNet(nn.Module):
         # Initialize highest resolution scale
         self.scales_module.append(_ConvscaleFlexible(data_channels, filters[0]))
 
-        # Loop for to append scales from highest to lowest resolution
+        # Loop to append scales from highest to lowest resolution
         for i in range(len(filters)-1):
             concat_input = filters[i][-1]
             if self.input_val:
@@ -113,7 +121,7 @@ class FlexiNet(nn.Module):
 
             # Identify scale and get the size to interpolate
             scale_layer = self.scales_module[i]
-            size_int = [int(j * (1 / (2**(i)))) for j in list(x.size()[2:])]
+            size_int = [int(j / 2**i) for j in list(x.size()[2:])]
 
             # Highest resolution scale only takes input
             if i == 0:
@@ -136,7 +144,7 @@ class FlexiNet(nn.Module):
             # Identify scales and get correct size for interpolation
             scale_layer = self.scales_module[i + self.scales]
             k -= 1 
-            size_int = [int(j * (1/(2**(k)))) for j in list(x.size()[2:])]
+            size_int = [int(j / 2**k) for j in list(x.size()[2:])]
 
             # First element does not have information from a lower resolution scale           
             if i == 0:
