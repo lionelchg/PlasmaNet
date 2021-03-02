@@ -47,9 +47,8 @@ BC: 'full_out'
 
 output:
   save: 'plasma_period'
-  log_run: 'file'
   verbose: True
-  period: 0.1
+  period: 0.01
   files: 'fig'
   dl_save: 'no'
   globals:

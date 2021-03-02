@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from .operators import lapl
+from .operators_numpy import lapl
 
 def lapl_diff(potential, physical_rhs, dx, dy, nx, ny):
     interior_diff = abs(lapl(potential, dx, dy, nx, ny) + physical_rhs)

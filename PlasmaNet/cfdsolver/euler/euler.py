@@ -13,6 +13,7 @@ import copy
 import yaml
 import argparse
 from numba import njit
+import logging
 
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
 from ..base.basesim import BaseSim
@@ -37,13 +38,13 @@ class Euler(BaseSim):
 
     def print_init(self):
         """ Print header to sum up the parameters. """
-        print(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
-        print(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
-        print(f'dx = {self.dx:.2e} -- dy = {self.dy:.2e} -- CFL = {self.cfl:.2e}')
-        print('------------------------------------')
-        print('Start of simulation')
-        print('------------------------------------')
-        print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
+        logging.info(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
+        logging.info(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
+        logging.info(f'dx = {self.dx:.2e} -- dy = {self.dy:.2e} -- CFL = {self.cfl:.2e}')
+        logging.info('------------------------------------')
+        logging.info('Start of simulation')
+        logging.info('------------------------------------')
+        logging.info('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
     def compute_flux(self):
         """ Compute the 2D flux of the Euler equations as well as pressure and 

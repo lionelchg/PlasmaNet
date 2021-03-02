@@ -10,6 +10,7 @@ import sys
 import numpy as np
 import re
 import yaml
+import logging
 
 from .metric import Grid
 from ..utils import create_dir
@@ -54,10 +55,14 @@ class BaseSim(Grid):
         elif 'end_time' in config['params']:
             self.end_time = config['params']['end_time']
         
-        # Redirect stdout if necessary and if log_run is in dict
-        if 'log_run' in config['output']:
-            if config['output']['log_run'] == 'file':
-                sys.stdout = open(self.case_dir + 'run.log', 'w')
+        # Logging file
+        if 'loglevel' in config['output']:
+            self.loglevel = eval(f"logging.{config['output']['loglevel'].upper()}")
+        else:
+            self.loglevel = logging.INFO
+        logging.basicConfig(filename=f'{self.case_dir}run.log', 
+            level=self.loglevel, 
+            format='%(levelname)s %(message)s')
 
         # Dump the configuration file in the case
         with open(self.case_dir + 'config.yml', 'w') as file:
@@ -75,14 +80,14 @@ class BaseSim(Grid):
         if self.save_type == 'iteration':
             if it % self.period == 0 or it == self.nit:
                 if self.verbose:
-                    print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, self.dt, self.dtsum, width=14))
+                    logging.info('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, self.dt, self.dtsum, width=14))
                 if self.save_fig: self.plot()
                 if self.save_data: self.save()
                 self.number += 1
         elif self.save_type == 'time':
             if np.abs(self.dtsum - self.number * self.period) < 0.5 * self.dt or it == self.nit:
                 if self.verbose:
-                    print('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, self.dt, self.dtsum, width=14))
+                    logging.info('{:>10d} {:{width}.2e} {:{width}.2e}'.format(it, self.dt, self.dtsum, width=14))
                 if self.save_fig: self.plot()
                 if self.save_data: self.save()
                 self.number += 1

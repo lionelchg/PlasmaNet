@@ -13,6 +13,7 @@ from scipy.sparse.linalg import spsolve
 from numba import njit
 import argparse
 import yaml
+import logging
 
 from .euler import Euler
 import PlasmaNet.common.profiles as pf
@@ -127,14 +128,14 @@ class PlasmaEuler(Euler):
 
     def print_init(self):
         """ Print header to sum up the parameters. """
-        print(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
-        print(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
-        print(f'dx = {self.dx:.2e} -- dy = {self.dy:.2e}')
-        print(f'dt = {self.dt:.2e} s - T_p = {self.T_p:.2e} s - omega_p = {self.omega_p:.2e} rad.s-1')
-        print('------------------------------------')
-        print('Start of simulation')
-        print('------------------------------------')
-        print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
+        logging.info(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
+        logging.info(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
+        logging.info(f'dx = {self.dx:.2e} -- dy = {self.dy:.2e}')
+        logging.info(f'dt = {self.dt:.2e} s - T_p = {self.T_p:.2e} s - omega_p = {self.omega_p:.2e} rad.s-1')
+        logging.info('------------------------------------')
+        logging.info('Start of simulation')
+        logging.info('------------------------------------')
+        logging.info('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
     def solve_poisson(self):
         """ Solve the Poisson equation in axisymmetric configuration. """

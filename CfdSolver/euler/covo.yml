@@ -35,3 +35,4 @@ output:
   verbose: True
   period: 1.0
   files: "fig"
+  loglevel: 'info'

@@ -12,6 +12,7 @@ import scipy.constants as co
 import re
 import argparse
 import yaml
+import logging
 
 from scipy.sparse.linalg import spsolve
 
@@ -106,16 +107,16 @@ class StreamerMorrow(BaseSim):
 
     def print_init(self):
         """ Print header to sum up the parameters. """
-        print(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
-        print(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
-        print(f'dx = {self.dx:.2e} -- dy = {self.dy:.2e} -- Timestep = {self.dt:.2e}')
-        print('------------------------------------')
+        logging.info(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
+        logging.info(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
+        logging.info(f'dx = {self.dx:.2e} -- dy = {self.dy:.2e} -- Timestep = {self.dt:.2e}')
+        logging.info('------------------------------------')
         if self.input_fn == 'none':
-            print('Start of simulation')
+            logging.info('Start of simulation')
         else:
-            print('Restart of simulation')
-        print('------------------------------------')
-        print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
+            logging.info('Restart of simulation')
+        logging.info('------------------------------------')
+        logging.info('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
     def solve_poisson(self):
         """ Solve the Poisson equation in axisymmetric configuration. """
@@ -129,7 +130,7 @@ class StreamerMorrow(BaseSim):
     def solve_photo(self):
         """ Solve the photoionization source term using approximation in Helmholtz equations """
         self.Sph[:] = 0
-        print('--> Photoionization resolution')
+        logging.info('--> Photoionization resolution')
         if self.photo_model == 'two':
             for i in range(2):
                 rhs = - self.irate.reshape(-1) * A_j_two[i] * self.pO2**2 * self.scale

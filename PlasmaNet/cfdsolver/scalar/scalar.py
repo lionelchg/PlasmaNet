@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import yaml
 import argparse
 from numba import njit
+import logging
 
 import PlasmaNet.common.profiles as pf
 from ..base.basesim import BaseSim
@@ -43,14 +44,14 @@ class ScalarTransport(BaseSim):
 
     def print_init(self):
         """ Print header to sum up the parameters. """
-        print(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
-        print(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
-        print(f'Transport: a = {self.max_speed:.2e} -- D = {self.max_D:.2e}')
-        print(f'dx = {self.dx:.2e} -- dy = {self.dy:.2e} -- CFL = {self.cfl:.2e} -- Fourier = {self.fourier:.2e} -- Timestep = {self.dt:.2e}')
-        print('------------------------------------')
-        print('Start of simulation')
-        print('------------------------------------')
-        print('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
+        logging.info(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
+        logging.info(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
+        logging.info(f'Transport: a = {self.max_speed:.2e} -- D = {self.max_D:.2e}')
+        logging.info(f'dx = {self.dx:.2e} -- dy = {self.dy:.2e} -- CFL = {self.cfl:.2e} -- Fourier = {self.fourier:.2e} -- Timestep = {self.dt:.2e}')
+        logging.info('------------------------------------')
+        logging.info('Start of simulation')
+        logging.info('------------------------------------')
+        logging.info('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
     def compute_dflux(self):
         """ Compute the diffusive flux: D * grad(u) """
