@@ -104,7 +104,7 @@ def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, geo
     plt.close()
 
 def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', 
-        geom='xy', field_ticks=None, max_value=None, cbar=True):
+        geom='xy', field_ticks=None, max_value=None, cbar=True, contour=True):
     # Avoid mutable defaults value
     if max_value is None:
         max_value = round_up(np.max(np.abs(field)), decimals=1)
@@ -138,6 +138,9 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
         cs1 = ax.contourf(X, Y, field, levels, cmap=cmap)
         if geom == 'xr':
             ax.contourf(X, - Y, field, levels, cmap=cmap)
+        if contour:
+            clevels = np.array([- 0.8, - 0.2, 0.2, 0.8]) * np.max(np.abs(field))
+            ax.contour(X, Y, field, levels=clevels, colors='k', linewidths=0.9)
     if cbar:
         fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect, ticks=field_ticks)
 

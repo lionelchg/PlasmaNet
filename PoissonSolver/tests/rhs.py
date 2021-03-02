@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     fig_dir = 'figures/rhs/two_gaussians/'
     create_dir(fig_dir)
-    x01, y01 = 0.4e-2, 0.5e-2    
+    x01, y01 = 0.4e-2, 0.6e-2    
     physical_rhs = pf.two_gaussians(poisson.X.reshape(-1), poisson.Y.reshape(-1), 
                     ni0, x0, y0, sigma_x, sigma_y, x01, y01, sigma_x, sigma_y) * co.e / co.epsilon_0
     poisson.solve(physical_rhs, zeros_x, zeros_x, zeros_y, zeros_y)
