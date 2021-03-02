@@ -156,7 +156,7 @@ class BasePoisson:
         """ Plot the potential and rhs modes from 2D
         Fourier expansion """
         self.compute_modes()
-        fig = plt.figure(figsize=(12, 8))
+        fig = plt.figure(figsize=(10, 6))
         ax1 = fig.add_subplot(121, projection='3d')
         plot_modes(ax1, self.N, self.M, self.coeffs_rhs, "RHS modes")
         ax2 = fig.add_subplot(122, projection='3d')

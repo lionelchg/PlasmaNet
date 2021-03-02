@@ -26,7 +26,7 @@ def run_case(case_dir, bottom, up, left, right, plot):
 
 if __name__ == '__main__':
     basecase_dir = '../tests/cases/'
-    plot = False
+    plot = True
     xmin, xmax, nnx = 0, 0.01, 101
     ymin, ymax, nny = 0, 0.01, 101
     x, y = np.linspace(xmin, xmax, nnx), np.linspace(ymin, ymax, nny)
