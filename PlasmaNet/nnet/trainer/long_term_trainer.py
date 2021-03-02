@@ -79,11 +79,11 @@ def init_subprocesses(num_procs):
     They will be used for the long term loss computation for each image with Cfdsolver, and offload the poisson
     computation to the current process for GPU inference with the model being trained.
     Returns:
-        procs: the list of Process objects
-        child_on: ctype switch
-        inference_status: list of ctype booleans for the inference status of each child
-        parent_ctl_conns: list of control Pipes parent connections
-        parent_work_conns: list of work Pipes parent connections
+    * procs: the list of Process objects
+    * child_on: ctype switch
+    * inference_status: list of ctype booleans for the inference status of each child
+    * parent_ctl_conns: list of control Pipes parent connections
+    * parent_work_conns: list of work Pipes parent connections
     """
     ctx = mp.get_context("spawn")  # Faster than "spawn" in our test, which is not needed
 

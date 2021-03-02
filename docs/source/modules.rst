@@ -2,6 +2,9 @@ PlasmaNet
 =========
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
-   PlasmaNet
+   PlasmaNet.poissonsolver
+   PlasmaNet.cfdsolver
+   PlasmaNet.nnet
+   PlasmaNet.common

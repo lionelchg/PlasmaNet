@@ -79,15 +79,20 @@ class DirichletNet(BaseModel):
     rectangular shape (x,y) needs further modifications
     Takes one input, x (BC tensor) of size [bsz,1,1,N]
     Procedure:
-    - Make a series of 1D convolutions on the BC input (array of lenght [bsz, 1, 1, N])
-    - Output of 1D arrays is [bsz,64,N]
-    - Transpose the output to [bsz, N, 64]. This changes stack the channels in a way that gives
-        a priori better results.
-    - Unsqueeze to size [bsz, 1, N, 64] so that it can be used on the 2D convs
-    - Interpolate into size [ bsz, 1, N, N] (useless for the 64x64 case, but useful if
-    - Perform a series of 2D Convolution until the final output is reached [bsz,1, N, N])
+    * Make a series of 1D convolutions on the BC input (array of lenght [bsz, 1, 1, N])
+    * Output of 1D arrays is [bsz,64,N]
+    * Transpose the output to [bsz, N, 64]. This changes stack the channels in a way that gives
+    a priori better results.
+    * Unsqueeze to size [bsz, 1, N, 64] so that it can be used on the 2D convs
+    * Interpolate into size [ bsz, 1, N, N] (useless for the 64x64 case, but useful if
+    * Perform a series of 2D Convolution until the final output is reached [bsz,1, N, N])
     """
     def __init__(self, data_channels):
+        """ Initialize DirichletNet
+
+        :param data_channels: Number of input data channels
+        :type data_channels: int
+        """
         super(DirichletNet, self).__init__()
         self.data_channels = data_channels
         if self.data_channels == 3:
@@ -97,6 +102,13 @@ class DirichletNet(BaseModel):
             self.conv_1 = _ConvBlock2(2, 64, 128, 64, 1)
 
     def forward(self, x):
+        """ Apply the network on the input x
+
+        :param x: BC tensor
+        :type x: torch.tensor of size [bsz, 1, 1, N]
+        :return: The potential
+        :rtype: torch.tensor of size [bsz, 1, N, N]
+        """
         if self.data_channels == 3:
             assert x.size(1) == 3, "Input array does not have the size (bsz, 3, N, N)"
             final_out = self.conv_3(x[:, 1:3])

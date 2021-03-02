@@ -18,7 +18,7 @@ paradigm. One class is defined for each specific set of equations that are neede
 All classes build upon the :class:`PlasmaNet.cfdsolver.base.basesim.BaseSim` class. 
 
 :mod:`PlasmaNet.poissonsolver`
-**************************
+******************************
 
 Library to solve the Poisson equation using either the neural network, an analytical solution or
 a classical linear system solver. 

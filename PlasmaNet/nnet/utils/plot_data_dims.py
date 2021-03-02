@@ -11,21 +11,29 @@ import matplotlib.pyplot as plt
 
 
 def plot_dataloader_complete(d_1, d_2, d_3, d_4, potential, physical_rhs, x_tensor, y_tensor, folder):
-    """
-    Takes as inputs:
-    - 4 boundary channels, which follow:
-                     4
-                 - - - - -
-                |         |
-              1 |         | 3
-                |         |
-                 - - - - -
-                     2
-    - Potential field
-    - rhs
-    - x and y indexes
+    """ Plot the loaded data with the boundaries and the potential at the boundaries
 
+    :param d_1: Left boundary
+    :type d_1: ndarray
+    :param d_2: Down boundary
+    :type d_2: ndarray
+    :param d_3: Right boundary
+    :type d_3: ndarray
+    :param d_4: Up boundary
+    :type d_4: ndarray
+    :param potential: Potential field
+    :type potential: ndarray
+    :param physical_rhs: Right hand side of poisson equation
+    :type physical_rhs: ndarray
+    :param x_tensor: X coordinate
+    :type x_tensor: ndarray
+    :param y_tensor: Y coordinate
+    :type y_tensor: ndarray
+    :param folder: save folder
+    :type folder: str
     """
+    
+
     # Lots of plots
     fig, axes = plt.subplots(figsize=(20, 14), nrows=3, ncols=4)
     fig.suptitle(' BC and data loading ')
