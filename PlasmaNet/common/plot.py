@@ -11,15 +11,16 @@ mpl.rcParams['contour.negative_linestyle'] = 'solid'
 default_cmap = 'RdBu'  # 'RdBu'
 
 def round_up(number: float, decimals:int=1) -> float:
-    """ Round function of number
+    """ Rounding of a number
 
-    Args:
-        number (float): a number to round
-        decimals (int, optional): [description]. Defaults to 1.
-
-    Returns:
-        [float]: Round number to *decimals* decimals
+    :param number: A number to round
+    :type number: float
+    :param decimals: Number of decimals defaults to 1
+    :type decimals: int, optional
+    :return: The rounded number
+    :rtype: float
     """
+
     if number != 0.0:
         power = int(np.log10(number))
         digit = number / 10**power * 10**decimals
@@ -105,19 +106,17 @@ def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, geo
 
 def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', 
         geom='xy', field_ticks=None, max_value=None, cbar=True, contour=True):
-    # Avoid mutable defaults value
+    """ Plot a 2D field on mesh X and Y with contourf and contour. Automatic
+    handling of maximum values for the colorbar with an up rounding to a certain
+    number of decimals. """
+    # If not specified find the maximum value and round this up to 1 decimal
     if max_value is None:
         max_value = round_up(np.max(np.abs(field)), decimals=1)
     else:
         max_value = round_up(max_value, decimals=1)
 
-    xmax, ymax = np.max(X), np.max(Y)
-    fraction_cbar = 0.1
-    if geom == 'xr':
-        aspect = 1.7 * ymax / fraction_cbar / xmax
-    else:
-        aspect = 0.85 * ymax / fraction_cbar / xmax
-
+    # Depending on the scale (log is typically for streamers) the treatment
+    # is not the same
     if cmap_scale == 'log':
         cmap = 'Blues'
         if field_ticks is None:
@@ -132,6 +131,10 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
         cs1 = ax.contourf(X, Y, field, levels, cmap=cmap, norm=LogNorm())
         if geom == 'xr':
             ax.contourf(X, - Y, field, levels, cmap=cmap, norm=LogNorm())
+        if contour:
+            ax.contour(X, Y, field, levels=field_ticks[1:-1], colors='k', linewidths=0.9)
+            if geom == 'xr':
+                ax.contour(X, - Y, field, levels=field_ticks[1:-1], colors='k', linewidths=0.9)
     else:
         field_ticks = np.linspace(-max_value, max_value, 5)
         levels = np.linspace(-max_value, max_value, 101)
@@ -141,12 +144,22 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
         if contour:
             clevels = np.array([- 0.8, - 0.2, 0.2, 0.8]) * np.max(np.abs(field))
             ax.contour(X, Y, field, levels=clevels, colors='k', linewidths=0.9)
+
+    # Put colorbar if specified
     if cbar:
+        # Adjust the size of the colorbar
+        xmax, ymax = np.max(X), np.max(Y)
+        fraction_cbar = 0.1
+        if geom == 'xr':
+            aspect = 1.7 * ymax / fraction_cbar / xmax
+        else:
+            aspect = 0.85 * ymax / fraction_cbar / xmax
         fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect, ticks=field_ticks)
 
     if geom == 'xr':
         ax.set_yticks([-ymax, -ymax / 2, 0, ymax / 2, ymax])
 
+    # Apply same formatting to x and y axis with scientific notation
     scilimx = int(np.log10(xmax))
     ax.ticklabel_format(axis='x', style='sci', scilimits=(scilimx, scilimx))
     ax.ticklabel_format(axis='y', style='sci', scilimits=(scilimx, scilimx))
