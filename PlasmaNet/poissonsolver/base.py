@@ -124,7 +124,7 @@ class BasePoisson:
         :type geom: str, optional
         """
         x = self.X[0, :]
-        fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(11, 14))
+        fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(9, 12))
 
         plot_ax_scalar(fig, axes[0][0], self.X, self.Y, self.potential, 'Potential', geom=geom)
         plot_ax_trial_1D(axes[0][1], x, self.potential, self.nny, '1D cuts')
@@ -165,6 +165,11 @@ class BasePoisson:
         fig.tight_layout()
         fig.savefig(figname, bbox_inches='tight')
         plt.close()
+    
+    def save(self, save_dir):
+        """ Save the potential and rhs in the specified location """
+        np.save(f'{save_dir}physical_rhs', self.physical_rhs)
+        np.save(f'{save_dir}potential', self.potential)
 
 
 def fourier_coef_1D(V_u, n, x, Lx):

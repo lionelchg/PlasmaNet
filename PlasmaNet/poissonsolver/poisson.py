@@ -40,11 +40,12 @@ class Poisson(BasePoisson):
 
     def solve(self, physical_rhs, *args):
         """ Solve the Poisson problem with physical_rhs and args
-        boundary conditions
+        boundary conditions (up to 4 boundary conditions for each side)
 
         :param physical_rhs: - rho / epsilon_0 
         :type physical_rhs: ndarray
         """
+        assert len(args) <= 4
         rhs = - physical_rhs * self.scale
         self.physical_rhs = physical_rhs.reshape(self.nny, self.nnx)
         self.bc(rhs, self.nnx, self.nny, args)
