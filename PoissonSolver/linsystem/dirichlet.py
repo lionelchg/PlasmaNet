@@ -7,12 +7,11 @@
 ########################################################################################################################
 import os
 import numpy as np
-from scipy import interpolate
-from scipy.sparse.linalg import spsolve
+import yaml
 
 from PlasmaNet.common.profiles import random1D, random2D
 from PlasmaNet.common.utils import create_dir
-from PlasmaNet.poissonsolver.poisson import Poisson
+from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 
 def run_case(case_dir, bottom, up, left, right, plot):
     create_dir(case_dir)
@@ -27,18 +26,19 @@ def run_case(case_dir, bottom, up, left, right, plot):
 if __name__ == '__main__':
     basecase_dir = '../tests/cases/'
     plot = True
-    xmin, xmax, nnx = 0, 0.01, 101
-    ymin, ymax, nny = 0, 0.01, 101
-    x, y = np.linspace(xmin, xmax, nnx), np.linspace(ymin, ymax, nny)
 
-    zeros_x, zeros_y = np.zeros(nnx), np.zeros(nny)
-    ones_x, ones_y = np.ones(nnx), np.ones(nny)
-    linear_x, linear_y = np.linspace(0.0, 1.0, nnx), np.linspace(0.0, 1.0, nny)
+    with open('poisson_ls_xy.yml') as yaml_stream:
+        cfg = yaml.safe_load(yaml_stream)
 
-    poisson = Poisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet', 15)
+    poisson = PoissonLinSystem(cfg)
+
+    zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
+    ones_x, ones_y = np.ones(poisson.nnx), np.ones(poisson.nny)
+    linear_x = np.linspace(0, 1.0, poisson.nnx)
+    linear_y = np.linspace(0, 1.0, poisson.nny)
 
     case_dir = f'{basecase_dir}dirichlet/random_left/'
-    random_y = random1D(y, 100.0, 4)
+    random_y = random1D(poisson.Y[:, 0], 100.0, 4)
     run_case(case_dir, zeros_x, zeros_x, random_y, zeros_y, plot)
     np.save(case_dir + 'random_left', random_y)
 

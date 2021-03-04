@@ -14,29 +14,28 @@ from scipy.sparse.linalg import spsolve
 
 from ..common.operators_numpy import grad, lapl
 from ..common.plot import plot_modes
-from .linsystem import matrix_cart, matrix_axisym, dc_bc
+from .linsystem import matrix_cart, matrix_axisym, impose_dc_bc
 from .base import BasePoisson
 
 
-class Poisson(BasePoisson):
+class PoissonLinSystem(BasePoisson):
     """ Class for linear system solver of Poisson problem
 
     :param BasePoisson: Base class for Poisson routines
     """
-    def __init__(self, xmin, xmax, nnx, ymin, ymax, nny, config, nmax=None):
-        super().__init__(xmin, xmax, nnx, ymin, ymax, nny, nmax)
-        self.config = config
+    def __init__(self, cfg):
+        super().__init__(cfg)
         self.scale = self.dx * self.dy
-        if self.config == 'cart_dirichlet':
-            self.mat = matrix_cart(self.dx, self.dy, nnx, nny, self.scale)
-        elif self.config == 'cart_3d1n':
-            self.mat = matrix_cart(self.dx, self.dy, nnx, nny, self.scale, down_bc='neumann')
-        elif self.config == 'axi_dirichlet':
+        if cfg['mat'] == 'cart_dirichlet':
+            self.mat = matrix_cart(self.dx, self.dy, self.nnx, self.nny, self.scale)
+        elif cfg['mat'] == 'cart_3d1n':
+            self.mat = matrix_cart(self.dx, self.dy, self.nnx, self.nny, self.scale, down_bc='neumann')
+        elif cfg['mat'] == 'axi_dirichlet':
             self.R_nodes = copy.deepcopy(self.Y)
             self.R_nodes[0] = self.dy / 4
             self.mat = matrix_axisym(self.dx, self.dy, self.nnx, self.nny, 
                                 self.R_nodes, self.scale)
-        self.bc = dc_bc
+        self.dirichlet_bc = impose_dc_bc
 
     def solve(self, physical_rhs, *args):
         """ Solve the Poisson problem with physical_rhs and args
@@ -48,14 +47,14 @@ class Poisson(BasePoisson):
         assert len(args) <= 4
         rhs = - physical_rhs * self.scale
         self.physical_rhs = physical_rhs.reshape(self.nny, self.nnx)
-        self.bc(rhs, self.nnx, self.nny, args)
+        self.dirichlet_bc(rhs, self.nnx, self.nny, args)
         self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
 
-class DatasetPoisson(Poisson):
+class DatasetPoisson(PoissonLinSystem):
     """ Class for dataset of poisson rhs and potentials (contains
     different plotting of modes) """
-    def __init__(self, xmin, xmax, nnx, ymin, ymax, nny, config, nmax=None):
-        super().__init__(xmin, xmax, nnx, ymin, ymax, nny, config, nmax)
+    def __init__(self, cfg):
+        super().__init__(cfg)
         # Mean, min and max
         self.coeffs_rhs_dset = np.zeros((2, self.nmax, self.nmax))
         self.coeffs_pot_dset = np.zeros((2, self.nmax, self.nmax))

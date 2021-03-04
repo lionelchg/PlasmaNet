@@ -20,25 +20,16 @@ from ..common.plot import plot_ax_scalar, plot_ax_vector_arrow, plot_ax_trial_1D
 class BasePoisson:
     """ Base class for Poisson resolution in 2D cartesian geometry
     """
-    def __init__(self, xmin, xmax, nnx, ymin, ymax, nny, nmax=None):
+    def __init__(self, cfg):
         """ Initialize BasePoissson class with the box boundaries and number of
-        nodes in x and y directions
-
-        :param xmin: Minimum x
-        :type xmin: float
-        :param xmax: Maximum x
-        :type xmax: float
-        :param nnx: Number of nodes in x direction
-        :type nnx: int
-        :param ymin: Minimum y
-        :type ymin: float
-        :param ymax: Maximum y
-        :type ymax: float
-        :param nny: Number of nodse in y direction
-        :type nny: int
-        :param nmax: Number of modes included in the postprocessing, defaults to None
-        :type nmax: int, optional
+        nodes in x and y directions in config dictionnary
+        
+        :param cfg: Configuration dicitonnary
+        :type cfg: dict
         """
+        xmin, xmax, nnx = cfg['xmin'], cfg['xmax'], cfg['nnx']
+        ymin, ymax, nny = cfg['ymin'], cfg['ymax'], cfg['nny']
+
         self.xmin, self.xmax, self.ymin, self.ymax = xmin, xmax, ymin, ymax
         self.Lx, self.Ly = xmax - xmin, ymax - ymin
         self.dx, self.dy = (xmax - xmin) / (nnx - 1), (ymax - ymin) / (nny - 1)
@@ -56,8 +47,9 @@ class BasePoisson:
         # Radius of the nodes for axisymmetric configuration
         self.R_nodes = None
 
-        if nmax is not None:
-            self.nmax, self.mmax = nmax, nmax
+        # Fourier series monitoring
+        if 'nmax_fourier' in cfg:
+            self.nmax, self.mmax = cfg['nmax_fourier'], cfg['nmax_fourier']
             self.nrange, self.mrange = np.arange(1, self.nmax + 1), np.arange(1, self.mmax + 1)
             self.N, self.M = np.meshgrid(self.nrange, self.mrange)
             self.coeffs_rhs = np.zeros(self.N.shape)

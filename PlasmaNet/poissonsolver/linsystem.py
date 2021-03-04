@@ -136,9 +136,10 @@ def dirichlet_bc_axi(rhs, nx, nr, up, left, right):
     rhs[-1] = 0.5 * (right[-1] + up[-1])
 
 
-def dc_bc(rhs, nx, ny, args):
-    """ Apply dirichlet boundary conditions on full dirichlet or 
-    3 dirichlet + 1 neumann problem. """
+def impose_dc_bc(rhs, nx, ny, args):
+    """ Apply boundary conditions on the boundaries
+    If there are 3 boundaries then it is ordered up, left, right
+    If there are 4 boundaries then down, up, left, right """
     if len(args) == 3:
         up, left, right = args
         # filling of the three dirichlet boundaries for axisymmetric test case

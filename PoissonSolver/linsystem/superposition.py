@@ -9,23 +9,24 @@ import os
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
+import yaml
 import numpy as np
 import scipy.constants as co
 
 from PlasmaNet.common.utils import create_dir
-from PlasmaNet.poissonsolver.poisson import Poisson
+from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 import PlasmaNet.common.profiles as pf
 
 if __name__ == '__main__':
-    xmin, xmax, nnx = 0, 0.01, 101
-    ymin, ymax, nny = 0, 0.01, 101
-    x, y = np.linspace(xmin, xmax, nnx), np.linspace(ymin, ymax, nny)
+    with open('poisson_ls_xy.yml') as yaml_stream:
+        cfg = yaml.safe_load(yaml_stream)
 
-    zeros_x, zeros_y = np.zeros(nnx), np.zeros(nny)
-    ones_x, ones_y = np.ones(nnx), np.ones(nny)
-    linear_x, linear_y = np.linspace(0.0, 1.0, nnx), np.linspace(0.0, 1.0, nny)
+    poisson = PoissonLinSystem(cfg)
 
-    poisson = Poisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet', 15)
+    zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
+    ones_x, ones_y = np.ones(poisson.nnx), np.ones(poisson.nny)
+    linear_x = np.linspace(0, 1.0, poisson.nnx)
+    linear_y = np.linspace(0, 1.0, poisson.nny)
 
     ni0 = 1e11
     sigma_x, sigma_y = 1e-3, 1e-3

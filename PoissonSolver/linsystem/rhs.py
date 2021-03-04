@@ -6,6 +6,7 @@
 #                                                                                                                      #
 ########################################################################################################################
 import os
+import yaml
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
@@ -13,7 +14,7 @@ import numpy as np
 import scipy.constants as co
 
 from PlasmaNet.common.utils import create_dir
-from PlasmaNet.poissonsolver.poisson import Poisson
+from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 import PlasmaNet.common.profiles as pf
 
 def run_case(case_dir, physical_rhs, zeros_x, zeros_y, plot):
@@ -30,13 +31,13 @@ def run_case(case_dir, physical_rhs, zeros_x, zeros_y, plot):
 if __name__ == '__main__':
     basecase_dir = '../tests/cases/'
     plot = True
-    xmin, xmax, nnx = 0, 0.01, 101
-    ymin, ymax, nny = 0, 0.01, 101
-    x, y = np.linspace(xmin, xmax, nnx), np.linspace(ymin, ymax, nny)
 
-    zeros_x, zeros_y = np.zeros(nnx), np.zeros(nny)
+    with open('poisson_ls_xy.yml') as yaml_stream:
+        cfg = yaml.safe_load(yaml_stream)
 
-    poisson = Poisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet', 15)
+    poisson = PoissonLinSystem(cfg)
+
+    zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
 
     ni0 = 1e11
     sigma_x, sigma_y = 1e-3, 1e-3

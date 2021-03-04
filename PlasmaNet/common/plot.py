@@ -144,6 +144,9 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
         if contour:
             clevels = np.array([- 0.8, - 0.2, 0.2, 0.8]) * np.max(np.abs(field))
             ax.contour(X, Y, field, levels=clevels, colors='k', linewidths=0.9)
+            if geom == 'xr':
+                ax.contour(X, -Y, field, levels=clevels, colors='k', linewidths=0.9)
+
 
     # Put colorbar if specified
     if cbar:
