@@ -74,9 +74,11 @@ class ConfigParser:
         self.ly = self.config['globals']['ly']
         self.batch_size = self.config['data_loader']['args']['batch_size']
         self.channels = self.config['arch']['args']['data_channels']
-        self.normalization = self.config['data_loader']['args']['normalize']
         self.guess = self.config['data_loader']['args'].get('guess')
         self.modes = self.config['data_loader']['args'].get('modes')
+        
+        # Length and resolution invariance parameters
+        self.normalization = self.config['data_loader']['args']['normalize']
         self.scaling_factor = self.config['data_loader']['args']['scaling_factor']
 
         # Declare global physical parameters attributes

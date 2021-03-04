@@ -87,9 +87,9 @@ class PlasmaEulerDLMSE(PlasmaEulerDL):
 
     def plot_MSE(self, dataset_potential, dataset_rhs, perc):
         """ Plot 3 subplots:
-        - MSE evolution 
-        - Temporal deviation from a cosinus evolution of the (100-perc)% internals 
-        - MSE of the perc% external values
+        * MSE evolution 
+        * Temporal deviation from a cosinus evolution of the (100-perc)% internals 
+        * MSE of the perc% external values
         Everything normalized to plasma period units.
         Apply the normalization on temporals as well 
         Note: Use small perc values (~5) """
