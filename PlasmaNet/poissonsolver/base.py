@@ -170,6 +170,17 @@ class BasePoisson:
         """ Save the potential and rhs in the specified location """
         np.save(f'{save_dir}physical_rhs', self.physical_rhs)
         np.save(f'{save_dir}potential', self.potential)
+    
+    def L2error(self, th_potential):
+        """ MSE error of the potential with a theoretical one
+
+        :param th_potential: theoretical potential
+        :type th_potential: ndarray
+        :return: MSE error
+        :rtype: float
+        """
+        return np.sqrt(np.sum(self.compute_voln() * 
+                    (self.potential - th_potential)**2)) / self.Lx / self.Ly
 
 
 def fourier_coef_1D(V_u, n, x, Lx):

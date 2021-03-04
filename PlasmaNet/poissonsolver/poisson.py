@@ -51,18 +51,6 @@ class Poisson(BasePoisson):
         self.bc(rhs, self.nnx, self.nny, args)
         self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
 
-    def L2error(self, th_potential):
-        """ MSE error of the potential with a theoretical one
-
-        :param th_potential: theoretical potential
-        :type th_potential: ndarray
-        :return: MSE error
-        :rtype: float
-        """
-        return np.sqrt(np.sum(self.compute_voln() * 
-                    (self.potential - th_potential)**2)) / self.Lx / self.Ly
-
-
 class DatasetPoisson(Poisson):
     """ Class for dataset of poisson rhs and potentials (contains
     different plotting of modes) """
