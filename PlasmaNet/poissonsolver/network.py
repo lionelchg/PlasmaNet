@@ -64,10 +64,10 @@ class PoissonNetwork(BasePoisson):
         ratio = self.alpha / (np.pi**2 / 4)**2 / (1 / Lx**2 + 1 / Ly**2)
         
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
-        physical_rhs_torch = torch.from_numpy(self.physical_rhs[np.newaxis, np.newaxis, :, :] 
+        physical_rhs_torch = torch.from_numpy(self.physical_rhs[:, np.newaxis, :, :] 
                                                 * ratio * self.scaling_factor).float().cuda()
 
         potential_torch = self.model(physical_rhs_torch)
-        self.potential = (self.res_train**2 / res**2 * potential_torch.detach().cpu().numpy()[0, 0] 
+        self.potentials = (self.res_train**2 / res**2 * potential_torch.detach().cpu().numpy()[:, 0] 
                                                 / self.scaling_factor)
         

@@ -10,6 +10,7 @@ import os
 import time
 from multiprocessing import get_context
 import argparse
+import logging
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
