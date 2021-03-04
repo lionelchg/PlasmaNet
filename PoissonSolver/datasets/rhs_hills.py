@@ -11,6 +11,7 @@ import os
 import time
 from multiprocessing import get_context
 import argparse
+import yaml
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
@@ -27,8 +28,6 @@ from PlasmaNet.common.profiles import gaussian
 args = argparse.ArgumentParser(description='RHS hills dataset')
 args.add_argument('-d', '--device', default=None, type=str,
                     help='device on which the dataset is run')
-args.add_argument('-n', '--npts', default=101, type=int,
-                    help='number of points of the domain')
 args.add_argument('-ni', '--nits', default=None, type=int,
                     help='number of entries in the dataset')
 args.add_argument('-np', '--n_procs', default=None, type=int,
@@ -36,15 +35,12 @@ args.add_argument('-np', '--n_procs', default=None, type=int,
 args = args.parse_args()
 
 device = args.device
-npts, nits, n_procs = args.npts, args.nits, args.n_procs
+nits, n_procs = args.nits, args.n_procs
 
-xmin, xmax, nnx = 0, 0.01, npts
-ymin, ymax, nny = 0, 0.01, npts
-x, y = np.linspace(xmin, xmax, nnx), np.linspace(ymin, ymax, nny)
-
-zeros_x, zeros_y = np.zeros(nnx), np.zeros(nny)
-
-poisson = DatasetPoisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet', 10)
+with open('poisson_ls_xy.yml', 'r') as yaml_stream:
+    cfg = yaml.safe_load(yaml_stream)
+poisson = DatasetPoisson(cfg)
+zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
 
 # Parameters for the rhs and plotting
 ni0 = 1e11
@@ -61,7 +57,7 @@ plot_period = int(0.1 * nits)
 freq_period = int(0.01 * nits)
 
 # Directories declaration and creation if necessary
-casename = f'{npts:d}x{npts}/hills/'
+casename = f'{poisson.nnx:d}x{poisson.nny}/hills/'
 if device == 'mac':
     data_dir = 'outputs/' + casename
     chunksize = 20
@@ -98,11 +94,11 @@ def compute(args):
 if __name__ == '__main__':
 
     # Print header of dataset
-    print(f'Device : {device:s} - npts = {npts:d} - nits = {nits:d}')
+    print(f'Device : {device:s} - nits = {nits:d}')
     print(f'Directory : {data_dir:s} - n_procs = {n_procs:d} - chunksize = {chunksize:d}')
 
-    potential_list = np.zeros((nits, npts, npts))
-    physical_rhs_list = np.zeros((nits, npts, npts))
+    potential_list = np.zeros((nits, poisson.nny, poisson.nnx))
+    physical_rhs_list = np.zeros((nits, poisson.nny, poisson.nnx))
 
     time_start = time.time()
 
