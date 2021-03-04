@@ -8,10 +8,11 @@
 import os
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import numpy as np
+import yaml
 import scipy.constants as co
 from scipy import interpolate
 
-from PlasmaNet.poissonsolver.poisson import Poisson
+from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 from PlasmaNet.poissonsolver.analytical import PoissonAnalytical
 from PlasmaNet.common.profiles import gaussian
 from PlasmaNet.common.utils import create_dir
@@ -23,18 +24,14 @@ def main():
 
     nsolv = 3
         
-    xmin, xmax, nnx = 0, 0.01, 601
-    ymin, ymax, nny = 0, 0.01, 601
-    nmax_rhs, mmax_rhs = 16, 16
-    nmax_d = 10
-    dx, dy = (xmax - xmin) / (nnx - 1), (ymax - ymin) / (nny - 1)
-    x, y = np.linspace(xmin, xmax, nnx), np.linspace(ymin, ymax, nny)
+    with open('poisson_ls_xy.yml') as yaml_stream:
+        cfg = yaml.safe_load(yaml_stream)
 
-    zeros_x, zeros_y = np.zeros(nnx), np.zeros(nny)
-    ones_x, ones_y = np.ones(nnx), np.ones(nny)
+    # Declaration of Linear system solving
+    poisson = PoissonLinSystem(cfg)
 
-    # Declaration of poisson solver (linear system)
-    poisson = Poisson(xmin, xmax, nnx, ymin, ymax, nny, 'cart_dirichlet')
+    zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
+    ones_x, ones_y = np.ones(poisson.nnx), np.ones(poisson.nny)
 
     # creating the rhs
     ni0 = 1e11
@@ -52,7 +49,7 @@ def main():
     poisson.plot_1D2D(fig_dir + 'full')
 
     # Declaration of class Poisson Analytical
-    poisson_th = PoissonAnalytical(xmin, xmax, nnx, ymin, ymax, nny, nmax_rhs, mmax_rhs, nmax_d)
+    poisson_th = PoissonAnalytical(cfg)
 
     # Solve rhs problem
     for i in range(nsolv):

@@ -15,18 +15,18 @@ from .base import BasePoisson, fourier_coef_2D, fourier_coef_1D
 class PoissonAnalytical(BasePoisson):
     """ Analytical solution of the 2D Poisson problem 
     with 4 dirichlet boundaries in cartesian rectangular geometry """
-    def __init__(self, xmin, xmax, nnx, ymin, ymax, nny, 
-                nmax_rhs, mmax_rhs, nmax_dirichlet, nmax=None):
-        super().__init__(xmin, xmax, nnx, ymin, ymax, nny, nmax)
+    def __init__(self, cfg):
+        super().__init__(cfg)
 
-        self.bcs = [np.zeros(nnx), np.zeros(nnx), np.zeros(nny), np.zeros(nny)]
+        # four boundary conditions
+        self.bcs = [np.zeros(self.nnx), np.zeros(self.nnx), np.zeros(self.nny), np.zeros(self.nny)]
 
         # Decomposition of the potentials (rhs, down, up, left, right)
-        self.potentials = np.zeros((5, nny, nnx))
+        self.potentials = np.zeros((5, self.nny, self.nnx))
 
-        self.nmax_dirichlet = nmax_dirichlet
-        self.nmax_rhs = nmax_rhs
-        self.mmax_rhs = mmax_rhs
+        self.nmax_dirichlet = cfg['nmax_d']
+        self.nmax_rhs = cfg['nmax_rhs']
+        self.mmax_rhs = cfg['mmax_rhs']
     
     def rhs_solution(self):
         """ Solve the rhs problem """
