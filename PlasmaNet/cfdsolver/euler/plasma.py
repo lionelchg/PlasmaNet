@@ -17,7 +17,6 @@ import logging
 
 from .euler import Euler
 import PlasmaNet.common.profiles as pf
-from ...poissonsolver.linsystem import matrix_cart, dc_bc
 from ...poissonsolver.poisson import DatasetPoisson
 from ...poissonsolver.analytical import PoissonAnalytical
 from ...common.plot import plot_ax_scalar, plot_ax_scalar_1D, plot_ax_vector_arrow
@@ -30,19 +29,22 @@ class PlasmaEuler(Euler):
         # Choose the way to solve poisson equation, either classic with linear system
         # or with analytical solution (2D Fourier series)
         self.poisson_type = config['poisson']['type']
+        
+        # Copy mesh entry into poisson for class init
+        for key, value in config['mesh'].items():
+            config['poisson'][key] = value
         if self.poisson_type == 'lin_system':
-            self.poisson = DatasetPoisson(self.xmin, self.xmax, self.nnx, 
-                            self.ymin, self.ymax, self.nny, 'cart_dirichlet', 
-                            config['poisson']['nmax_fourier'])
+            self.poisson = DatasetPoisson(config['poisson'])
             # Boundary conditions
             zeros_x = np.zeros_like(self.x)
             zeros_y = np.zeros_like(self.y)
             self.down, self.up = zeros_x, zeros_x
             self.left, self.right = zeros_y, zeros_y
         elif self.poisson_type == 'analytical':
-            self.poisson = PoissonAnalytical(self.xmin, self.xmax, self.nnx, 
-                            self.ymin, self.ymax, self.nny, config['poisson']['nmax_fourier'],
-                            config['poisson']['nmax_fourier'], 0, config['poisson']['nmax_fourier'])
+            config['poisson']['nmax_rhs'] = config['poisson']['nmax_fourier']
+            config['poisson']['mmax_rhs'] = config['poisson']['nmax_fourier']
+            config['poisson']['nmax_d'] = 0
+            self.poisson = PoissonAnalytical(config['poisson'])
 
         self.m_e = co.m_e
         self.W = self.m_e * co.N_A

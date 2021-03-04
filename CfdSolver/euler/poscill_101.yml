@@ -33,6 +33,7 @@ params:
 
 poisson:
   type: 'lin_system'
+  mat: 'cart_dirichlet'
   nmax_fourier: 10
 
 mesh:
