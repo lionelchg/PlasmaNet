@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/101x101/profiles_4p/'
+casename: 'runs/local/101x101/profiles_4p/'
 description: 'Four periods runs of different profiles in 101x101'
 mode: 'seq'
 params/init_func: [['gaussian', [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
@@ -21,7 +21,6 @@ params/init_func: [['gaussian', [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
                   ['two_gaussians', [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]]]
 
 base:
-
   params:
     n_periods: 4.01
     geom: 'xy'
@@ -33,6 +32,7 @@ base:
 
   poisson:
     type: 'lin_system'
+    mat: 'cart_dirichlet'
     nmax_fourier: 10
 
   mesh:
@@ -49,7 +49,7 @@ base:
     save: 'plasma_period'
     log_run: 'file'
     verbose: True
-    period: 0.1
+    period: 0.01
     files: 'fig'
     dl_save: 'no'
     globals:

@@ -1,7 +1,16 @@
 import re
 import copy
 from itertools import product
+import yaml
+import argparse
+from multiprocessing import get_context, current_process
+
+# Local imports
 from .utils import create_dir
+from .scalar.scalar import ScalarTransport
+from .scalar.streamer import StreamerMorrow
+from .euler.euler import Euler
+from .euler.plasma import PlasmaEuler
 
 def make_cases(cfg):
     """ Create cases dictionnary from config file.
@@ -93,3 +102,30 @@ def params(cases, base_cfg, base_cn):
             set_nested(case_cfg, value, *keys_tmp)
         case_cfg['casename'] = f'{base_cn}case_{ncase:d}/'
         yield case_cfg
+
+if __name__ == '__main__':
+
+    args = argparse.ArgumentParser(description='Multiple cases run')
+    args.add_argument('-np', '--n_procs', default=None, type=int,
+                        help='Number of procs')
+    args.add_argument('-c', '--config', type=str,
+                        help='Config filename', required=True)
+    args.add_argument('-t', '--type', type=str,
+                        help='Type of simulation: scalar/streamer/euler/pleuler', required=True)
+    args = args.parse_args()
+
+    with open(args.config, 'r') as yaml_stream:
+        cfg = yaml.safe_load(yaml_stream)
+    
+    cases, base_cfg, base_cn = make_cases(cfg)
+
+    with get_context('spawn').Pool(processes=args.n_procs) as p:
+        if args.type == 'scalar':
+            p.map(ScalarTransport.run, params(cases, base_cfg, base_cn))
+        elif args.type == 'streamer':
+            p.map(StreamerMorrow.run, params(cases, base_cfg, base_cn))
+        elif args.type == 'euler':
+            p.map(Euler.run, params(cases, base_cfg, base_cn))
+        elif args.type == 'pleuler':
+            p.map(PlasmaEuler.run, params(cases, base_cfg, base_cn))
+    
