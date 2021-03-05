@@ -27,10 +27,12 @@ class PoissonNetwork(BasePoisson):
         :param cfg: config dictionnary
         :type cfg: dict
         """
+        # First copy values for initialization of base class
+        cfg['xmin'], cfg['xmax'], cfg['nnx'] = 0, cfg['globals']['lx'], cfg['globals']['nnx']
+        cfg['ymin'], cfg['ymax'], cfg['nny'] = 0, cfg['globals']['ly'], cfg['globals']['nny']
+        super().__init__(cfg)
 
         self.cfg_dl = ConfigParser(cfg)
-        super().__init__(0, self.cfg_dl.lx, self.cfg_dl.nnx, 
-                            0, self.cfg_dl.ly, self.cfg_dl.nny)
         self.res_train = self.cfg_dl.nnx
 
         # Load the network
