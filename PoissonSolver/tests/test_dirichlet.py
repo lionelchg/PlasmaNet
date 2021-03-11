@@ -18,7 +18,7 @@ from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 import PlasmaNet.common.profiles as pf
 
 base_dir = os.path.dirname(os.path.realpath(__file__))
-with open(os.path.join(base_dir,'poisson_ls_xy.yml')) as yaml_stream:
+with open(os.path.join(base_dir, 'poisson_ls_xy.yml')) as yaml_stream:
     cfg = yaml.safe_load(yaml_stream)
 
 poisson = PoissonLinSystem(cfg)
@@ -33,7 +33,7 @@ atol = 1e-10
 
 class TestRhs:
     def test_random(self):
-        case_dir = os.path.join(base_dir,'cases/dirichlet/random_left/')
+        case_dir = os.path.join(base_dir, 'cases/dirichlet/random_left/')
         physical_rhs = np.load(f'{case_dir}physical_rhs.npy').reshape(-1)
         potential = np.load(f'{case_dir}potential.npy')
         random_y = np.load(f'{case_dir}random_left.npy')
@@ -41,14 +41,14 @@ class TestRhs:
         assert np.allclose(poisson.potential, potential, atol=atol, rtol=rtol)
     
     def test_constant_left(self):
-        case_dir = os.path.join(base_dir,'cases/dirichlet/constant_left/')
+        case_dir = os.path.join(base_dir, 'cases/dirichlet/constant_left/')
         physical_rhs = np.load(f'{case_dir}physical_rhs.npy').reshape(-1)
         potential = np.load(f'{case_dir}potential.npy')
         poisson.solve(physical_rhs, zeros_x, zeros_x, ones_y, zeros_y)
         assert np.allclose(poisson.potential, potential, atol=atol, rtol=rtol)
     
     def test_linear_pot_x(self):
-        case_dir = os.path.join(base_dir,'cases/dirichlet/linear_pot_x/')
+        case_dir = os.path.join(base_dir, 'cases/dirichlet/linear_pot_x/')
         physical_rhs = np.load(f'{case_dir}physical_rhs.npy').reshape(-1)
         potential = np.load(f'{case_dir}potential.npy')
         Vmax = 100.0
