@@ -10,7 +10,7 @@
 import torch
 import numpy as np
 import pytest
-from PlasmaNet.operators.divergence import divergence as div
+from PlasmaNet.nnet.operators.divergence import divergence as div
 from tests.operators import create_grid
 
 

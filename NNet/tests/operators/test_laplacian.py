@@ -10,7 +10,7 @@
 import torch
 import numpy as np
 import pytest
-from PlasmaNet.operators.laplacian import laplacian as lapl
+from PlasmaNet.nnet.operators.laplacian import laplacian as lapl
 from tests.operators import create_grid
 
 

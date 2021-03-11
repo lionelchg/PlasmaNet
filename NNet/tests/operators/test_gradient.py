@@ -8,7 +8,7 @@
 
 import torch
 import pytest
-from PlasmaNet.operators.gradient import gradient_numpy, gradient_scalar, gradient_diag
+from PlasmaNet.nnet.operators.gradient import gradient_numpy, gradient_scalar, gradient_diag
 from tests.operators import create_grid
 
 
