@@ -9,7 +9,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.constants as co
-from scipy.sparse.linalg import spsolve
 from numba import njit
 import argparse
 import yaml
@@ -20,8 +19,8 @@ import PlasmaNet.common.profiles as pf
 from ...poissonsolver.poisson import DatasetPoisson
 from ...poissonsolver.analytical import PoissonAnalytical
 from ...common.plot import plot_ax_scalar, plot_ax_scalar_1D, plot_ax_vector_arrow
-from ...common.operators_numpy import grad
 from ...common.utils import create_dir, save_obj
+
 
 class PlasmaEuler(Euler):
     def __init__(self, config):
@@ -53,7 +52,7 @@ class PlasmaEuler(Euler):
 
         if config['params']['init_func'][0] == 'gaussians':
             n_electron = getattr(pf, config['params']['init_func'][0])(self.X, self.Y, 
-                                    config['params']['init_func'][1]) + self.n_back
+                                     config['params']['init_func'][1]) + self.n_back
         else:
             n_electron = getattr(pf, config['params']['init_func'][0])(self.X, self.Y, self.n_pert, 
                                     *config['params']['init_func'][1]) + self.n_back
@@ -104,7 +103,6 @@ class PlasmaEuler(Euler):
             self.dl_plot_period = int(0.1 * self.nit)
             self.fourier_period = int(0.01 * self.nit)
 
-
         if 'globals' in config['output']:
             globals_cfg = config['output']['globals']
 
@@ -115,7 +113,7 @@ class PlasmaEuler(Euler):
                 self.gperiod = [int(per * self.nt_oscill) for per in globals_cfg['fig']]
                 self.gindex = 0
 
-            # Declaration of globals dictionnary which holds, norm2 of signal, norm2 of FFT 
+            # Declaration of globals dictionary which holds, norm2 of signal, norm2 of FFT
             # for domain average and > 0.9 max points as well as onset of instabilities
             # The instability is in [it, iy, ix] format and is triggered if the value goes above
             # 1.2 of the value at the beginning of the simulation
@@ -386,6 +384,7 @@ class PlasmaEuler(Euler):
         # Plot temporals
         sim.post_temporal()
 
+
 @njit(cache=True)
 def compute_flux_cold(U, gamma, r, F):
     """ Compute the 2D flux of the Euler equations 
@@ -403,6 +402,7 @@ def compute_flux_cold(U, gamma, r, F):
     F[3, 0] = U[1] / U[0] * U[3]
     F[3, 1] = U[2] / U[0] * U[3]
 
+
 @njit(cache=True)
 def get_indices(profile, nny, nnx, threshold):
     """ Return the indices [j, i] associated to the number of points which
@@ -414,6 +414,7 @@ def get_indices(profile, nny, nnx, threshold):
             if profile[j, i] > threshold * max_profile:
                 indices.append([j, i])
     return np.array(indices)
+
 
 if __name__ == '__main__':
 

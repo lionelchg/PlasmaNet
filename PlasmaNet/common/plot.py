@@ -1,4 +1,3 @@
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LogNorm
@@ -9,6 +8,7 @@ from .operators_numpy import lapl, grad
 mpl.rcParams['lines.linewidth'] = 2
 mpl.rcParams['contour.negative_linestyle'] = 'solid'
 default_cmap = 'RdBu'  # 'RdBu'
+
 
 def round_up(number: float, decimals:int=1) -> float:
     """ Rounding of a number
@@ -104,6 +104,7 @@ def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, geo
     plt.savefig(figname, bbox_inches='tight')
     plt.close()
 
+
 def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', 
         geom='xy', field_ticks=None, max_value=None, cbar=True, contour=True):
     """ Plot a 2D field on mesh X and Y with contourf and contour. Automatic
@@ -147,7 +148,6 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
             if geom == 'xr':
                 ax.contour(X, -Y, field, levels=clevels, colors='k', linewidths=0.9)
 
-
     # Put colorbar if specified
     if cbar:
         # Adjust the size of the colorbar
@@ -170,6 +170,7 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
     ax.set_aspect("equal")
     ax.set_title(title)
 
+
 def plot_ax_scalar_1D(fig, ax, X, list_cut, field, title, yscale='linear', ylim=None):
     x = X[0, :]
     n_points = len(X[:, 0])
@@ -184,6 +185,7 @@ def plot_ax_scalar_1D(fig, ax, X, list_cut, field, title, yscale='linear', ylim=
     ax.grid(True)
 
     ax.set_title(title)
+
 
 def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', 
                             geom='xy', max_value=None, cbar=True):
@@ -287,6 +289,7 @@ def plot_lapl_rhs(X, Y, dx, dy, potential, physical_rhs, nx, ny, figname, figtit
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
     plt.savefig(figname, bbox_inches='tight')
     plt.close()
+
 
 def plot_modes(ax, N, M, coeffs, title, cmap_str='Blues'):
     """ Plot of the different modes of a 2D Fourier expansion """            

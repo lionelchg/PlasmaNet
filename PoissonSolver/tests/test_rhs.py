@@ -11,11 +11,8 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import yaml
 import numpy as np
-import scipy.constants as co
 
-from PlasmaNet.common.utils import create_dir
 from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
-import PlasmaNet.common.profiles as pf
 
 base_dir = os.path.dirname(os.path.realpath(__file__))
 with open(os.path.join(base_dir, 'poisson_ls_xy.yml')) as yaml_stream:
@@ -27,6 +24,7 @@ zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
 
 rtol = 1e-10
 atol = 1e-10
+
 
 class TestRhs:
     def test_gaussian(self):

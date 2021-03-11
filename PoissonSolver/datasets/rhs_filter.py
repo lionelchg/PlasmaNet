@@ -13,12 +13,11 @@ from tqdm import tqdm
 
 import numpy as np
 import matplotlib
-import matplotlib.pyplot as plt
 from numba import njit
 
-from poissonsolver.plot import plot_set_2D
-from poissonsolver.operators import grad
-from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
+from PlasmaNet.common.plot import plot_set_2D
+from PlasmaNet.common.operators_numpy import grad
+from PlasmaNet.poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
 from scipy.sparse.linalg import spsolve
 
 matplotlib.use('Agg')

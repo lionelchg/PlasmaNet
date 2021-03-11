@@ -8,11 +8,9 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import copy
 from scipy.sparse.linalg import spsolve
 
-from ..common.operators_numpy import grad, lapl
 from ..common.plot import plot_modes
 from .linsystem import matrix_cart, matrix_axisym, impose_dc_bc
 from .base import BasePoisson
@@ -49,6 +47,7 @@ class PoissonLinSystem(BasePoisson):
         self.physical_rhs = physical_rhs.reshape(self.nny, self.nnx)
         self.dirichlet_bc(rhs, self.nnx, self.nny, args)
         self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
+
 
 class DatasetPoisson(PoissonLinSystem):
     """ Class for dataset of poisson rhs and potentials (contains

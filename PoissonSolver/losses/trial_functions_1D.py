@@ -2,17 +2,22 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def triangle(x, L, p):
     return (1 - np.abs(2 * (x - L/2) / L))**p
+
 
 def triangle_derivative(x, L, p):
     return - 2 * p / L * np.sign(x - L/2) * triangle(x, L, p - 1)
 
+
 def bell(x, L, p):
     return (1 - np.abs((x - L/2) * 2 / L)**p)
 
+
 def bell_derivative(x, L, p):
     return - 2 * p / L * np.sign(x - L/2) * np.abs((x - L/2) * 2 / L)**(p - 1)
+
 
 def plot_trial_functions(x, L, p_range, trial, trial_d, trialname, figname):
     fig, axes = plt.subplots(ncols=2, figsize=(15, 7))

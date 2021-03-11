@@ -5,7 +5,7 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
-import os
+
 import numpy as np
 import yaml
 import scipy.constants as co
@@ -14,6 +14,7 @@ from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 from PlasmaNet.poissonsolver.analytical import PoissonAnalytical
 from PlasmaNet.common.profiles import gaussian
 from PlasmaNet.common.utils import create_dir
+
 
 if __name__ == '__main__':
     fig_dir = 'figures/rhs_class/'

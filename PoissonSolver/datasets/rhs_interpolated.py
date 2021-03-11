@@ -2,11 +2,11 @@
 #                                                                                                                      #
 #                                       Interpolate a random_rhs dataset                                               #
 #                                                                                                                      #
-#                                       Ekhi AJuria, CERFACS, 26.05.2020                                               #
+#                                       Ekhi Ajuria, CERFACS, 26.05.2020                                               #
 #                                                                                                                      #
 ########################################################################################################################
 
-'''
+"""
 Takes an existing dataset and interpolates the fields into the sizes (1/2, 1/4, 1/8, 1/16 and 1/32).
 This new tensor is useful for trainings where the output of an scale is used during training.
 
@@ -22,38 +22,33 @@ OUTPUTS:
 
 7 Figures (creates a new folder called: args.dataset.name + '_Small_figures'):
 -  'fig_all_example_{}.png'       All fields 1 1/2 1/4 1/8 1/16 1/32
--  'fig_all_orig_example_{}.png'  All fields 1 1/2 1/4 1/8 1/16 1/32 (but now all the images now have the size nnx, nny) 
+-  'fig_all_orig_example_{}.png'  All fields 1 1/2 1/4 1/8 1/16 1/32 (but now all the images now have the size nnx, nny)
 -  'fig_example_{}.png'           Fields 1 1/2 and 1/4 as well as the difference interp-1/2 and interp-1/4
 -  'fig_Diff_FFT_log_{}.png'      FFT of the difference between interp-orig in log scale
 -  'fig_FFT_log_{}.png'           FFT of the 1 1/2 1/4 1/8 1/16 1/32 in log scale
 -  'fig_Diff_FFT_{}.png'          FFT of the difference between interp-orig
 -  'fig_FFT_{}.png'               FFT of the 1 1/2 1/4 1/8 1/16 1/32
 
-'''
+"""
 
-import os
 import argparse
 from pathlib import Path
 from tqdm import tqdm
-from multiprocessing import get_context
 
 import numpy as np
 import matplotlib
-import matplotlib.pyplot as plt
 import os
-from numba import njit
 
-from poissonsolver.plot import plot_set_2D
-from poissonsolver.operators import grad
-from scipy.sparse.linalg import spsolve
 from scipy import interpolate
 from interpolated_plot import plot_fields, plot_fields_all, plot_a_f_fields
 
 matplotlib.use('Agg')
 
+
 # Hardcoded parameters
 domain_length = 0.01
 plot_period = 1000
+
 
 def dataset_clean_filter(dataset, mesh_size, domain_length):
     """
@@ -73,6 +68,7 @@ def dataset_clean_filter(dataset, mesh_size, domain_length):
     Freq = np.fft.fftshift(np.fft.fftfreq(mesh_size * 2 - 1, domain_length / mesh_size))
 
     return np.abs(np.fft.fftshift(transf)), Freq
+
 
 # Main loop to parallelize
 def big_loop(potential, pot_quarter_orig, pot_half_orig, pot_8_orig, pot_16_orig, pot_32_orig, fig_path):
@@ -128,7 +124,7 @@ def big_loop(potential, pot_quarter_orig, pot_half_orig, pot_8_orig, pot_16_orig
         pot_32_orig[i] = f_32(xx_o, yy_o)
 
         # Perform all the plots
-        if i % 100  == 0:
+        if i % 100 == 0:
             plot_fields_all(potential[i], pot_half, pot_quarter, pot_8, 
                             pot_16, pot_32, i, fig_path, True)
             plot_fields_all(potential[i], pot_half_orig[i], pot_quarter_orig[i], pot_8_orig[i], 
@@ -162,6 +158,7 @@ def big_loop(potential, pot_quarter_orig, pot_half_orig, pot_8_orig, pot_16_orig
 
     return pot_half_orig, pot_quarter_orig, pot_8_orig, pot_16_orig, pot_32_orig
 
+
 if __name__ == '__main__':
     # CLI argument parser
     parser = argparse.ArgumentParser(description="Filter a rhs_random dataset into a new dataset")
@@ -179,7 +176,6 @@ if __name__ == '__main__':
     print(f'Dataset size : {rhs.shape[0]}')
     print(f'Shape of potential field : {potential.shape}')
 
-
     # Determine new dataset name as well as the folder on which the figures will be saved.
     new_name = args.dataset.name
     new_name += '_Small_interpolated_scales'
@@ -194,14 +190,15 @@ if __name__ == '__main__':
 
     # Initialize tensors to be filled!
     pot_quarter_orig = np.zeros_like(potential)
-    pot_half_orig =  np.zeros_like(potential)
-    pot_8_orig =  np.zeros_like(potential)
-    pot_16_orig =  np.zeros_like(potential)
-    pot_32_orig =  np.zeros_like(potential)
+    pot_half_orig = np.zeros_like(potential)
+    pot_8_orig = np.zeros_like(potential)
+    pot_16_orig = np.zeros_like(potential)
+    pot_32_orig = np.zeros_like(potential)
 
     # Perform the main loop
-    pot_half_orig, pot_quarter_orig, pot_8_orig, pot_16_orig, pot_32_orig = big_loop(potential, 
-                    pot_quarter_orig, pot_half_orig, pot_8_orig, pot_16_orig, pot_32_orig, fig_path)
+    pot_half_orig, pot_quarter_orig, pot_8_orig, pot_16_orig, pot_32_orig = big_loop(
+        potential, pot_quarter_orig, pot_half_orig, pot_8_orig, pot_16_orig, pot_32_orig, fig_path
+    )
 
     # Expand on new dimensions and concatenate on the new tensor.
     potential_expand = np.expand_dims(potential, axis=1)

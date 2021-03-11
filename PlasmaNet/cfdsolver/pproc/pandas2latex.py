@@ -1,18 +1,33 @@
 import argparse
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
-columns_ordered = ['instability_de', 'instability_de_value', 'error_spectral_de', 
-                    'instability_max', 'instability_max_value', 'error_spectral_max']
+columns_ordered = [
+    'instability_de',
+    'instability_de_value',
+    'error_spectral_de',
+    'instability_max',
+    'instability_max_value',
+    'error_spectral_max'
+]
 
-format_dict = {"instability_de":"{:.0f}".format, "instability_de_value":"{:.2f}".format, 
-                "instability_max":"{:.0f}".format, "instability_max_value":"{:.2f}".format,
-                "error_spectral_de":"{:.2e}".format, "error_spectral_max":"{:.2e}".format}
+format_dict = {
+    "instability_de": "{:.0f}".format,
+    "instability_de_value": "{:.2f}".format,
+    "instability_max": "{:.0f}".format,
+    "instability_max_value": "{:.2f}".format,
+    "error_spectral_de": "{:.2e}".format,
+    "error_spectral_max": "{:.2e}".format
+}
 
-renaming_dict = {r'instability\_de\_value':'$(t/T_p)^\mrm{DA}$', r'instability\_de':r'\% DA unstable', 
-                r'instability\_max\_value':'$(t/T_p)^\mrm{max}$', r'instability\_max':r'\% max unstable', 
-                r'error\_spectral\_de':r'$\bar{\veps}$', r'error\_spectral\_max':r'$\veps^\mrm{max}$'}
+renaming_dict = {
+    r'instability\_de\_value': '$(t/T_p)^\mrm{DA}$',
+    r'instability\_de': r'\% DA unstable',
+    r'instability\_max\_value': '$(t/T_p)^\mrm{max}$',
+    r'instability\_max': r'\% max unstable',
+    r'error\_spectral\_de': r'$\bar{\veps}$',
+    r'error\_spectral\_max': r'$\veps^\mrm{max}$'
+}
+
 
 def frame_to_latex(filename, groupname, groupby_name):
     """ Convert pandas DataFrame into latex table """
@@ -23,7 +38,7 @@ def frame_to_latex(filename, groupname, groupby_name):
     latex_dataset.iloc[:, 0] *= 100
     latex_dataset.iloc[:, 3] *= 100
     latex_dataset.to_latex('tab_tmp.tex', formatters=format_dict, column_format='lcccccc',
-                    label='Training datasets comparison', na_rep='-')
+                            label='Training datasets comparison', na_rep='-')
     
     fin = open('tab_tmp.tex', 'r')
     fout = open('tab.tex', 'w')
@@ -35,6 +50,7 @@ def frame_to_latex(filename, groupname, groupby_name):
         tmp_line = tmp_line.replace(header_old, header_new)
     lines[5] = tmp_line
     fout.writelines(lines)
+
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(

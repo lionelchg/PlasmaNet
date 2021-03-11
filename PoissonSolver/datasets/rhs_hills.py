@@ -6,7 +6,6 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import sys
 import os
 import time
 from multiprocessing import get_context
@@ -17,13 +16,12 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import numpy as np
 import scipy.constants as co
-from scipy import interpolate
-from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
 
 from PlasmaNet.poissonsolver.poisson import DatasetPoisson
 from PlasmaNet.common.utils import create_dir
 from PlasmaNet.common.profiles import gaussian
+
 
 args = argparse.ArgumentParser(description='RHS hills dataset')
 args.add_argument('-d', '--device', default=None, type=str,
@@ -81,6 +79,7 @@ def params(nits):
         y_gauss = (x_middle_max - x_middle_min) * coefs[4] + x_middle_min
         yield ampl, x_gauss, y_gauss, sigma_x, sigma_y
 
+
 def compute(args):
     """ Compute function for imap (multiprocessing) """
     ampl, x_gauss, y_gauss, sigma_x, sigma_y = args
@@ -90,6 +89,7 @@ def compute(args):
     poisson.solve(physical_rhs, zeros_x, zeros_x, zeros_y, zeros_y)
 
     return poisson.potential, poisson.physical_rhs
+
 
 if __name__ == '__main__':
 

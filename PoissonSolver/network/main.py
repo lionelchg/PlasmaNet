@@ -4,6 +4,7 @@ import numpy as np
 from PlasmaNet.poissonsolver.network import PoissonNetwork
 from PlasmaNet.poissonsolver.linsystem import Poisson
 
+
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='PoissonNetwork runs')
     args.add_argument('-c', '--config', default=None, type=str,

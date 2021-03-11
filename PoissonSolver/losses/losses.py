@@ -1,11 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import mpl_toolkits.mplot3d.axes3d as axes3d
 
-from poissonsolver.operators import lapl, grad
-from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_ax_set_1D, plot_ax_scalar, plot_ax_vector_arrow
-from poissonsolver.postproc import lapl_diff, compute_voln, func_energy, func_energy_torch
-import poissonsolver.operators_torch as optorch
+from PlasmaNet.common.operators_numpy import lapl, grad
+from PlasmaNet.common.plot import plot_ax_scalar, plot_ax_vector_arrow
 
 
 def plot_potential(X, Y, dx, dy, potential, n_points, figname, figtitle=None):
@@ -31,6 +28,7 @@ def plot_potential(X, Y, dx, dy, potential, n_points, figname, figtitle=None):
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
     plt.savefig(figname, bbox_inches='tight')
 
+
 def plot_ax_trial_1D(ax, x, function, n_points, title):
     direction = 'y'
     list_cut = [0, 0.25, 0.5]
@@ -40,6 +38,7 @@ def plot_ax_trial_1D(ax, x, function, n_points, title):
     ax.set_title(title)
     ax.legend()
     ax.grid(True)
+
 
 def plot_ax_3D(fig, index, X, Y, Z, title):
     ax = fig.add_subplot(2, 2, index, projection='3d')

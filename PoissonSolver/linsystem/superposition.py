@@ -5,6 +5,7 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
+
 import os
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
@@ -16,6 +17,7 @@ import scipy.constants as co
 from PlasmaNet.common.utils import create_dir
 from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 import PlasmaNet.common.profiles as pf
+
 
 if __name__ == '__main__':
     with open('poisson_ls_xy.yml') as yaml_stream:

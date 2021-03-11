@@ -97,7 +97,7 @@ y = np.linspace(ymin, ymax, args.ny)
 x, y = np.meshgrid(x, y, indexing="xy")  # creating a regular structured cartesian mesh of dim (ny, nx)
 interp_base = asc.Base()
 interp_base["0000"] = asc.Zone()
-instant_names = base[0].keys()  # create the same instants as in the source base
+instant_names = base[0].keys()  # create the same instants as in the source base
 for instant in instant_names:
     interp_base[0][instant] = asc.Instant()
 interp_base[0].shared["x"] = x  # add new mesh info

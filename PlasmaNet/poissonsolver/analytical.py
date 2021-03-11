@@ -9,7 +9,7 @@
 import numpy as np
 from numba import njit
 
-from .base import BasePoisson, fourier_coef_2D, fourier_coef_1D
+from .base import BasePoisson, fourier_coef_1D
 
 
 class PoissonAnalytical(BasePoisson):

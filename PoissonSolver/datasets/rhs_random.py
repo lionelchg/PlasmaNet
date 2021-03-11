@@ -22,6 +22,7 @@ from tqdm import tqdm
 from PlasmaNet.poissonsolver.poisson import DatasetPoisson
 from PlasmaNet.common.utils import create_dir
 
+
 args = argparse.ArgumentParser(description='Rhs random dataset')
 args.add_argument('-d', '--device', default=None, type=str,
                     help='device on which the dataset is run')
@@ -54,6 +55,7 @@ x_lower, y_lower = np.linspace(xmin, xmax, nnx_lower), np.linspace(ymin, ymax, n
 
 ni0 = 1e11
 
+
 def params(nits):
     """ Parameters to give to compute function for imap """
     for i in range(nits):
@@ -69,6 +71,7 @@ def compute(args):
     poisson.solve(physical_rhs, zeros_x, zeros_x, zeros_y, zeros_y)
 
     return poisson.potential, poisson.physical_rhs
+
 
 if __name__ == '__main__':
     # Parameters for the rhs and plotting

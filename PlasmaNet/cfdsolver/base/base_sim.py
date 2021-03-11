@@ -6,14 +6,13 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import sys
 import numpy as np
 import re
 import yaml
 import logging
 
 from .metric import Grid
-from ..utils import create_dir
+from ...common.utils import create_dir
 
 
 class BaseSim(Grid):

@@ -6,7 +6,6 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import sys
 import os
 import time
 from multiprocessing import get_context
@@ -17,12 +16,11 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import numpy as np
 import scipy.constants as co
-from scipy import interpolate
-from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
 
 from PlasmaNet.poissonsolver.poisson import DatasetPoisson
 from PlasmaNet.common.utils import create_dir
+
 
 args = argparse.ArgumentParser(description='Rhs random dataset')
 args.add_argument('-d', '--device', default=None, type=str,
@@ -69,6 +67,7 @@ fig_dir = data_dir + 'figures/'
 create_dir(data_dir)
 create_dir(fig_dir)
 
+
 def params(nits):
     """ Parameters to give to compute function for imap """
     for i in range(nits):
@@ -76,6 +75,7 @@ def params(nits):
         rhs_coefs = rhs0 * (2 * random_array - 1)
         yield rhs_coefs / (poisson.N**2 + poisson.M**2)
         # yield rhs_coefs
+
 
 def compute(args):
     """ Compute function for imap (multiprocessing) """
@@ -85,6 +85,7 @@ def compute(args):
     tmp_rhs = poisson.sum_series(rhs_coefs)
 
     return tmp_potential, tmp_rhs
+
 
 if __name__ == '__main__':
     # Print header of dataset

@@ -8,7 +8,6 @@
 
 import numpy as np
 from scipy import sparse
-import scipy.constants as co
 
 
 def laplace_square_matrix(n_points):

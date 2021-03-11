@@ -13,7 +13,7 @@ import argparse
 from pathlib import Path
 
 parser = argparse.ArgumentParser(description="Operate a set of data augmentations on "
-                                        "a dataset and output it as a new one")
+                                             "a dataset and output it as a new one")
 parser.add_argument("target_name", type=str, help="Name of the target dataset")
 parser.add_argument("source_path", type=Path, help="Path of the source dataset")
 parser.add_argument("--operations", type=str, nargs="+", help="Data augmentation operations list")
@@ -30,10 +30,12 @@ physical_rhs = np.load(args.source_path / "physical_rhs.npy")
 nx, ny = potential.shape[1:]
 print(f"Initial shape: {potential.shape}")
 
+
 # Define some operations
 def reverse_y_axis(potential, physical_rhs):
     """ Reverse the y axis of the dataset. """
     return np.flip(potential, axis=1), np.flip(physical_rhs, axis=1)
+
 
 operations_register = {
     "reverse_y_axis": reverse_y_axis

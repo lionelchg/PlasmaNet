@@ -1,12 +1,13 @@
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 
 from PlasmaNet.common.plot import plot_ax_scalar
 from PlasmaNet.common.utils import create_dir
 
+
 def mode(X, Y, Lx, Ly, n, m):
     return np.sin(n * np.pi * X / Lx) * np.sin(m * np.pi * Y / Ly)
+
 
 if __name__=='__main__':
     fig_dir = 'figures/modes/'

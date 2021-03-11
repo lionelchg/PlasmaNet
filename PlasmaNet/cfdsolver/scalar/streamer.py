@@ -16,7 +16,7 @@ import logging
 
 from scipy.sparse.linalg import spsolve
 
-from ..base.basesim import BaseSim
+from ..base.base_sim import BaseSim
 from .scalar import compute_flux
 from .chemistry import morrow
 from .photo import photo_axisym, A_j_two, A_j_three, lambda_j_two, lambda_j_three
@@ -26,6 +26,7 @@ from ...common.operators_numpy import grad
 from ...common.profiles import gaussian
 
 from ...poissonsolver.linsystem import matrix_axisym, dirichlet_bc_axi
+
 
 class StreamerMorrow(BaseSim):
     def __init__(self, config):
@@ -100,7 +101,8 @@ class StreamerMorrow(BaseSim):
             self.number = int(re.search('_(\d+)\.npy', config['input']['ne']).group(1)) + 1
             self.dtsum = (self.number - 1) * config['output']['period'] * self.dt
 
-        # Temporal values to store (position of positive streamer, position of negative streamer, energy of the discharge)
+        # Temporal values to store (position of positive streamer, position of negative streamer,
+        # energy of the discharge)
         self.gstreamer = np.zeros((self.nit + 1, 4))
         self.gstreamer[:, 0] = np.linspace(0, self.nit * self.dt, self.nit + 1)
         self.n_middle = int(self.nnx / 2)
@@ -296,6 +298,7 @@ class StreamerMorrow(BaseSim):
             if sim.photo:
                 np.save(config['output']['folder'] + config['casename'] + 'Sph.npy', Sph_list)
                 np.save(config['output']['folder'] + config['casename'] + 'irate.npy', irate_list)
+
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='Streamer run')

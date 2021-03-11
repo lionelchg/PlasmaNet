@@ -3,17 +3,18 @@ import copy
 from itertools import product
 import yaml
 import argparse
-from multiprocessing import get_context, current_process
+from multiprocessing import get_context
 
 # Local imports
-from .utils import create_dir
+from ..common.utils import create_dir
 from .scalar.scalar import ScalarTransport
 from .scalar.streamer import StreamerMorrow
 from .euler.euler import Euler
 from .euler.plasma import PlasmaEuler
 
+
 def make_cases(cfg):
-    """ Create cases dictionnary from config file.
+    """ Create cases dictionary from config file.
     Parameters different from base/mode/casename are used
     to create the number of cases. 'tree' mode enables a tree like structure
     create a different case for every parameter of the ranges provided whereas
@@ -38,7 +39,6 @@ def make_cases(cfg):
     for key, value in cfg.items():
         list_keys.append(key)
         list_params.append(value)
-    
 
     cases = {}
     if mode == 'tree':
@@ -77,6 +77,7 @@ def make_cases(cfg):
 
     return cases, base_cfg, base_cn
 
+
 def set_nested(data, value, *args):
     """ Function to set arguments with value in nested dictionnary """
     element = args[0]
@@ -84,6 +85,7 @@ def set_nested(data, value, *args):
         data[element] = value 
     else:
         set_nested(data[element], value, *args[1:])
+
 
 def params(cases, base_cfg, base_cn):
     """ Create the configuration files for each run and yield it to be read by
@@ -102,6 +104,7 @@ def params(cases, base_cfg, base_cn):
             set_nested(case_cfg, value, *keys_tmp)
         case_cfg['casename'] = f'{base_cn}case_{ncase:d}/'
         yield case_cfg
+
 
 if __name__ == '__main__':
 
@@ -128,4 +131,3 @@ if __name__ == '__main__':
             p.map(Euler.run, params(cases, base_cfg, base_cn))
         elif args.type == 'pleuler':
             p.map(PlasmaEuler.run, params(cases, base_cfg, base_cn))
-    

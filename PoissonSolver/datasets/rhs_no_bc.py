@@ -18,22 +18,12 @@ os.environ['MKL_NUM_THREADS'] = '25'
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_potential
-from poissonsolver.linsystem import matrix_cart, matrix_axisym, laplace_square_matrix
+from PlasmaNet.poissonsolver.linsystem import matrix_axisym, laplace_square_matrix
+from PlasmaNet.common.metric import compute_voln
 from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
 
 matplotlib.use('Agg')
-
-
-def compute_voln(X, dx, dy):
-    """ Computes the nodal volume associated to each node (i, j). """
-    voln = np.ones_like(X) * dx * dy
-    voln[:, 0], voln[:, -1], voln[0, :], voln[-1, :] = \
-        dx * dy / 2, dx * dy / 2, dx * dy / 2, dx * dy / 2
-    voln[0, 0], voln[-1, 0], voln[0, -1], voln[-1, -1] = \
-        dx * dy / 4, dx * dy / 4, dx * dy / 4, dx * dy / 4
-    return voln
 
 
 def inside_plot(fig, axis, n_x, n_y, n, ones, log_t, title, limit, axes_max_x, axes_max_y):

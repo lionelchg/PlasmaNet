@@ -22,5 +22,5 @@ __ALL__ = [
     dirichletnet,
     unet,
     Trainer,
-    ConfigParser
+    ConfigParser,
 ]

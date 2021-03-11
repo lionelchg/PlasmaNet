@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import os
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-from poissonsolver.operators import grad, div, lapl, scalar_rot, print_error
+from PlasmaNet.common.operators_numpy import grad, div, lapl, scalar_rot, print_error
 
 fig_dir = 'figures/operators/'
 if not os.path.exists(fig_dir):
     os.makedirs(fig_dir)
+
 
 def plot_fig_scalar(X, Y, field, name, fig_name):
     matplotlib.rcParams['contour.negative_linestyle'] = 'solid'
@@ -32,6 +34,7 @@ def plot_fig_vector(X, Y, field, name, fig_name):
 
     plt.savefig(fig_dir + fig_name, bbox_inches='tight')
 
+
 def plot_vector_arrow(X, Y, vector_field, name, fig_name):
     norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
     arrow_step = 5
@@ -39,7 +42,7 @@ def plot_vector_arrow(X, Y, vector_field, name, fig_name):
     CS = ax.contourf(X, Y, norm_field, 101)
     cbar = fig.colorbar(CS, pad=0.05, fraction=0.05, ax=ax, aspect=5)
     q = ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
-                vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
+                  vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
     ax.quiverkey(q, X=0.3, Y=1.1, U=10,
                  label='Quiver key, length = 10', labelpos='E')
     ax.set_title(name)
@@ -60,7 +63,6 @@ if __name__ == '__main__':
     X, Y = np.meshgrid(x, y)
 
     # Gradient test
-
     scalar_field = X ** 3 + Y ** 3
     gradient = - grad(scalar_field, dx, dy, nx, ny)
     gradient_th = np.zeros((2, ny, nx))
@@ -70,7 +72,6 @@ if __name__ == '__main__':
     plot_fig_vector(X, Y, gradient, "Gradient", "gradient_test")
 
     # Divergence test
-
     vector_field = np.zeros((2, ny, nx))
     vector_field[0, :] = X ** 2
     vector_field[1, :] = Y ** 2
@@ -87,7 +88,6 @@ if __name__ == '__main__':
     plot_fig_scalar(X, Y, divergence_2, "Divergence", "divergence_test")
 
     # Laplacian test
-
     scalar_field = X ** 3 + Y ** 3
 
     laplacian_2 = lapl(scalar_field, dx, dy, nx, ny)

@@ -5,17 +5,20 @@
 #                                          Lionel Cheng, CERFACS, 28.02.2021                                           #
 #                                                                                                                      #
 ########################################################################################################################
+
 import os
+
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
 import numpy as np
 import yaml
 import scipy.constants as co
-from scipy import interpolate
 
 from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 from PlasmaNet.poissonsolver.analytical import PoissonAnalytical
 from PlasmaNet.common.profiles import gaussian
 from PlasmaNet.common.utils import create_dir
+
 
 @profile
 def main():
@@ -57,6 +60,7 @@ def main():
 
     poisson_th.plot_2D(fig_dir + '2D_th')
     poisson_th.plot_1D2D(fig_dir + 'full_th')
+
 
 if __name__ == '__main__':
     main()

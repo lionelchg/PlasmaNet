@@ -16,7 +16,7 @@ from numba import njit
 import logging
 
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
-from ..base.basesim import BaseSim
+from ..base.base_sim import BaseSim
 
 
 class Euler(BaseSim):
@@ -74,7 +74,7 @@ class Euler(BaseSim):
         snc = self.snc
 
         compute_res(U, F, self.dt, self.volc, self.snc, self.ncx, self.ncy, 
-                self.gamma, self.ndim, self.nvert, res, res_c, U_c)
+                    self.gamma, self.ndim, self.nvert, res, res_c, U_c)
 
     def impose_bc_euler(self):
         """ Full periodic conditions in the 4 directions. """
@@ -159,7 +159,8 @@ class Euler(BaseSim):
 
             # Post processing
             sim.postproc(it)
-            
+
+
 def covo(x, y, x0, y0, u0, v0, rho0, p0, T0, alpha, K, gamma, r, t, U):
     """ Initialize isentropic convective vortex as given by idolikecfd chap 7. """
     xbar = x - x0 - u0 * t
@@ -175,6 +176,7 @@ def covo(x, y, x0, y0, u0, v0, rho0, p0, T0, alpha, K, gamma, r, t, U):
     U[1] = rho * u                                      # momentum along x
     U[2] = rho * v                                      # momentum along y
     U[3] = rho / 2 * (u**2 + v**2) + p / (gamma - 1)    # total energy with closure on internal energy
+
 
 @njit(cache=True)
 def compute_timestep(cfl, dx, U, press, gamma):
@@ -266,6 +268,7 @@ def compute_res(U, F, dt, volc, snc, ncx, ncy, gamma, ndim, nvert, res, res_c, U
             res[:, j, i + 1] -= 0.5 * ( dF_c[:, 0] * snc[1, 0] + dF_c[:, 1] * snc[1, 1] )
             res[:, j + 1, i + 1] -= 0.5 * ( dF_c[:, 0] * snc[2, 0] + dF_c[:, 1] * snc[2, 1] )
             res[:, j + 1, i] -= 0.5 * ( dF_c[:, 0] * snc[3, 0] + dF_c[:, 1] * snc[3, 1] )
+
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='Euler run')

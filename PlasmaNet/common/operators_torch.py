@@ -28,7 +28,6 @@ def print_error(computed, analytical, ds, S, name):
 
 
 def div(field, dx, dy, nx, ny, order=2):
-
     divergence = torch.zeros((ny, nx))
 
     if order == 2:
@@ -65,7 +64,6 @@ def div(field, dx, dy, nx, ny, order=2):
 
 
 def lapl(field, dx, dy, nx, ny, order=2, b=0):
-
     laplacian = torch.zeros((ny, nx))
 
     laplacian[1:-1, 1:-1] = (field[2:, 1:-1] + field[:-2, 1:-1] - 2 * field[1:-1, 1:-1]) / dy**2 + \

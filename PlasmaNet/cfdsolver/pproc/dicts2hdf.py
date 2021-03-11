@@ -1,7 +1,8 @@
 import glob
 import pandas as pd
 import argparse
-from ..utils import load_obj
+from ...common.utils import load_obj
+
 
 def dicts2hdf(data_dir, h5_fn, data_name):
     """ Converts dictionnaries in .pkl format to a single pandas 
@@ -21,6 +22,7 @@ def dicts2hdf(data_dir, h5_fn, data_name):
     df = pd.DataFrame.from_dict(data)
 
     df.to_hdf(h5_fn, data_name)
+
 
 if __name__ == '__main__':
     

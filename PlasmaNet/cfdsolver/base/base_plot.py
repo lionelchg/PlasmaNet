@@ -11,6 +11,7 @@ import numpy as np
 from matplotlib.colors import LogNorm
 
 matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 
 
@@ -133,7 +134,7 @@ def plot_global(gstreamer, xrange, figname):
 
 
 def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', 
-                            axi=False, max_value=None, cbar=True):
+                         axi=False, max_value=None, cbar=True):
     norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
     arrow_step = 10
     if max_value is None:
@@ -151,10 +152,11 @@ def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues',
     if cbar: 
         fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect, ticks=np.linspace(0, max_value, 5))
     ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
-                vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
+              vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
     if axi:
         ax.quiver(X[::arrow_step, ::arrow_step], - Y[::arrow_step, ::arrow_step], 
-            vector_field[0, ::arrow_step, ::arrow_step], - vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
+                  vector_field[0, ::arrow_step, ::arrow_step], - vector_field[1, ::arrow_step, ::arrow_step],
+                  pivot='mid')
     ax.set_title(name)
     ax.set_aspect('equal')
     scilim_x = int(np.log10(np.max(X)))

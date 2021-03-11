@@ -7,11 +7,8 @@
 ###########################################################################################################
 
 import numpy as np
-import scipy.constants as co
 from scipy import integrate
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib as mpl
 
 from ..common.operators_numpy import grad, lapl
 from ..common.plot import plot_ax_scalar, plot_ax_vector_arrow, plot_ax_trial_1D, plot_modes
@@ -21,10 +18,10 @@ class BasePoisson:
     """ Base class for Poisson resolution in 2D cartesian geometry
     """
     def __init__(self, cfg):
-        """ Initialize BasePoissson class with the box boundaries and number of
-        nodes in x and y directions in config dictionnary
+        """ Initialize BasePoisson class with the box boundaries and number of
+        nodes in x and y directions in config dictionary
         
-        :param cfg: Configuration dicitonnary
+        :param cfg: Configuration dictionary
         :type cfg: dict
         """
         xmin, xmax, nnx = cfg['xmin'], cfg['xmax'], cfg['nnx']

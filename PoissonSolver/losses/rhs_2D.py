@@ -15,13 +15,13 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import torch
 
-from poissonsolver.operators import lapl, grad
-from poissonsolver.plot import plot_set_1D, plot_set_2D, plot_ax_set_1D
-from poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
-from poissonsolver.postproc import lapl_diff, compute_voln, func_energy, func_energy_torch
-import poissonsolver.operators_torch as optorch
+from PlasmaNet.common.operators_numpy import lapl, grad
+from PlasmaNet.poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
+from PlasmaNet.poissonsolver.postproc import lapl_diff, func_energy
+from PlasmaNet.common.metric import compute_voln
 
 from losses import plot_potential, plot_ax_3D
+
 
 figs_dir = 'figures/gaussian/'
 
@@ -35,25 +35,33 @@ mpl.rcParams['lines.linewidth'] = 2
 loss_list = ['Energy', 'Points', 'Lapl', 'Electric']
 grid_pos = [(0, 0), (0, 1), (1, 0), (1, 1)]
 
+
 def triangle(x, L, p):
     return (1 - np.abs(2 * (x - L/2) / L))**p
+
 
 def bell(x, L, p):
     return (1 - np.abs((x - L/2) * 2 / L)**p)
 
+
 def fourier_mode(X, Y, Lx, Ly, n, m):
     return np.sin(n * np.pi * X / Lx) * np.sin(m * np.pi * Y / Ly)
+
 
 def trial_triangle(X, Y, Lx, Ly, ampl, p):
     return ampl * triangle(X, Lx, p) * triangle(Y, Ly, p)
 
+
 def trial_bell(X, Y, Lx, Ly, ampl, p):
     return ampl * bell(X, Lx, p) * bell(Y, Ly, p)
+
 
 def trial_fourier(X, Y, Lx, Ly, ampl1, ampl2):
     return ampl1 * fourier_mode(X, Y, Lx, Ly, 1, 1) + ampl2 * (fourier_mode(X, Y, Lx, Ly, 3, 1) + fourier_mode(X, Y, Lx, Ly, 1, 3))
 
+
 trialfunctions = dict([('triangle', trial_triangle), ('bell', trial_bell), ('fourier', trial_fourier)])
+
 
 def losses_2D(ampl_range, p_range, figname, trial):
 
@@ -90,6 +98,7 @@ def losses_2D(ampl_range, p_range, figname, trial):
     plt.tight_layout()
     plt.savefig(figname, bbox_inches='tight')
 
+
 def compute_values(potential):
     """ Computes the electric field and the laplacian of the potential as well as losses """
     E_field = - grad(potential, dx, dy, n_points, n_points)
@@ -104,17 +113,22 @@ def compute_values(potential):
 
     return E_field, E_field_norm, lapl_pot, functional_energy, points_loss, lapl_loss, elec_loss
 
+
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
+
 
 def integral_term(x, y, Lx, Ly, voln, rhs, n, m):
     return 4 / Lx / Ly * np.sum(np.sin(n * np.pi * x / Lx) * np.sin(m * np.pi * y / Ly) * rhs * voln)
 
+
 def fourier_coef(x, y, Lx, Ly, voln, rhs, n, m):
     return integral_term(x, y, Lx, Ly, voln, rhs, n, m) / ((n / Lx)**2 + (m / Ly)**2) / np.pi**2
 
+
 def series_term(x, y, Lx, Ly, voln, rhs, n, m):
     return fourier_coef(x, y, Lx, Ly, voln, rhs, n, m) * np.sin(n * np.pi * x / Lx) * np.sin(m * np.pi * y / Ly)
+
 
 def sum_series(x, y, Lx, Ly, voln, rhs, N, M):
     series = np.zeros_like(x)

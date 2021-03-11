@@ -14,7 +14,7 @@ from numba import njit
 import logging
 
 import PlasmaNet.common.profiles as pf
-from ..base.basesim import BaseSim
+from ..base.base_sim import BaseSim
 from .boundary import outlet_x, outlet_y, full_perio, perio_x, perio_y
 from ...common.operators_numpy import grad
 from ...common.plot import plot_ax_scalar, plot_ax_scalar_1D
@@ -139,6 +139,7 @@ class ScalarTransport(BaseSim):
 
             # Post processing (printing and plotting)
             sim.postproc(it)
+
 
 @njit(cache=True)
 def compute_flux(res, a, u, diff_flux, sij, ncx, ncy, r=None):

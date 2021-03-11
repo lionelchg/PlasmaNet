@@ -2,35 +2,25 @@
 #                                                                                                                      #
 #                             Plot functions for interpolating a random_rhs dataset                                    #
 #                                                                                                                      #
-#                                       Ekhi AJuria, CERFACS, 01.03.2021                                               #
+#                                       Ekhi Ajuria, CERFACS, 01.03.2021                                               #
 #                                                                                                                      #
 ########################################################################################################################
 
-'''
+"""
 Plot functions used in rhs_interpolated_small.py
-'''
-
-import os
-import argparse
-from pathlib import Path
-from tqdm import tqdm
+"""
 
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import os
-from numba import njit
-
-from poissonsolver.plot import plot_set_2D
-from poissonsolver.operators import grad
-from scipy.sparse.linalg import spsolve
-from scipy import interpolate
 
 matplotlib.use('Agg')
+
 
 def round_up(n, decimals=0):
     multiplier = 10 ** decimals
     return np.ceil(n * multiplier) / multiplier
+
  
 def plot_ax_scalar(fig, ax, X, Y, field, title, colormap='RdBu', max_value=None):
     """
@@ -70,6 +60,7 @@ def plot_fields(POT, q_s, q, h_s, h, index_b, fig_path):
     plt.savefig(fig_path / 'fig_example_{}.png'.format(index_b),dpi=300)
     plt.close()
 
+
 def plot_fields_all(POT, p_2, p_4, p_8, p_16, p_32, index_b, fig_path, not_orig):
     """
     Useful plot functions that plot the fields: 1/1, 1/2, 1/4, 1/8, 1/16, 1/32 
@@ -100,7 +91,7 @@ def inside_plot(fig,axis,n,n_f, ones, log_t, diff, title, limit, axes_max):
     Contourf function for the 2D FFT fields.
     """
     if log_t:
-        #cs1 = ax[0].contourf(n_f, n_f, np.maximum(-2*ones,np.log(n)), 100, cmap='Blues')
+        # cs1 = ax[0].contourf(n_f, n_f, np.maximum(-2*ones,np.log(n)), 100, cmap='Blues')
         cs1 = axis.contourf(n_f, n_f, np.maximum(-0.5*ones,np.log(np.maximum(0.0001*ones,n))), 100, cmap='Blues')
     else:
         cs1 = axis.contourf(n_f, n_f, n, 100, cmap='Blues')
@@ -146,4 +137,3 @@ def plot_a_f_fields(n, n_f, n2, n2_f, n4, n4_f,  n8, n8_f, n16, n16_f, n32, n32_
         else:
             plt.savefig(fig_path / 'fig_FFT_{}.png'.format(index_b),dpi=300)
     plt.close()
-

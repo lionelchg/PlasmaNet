@@ -5,17 +5,18 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
+
 import os
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import yaml
 import numpy as np
-import scipy.constants as co
 
 from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 from PlasmaNet.common.profiles import gaussian
 from PlasmaNet.common.utils import create_dir
+
 
 if __name__ == '__main__':
     fig_dir = 'figures/rhs/axi/'

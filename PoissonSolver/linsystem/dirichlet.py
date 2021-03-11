@@ -5,13 +5,14 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
-import os
+
 import numpy as np
 import yaml
 
 from PlasmaNet.common.profiles import random1D, random2D
 from PlasmaNet.common.utils import create_dir
 from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
+
 
 def run_case(case_dir, bottom, up, left, right, plot):
     create_dir(case_dir)
@@ -22,6 +23,7 @@ def run_case(case_dir, bottom, up, left, right, plot):
         create_dir(fig_dir)
         poisson.plot_2D(fig_dir + '2D')
         poisson.plot_1D2D(fig_dir + 'full')
+
 
 if __name__ == '__main__':
     basecase_dir = '../tests/cases/'

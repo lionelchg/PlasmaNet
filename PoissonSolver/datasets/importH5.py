@@ -97,5 +97,3 @@ if __name__ == '__main__':
 
     # Save as a single .npy file for all instants
     save_single_file(base, save_path, variables, out_shape)
-
-

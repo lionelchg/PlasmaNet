@@ -1,20 +1,19 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import copy
-from scipy.sparse.linalg import spsolve
+########################################################################################################################
+#                                                                                                                      #
+#                                           DL PoissonSolver with PlasmaNet                                            #
+#                                                                                                                      #
+#                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
+#                                                                                                                      #
+########################################################################################################################
 
+import numpy as np
 import torch
-import argparse
-import collections
 
 from .base import BasePoisson
 import PlasmaNet.nnet.data.data_loaders as module_data
-import PlasmaNet.nnet.model.loss as module_loss
-import PlasmaNet.nnet.model.metric as module_metric
 from PlasmaNet.nnet.parse_config import ConfigParser
-from PlasmaNet.nnet.trainer.trainer import plot_batch
 import PlasmaNet.nnet.model as module_arch
+
 
 class PoissonNetwork(BasePoisson):
     """ Class for network solver of Poisson problem
@@ -24,7 +23,7 @@ class PoissonNetwork(BasePoisson):
     def __init__(self, cfg):
         """ Initialization of PoissonNetwork class
 
-        :param cfg: config dictionnary
+        :param cfg: config dictionary
         :type cfg: dict
         """
         # First copy values for initialization of base class
@@ -67,9 +66,8 @@ class PoissonNetwork(BasePoisson):
         
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
         physical_rhs_torch = torch.from_numpy(self.physical_rhs[:, np.newaxis, :, :] 
-                                                * ratio * self.scaling_factor).float().cuda()
+                                              * ratio * self.scaling_factor).float().cuda()
 
         potential_torch = self.model(physical_rhs_torch)
         self.potentials = (self.res_train**2 / res**2 * potential_torch.detach().cpu().numpy()[:, 0] 
-                                                / self.scaling_factor)
-        
+                           / self.scaling_factor)

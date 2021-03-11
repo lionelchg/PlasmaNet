@@ -5,6 +5,7 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
+
 import os
 import yaml
 
@@ -17,6 +18,7 @@ from PlasmaNet.common.utils import create_dir
 from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 import PlasmaNet.common.profiles as pf
 
+
 def run_case(case_dir, physical_rhs, zeros_x, zeros_y, plot):
     create_dir(case_dir)
     poisson.solve(physical_rhs, zeros_x, zeros_x, zeros_y, zeros_y)
@@ -27,6 +29,7 @@ def run_case(case_dir, physical_rhs, zeros_x, zeros_y, plot):
         poisson.plot_2D(fig_dir + '2D')
         poisson.plot_1D2D(fig_dir + 'full')
         poisson.plot_pmodes(fig_dir + 'modes')
+
 
 if __name__ == '__main__':
     basecase_dir = '../tests/cases/'

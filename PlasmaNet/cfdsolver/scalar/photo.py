@@ -14,7 +14,7 @@ from scipy import sparse
 from scipy.sparse.linalg import spsolve
 from numba import njit
 
-from ..utils import create_dir
+from ...common.utils import create_dir
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
 
 
