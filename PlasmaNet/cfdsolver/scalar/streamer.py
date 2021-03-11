@@ -98,7 +98,7 @@ class StreamerMorrow(BaseSim):
             # Loading of densities
             self.nd = np.load(config['input']['nd'])
 
-            self.number = int(re.search('_(\d+)\.npy', config['input']['ne']).group(1)) + 1
+            self.number = int(re.search(r'_(\d+)\.npy', config['input']['ne']).group(1)) + 1
             self.dtsum = (self.number - 1) * config['output']['period'] * self.dt
 
         # Temporal values to store (position of positive streamer, position of negative streamer,
@@ -230,7 +230,7 @@ class StreamerMorrow(BaseSim):
 
         axes[1].plot(time, gstreamer[:, 3])
         axes[1].set_xlabel('$t$ [ns]')
-        axes[1].set_ylabel('E [$\mu$J]')
+        axes[1].set_ylabel(r'E [$\mu$J]')
         axes[1].grid(True)
 
         fig.savefig(self.fig_dir + 'globals', bbox_inches='tight')

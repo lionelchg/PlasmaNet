@@ -126,8 +126,8 @@ def plot_global(gstreamer, xrange, figname):
     axes[0].grid(True)
 
     axes[1].plot(time, gstreamer[:, 3])
-    axes[1].set_xlabel('$t$ [ns]')
-    axes[1].set_ylabel('E [$\mu$J]')
+    axes[1].set_xlabel(r'$t$ [ns]')
+    axes[1].set_ylabel(r'E [$\mu$J]')
     axes[1].grid(True)
 
     plt.savefig(figname, bbox_inches='tight')

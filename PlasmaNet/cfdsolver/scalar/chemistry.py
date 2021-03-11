@@ -145,7 +145,7 @@ if __name__ == '__main__':
     fig, axes = plt.subplots(ncols=2, nrows=2, figsize=(12, 12))
 
     axes[0][0].plot(Elog, mobility)
-    ax_prop(axes[0][0], 'x', 'Mobility', '$E$ [V.m-1]', '$\mu$ [m2.V-1.s-1]')
+    ax_prop(axes[0][0], 'x', 'Mobility', '$E$ [V.m-1]', r'$\mu$ [m2.V-1.s-1]')
     axes[1][0].plot(Elog, diffusion)
     ax_prop(axes[1][0], 'x', 'Diffusion', '$E$ [V.m-1]', '$D$ [m2.s-1]')
     axes[0][1].plot(Elin, ioniz_freq)
