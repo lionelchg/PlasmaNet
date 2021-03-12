@@ -10,8 +10,6 @@ import os
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
-import numpy as np
-import scipy.constants as co
 import yaml
 import re
 
@@ -20,14 +18,11 @@ from plasma import PlasmaEulerDL
 # For network
 import torch
 import argparse
-import collections
 
 import PlasmaNet.nnet.data.data_loaders as module_data
-import PlasmaNet.nnet.model.loss as module_loss
-import PlasmaNet.nnet.model.metric as module_metric
 from PlasmaNet.nnet.parse_config import ConfigParser
-from PlasmaNet.nnet.trainer.trainer import plot_batch
 import PlasmaNet.nnet.model as module_arch
+
 
 def search_arch(resume_fn):
     """ Searches the network architecture from the resume file """
@@ -40,6 +35,7 @@ def search_arch(resume_fn):
         if re_arch.search(line):
             arch = re_arch.search(line).group(1)
             return arch
+
 
 # @profile
 def run(config):
@@ -111,6 +107,7 @@ def run(config):
 
     # Plot temporals
     sim.post_temporal()
+
 
 if __name__ == '__main__':
 

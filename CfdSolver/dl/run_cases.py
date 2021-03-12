@@ -1,18 +1,21 @@
-import sys
+"""
+Old run_cases architecture
+New version in PlasmaNet.cfdsolver.cases
+"""
+
 import os
-from multiprocessing import get_context, current_process
+from multiprocessing import get_context
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import argparse
-import time
 import yaml
 import copy
 import re
 
 from plasma_oscillation import run
 from cfdsolver.cases import make_cases, set_nested
-from cfdsolver.utils import create_dir
+
 
 def params(cases, base_cfg, base_cn):
     """ Create the configuration files for each run and yield it to be read by
@@ -32,13 +35,14 @@ def params(cases, base_cfg, base_cn):
         case_cfg['plasma']['casename'] = f'{base_cn}case_{ncase:d}/'
         yield case_cfg
 
+
 if __name__ == '__main__':
 
     args = argparse.ArgumentParser(description='Multiple cases run')
     args.add_argument('-c', '--config', required=True, type=str,
                       help='Config file path (default: None)')
     args.add_argument('-np', '--n_procs', default=1, type=int,
-                        help='Number of procs')
+                      help='Number of procs')
     args = args.parse_args()
 
     with open(args.config, 'r') as yaml_stream:

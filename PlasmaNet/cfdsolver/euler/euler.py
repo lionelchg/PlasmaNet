@@ -26,7 +26,7 @@ class Euler(BaseSim):
         # Scalar and residual declaration - Mixture parameters
         self.gamma = 7 / 5
         self.neqs = 4
-        self.W = 0.029 # kg/mol
+        self.W = 0.029  # kg/mol
         self.r = co.R / self.W
         self.U = np.zeros((self.neqs, self.nny, self.nnx))
         self.U_c = np.zeros((self.neqs, self.ncy, self.ncx))
@@ -73,7 +73,7 @@ class Euler(BaseSim):
         dF_c = self.dF_c
         snc = self.snc
 
-        compute_res(U, F, self.dt, self.volc, self.snc, self.ncx, self.ncy, 
+        compute_res(U, F, self.dt, self.volc, self.snc, self.ncx, self.ncy,
                     self.gamma, self.ndim, self.nvert, res, res_c, U_c)
 
     def impose_bc_euler(self):
@@ -117,7 +117,7 @@ class Euler(BaseSim):
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
         fig.savefig(self.fig_dir + f'1D_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
-    
+
     @classmethod
     def run(cls, config):
         """ Main function containing initialization, temporal loop and outputs. Takes a config dict as input. """
@@ -153,7 +153,7 @@ class Euler(BaseSim):
 
             # boundary conditions
             sim.impose_bc_euler()
-            
+
             # Apply residual
             sim.update_res()
 
@@ -172,10 +172,10 @@ def covo(x, y, x0, y0, u0, v0, rho0, p0, T0, alpha, K, gamma, r, t, U):
     rho = rho0 * (T / T0)**(1 / (gamma - 1))
     p = p0 * (T / T0)**(gamma / (gamma - 1))
     # Define conservative variables
-    U[0] = rho                                          # density
-    U[1] = rho * u                                      # momentum along x
-    U[2] = rho * v                                      # momentum along y
-    U[3] = rho / 2 * (u**2 + v**2) + p / (gamma - 1)    # total energy with closure on internal energy
+    U[0] = rho  # density
+    U[1] = rho * u  # momentum along x
+    U[2] = rho * v  # momentum along y
+    U[3] = rho / 2 * (u**2 + v**2) + p / (gamma - 1)  # total energy with closure on internal energy
 
 
 @njit(cache=True)
@@ -213,11 +213,11 @@ def compute_res(U, F, dt, volc, snc, ncx, ncy, gamma, ndim, nvert, res, res_c, U
     for i in range(ncx):
         for j in range(ncy):
             U_c[:, j, i] = 0.25 * (U[:, j, i] + U[:, j + 1, i]
-                                  + U[:, j, i + 1] + U[:, j + 1, i + 1])
-            res_c[:, j, i] = - (F[:, 0, j, i] * snc[0, 0] +  F[:, 1, j, i] * snc[0, 1]
-                    + F[:, 0, j, i + 1] * snc[1, 0] +  F[:, 1, j, i + 1] * snc[1, 1]
-                    + F[:, 0, j + 1, i + 1] * snc[2, 0] +  F[:, 1, j + 1, i + 1] * snc[2, 1]
-                    + F[:, 0, j + 1, i] * snc[3, 0] +  F[:, 1, j + 1, i] * snc[3, 1])
+                                   + U[:, j, i + 1] + U[:, j + 1, i + 1])
+            res_c[:, j, i] = - (F[:, 0, j, i] * snc[0, 0] + F[:, 1, j, i] * snc[0, 1]
+                                + F[:, 0, j, i + 1] * snc[1, 0] + F[:, 1, j, i + 1] * snc[1, 1]
+                                + F[:, 0, j + 1, i + 1] * snc[2, 0] + F[:, 1, j + 1, i + 1] * snc[2, 1]
+                                + F[:, 0, j + 1, i] * snc[3, 0] + F[:, 1, j + 1, i] * snc[3, 1])
             # Add central term
             res[:, j, i] += res_c[:, j, i] / nvert
             res[:, j, i + 1] += res_c[:, j, i] / nvert
@@ -228,31 +228,31 @@ def compute_res(U, F, dt, volc, snc, ncx, ncy, gamma, ndim, nvert, res, res_c, U
     # Add second order diffusion term
     for i in range(ncx):
         for j in range(ncy):
-            press_c = (gamma - 1) * (U_c[3, j, i] - 
-                    (U[1, j, i]**2 + U[2, j, i]**2) / 2 / U[0, j, i])
-            rho    = U_c[0, j, i]
-            u      = U_c[1, j, i] / rho
-            v      = U_c[2, j, i] / rho
-            H      = U_c[3, j, i] / rho + press_c / rho
-            beta   = gamma - 1
-            alpha  = 0.5 * (u**2 + v**2)
+            press_c = (gamma - 1) * (U_c[3, j, i] -
+                                     (U[1, j, i]**2 + U[2, j, i]**2) / 2 / U[0, j, i])
+            rho = U_c[0, j, i]
+            u = U_c[1, j, i] / rho
+            v = U_c[2, j, i] / rho
+            H = U_c[3, j, i] / rho + press_c / rho
+            beta = gamma - 1
+            alpha = 0.5 * (u**2 + v**2)
 
-            drho   = res_c[0, j, i]
-            drhou  = res_c[1, j, i]
-            drhov  = res_c[2, j, i]
-            drhoE  = res_c[3, j, i]
+            drho = res_c[0, j, i]
+            drhou = res_c[1, j, i]
+            drhov = res_c[2, j, i]
+            drhoE = res_c[3, j, i]
 
-            rhodu  = drhou - u*drho
-            rhodv  = drhov - v*drho
-            drhouu = u*drhou + u*rhodu
-            drhovv = v*drhov + v*rhodv
-            drhouv = u*drhov + v*rhodu
+            rhodu = drhou - u * drho
+            rhodv = drhov - v * drho
+            drhouu = u * drhou + u * rhodu
+            drhovv = v * drhov + v * rhodv
+            drhouv = u * drhov + v * rhodu
 
-            dP     = beta * (drhoE - u*drhou -v*drhov) + beta * alpha * drho
-        
-            drhoH  = drhoE + dP
-            drhoHu = H*rhodu + u*drhoH
-            drhoHv = H*rhodv + v*drhoH
+            dP = beta * (drhoE - u * drhou - v * drhov) + beta * alpha * drho
+
+            drhoH = drhoE + dP
+            drhoHu = H * rhodu + u * drhoH
+            drhoHv = H * rhodv + v * drhoH
 
             dF_c[0, 0] = drhou
             dF_c[1, 0] = drhouu + dP
@@ -264,16 +264,16 @@ def compute_res(U, F, dt, volc, snc, ncx, ncy, gamma, ndim, nvert, res, res_c, U
             dF_c[2, 1] = drhovv + dP
             dF_c[3, 1] = drhoHv
 
-            res[:, j, i] -= 0.5 * ( dF_c[:, 0] * snc[0, 0] + dF_c[:, 1] * snc[0, 1] )
-            res[:, j, i + 1] -= 0.5 * ( dF_c[:, 0] * snc[1, 0] + dF_c[:, 1] * snc[1, 1] )
-            res[:, j + 1, i + 1] -= 0.5 * ( dF_c[:, 0] * snc[2, 0] + dF_c[:, 1] * snc[2, 1] )
-            res[:, j + 1, i] -= 0.5 * ( dF_c[:, 0] * snc[3, 0] + dF_c[:, 1] * snc[3, 1] )
+            res[:, j, i] -= 0.5 * (dF_c[:, 0] * snc[0, 0] + dF_c[:, 1] * snc[0, 1])
+            res[:, j, i + 1] -= 0.5 * (dF_c[:, 0] * snc[1, 0] + dF_c[:, 1] * snc[1, 1])
+            res[:, j + 1, i + 1] -= 0.5 * (dF_c[:, 0] * snc[2, 0] + dF_c[:, 1] * snc[2, 1])
+            res[:, j + 1, i] -= 0.5 * (dF_c[:, 0] * snc[3, 0] + dF_c[:, 1] * snc[3, 1])
 
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='Euler run')
     args.add_argument('-c', '--config', type=str,
-                        help='Config filename', required=True)
+                      help='Config filename', required=True)
     args = args.parse_args()
 
     with open(args.config, 'r') as yaml_stream:

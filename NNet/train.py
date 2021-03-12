@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                                PlasmaNet.nnet: train model                                                #
+#                                           PlasmaNet.nnet: train model                                                #
 #                                                                                                                      #
 #                         Guillaume Bogopolsky, Lionel Cheng, Ekhi Ajuria, CERFACS, 10.03.2020                         #
 #                                                                                                                      #

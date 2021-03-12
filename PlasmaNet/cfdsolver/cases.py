@@ -1,3 +1,12 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                        Generate and launch parametric studies                                        #
+#                                                                                                                      #
+#                                          Lionel Cheng, CERFACS, 05.11.2020                                           #
+#                                                                                                                      #
+########################################################################################################################
+
+
 import re
 import copy
 from itertools import product
@@ -79,7 +88,7 @@ def make_cases(cfg):
 
 
 def set_nested(data, value, *args):
-    """ Function to set arguments with value in nested dictionnary """
+    """ Function to set arguments with value in nested dictionary """
     element = args[0]
     if len(args) == 1:
         data[element] = value 
@@ -110,11 +119,11 @@ if __name__ == '__main__':
 
     args = argparse.ArgumentParser(description='Multiple cases run')
     args.add_argument('-np', '--n_procs', default=None, type=int,
-                        help='Number of procs')
+                      help='Number of procs')
     args.add_argument('-c', '--config', type=str,
-                        help='Config filename', required=True)
+                      help='Config filename', required=True)
     args.add_argument('-t', '--type', type=str,
-                        help='Type of simulation: scalar/streamer/euler/pleuler', required=True)
+                      help='Type of simulation: scalar/streamer/euler/pleuler', required=True)
     args = args.parse_args()
 
     with open(args.config, 'r') as yaml_stream:

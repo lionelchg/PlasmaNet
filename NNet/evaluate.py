@@ -115,11 +115,10 @@ def main(config):
                 output_1.remove()
                 output_analysis.clear()
 
-
             multiple_outputs = False
 
             if output_raw.size(1) != 1:
-                #output = output_raw[:,0].unsqueeze(1)
+                # output = output_raw[:,0].unsqueeze(1)
                 output = output_raw
                 multiple_outputs = True
             else:
