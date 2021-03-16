@@ -149,6 +149,7 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
                 ax.contour(X, -Y, field, levels=clevels, colors='k', linewidths=0.9)
 
     # Put colorbar if specified
+    xmax, ymax = np.max(X), np.max(Y)
     if cbar:
         # Adjust the size of the colorbar
         xmax, ymax = np.max(X), np.max(Y)

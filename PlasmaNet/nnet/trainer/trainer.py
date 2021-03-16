@@ -12,7 +12,7 @@ import torch
 from ..base import BaseTrainer
 from .plot import plot_batch, plot_distrib, plot_scales, plot_batch_Efield
 from ..utils import inf_loop, MetricTracker
-from .long_term_trainer import init_subprocesses, propagate
+#from .long_term_trainer import init_subprocesses, propagate
 
 
 class Trainer(BaseTrainer):

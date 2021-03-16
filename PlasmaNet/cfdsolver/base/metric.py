@@ -9,14 +9,12 @@
 import numpy as np
 import copy
 
-
 class Mesh:
     def __init__(self, config):
         # Mesh properties
         self.ndim = 2
         self.nnx = config['mesh']['nnx']
         self.xmin, self.xmax = config['mesh']['xmin'], config['mesh']['xmax']
-
         # if there is no y properties a square is assumed with same properties on
         # x and y axis
         if 'nny' in config['mesh']: 

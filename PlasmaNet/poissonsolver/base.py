@@ -25,7 +25,15 @@ class BasePoisson:
         :type cfg: dict
         """
         xmin, xmax, nnx = cfg['xmin'], cfg['xmax'], cfg['nnx']
-        ymin, ymax, nny = cfg['ymin'], cfg['ymax'], cfg['nny']
+
+        # if there is no y properties a square is assumed with same properties on
+        # x and y axis
+        if 'nny' in cfg: 
+            nny, ymin, ymax = cfg['nny'], cfg['ymin'], cfg['ymax'] 
+        else:
+            nny, ymin, ymax = nnx, xmin, xmax
+
+        #ymin, ymax, nny = cfg['ymin'], cfg['ymax'], cfg['nny']
 
         self.xmin, self.xmax, self.ymin, self.ymax = xmin, xmax, ymin, ymax
         self.Lx, self.Ly = xmax - xmin, ymax - ymin
