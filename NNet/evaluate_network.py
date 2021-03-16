@@ -72,9 +72,8 @@ def main(config):
             data, target = data.to(device), target.to(device)
             data_norm, target_norm = data_norm.to(device), target_norm.to(device)
 
-
-
             output = model(data)
+            output = (config['globals']['train_nnx']**2 / config['globals']['nnx']**2) * output
 
             #
             # save sample images, or do something with output here
@@ -120,7 +119,7 @@ def plot_ticks(ax, labels_x, labels_y):
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
             rotation_mode="anchor")
 
-def plot_MSE_eror(losses_tests, test_cases, spatial_resolutions, loss_titles, fig_dir):
+def plot_MSE_eror(losses_tests, test_cases, spatial_resolutions, loss_titles, fig_dir, max_val, min_val):
     """ Plots the MSE of all test cases, the average of gaussian and random test cases
     and an the global mean.
 
@@ -130,6 +129,8 @@ def plot_MSE_eror(losses_tests, test_cases, spatial_resolutions, loss_titles, fi
         spatial_resolutions (list): list of integers containing all the evaluated resolutions
         loss_titles (list): list of strings containing the name of the evaluated metrics
         fig_dir (string): directory on which the plots are saved
+        max_val (float): max value of tensors for plotting
+        min_val (float): min value of tensors for plotting
     """
 
     # Plot containing all the test cases
@@ -150,9 +151,9 @@ def plot_MSE_eror(losses_tests, test_cases, spatial_resolutions, loss_titles, fi
     for i, ax in enumerate(axes_all):
         # Initial time step masked
         if i == 0:
-            im = ax.imshow(torch.mean(losses_tests, 2), vmin=10, vmax=10000, norm=LogNorm(), cmap=cmap)
+            im = ax.imshow(torch.mean(losses_tests, 2), vmin=min_val, vmax=max_val, norm=LogNorm(), cmap=cmap)
         else:
-            im = ax.imshow(losses_tests[:,:,i-1], vmin=10, vmax=10000, norm=LogNorm(), cmap=cmap)
+            im = ax.imshow(losses_tests[:,:,i-1], vmin=min_val, vmax=max_val, norm=LogNorm(), cmap=cmap)
         
         # Create colorbars 
         divider = make_axes_locatable(ax)
@@ -198,9 +199,9 @@ def plot_MSE_eror(losses_tests, test_cases, spatial_resolutions, loss_titles, fi
     for i, ax in enumerate(axes_all):
         # Initial time step masked
         if i == 0:
-            im = ax.imshow(torch.mean(losses_section, 2), vmin=10, vmax=10000, norm=LogNorm(), cmap=cmap)
+            im = ax.imshow(torch.mean(losses_section, 2), vmin=min_val, vmax=max_val, norm=LogNorm(), cmap=cmap)
         else:
-            im = ax.imshow(losses_section[:,:,i-1], vmin=10, vmax=10000, norm=LogNorm(), cmap=cmap)
+            im = ax.imshow(losses_section[:,:,i-1], vmin=min_val, vmax=max_val, norm=LogNorm(), cmap=cmap)
 
         # Create colorbars and orientate ticks
         divider = make_axes_locatable(ax)
@@ -237,9 +238,9 @@ def plot_MSE_eror(losses_tests, test_cases, spatial_resolutions, loss_titles, fi
     for i, ax in enumerate(axes_all):
         # Initial time step masked
         if i == 0:
-            im = ax.imshow(torch.mean(torch.mean(losses_section, 2), 1).unsqueeze(1), vmin=10, vmax=10000, norm=LogNorm(), cmap=cmap)
+            im = ax.imshow(torch.mean(torch.mean(losses_section, 2), 1).unsqueeze(1), vmin=min_val, vmax=max_val, norm=LogNorm(), cmap=cmap)
         else:
-            im = ax.imshow(torch.mean(losses_section[:,:,i-1], 1).unsqueeze(1), vmin=10, vmax=10000, norm=LogNorm(), cmap=cmap)
+            im = ax.imshow(torch.mean(losses_section[:,:,i-1], 1).unsqueeze(1), vmin=min_val, vmax=max_val, norm=LogNorm(), cmap=cmap)
 
         # Create colorbars and orientate ticks
         divider = make_axes_locatable(ax)
@@ -291,12 +292,15 @@ if __name__ == '__main__':
                 config = yaml.safe_load(yaml_stream)
             base_data_dir = config['data_loader']['args']['data_dir']
             config['data_loader']['args']['data_dir'] = os.path.join(base_data_dir, test, '{}x{}'.format(n_res, n_res))
+            config['globals']['train_nnx'] = config['globals']['nnx']
             config['globals']['nnx'], config['globals']['nny'] = n_res, n_res
             config = ConfigParser(config)
             # Perform simulations
             losses_tests[j, i, 1:], losses_tests[j, i, 0] = main(config)
             plt.close('all')
-            
+    
+    max_val = losses_tests[j, i, 1:].max()
+    min_val = losses_tests[j, i, 1:].min()
     # Load saving dirs, and create them if necessary
     saving_path = config['trainer']['save_dir']
     fig_dir = os.path.join(saving_path, 'figures/')
@@ -307,6 +311,6 @@ if __name__ == '__main__':
 
     # Save the array of size (spatial_res, test_cases, loss_titles-1) and 3 figures 
     np.save(os.path.join(saving_path, 'losses_save.npy'), losses_tests)
-    plot_MSE_eror(losses_tests, test_cases, spatial_resolutions, loss_titles, fig_dir)
+    plot_MSE_eror(losses_tests, test_cases, spatial_resolutions, loss_titles, fig_dir, max_val, min_val)
 
 
