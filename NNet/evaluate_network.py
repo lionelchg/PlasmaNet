@@ -58,6 +58,7 @@ def main(config):
 
     # Prepare model for testing
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print('Device: ', device)
     model = model.to(device)
     model.eval()
 
@@ -116,146 +117,167 @@ def plot_ticks(ax, labels_x, labels_y):
     ax.set_xticklabels(labels_x)
     ax.set_yticklabels(labels_y)
     # Rotate the tick labels and set their alignment.
-    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
-            rotation_mode="anchor")
+    #plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+    #        rotation_mode="anchor")
 
-def plot_MSE_eror(losses_tests, test_cases, spatial_resolutions, loss_titles, fig_dir, max_val, min_val):
-    """ Plots the MSE of all test cases, the average of gaussian and random test cases
-    and an the global mean.
-
-    Args:
-        losses_tests (torch.tensor): torch tensor containing all the losses to plot
-        test_cases (list):  list of strings containing  the names of all the test cases evaluated
-        spatial_resolutions (list): list of integers containing all the evaluated resolutions
-        loss_titles (list): list of strings containing the name of the evaluated metrics
-        fig_dir (string): directory on which the plots are saved
-        max_val (float): max value of tensors for plotting
-        min_val (float): min value of tensors for plotting
+class PlotRes:
+    """ Class that contains three plots performed for Resolution plots
     """
+    def __init__(self, losses_tests, test_cases, spatial_resolutions, loss_titles, fig_dir, max_val, min_val):
+        """ Plots the MSE of all test cases, the average of gaussian and random test cases
+        and an the global mean.
 
-    # Plot containing all the test cases
-    fig = plt.figure(constrained_layout=True, figsize=(18, 10))
-    gs = GridSpec(2, 3, figure=fig)
+        Args:
+            losses_tests (torch.tensor): torch tensor containing all the losses to plot
+            test_cases (list):  list of strings containing  the names of all the test cases evaluated
+            spatial_resolutions (list): list of integers containing all the evaluated resolutions
+            loss_titles (list): list of strings containing the name of the evaluated metrics
+            fig_dir (string): directory on which the plots are saved
+            max_val (float): max value of tensors for plotting
+            min_val (float): min value of tensors for plotting
+        """
 
-    ax1 = fig.add_subplot(gs[0, 0])
-    ax4 = fig.add_subplot(gs[1, 0]) 
-    ax2 = fig.add_subplot(gs[0, 1])
-    ax5 = fig.add_subplot(gs[1, 1])
-    ax3 = fig.add_subplot(gs[0, 2])
-    ax6 = fig.add_subplot(gs[1, 2])
-    axes_all = [ax1, ax2, ax3, ax4, ax5, ax6]
+        self.data = losses_tests
+        self.cases = test_cases
+        self.resolutions = spatial_resolutions
+        self.losses = loss_titles
+        self.dir = fig_dir
+        self.max_values = max_val
+        self.min_values = min_val
+    
+    def generate_four(self, fig):
+        """ Returns 4 axes for the 4 subplots of the image
 
-    cmap = plt.get_cmap('Reds')
-    cmap.set_bad(color = 'k', alpha = 1.)
+        Args:
+            fig (plt.fig): Figure to be divided in 4 subplots
+        """
 
-    for i, ax in enumerate(axes_all):
-        # Initial time step masked
-        if i == 0:
-            im = ax.imshow(torch.mean(losses_tests, 2), vmin=min_val, vmax=max_val, norm=LogNorm(), cmap=cmap)
-        else:
-            im = ax.imshow(losses_tests[:,:,i-1], vmin=min_val, vmax=max_val, norm=LogNorm(), cmap=cmap)
-        
-        # Create colorbars 
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="5%", pad=0.05)
-        cbar1 = ax.figure.colorbar(im, ax=ax, cax=cax)
+        gs = GridSpec(2, 2, figure=fig)
 
-        # Only put spatial resolution ticks on the first column
-        if i ==0 or i == 3:
-            ax.set_ylabel('Spatial Resolution')
-            plot_ticks(ax, test_cases, spatial_resolutions)
-        else:
-            plot_ticks(ax, test_cases, [])
-        ax.set_title('{}'.format(loss_titles[i]))
+        ax1 = fig.add_subplot(gs[0, 0])
+        ax3 = fig.add_subplot(gs[1, 0]) 
+        ax2 = fig.add_subplot(gs[0, 1])
+        ax4 = fig.add_subplot(gs[1, 1])
 
-    # Save figure
-    fig.savefig(fig_dir + 'MSE_all_losses.png', bbox_inches='tight')
+        return [ax1, ax2, ax3, ax4]
+    
+    def plot_all(self, fig_size):
 
-    ###########################################################################################################################
+        fig = plt.figure(constrained_layout=True, figsize=fig_size)
+        axes_all = self.generate_four(fig)
 
-    # Plot averaging gaussians and random fields
+        cmap = plt.get_cmap('Reds')
+        cmap.set_bad(color = 'k', alpha = 1.)
 
-    # Initialize grids, labels and colormaps
-    test_cases_reduced = ['Gaussians', 'Random']
-    fig = plt.figure(constrained_layout=True, figsize=(7, 5))
-    gs = GridSpec(2, 3, figure=fig)
+        cmap_e = plt.get_cmap('Blues')
+        cmap_e.set_bad(color = 'k', alpha = 1.)
 
-    ax1 = fig.add_subplot(gs[0, 0])
-    ax4 = fig.add_subplot(gs[1, 0]) 
-    ax2 = fig.add_subplot(gs[0, 1])
-    ax5 = fig.add_subplot(gs[1, 1])
-    ax3 = fig.add_subplot(gs[0, 2])
-    ax6 = fig.add_subplot(gs[1, 2])
-    axes_all = [ax1, ax2, ax3, ax4, ax5, ax6]
+        for i, ax in enumerate(axes_all):
+            # Initial time step masked
+            if i < 2:
+                im = ax.imshow(self.data[:,:,i+1], vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=LogNorm(), cmap=cmap)
+            else:
+                im = ax.imshow(self.data[:,:,i+1], vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=LogNorm(), cmap=cmap_e)
 
-    cmap = plt.get_cmap('Reds')
-    cmap.set_bad(color = 'k', alpha = 1.)
+            # Create colorbars 
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="10%", pad=0.05)
+            cbar1 = ax.figure.colorbar(im, ax=ax, cax=cax)
 
-    # Create and store in new tensor
-    losses_section = torch.zeros((len(spatial_resolutions),2,5))
-    losses_section[:,0,:] = torch.mean(losses_tests[:,:3], 1)
-    losses_section[:,1,:] = torch.mean(losses_tests[:,3:], 1)
+            # Only put spatial resolution ticks on the first column
+            if i ==0 or i == 2:
+                ax.set_xlabel('Spatial Resolution')
+                plot_ticks(ax, self.resolutions, self.cases)
+            else:
+                plot_ticks(ax, self.resolutions, [])
+            ax.set_title('{}'.format(self.losses[i]))
 
-    for i, ax in enumerate(axes_all):
-        # Initial time step masked
-        if i == 0:
-            im = ax.imshow(torch.mean(losses_section, 2), vmin=min_val, vmax=max_val, norm=LogNorm(), cmap=cmap)
-        else:
-            im = ax.imshow(losses_section[:,:,i-1], vmin=min_val, vmax=max_val, norm=LogNorm(), cmap=cmap)
+        # Save figure
+        fig.savefig(self.dir + 'MSE_all_losses.png', bbox_inches='tight')
+        plt.close()
 
-        # Create colorbars and orientate ticks
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="20%", pad=0.05)
-        cbar1 = ax.figure.colorbar(im, ax=ax, cax=cax)
+    def plot_categories(self, test_cases_reduced, fig_size):
 
-        plot_ticks(ax, test_cases_reduced, spatial_resolutions)
+        cmap = plt.get_cmap('Reds')
+        cmap.set_bad(color = 'k', alpha = 1.)
 
-        # Ax format
-        ax.set_ylabel('Spatial Resolution')
-        ax.set_title('{}'.format(loss_titles[i]))
+        cmap_e = plt.get_cmap('Blues')
+        cmap_e.set_bad(color = 'k', alpha = 1.)
 
-    fig.savefig(fig_dir + 'MSE_category_losses.png', bbox_inches='tight')
+        # Initialize grids, labels and colormaps
+        self.test_cases_reduced = ['Gaussians', 'Random']
+        fig = plt.figure(constrained_layout=True, figsize=fig_size)
 
-    ###########################################################################################################################
+        axes_all = self.generate_four(fig)
 
-    # Single Column Plot Mean of Gaussians and Randoms
-    # Initialize Figure and colormaps
-    fig = plt.figure(constrained_layout=True, figsize=(7, 5))
-    gs = GridSpec(2, 3, figure=fig)
+        cmap = plt.get_cmap('Reds')
+        cmap.set_bad(color = 'k', alpha = 1.)
 
-    ax1 = fig.add_subplot(gs[0, 0])
-    ax4 = fig.add_subplot(gs[1, 0]) 
-    ax2 = fig.add_subplot(gs[0, 1])
-    ax5 = fig.add_subplot(gs[1, 1])
-    ax3 = fig.add_subplot(gs[0, 2])
-    ax6 = fig.add_subplot(gs[1, 2])
-    axes_all = [ax1, ax2, ax3, ax4, ax5, ax6]
+        # Create and store in new tensor
+        losses_section = torch.zeros((2, len(self.resolutions), 5))
+        losses_section[0,:,:] = torch.mean(self.data[:3,:], 0)
+        losses_section[1,:,:] = torch.mean(self.data[3:,:], 0)
+        self.losses_section = losses_section
 
-    cmap = plt.get_cmap('Reds')
-    cmap.set_bad(color = 'k', alpha = 1.)
+        for i, ax in enumerate(axes_all):
+            # Initial time step masked
+            if i<2:
+                im = ax.imshow(losses_section[:,:,i+1], vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=LogNorm(), cmap=cmap)
+            else:
+                im = ax.imshow(losses_section[:,:,i+1], vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=LogNorm(), cmap=cmap_e)
 
-    # Loop over axes
-    for i, ax in enumerate(axes_all):
-        # Initial time step masked
-        if i == 0:
-            im = ax.imshow(torch.mean(torch.mean(losses_section, 2), 1).unsqueeze(1), vmin=min_val, vmax=max_val, norm=LogNorm(), cmap=cmap)
-        else:
-            im = ax.imshow(torch.mean(losses_section[:,:,i-1], 1).unsqueeze(1), vmin=min_val, vmax=max_val, norm=LogNorm(), cmap=cmap)
+            # Create colorbars and orientate ticks
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="10%", pad=0.05)
+            cbar1 = ax.figure.colorbar(im, ax=ax, cax=cax)
 
-        # Create colorbars and orientate ticks
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="20%", pad=0.05)
-        cbar1 = ax.figure.colorbar(im, ax=ax, cax=cax)
-        plot_ticks(ax, ['Mean'], spatial_resolutions)
+            plot_ticks(ax, self.resolutions, self.test_cases_reduced)
 
-        # Ax format
-        ax.set_ylabel('Spatial Resolution')
-        ax.set_title('{}'.format(loss_titles[i]))
+            # Ax format
+            ax.set_xlabel('Spatial Resolution')
+            ax.set_title('{}'.format(self.losses[i]))
 
-    # Save figure and 3 arrays
-    fig.savefig(fig_dir + 'MSE_mean.png', bbox_inches='tight')
+        fig.savefig(self.dir + 'MSE_category_losses.png', bbox_inches='tight')
+        plt.close()
 
-    plt.close('all')
+    def plot_overall_mean(self, fig_size):
+        # Single Column Plot Mean of Gaussians and Randoms
+        cmap = plt.get_cmap('Reds')
+        cmap.set_bad(color = 'k', alpha = 1.)
+
+        cmap_e = plt.get_cmap('Blues')
+        cmap_e.set_bad(color = 'k', alpha = 1.)
+
+        # Initialize Figure and colormaps
+        fig = plt.figure(constrained_layout=True, figsize=fig_size)
+
+        axes_all = self.generate_four(fig)
+
+        cmap = plt.get_cmap('Reds')
+        cmap.set_bad(color = 'k', alpha = 1.)
+
+        # Loop over axes
+        for i, ax in enumerate(axes_all):
+            # Initial time step masked
+            if i<2:
+                im = ax.imshow(torch.mean(self.losses_section[:,:,i+1], 1).unsqueeze(1), vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=LogNorm(), cmap=cmap)
+            else:
+                im = ax.imshow(torch.mean(self.losses_section[:,:,i+1], 1).unsqueeze(1), vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=LogNorm(), cmap=cmap_e)
+
+            # Create colorbars and orientate ticks
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="10%", pad=0.05)
+            cbar1 = ax.figure.colorbar(im, ax=ax, cax=cax)
+            plot_ticks(ax, ['Mean'], self.test_cases_reduced)
+
+            # Ax format
+            #ax.set_xlabel('Spatial Resolution')
+            ax.set_title('{}'.format(self.losses[i]))
+
+        # Save figure and 3 arrays
+        fig.savefig(self.dir + 'MSE_mean.png', bbox_inches='tight')
+        plt.close()
+
 
 if __name__ == '__main__':
 
@@ -279,38 +301,59 @@ if __name__ == '__main__':
                   'random_14_center']
     spatial_resolutions = [61, 81, 101, 121, 141, 201]
     loss_titles = ['Loss_mean', 'Loss', 'Residual', 'Inf_norm', 'Eresidual', 'Einf_norm']
+    plot_loss_titles= ['Residual', 'Inf_norm', 'Eresidual', 'Einf_norm']
+
+    with open(original_config, 'r') as yaml_stream:
+        config = yaml.safe_load(yaml_stream)
 
     # Initialization of variables
     losses_tests = torch.zeros((len(spatial_resolutions),len(test_cases),len(loss_titles)-1))
-
-    # Loop over all test cases
-    for i, test in enumerate(test_cases):
-        for j, n_res in enumerate(spatial_resolutions): 
-     
-            # Load base config with yaml and modify nnx and data_dir
-            with open(original_config, 'r') as yaml_stream:
-                config = yaml.safe_load(yaml_stream)
-            base_data_dir = config['data_loader']['args']['data_dir']
-            config['data_loader']['args']['data_dir'] = os.path.join(base_data_dir, test, '{}x{}'.format(n_res, n_res))
-            config['globals']['train_nnx'] = config['globals']['nnx']
-            config['globals']['nnx'], config['globals']['nny'] = n_res, n_res
-            config = ConfigParser(config)
-            # Perform simulations
-            losses_tests[j, i, 1:], losses_tests[j, i, 0] = main(config)
-            plt.close('all')
-    
-    max_val = losses_tests[j, i, 1:].max()/10
-    min_val = losses_tests[j, i, 1:].min()
-    # Load saving dirs, and create them if necessary
-    saving_path = config['trainer']['save_dir']
+    saving_path = os.path.join(config['trainer']['save_dir'], config['name'])
     fig_dir = os.path.join(saving_path, 'figures/')
     if not os.path.isdir(saving_path):
         create_dir(saving_path)
     if not os.path.isdir(fig_dir):
         create_dir(fig_dir)
 
+    # Losses_npy file to load or create
+    loss_file_name = os.path.join(saving_path, 'losses_save.npy')
+
+    if os.path.exists(loss_file_name):
+        losses_tests = torch.from_numpy(np.load(loss_file_name)) 
+    else:
+        # Loop over all test cases
+        for i, test in enumerate(test_cases):
+            for j, n_res in enumerate(spatial_resolutions): 
+        
+                # Load base config with yaml and modify nnx and data_dir
+                with open(original_config, 'r') as yaml_stream:
+                    config = yaml.safe_load(yaml_stream)
+                base_data_dir = config['data_loader']['args']['data_dir']
+                config['data_loader']['args']['data_dir'] = os.path.join(base_data_dir, test, '{}x{}'.format(n_res, n_res))
+                config['globals']['train_nnx'] = config['globals']['nnx']
+                config['globals']['nnx'], config['globals']['nny'] = n_res, n_res
+                config = ConfigParser(config)
+                # Perform simulations
+                losses_tests[j, i, 1:], losses_tests[j, i, 0] = main(config)
+                plt.close('all')
+    
+    #pdb.set_trace()
+    max_val = torch.max(torch.max(losses_tests, dim=0)[0],dim=0)[0]
+    min_val = torch.min(torch.min(losses_tests, dim=0)[0],dim=0)[0] 
+
+    # Load saving dirs, and create them if necessary
+    #saving_path = '/scratch/cfd/ajuria/Plasma/cases/20_new_plasmanet/flexinet_new/pproc/debug/'
+
     # Save the array of size (spatial_res, test_cases, loss_titles-1) and 3 figures 
-    np.save(os.path.join(saving_path, 'losses_save.npy'), losses_tests)
-    plot_MSE_eror(losses_tests, test_cases, spatial_resolutions, loss_titles, fig_dir, max_val, min_val)
+    np.save(loss_file_name, losses_tests)
+
+    # Transpose for plotting correctly, and create the plotting class
+    losses_tests = torch.transpose(losses_tests, 0, 1)
+    plots = PlotRes(losses_tests, test_cases, spatial_resolutions, plot_loss_titles, fig_dir, max_val, min_val)
+
+    plots.plot_all((10, 10))
+    plots.plot_categories(['Gaussians', 'Random'],(8, 3))
+    plots.plot_overall_mean((5,3))
+
 
 
