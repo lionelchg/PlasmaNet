@@ -14,8 +14,8 @@ import copy
 import re
 
 from plasma_oscillation import run
-from cfdsolver.cases import make_cases, set_nested
-
+from PlasmaNet.cfdsolver.cases import make_cases, set_nested
+from PlasmaNet.common.utils import create_dir
 
 def params(cases, base_cfg, base_cn):
     """ Create the configuration files for each run and yield it to be read by
