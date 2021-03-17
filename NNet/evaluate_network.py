@@ -16,6 +16,8 @@ import numpy as np
 from tqdm import tqdm
 import os
 
+import matplotlib
+#matplotlib.rcParams['text.usetex'] = True
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import *
 import matplotlib.lines as mlines
@@ -23,6 +25,7 @@ from matplotlib.colors import ListedColormap
 import matplotlib.ticker as ticker
 from matplotlib.colors import LogNorm
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 
 import PlasmaNet.nnet.data.data_loaders as module_data
 import PlasmaNet.nnet.model.loss as module_loss
@@ -161,7 +164,20 @@ class PlotRes:
 
         return [ax1, ax2, ax3, ax4]
     
-    def plot_all(self, fig_size):
+    def define_log(self, log):
+        """ Helpful method for plotting log_scale or not
+
+        Args:
+            log (bool): If true, Imshow in Log Scale
+        """
+        if log:
+            norm_plot = LogNorm()
+        else:
+            norm_plot = None
+        return norm_plot
+
+    
+    def plot_all(self, fig_size, log):
 
         fig = plt.figure(constrained_layout=True, figsize=fig_size)
         axes_all = self.generate_four(fig)
@@ -175,9 +191,9 @@ class PlotRes:
         for i, ax in enumerate(axes_all):
             # Initial time step masked
             if i < 2:
-                im = ax.imshow(self.data[:,:,i+1], vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=LogNorm(), cmap=cmap)
+                im = ax.imshow(self.data[:,:,i+1], vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=self.define_log(log), cmap=cmap)
             else:
-                im = ax.imshow(self.data[:,:,i+1], vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=LogNorm(), cmap=cmap_e)
+                im = ax.imshow(self.data[:,:,i+1], vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=self.define_log(log), cmap=cmap_e)
 
             # Create colorbars 
             divider = make_axes_locatable(ax)
@@ -185,8 +201,9 @@ class PlotRes:
             cbar1 = ax.figure.colorbar(im, ax=ax, cax=cax)
 
             # Only put spatial resolution ticks on the first column
-            if i ==0 or i == 2:
+            if i==2 or i==3:
                 ax.set_xlabel('Spatial Resolution')
+            if i==0 or i==2: 
                 plot_ticks(ax, self.resolutions, self.cases)
             else:
                 plot_ticks(ax, self.resolutions, [])
@@ -196,7 +213,7 @@ class PlotRes:
         fig.savefig(self.dir + 'MSE_all_losses.png', bbox_inches='tight')
         plt.close()
 
-    def plot_categories(self, test_cases_reduced, fig_size):
+    def plot_categories(self, test_cases_reduced, fig_size, log):
 
         cmap = plt.get_cmap('Reds')
         cmap.set_bad(color = 'k', alpha = 1.)
@@ -222,9 +239,9 @@ class PlotRes:
         for i, ax in enumerate(axes_all):
             # Initial time step masked
             if i<2:
-                im = ax.imshow(losses_section[:,:,i+1], vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=LogNorm(), cmap=cmap)
+                im = ax.imshow(losses_section[:,:,i+1], vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=self.define_log(log), cmap=cmap)
             else:
-                im = ax.imshow(losses_section[:,:,i+1], vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=LogNorm(), cmap=cmap_e)
+                im = ax.imshow(losses_section[:,:,i+1], vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=self.define_log(log), cmap=cmap_e)
 
             # Create colorbars and orientate ticks
             divider = make_axes_locatable(ax)
@@ -233,14 +250,21 @@ class PlotRes:
 
             plot_ticks(ax, self.resolutions, self.test_cases_reduced)
 
-            # Ax format
-            ax.set_xlabel('Spatial Resolution')
+            # Only put spatial resolution ticks on the first column
+            if i ==2 or i == 3:
+                ax.set_xlabel('Spatial Resolution')
+
+            if i==1 or i==3:
+                plot_ticks(ax, self.resolutions, [])
+            else:
+                plot_ticks(ax, self.resolutions, self.test_cases_reduced)
+
             ax.set_title('{}'.format(self.losses[i]))
 
         fig.savefig(self.dir + 'MSE_category_losses.png', bbox_inches='tight')
         plt.close()
 
-    def plot_overall_mean(self, fig_size):
+    def plot_overall_mean(self, fig_size, log):
         # Single Column Plot Mean of Gaussians and Randoms
         cmap = plt.get_cmap('Reds')
         cmap.set_bad(color = 'k', alpha = 1.)
@@ -260,13 +284,13 @@ class PlotRes:
         for i, ax in enumerate(axes_all):
             # Initial time step masked
             if i<2:
-                im = ax.imshow(torch.mean(self.losses_section[:,:,i+1], 1).unsqueeze(1), vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=LogNorm(), cmap=cmap)
+                im = ax.imshow(torch.mean(self.losses_section[:,:,i+1], 1).unsqueeze(1), vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=self.define_log(log), cmap=cmap)
             else:
-                im = ax.imshow(torch.mean(self.losses_section[:,:,i+1], 1).unsqueeze(1), vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=LogNorm(), cmap=cmap_e)
+                im = ax.imshow(torch.mean(self.losses_section[:,:,i+1], 1).unsqueeze(1), vmin=self.min_values[i+1], vmax=self.max_values[i+1], norm=self.define_log(log), cmap=cmap_e)
 
             # Create colorbars and orientate ticks
             divider = make_axes_locatable(ax)
-            cax = divider.append_axes("right", size="10%", pad=0.05)
+            cax = divider.append_axes("right", size="20%", pad=0.05)
             cbar1 = ax.figure.colorbar(im, ax=ax, cax=cax)
             plot_ticks(ax, ['Mean'], self.test_cases_reduced)
 
@@ -293,15 +317,18 @@ if __name__ == '__main__':
     test_cases = ['gaussian_centered',
                   'gaussian_offcentered',
                   'double_gaussian',
-                  'random_4_center',
-                  'random_6_center',
-                  'random_8_center',
-                  'random_10_center', 
-                  'random_12_center',
-                  'random_14_center']
+                  'random_4',
+                  'random_6',
+                  'random_8',
+                  'random_10', 
+                  'random_12',
+                  'random_14']
     spatial_resolutions = [61, 81, 101, 121, 141, 201]
-    loss_titles = ['Loss_mean', 'Loss', 'Residual', 'Inf_norm', 'Eresidual', 'Einf_norm']
-    plot_loss_titles= ['Residual', 'Inf_norm', 'Eresidual', 'Einf_norm']
+    loss_titles = [r'Loss_mean', r'Loss', r'$|| \phi_{NN} - \phi_{target} ||_{1}$', r'$|| \phi_{NN} - \phi_{true} ||_{\infty}$', 
+                                          r'$|| \vb{E}_{NN} - \vb{E}_{target} ||_{1}$', r'$|| \vb{E}_{NN} - \vb{E}_{target} ||_{\infty}$']
+
+    plot_loss_titles= [r'$|| \phi_{NN} - \phi_{target} ||_{1}$', r'$|| \phi_{NN} - \phi_{true} ||_{\infty}$', 
+                       r'$|| \mathbf{E}_{NN} - \mathbf{E}_{target} ||_{1}$', r'$|| \mathbf{E}_{NN} - \mathbf{E}_{target} ||_{\infty}$']
 
     with open(original_config, 'r') as yaml_stream:
         config = yaml.safe_load(yaml_stream)
@@ -351,9 +378,9 @@ if __name__ == '__main__':
     losses_tests = torch.transpose(losses_tests, 0, 1)
     plots = PlotRes(losses_tests, test_cases, spatial_resolutions, plot_loss_titles, fig_dir, max_val, min_val)
 
-    plots.plot_all((10, 10))
-    plots.plot_categories(['Gaussians', 'Random'],(8, 3))
-    plots.plot_overall_mean((5,3))
+    plots.plot_all((10, 10), False)
+    plots.plot_categories(['Gaussians', 'Random'],(8, 3), False)
+    plots.plot_overall_mean((5,4), False)
 
 
 
