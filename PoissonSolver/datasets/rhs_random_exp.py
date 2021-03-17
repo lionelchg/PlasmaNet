@@ -32,14 +32,16 @@ args.add_argument('-nr', '--n_res', default=None, type=int,
                     help='grid of npts/nres on which the random set is taken')
 args.add_argument('-np', '--n_procs', default=None, type=int,
                     help='number of procs')
+args.add_argument('-s', '--n_size', default=None, type=int,
+                    help='number of procs')
 args.add_argument('--case', type=str, default=None,
                 help='Case name')
 args = args.parse_args()
 
 device = args.device
-nits, n_res, n_procs = args.nits, args.n_res, args.n_procs
+nits, n_res, n_procs, n_size = args.nits, args.n_res, args.n_procs, args.n_size
 
-with open('poisson_ls_xy.yml', 'r') as yaml_stream:
+with open('poisson_ls_xy_{}.yml'.format(n_size), 'r') as yaml_stream:
     cfg = yaml.safe_load(yaml_stream)
 poisson = DatasetPoisson(cfg)
 
@@ -88,16 +90,18 @@ if __name__ == '__main__':
     if args.case is not None:
         casename = args.case
     else:
-        casename = f'{nnx:d}x{nny}/random_{n_res:d}_center/'
+        casename = f'/random_{n_res:d}_center/{nnx:d}x{nny}'
         
     if device == 'mac':
         data_dir = 'outputs/' + casename
         chunksize = 20
     elif device == 'kraken':
-        data_dir = '/scratch/cfd/cheng/DL/datasets/' + casename
+        data_dir = '/scratch/cfd/ajuria/Plasma/plasmanet_new/datasets/training' + casename
         chunksize = 5
 
-    fig_dir = data_dir + 'figures/'
+    fig_dir = data_dir + '/figures/'
+    print('creating FIg dir ', fig_dir)
+    print('creating data dir ', data_dir)
     create_dir(data_dir)
     create_dir(fig_dir)
 
@@ -126,7 +130,7 @@ if __name__ == '__main__':
 
     poisson.plot_pmodes(fig_dir + 'average_modes')
 
-    np.save(data_dir + 'potential.npy', potential_list)
-    np.save(data_dir + 'physical_rhs.npy', physical_rhs_list)
+    np.save(data_dir + '/potential.npy', potential_list)
+    np.save(data_dir + '/physical_rhs.npy', physical_rhs_list)
     time_stop = time.time()
     print('Elapsed time (s) : %.2f' % (time_stop - time_start))

@@ -299,7 +299,7 @@ if __name__ == '__main__':
             losses_tests[j, i, 1:], losses_tests[j, i, 0] = main(config)
             plt.close('all')
     
-    max_val = losses_tests[j, i, 1:].max()
+    max_val = losses_tests[j, i, 1:].max()/10
     min_val = losses_tests[j, i, 1:].min()
     # Load saving dirs, and create them if necessary
     saving_path = config['trainer']['save_dir']

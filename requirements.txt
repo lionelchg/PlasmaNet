@@ -42,6 +42,7 @@ scipy==1.4.1
 six==1.14.0
 sphinx==3.5.2
 sphinx-rtd-theme==0.5.1
+tensorboard==2.4.1
 torch==1.7.1
 torchaudio==0.7.2
 torchvision==0.8.2
