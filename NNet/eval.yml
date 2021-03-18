@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'Flexinet_4_wide/inference_test'      # Experience name
+name: 'Flexinet_5_wide/inference_test'      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -27,18 +27,20 @@ globals:                                    # Domain sizes and others, used to c
     ly: 0.01
     coord: 'cart'
 
-resume: '/scratch/cfd/ajuria/Plasma/plasmanet_new/plasmanet/NNet/outputs/debug/FlexiNet_4_wide/models/Flexinet_4_wide/random_8_center/'
+resume: '/scratch/cfd/ajuria/Plasma/cases/20_new_plasmanet/flexinet_new/4_scales/wide/outputs/models/random_8_perio/121'
 
 arch:
-    type: 'FlexiNet'
+    type: 'FlexiNet2'
     args:
         data_channels: 1                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
-        filters: [ [32, 32, 32, 32, 32, 24],
-            [32, 32, 32, 32, 32, 24],
-            [32, 32, 32, 32, 32, 24],
-            [32, 32, 32, 32, 32, 24] ] # Number of intermediate filters per scale
+        filters: [[32, 32, 32, 32, 32, 24],
+                  [32, 32, 32, 32, 32, 24],
+                  [32, 32, 32, 32, 32, 24],
+                  [32, 32, 32, 32, 32, 24]] 
         scales: 4
-        input_val: True                    # Boolean to see if the intial field is inputted or not
+        input_val: True                     # Boolean to see if the intial field is inputted or not
+        output_val: False                   # Boolean to see if the output fields are added
+        pad_method: 'circular'              # String for padding method, choose between: 'circular', 'zeros', 'reflect' or'replicate'
 
 
 data_loader:
