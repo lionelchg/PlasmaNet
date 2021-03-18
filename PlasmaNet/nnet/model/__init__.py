@@ -12,4 +12,5 @@ from .singlefilter import SingleFilter
 from .simplenet import SimpleNet
 from .simplemultinet import SimpleScaleNet
 from .flexinet import FlexiNet
+from .flexinet_2 import FlexiNet2
 from .li_fourier_2d import FourierNet2D
