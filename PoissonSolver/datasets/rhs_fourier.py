@@ -21,51 +21,40 @@ from tqdm import tqdm
 from PlasmaNet.poissonsolver.poisson import DatasetPoisson
 from PlasmaNet.common.utils import create_dir
 
+args = argparse.ArgumentParser(description='RHS random dataset')
+args.add_argument('-c', '--cfg', type=str, default=None,
+                help='Config filename')
+args.add_argument('-nn', '--nnodes', default=None, type=int,
+                    help='Number of nodes in x and y directions')
+args.add_argument('--case', type=str, default=None, help='Case name')
 
-args = argparse.ArgumentParser(description='Rhs random dataset')
-args.add_argument('-d', '--device', default=None, type=str,
-                    help='device on which the dataset is run')
-args.add_argument('-ni', '--nits', default=None, type=int,
-                    help='number of entries in the dataset')
-args.add_argument('-np', '--n_procs', default=None, type=int,
-                    help='number of procs')
-args.add_argument('--case', type=str, default=None,
-                  help='Case name')
+# Specific arguments
+args.add_argument('-nm', '--nmodes', default=5, type=int,
+                    help='Number of modes')
+args.add_argument('-dp', '--decrease_power', default=2, type=int,
+                    help='Decreasing power of the modes (polynomial)')
 args = args.parse_args()
 
-device = args.device
-nits, n_procs = args.nits, args.n_procs
-
-with open('poisson_ls_xy.yml', 'r') as yaml_stream:
+with open(args.cfg, 'r') as yaml_stream:
     cfg = yaml.safe_load(yaml_stream)
-poisson = DatasetPoisson(cfg)
+
+device = cfg['device']
+nits = cfg['n_entries']
+n_procs = cfg['n_procs']
+
+# Overwrite the resolution if in CLI
+if args.nnodes is not None:
+    cfg['poisson']['nnx'] = args.nnodes
+    cfg['poisson']['nny'] = args.nnodes
+
+cfg['poisson']['nmax_fourier'] = args.nmodes
+
+poisson = DatasetPoisson(cfg['poisson'])
 zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
 
 # amplitude of the random modes
 ni0 = 1e11
 rhs0 = ni0 * co.e / co.epsilon_0
-
-# Parameters for the plotting
-plot = True
-plot_period = int(0.1 * nits)
-freq_period = int(0.01 * nits)
-
-# Directories declaration and creation if necessary
-if args.case is not None:
-    casename = args.case + "/"
-else:
-    casename = f'{poisson.nnx:d}x{poisson.nny:d}/fourier_{poisson.nmax:d}_2/'
-
-if device == 'mac':
-    data_dir = 'outputs/' + casename
-    chunksize = 20
-elif device == 'kraken':
-    data_dir = 'outputs/' + casename
-    chunksize = 5
-
-fig_dir = data_dir + 'figures/'
-create_dir(data_dir)
-create_dir(fig_dir)
 
 
 def params(nits):
@@ -73,8 +62,7 @@ def params(nits):
     for i in range(nits):
         random_array = np.random.random((poisson.nmax, poisson.mmax))
         rhs_coefs = rhs0 * (2 * random_array - 1)
-        yield rhs_coefs / (poisson.N**2 + poisson.M**2)
-        # yield rhs_coefs
+        yield rhs_coefs / (poisson.N**args.decrease_power + poisson.M**args.decrease_power)
 
 
 def compute(args):
@@ -88,7 +76,31 @@ def compute(args):
 
 
 if __name__ == '__main__':
+    # Parameters for the plotting
+    plot = True
+    plot_period = int(0.1 * nits)
+    freq_period = int(0.01 * nits)
+
+    # Directories declaration and creation if necessary
+    if args.case is not None:
+        casename = args.case + "/"
+    else:
+        casename = f'{poisson.nnx:d}x{poisson.nny:d}/fourier_{poisson.nmax:d}_{args.decrease_power:d}/'
+
+
+    if device == 'mac':
+        chunksize = 20
+    elif device == 'kraken':
+        chunksize = 5
+
+    # Directories
+    data_dir = cfg['output_dir']
+    fig_dir = data_dir + 'figures/'
+    create_dir(data_dir)
+    create_dir(fig_dir)
+
     # Print header of dataset
+    print(f'Casename : {casename:s}')
     print(f'Device : {device:s} - nits = {nits:d} - nmax_fourier = {poisson.nmax:d}')
     print(f'Directory : {data_dir:s} - n_procs = {n_procs:d} - chunksize = {chunksize:d}')
 

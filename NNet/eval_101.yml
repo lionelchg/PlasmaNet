@@ -1,0 +1,99 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                           PlasmaNet -- Configuration file                                            #
+#                                                                                                                      #
+#                                      Guillaume Bogopolsky, CERFACS, 11.03.2020                                       #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+# The train routine will automatically load the required `type` of each section with the given `args` by using the
+# `config.init_obj` method.
+
+
+name: '101x101/config_1/'      # Experience name
+n_gpu: 1                                    # Number of GPUs to use
+
+globals:                                    # Domain sizes and others, used to compute global attributes
+    nnx: 101
+    nny: 101
+    lx: 0.01
+    ly: 0.01
+    coord: 'cart'
+
+resume: '/scratch/cfd/cheng/DL/plasmanet/NNet/outputs/101x101/models/config_1/random_4'
+
+arch:
+    type: 'UNet5'
+    args:
+        data_channels: 1                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
+
+
+data_loader:
+    type: 'PoissonDataLoader'
+    pipe_config: True
+    args:
+        data_dir: '/scratch/cfd/ajuria/Plasma/plasmanet_new/datasets/inference/'
+        batch_size: 128
+        shuffle: True
+        validation_split: 0.0               # if float, fraction of the full dataset, if int, length of validation portion
+        num_workers: 2
+        normalize: 'analytical'
+        scaling_factor: 1.0e+6
+
+initializer: 'off'
+
+optimizer:
+    type: 'Adam'
+    args:
+        lr: 4.e-4
+        weight_decay: 0
+        amsgrad: False                      # AMSGrad variant from paper 'On the convergence of Adam and Beyond'
+
+loss:
+    type: 'ComposedLoss'
+    pipe_config: True                       # Object initialization require config as first argument
+    args:
+        loss_list:                          # List of the losses to compose if ComposedLoss is used
+            #- InsideLoss
+            - DirichletBoundaryLoss
+            - LaplacianLoss
+        inside_weight: 0.                   # Weighting of the loss inside the domain, excluding boundaries (float)
+        bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
+        elec_weight: 0.                     # Weighting of the loss on the electric field (float)
+        lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
+
+metrics:
+    - 'residual'
+    - 'inf_norm'
+    - 'Eresidual'
+    - 'Einf_norm'
+
+lr_scheduler:
+    type: 'ReduceLROnPlateau'
+    plateau_metric: loss                    # monitoring metric for ReduceLROnPlateau step()
+    args:
+        mode: 'min'
+        factor: 0.9                         # Amount scheduler reduces LR by (float)
+        patience: 50                        # Number of epochs the scheduler waits (int)
+        threshold: 3.e-4                    # Relative improvement the scheduler must see (float)
+        threshold_mode: 'rel'
+        verbose: False
+
+
+trainer:
+    epochs: 500
+    save_dir: 'eval/'
+    save_period: 10
+    plot_period: 10                         # Period to send plots to TensorBoard
+    verbosity: 2
+    monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
+    early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
+    tensorboard: true
+    histograms: false                       # Save weights and bias histograms (turned off to increase TensorBoard perf)
