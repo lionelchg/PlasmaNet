@@ -94,7 +94,7 @@ if __name__ == '__main__':
         chunksize = 5
 
     # Directories
-    data_dir = cfg['output_dir']
+    data_dir = cfg['output_dir'] + casename
     fig_dir = data_dir + 'figures/'
     create_dir(data_dir)
     create_dir(fig_dir)

@@ -19,3 +19,6 @@ outputs
 figures
 runs
 notes
+
+# Neural network
+eval/

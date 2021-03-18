@@ -137,8 +137,12 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
             if geom == 'xr':
                 ax.contour(X, - Y, field, levels=field_ticks[1:-1], colors='k', linewidths=0.9)
     else:
-        field_ticks = np.linspace(-max_value, max_value, 5)
-        levels = np.linspace(-max_value, max_value, 101)
+        if cmap == 'Blues':
+            field_ticks = np.linspace(0, max_value, 5)
+            levels = np.linspace(0, max_value, 101)
+        else:
+            field_ticks = np.linspace(-max_value, max_value, 5)
+            levels = np.linspace(-max_value, max_value, 101)
         cs1 = ax.contourf(X, Y, field, levels, cmap=cmap)
         if geom == 'xr':
             ax.contourf(X, - Y, field, levels, cmap=cmap)

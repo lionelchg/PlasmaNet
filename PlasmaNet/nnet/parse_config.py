@@ -44,7 +44,7 @@ class ConfigParser:
         self._config = _update_config(config, modification)
         self.resume = resume
 
-        if 'save_dir' in self.config['trainer']:
+        if 'trainer' in self.config:
             # Set save_dir where trained model and log will be saved
             save_dir = Path(self.config['trainer']['save_dir'])
 
@@ -63,9 +63,18 @@ class ConfigParser:
 
             # Save updated config file to the checkpoint directory
             write_yaml(self.config, self.save_dir / 'config.yml')
-        elif 'casename' in self.config:
-            self._log_dir = Path(self.config['casename'])
-            self.log_dir.mkdir(parents=True, exist_ok=True)
+        else:
+            # For evaluation (no trainer entry in .yml)
+            if 'casename' in self.config:
+                self._log_dir = Path(self.config['casename'])
+                self.log_dir.mkdir(parents=True, exist_ok=True)
+            else:
+                save_dir = Path(self.config['name'])
+                self._fig_dir = save_dir / 'figures'
+                self.fig_dir.mkdir(parents=True, exist_ok=True)
+                self._log_dir = save_dir
+                self.log_dir.mkdir(parents=True, exist_ok=True)
+                write_yaml(self.config, save_dir / 'config.yml')
 
         # Declare global runtime parameters attributes
         self.nnx = self.config['globals']['nnx']

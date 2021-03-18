@@ -26,7 +26,7 @@ class PoissonDataLoader(BaseDataLoader):
     def __init__(self, config, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0,
                  input_cutoff_frequency=None, num_workers=1, scaling_factor=1.0):
         self.data_dir = Path(data_dir)
-        self.logger = config.get_logger('PoissonDataLoader', config['trainer']['verbosity'])
+        self.logger = config.get_logger('PoissonDataLoader', config['globals']['verbosity'])
 
         # Load numpy files of shape (batch_size, H, W)
         physical_rhs = np.load(self.data_dir / 'physical_rhs.npy')
@@ -137,7 +137,7 @@ class DirichletDataLoader(BaseDataLoader):
     def __init__(self, config, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0,
                  num_workers=1, guess = None, modes = None):
         self.data_dir = Path(data_dir)
-        self.logger = config.get_logger('DirichletDataLoader', config['trainer']['verbosity'])
+        self.logger = config.get_logger('DirichletDataLoader', config['globals']['verbosity'])
 
         # Load numpy file of shape (batch_size, H, W)
         potential_orig = np.load(self.data_dir / 'potential_orig.npy')
