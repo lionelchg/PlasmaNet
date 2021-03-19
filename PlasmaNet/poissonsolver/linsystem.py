@@ -137,8 +137,11 @@ def dirichlet_bc_axi(rhs, nx, nr, up, left, right):
 
 def impose_dc_bc(rhs, nx, ny, args):
     """ Apply boundary conditions on the boundaries
+    If there is only one boundary with one value then it is to impose the potential at one point
     If there are 3 boundaries then it is ordered up, left, right
     If there are 4 boundaries then down, up, left, right """
+    if len(args) == 1:
+        rhs[0] = args[0]
     if len(args) == 3:
         up, left, right = args
         # filling of the three dirichlet boundaries for axisymmetric test case
@@ -160,3 +163,46 @@ def impose_dc_bc(rhs, nx, ny, args):
         rhs[-1] = 0.5 * (right[-1] + up[-1])
         rhs[0] = 0.5 * (left[0] + down[0])
         rhs[nx - 1] = 0.5 * (right[0] + down[-1])
+
+def matrix_cart_neumann(dx, dy, nx, ny, scale):
+    """ Creation of the matrix for the full neumann problem in 
+    Cartesian geometry """
+    diags = np.zeros((5, nx * ny))
+
+    corners = [0, nx - 1, nx * (ny - 1), nx * ny - 1]
+
+    # Filling the diagonals, first the down neumann bc, then the dirichlet bc and finally the interior nodes
+    for i in range(nx * ny): 
+        # Start by filling in x direction
+        if i % nx == 0:
+            diags[0, i] += - 2 / dx**2 * scale
+            diags[1, i + 1] += 2 / dx**2 * scale
+        elif i % nx == nx - 1:
+            diags[0, i] += - 2 / dx**2 * scale
+            diags[2, i - 1] += 2 / dx**2 * scale
+        else:
+            diags[0, i] += - 2 / dx**2 * scale
+            diags[1, i + 1] += 1 / dx**2 * scale
+            diags[2, i - 1] += 1 / dx**2 * scale
+        
+        # Then y direction
+        if 0 <= i <= nx - 1:
+            diags[0, i] += - 2 / dy**2
+            diags[3, i + nx] = 2 / dy**2
+        elif i >= nx * (ny - 1):
+            diags[0, i] += - 2 / dy**2
+            diags[4, i - nx] = 2 / dy**2
+        else:
+            diags[0, i] += - 2 / dy**2 * scale
+            diags[3, i + nx] = 1 / dy**2
+            diags[4, i - nx] = 1 / dy**2
+        
+        # Dirichlet at the top left corner (0, 0)
+        if i == 0:
+            diags[0, i] = 1
+            diags[1, i + 1] = 0
+            diags[3, i + nx] = 0
+
+    # Creating the matrix
+    return sparse.csc_matrix(
+        sparse.dia_matrix((diags, [0, 1, -1, nx, -nx]), shape=(nx * ny, nx * ny)))

@@ -32,7 +32,7 @@ def run_case(case_dir, physical_rhs, zeros_x, zeros_y, plot):
 
 
 if __name__ == '__main__':
-    basecase_dir = '../tests/cases/'
+    basecase_dir = 'cases/dirichlet/'
     plot = True
 
     with open('poisson_ls_xy.yml') as yaml_stream:

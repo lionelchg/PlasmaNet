@@ -13,7 +13,7 @@ import copy
 from scipy.sparse.linalg import spsolve
 
 from ..common.plot import plot_modes
-from .linsystem import matrix_cart, matrix_axisym, impose_dc_bc
+from .linsystem import matrix_cart, matrix_cart_neumann, matrix_axisym, impose_dc_bc
 from .base import BasePoisson
 
 
@@ -27,6 +27,8 @@ class PoissonLinSystem(BasePoisson):
         self.scale = self.dx * self.dy
         if cfg['mat'] == 'cart_dirichlet':
             self.mat = matrix_cart(self.dx, self.dy, self.nnx, self.nny, self.scale)
+        elif cfg['mat'] == 'cart_neumann':
+            self.mat = matrix_cart_neumann(self.dx, self.dy, self.nnx, self.nny, self.scale)
         elif cfg['mat'] == 'cart_3d1n':
             self.mat = matrix_cart(self.dx, self.dy, self.nnx, self.nny, self.scale, down_bc='neumann')
         elif cfg['mat'] == 'axi_dirichlet':
@@ -34,7 +36,7 @@ class PoissonLinSystem(BasePoisson):
             self.R_nodes[0] = self.dy / 4
             self.mat = matrix_axisym(self.dx, self.dy, self.nnx, self.nny, 
                                 self.R_nodes, self.scale)
-        self.dirichlet_bc = impose_dc_bc
+        self.impose_bc = impose_dc_bc
 
     def solve(self, physical_rhs, *args):
         """ Solve the Poisson problem with physical_rhs and args
@@ -46,7 +48,7 @@ class PoissonLinSystem(BasePoisson):
         assert len(args) <= 4
         rhs = - physical_rhs * self.scale
         self.physical_rhs = physical_rhs.reshape(self.nny, self.nnx)
-        self.dirichlet_bc(rhs, self.nnx, self.nny, args)
+        self.impose_bc(rhs, self.nnx, self.nny, args)
         self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
 
 
