@@ -32,13 +32,15 @@ class PlasmaEuler(Euler):
         # Copy mesh entry into poisson for class init
         for key, value in config['mesh'].items():
             config['poisson'][key] = value
+
         if self.poisson_type == 'lin_system':
+            config['poisson']['geom'] = self.geom
+            config['poisson']['bcs'] = 'dirichlet'
             self.poisson = DatasetPoisson(config['poisson'])
             # Boundary conditions
             zeros_x = np.zeros_like(self.x)
             zeros_y = np.zeros_like(self.y)
-            self.down, self.up = zeros_x, zeros_x
-            self.left, self.right = zeros_y, zeros_y
+            self.pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
         elif self.poisson_type == 'analytical':
             config['poisson']['nmax_rhs'] = config['poisson']['nmax_fourier']
             config['poisson']['mmax_rhs'] = config['poisson']['nmax_fourier']
@@ -141,7 +143,7 @@ class PlasmaEuler(Euler):
         """ Solve the Poisson equation in axisymmetric configuration. """
         if self.poisson_type == 'lin_system':
             self.poisson.solve(- (self.U[0] / self.m_e - self.n_back).reshape(-1) * co.e / co.epsilon_0,
-                               self.down, self.up, self.left, self.right)
+                               self.pot_bcs)
         elif self.poisson_type == 'analytical':
             self.poisson.compute_sol(- (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0)
         self.E_field = self.poisson.E_field

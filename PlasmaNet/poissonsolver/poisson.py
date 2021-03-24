@@ -33,9 +33,9 @@ class PoissonLinSystem(BasePoisson):
         
         # Matrix construction
         self.geom = cfg['geom']
-        if cfg['geom'] == 'cartesian':
+        if cfg['geom'] in ['cartesian', 'xy']:
             self.mat = cartesian_matrix(self.dx, self.dy, self.nnx, self.nny, self.scale, cfg['bcs'])
-        elif cfg['geom'] == 'cylindrical':
+        elif cfg['geom'] in ['cylindrical', 'xr']:
             self.R_nodes = copy.deepcopy(self.Y)
             self.R_nodes[0] = self.dy / 4
             self.mat = matrix_axisym(self.dx, self.dy, self.nnx, self.nny, 
@@ -45,19 +45,6 @@ class PoissonLinSystem(BasePoisson):
 
         # Boundary conditions imposition
         self.impose_dirichlet = impose_dirichlet
-
-    # def solve(self, physical_rhs, *args):
-    #     """ Solve the Poisson problem with physical_rhs and args
-    #     boundary conditions (up to 4 boundary conditions for each side)
-
-    #     :param physical_rhs: - rho / epsilon_0 
-    #     :type physical_rhs: ndarray
-    #     """
-    #     assert len(args) <= 4
-    #     rhs = - physical_rhs * self.scale
-    #     self.physical_rhs = physical_rhs.reshape(self.nny, self.nnx)
-    #     self.impose_bc(rhs, self.nnx, self.nny, args)
-    #     self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
 
     def solve(self, physical_rhs, bcs):
         """ Solve the Poisson problem with physical_rhs and args
