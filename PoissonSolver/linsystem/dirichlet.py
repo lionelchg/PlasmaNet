@@ -11,42 +11,36 @@ import yaml
 
 from PlasmaNet.common.profiles import random1D, random2D
 from PlasmaNet.common.utils import create_dir
-from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
-
-
-def run_case(case_dir, bottom, up, left, right, plot):
-    create_dir(case_dir)
-    poisson.solve(np.zeros_like(poisson.X).reshape(-1), bottom, up, left, right)
-    poisson.save(case_dir)
-    if plot:
-        fig_dir = case_dir + 'figures/'
-        create_dir(fig_dir)
-        poisson.plot_2D(fig_dir + '2D')
-        poisson.plot_1D2D(fig_dir + 'full')
-
+from PlasmaNet.poissonsolver.poisson import PoissonLinSystem, run_case
 
 if __name__ == '__main__':
-    basecase_dir = '../tests/cases/'
+    basecase_dir = 'cases/dirichlet/laplace/'
     plot = True
 
     with open('poisson_ls_xy.yml') as yaml_stream:
         cfg = yaml.safe_load(yaml_stream)
+    cfg['bcs'] = 'dirichlet'
 
     poisson = PoissonLinSystem(cfg)
+
+    zero_rhs = np.zeros_like(poisson.X).reshape(-1)
 
     zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
     ones_x, ones_y = np.ones(poisson.nnx), np.ones(poisson.nny)
     linear_x = np.linspace(0, 1.0, poisson.nnx)
     linear_y = np.linspace(0, 1.0, poisson.nny)
 
-    case_dir = f'{basecase_dir}dirichlet/random_left/'
+    case_dir = f'{basecase_dir}random_left/'
     random_y = random1D(poisson.Y[:, 0], 100.0, 4)
-    run_case(case_dir, zeros_x, zeros_x, random_y, zeros_y, plot)
+    pot_bcs = {'left':random_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
+    run_case(poisson, case_dir, zero_rhs, pot_bcs, plot)
     np.save(case_dir + 'random_left', random_y)
 
-    case_dir = f'{basecase_dir}dirichlet/constant_left/'
-    run_case(case_dir, zeros_x, zeros_x, ones_y, zeros_y, plot)
+    case_dir = f'{basecase_dir}constant_left/'
+    pot_bcs = {'left':ones_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
+    run_case(poisson, case_dir, zero_rhs, pot_bcs, plot)
 
-    case_dir = f'{basecase_dir}dirichlet/linear_pot_x/'
+    case_dir = f'{basecase_dir}linear_pot_x/'
     Vmax = 100.0
-    run_case(case_dir, Vmax * linear_x, Vmax * linear_x, zeros_y, Vmax * ones_y, plot)
+    pot_bcs = {'left':zeros_y, 'right':Vmax * ones_y, 'bottom':Vmax * linear_x, 'top':Vmax * linear_x}
+    run_case(poisson, case_dir, zero_rhs, pot_bcs, plot)

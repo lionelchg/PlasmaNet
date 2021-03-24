@@ -69,7 +69,6 @@ class PoissonAnalytical(BasePoisson):
             self.bc_solution()
         self.potential = np.sum(self.potentials, axis=0)
 
-
 @njit(cache=True)
 def series_term(X, Y, Lx, Ly, voln, rhs, n, m):
     """ Fourier series term of the analytical solution of the 2D Poisson with
@@ -82,24 +81,20 @@ def series_term(X, Y, Lx, Ly, voln, rhs, n, m):
     return (4 / Lx / Ly * np.sum(x_mode * y_mode * rhs * voln)
             * x_mode * y_mode / ((n / Lx)**2 + (m / Ly)**2))
 
-
 def series_term_dup(V_u, X, Y, Lx, Ly, n):
     """ Series term for the up dirichlet problem """
     return (fourier_coef_1D(V_u, n, X[0, :], Lx) * np.sin(n * np.pi * X / Lx)
             * np.sinh(n * np.pi * Y / Lx) / np.sinh(n * np.pi * Ly / Lx))
-
 
 def series_term_ddown(V_u, X, Y, Lx, Ly, n):
     """ Series term for the down dirichlet problem """
     return (fourier_coef_1D(V_u, n, X[0, :], Lx) * np.sin(n * np.pi * X / Lx)
             * np.sinh(n * np.pi * (Y - Ly) / Lx) / np.sinh(- n * np.pi * Ly / Lx))
 
-
 def series_term_dleft(V_u, X, Y, Lx, Ly, n):
     """ Series term for the left dirichlet problem """
     return (fourier_coef_1D(V_u, n, Y[:, 0], Ly) * np.sin(n * np.pi * Y / Ly)
             * np.sinh(n * np.pi * (X - Lx) / Ly) / np.sinh(- n * np.pi * Lx / Ly))
-
 
 def series_term_dright(V_u, X, Y, Lx, Ly, n):
     """ Series term for the right dirichlet problem """

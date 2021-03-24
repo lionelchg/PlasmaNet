@@ -13,7 +13,8 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-mat: 'axi_dirichlet'
+geom: 'cylindrical'
+bcs: 'dirichlet'
 xmin: 0.0
 xmax: 4.0e-3
 nnx: 201

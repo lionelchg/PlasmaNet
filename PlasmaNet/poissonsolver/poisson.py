@@ -13,9 +13,10 @@ import copy
 from scipy.sparse.linalg import spsolve
 
 from ..common.plot import plot_modes
-from .linsystem import matrix_cart, matrix_cart_neumann, matrix_axisym, impose_dc_bc
+from .linsystem import (matrix_cart, cartesian_matrix, matrix_axisym, 
+                        matrix_cart_perio, impose_dc_bc, impose_dirichlet)
 from .base import BasePoisson
-
+from ..common.utils import create_dir
 
 class PoissonLinSystem(BasePoisson):
     """ Class for linear system solver of Poisson problem
@@ -25,32 +26,50 @@ class PoissonLinSystem(BasePoisson):
     def __init__(self, cfg):
         super().__init__(cfg)
         self.scale = self.dx * self.dy
-        if cfg['mat'] == 'cart_dirichlet':
-            self.mat = matrix_cart(self.dx, self.dy, self.nnx, self.nny, self.scale)
-        elif cfg['mat'] == 'cart_neumann':
-            self.mat = matrix_cart_neumann(self.dx, self.dy, self.nnx, self.nny, self.scale)
-        elif cfg['mat'] == 'cart_3d1n':
-            self.mat = matrix_cart(self.dx, self.dy, self.nnx, self.nny, self.scale, down_bc='neumann')
-        elif cfg['mat'] == 'axi_dirichlet':
+        # Reformat boundary conditions if similar on all boundaries
+        if isinstance(cfg['bcs'], str):
+            bc = cfg['bcs']
+            cfg['bcs'] = {'left':bc, 'right':bc, 'bottom':bc, 'top':bc}
+        
+        # Matrix construction
+        self.geom = cfg['geom']
+        if cfg['geom'] == 'cartesian':
+            self.mat = cartesian_matrix(self.dx, self.dy, self.nnx, self.nny, self.scale, cfg['bcs'])
+        elif cfg['geom'] == 'cylindrical':
             self.R_nodes = copy.deepcopy(self.Y)
             self.R_nodes[0] = self.dy / 4
             self.mat = matrix_axisym(self.dx, self.dy, self.nnx, self.nny, 
                                 self.R_nodes, self.scale)
-        self.impose_bc = impose_dc_bc
+        # elif cfg['mat'] == 'cart_perio':
+        #     self.mat = matrix_cart_perio(self.dx, self.dy, self.nnx, self.nny, self.scale)
 
-    def solve(self, physical_rhs, *args):
+        # Boundary conditions imposition
+        self.impose_dirichlet = impose_dirichlet
+
+    # def solve(self, physical_rhs, *args):
+    #     """ Solve the Poisson problem with physical_rhs and args
+    #     boundary conditions (up to 4 boundary conditions for each side)
+
+    #     :param physical_rhs: - rho / epsilon_0 
+    #     :type physical_rhs: ndarray
+    #     """
+    #     assert len(args) <= 4
+    #     rhs = - physical_rhs * self.scale
+    #     self.physical_rhs = physical_rhs.reshape(self.nny, self.nnx)
+    #     self.impose_bc(rhs, self.nnx, self.nny, args)
+    #     self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
+
+    def solve(self, physical_rhs, bcs):
         """ Solve the Poisson problem with physical_rhs and args
         boundary conditions (up to 4 boundary conditions for each side)
 
         :param physical_rhs: - rho / epsilon_0 
         :type physical_rhs: ndarray
         """
-        assert len(args) <= 4
         rhs = - physical_rhs * self.scale
         self.physical_rhs = physical_rhs.reshape(self.nny, self.nnx)
-        self.impose_bc(rhs, self.nnx, self.nny, args)
+        self.impose_dirichlet(rhs, self.nnx, self.nny, bcs)
         self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
-
 
 class DatasetPoisson(PoissonLinSystem):
     """ Class for dataset of poisson rhs and potentials (contains
@@ -106,3 +125,32 @@ class DatasetPoisson(PoissonLinSystem):
                 series += (coefs[n - 1, m - 1] * np.sin(n * np.pi * self.X / self.Lx) 
                     * np.sin(m * np.pi * self.Y / self.Ly) / ((n * np.pi / self.Lx)**2 + (m * np.pi / self.Ly)**2))
         return series
+
+def run_case(poisson:PoissonLinSystem, case_dir:str, physical_rhs:np.ndarray, 
+                pot_bcs:dict, plot:bool):
+    """ Run a Poisson linear system case
+
+    :param poisson: PoissonLinSystem object
+    :type poisson: PoissonLinSystem
+    :param case_dir: Case directory
+    :type case_dir: str
+    :param physical_rhs: physical rhs
+    :type physical_rhs: np.ndarray
+    :param pot_bcs: Dirichlet boundary conditions
+    :type pot_bcs: dict
+    :param plot: logical for plotting
+    :type plot: bool
+    """
+    if poisson.geom == 'cylindrical':
+        geom = 'xr'
+    else:
+        geom = 'xy'
+        
+    create_dir(case_dir)
+    poisson.solve(physical_rhs, pot_bcs)
+    poisson.save(case_dir)
+    if plot:
+        fig_dir = case_dir + 'figures/'
+        create_dir(fig_dir)
+        poisson.plot_2D(fig_dir + '2D', geom=geom)
+        poisson.plot_1D2D(fig_dir + 'full', geom=geom)

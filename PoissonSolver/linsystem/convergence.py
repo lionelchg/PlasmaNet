@@ -29,8 +29,8 @@ if __name__ == '__main__':
 
     with open('poisson_ls_xy.yml') as yaml_stream:
         cfg = yaml.safe_load(yaml_stream)
-
-
+    cfg['bcs'] = 'dirichlet'
+    
     # creating the rhs
     ni0 = 1e+11
     n, m = 5, 5
@@ -42,6 +42,7 @@ if __name__ == '__main__':
         print(f'nnx = {nnx:d}')
         nny = nnx
         zeros_x, zeros_y = np.zeros(nnx), np.zeros(nny)
+        pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
 
         # Change the configuration dict
         cfg['nnx'] = nnx
@@ -53,7 +54,7 @@ if __name__ == '__main__':
         physical_rhs = ni0 * th_solution(poisson.X.reshape(-1), poisson.Y.reshape(-1),
                                          n, m, poisson.Lx, poisson.Ly)
         potential_th = (physical_rhs.reshape(nny, nnx) / ((n * np.pi / poisson.Lx)**2 + (m * np.pi / poisson.Ly)**2))
-        poisson.solve(physical_rhs, zeros_x, zeros_x, zeros_y, zeros_y)
+        poisson.solve(physical_rhs, pot_bcs)
         poisson.plot_1D2D(fig_dir + f'sol_{nnx}')
         errors[i_err] = poisson.L2error(potential_th)
 

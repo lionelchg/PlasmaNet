@@ -15,46 +15,58 @@ import numpy as np
 import scipy.constants as co
 
 from PlasmaNet.common.utils import create_dir
-from PlasmaNet.poissonsolver.poisson import PoissonLinSystem, run_case
+from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 import PlasmaNet.common.profiles as pf
 
+
+def run_case(case_dir, physical_rhs, pot_bc, plot):
+    create_dir(case_dir)
+    poisson.solve(physical_rhs, pot_bc)
+    poisson.save(case_dir)
+    if plot:
+        fig_dir = case_dir + 'figures/'
+        create_dir(fig_dir)
+        poisson.plot_2D(fig_dir + '2D')
+        poisson.plot_1D2D(fig_dir + 'full')
+
 if __name__ == '__main__':
-    basecase_dir = 'cases/dirichlet/'
+    basecase_dir = 'cases/perio/'
     plot = True
 
     with open('poisson_ls_xy.yml') as yaml_stream:
         cfg = yaml.safe_load(yaml_stream)
-    cfg['bcs'] = 'dirichlet'
+    cfg['mat'] = 'cart_perio'
 
     poisson = PoissonLinSystem(cfg)
-
-    zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
-
-    pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
+    pot_bc = (0)
 
     ni0 = 1e11
     sigma_x, sigma_y = 1e-3, 1e-3
     x0, y0 = 0.5e-2, 0.5e-2
-    case_dir = f'{basecase_dir}gaussian/'
+    case_dir = f'{basecase_dir}rhs/gaussian/'
     physical_rhs = pf.gaussian(poisson.X.reshape(-1), poisson.Y.reshape(-1), 
                     ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
+    run_case(case_dir, physical_rhs, pot_bc, plot)
 
-    case_dir = f'{basecase_dir}step/'
+    case_dir = f'{basecase_dir}rhs/step/'
     physical_rhs = pf.step(poisson.X.reshape(-1), poisson.Y.reshape(-1), 
                     ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
+    run_case(case_dir, physical_rhs, pot_bc, plot)
 
-    case_dir = f'{basecase_dir}two_gaussians/'
+    case_dir = f'{basecase_dir}rhs/two_gaussians/'
     x01, y01 = 0.4e-2, 0.6e-2    
     physical_rhs = pf.two_gaussians(poisson.X.reshape(-1), poisson.Y.reshape(-1), 
                     ni0, x0, y0, sigma_x, sigma_y, x01, y01, sigma_x, sigma_y) * co.e / co.epsilon_0
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
+    run_case(case_dir, physical_rhs, pot_bc, plot)
 
-    case_dir = f'{basecase_dir}random_2D/'
+    case_dir = f'{basecase_dir}rhs/random_2D/'
     physical_rhs = pf.random2D(poisson.X, poisson.Y, ni0, 16).reshape(-1) * co.e / co.epsilon_0
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
+    run_case(case_dir, physical_rhs, pot_bc, plot)
 
-    case_dir = f'{basecase_dir}sin_2D/'
+    case_dir = f'{basecase_dir}rhs/sin_2D_3/'
+    physical_rhs = pf.sin2D(poisson.X, poisson.Y, ni0, poisson.Lx, poisson.Ly, 3, 3).reshape(-1) * co.e / co.epsilon_0
+    run_case(case_dir, physical_rhs, pot_bc, plot)
+
+    case_dir = f'{basecase_dir}rhs/sin_2D_4/'
     physical_rhs = pf.sin2D(poisson.X, poisson.Y, ni0, poisson.Lx, poisson.Ly, 4, 4).reshape(-1) * co.e / co.epsilon_0
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
+    run_case(case_dir, physical_rhs, pot_bc, plot)
