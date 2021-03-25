@@ -25,7 +25,7 @@ zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
 rtol = 1e-10
 atol = 1e-10
 
-bcs = {}
+bcs = {'left':zeros_y, 'right':zeros_y, 'top':zeros_x}
 
 class TestRhs:
     def test_gaussian(self):
