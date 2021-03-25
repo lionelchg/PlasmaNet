@@ -14,7 +14,7 @@ setup(
     author='G. Bogopolsky, L. Cheng, E. Ajuria',
     author_email='bogopolsky@cerfacs.fr',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Natural Language :: English',
@@ -35,4 +35,12 @@ setup(
     url='https://nitrox.cerfacs.fr/cfd-apps/plasmanet',
     version='0.1',
     zip_safe=False,
+    entry_points={
+        'console_scripts': [
+            'euler=PlasmaNet.cfdsolver.euler.euler:main',
+            'plasma_euler=PlasmaNet.cfdsolver.euler.plasma:main',
+            'scalar=PlasmaNet.cfdsolver.scalar.scalar:main',
+            'streamer=PlasmaNet.cfdsolver.scalar.streamer:main',
+        ],
+    },
 )

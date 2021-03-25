@@ -173,8 +173,7 @@ def edge_flux(res, a, u, diff_flux, sij, i1, j1, i2, j2, dim):
     res[j1, i1] += flux
     res[j2, i2] -= flux
 
-
-if __name__ == '__main__':
+def main():
     args = argparse.ArgumentParser(description='ScalarTransport run')
     args.add_argument('-c', '--config', type=str,
                         help='Config filename', required=True)
@@ -184,3 +183,6 @@ if __name__ == '__main__':
         cfg = yaml.safe_load(yaml_stream)
 
     ScalarTransport.run(cfg)
+
+if __name__ == '__main__':
+    main()

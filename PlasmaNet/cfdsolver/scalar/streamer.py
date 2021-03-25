@@ -329,7 +329,7 @@ class StreamerMorrow(BaseSim):
         # Post-processing and saving of specified variables
         sim.post_temporal()
 
-if __name__ == '__main__':
+def main():
     args = argparse.ArgumentParser(description='Streamer run')
     args.add_argument('-c', '--config', type=str,
                         help='Config filename', required=True)
@@ -339,3 +339,6 @@ if __name__ == '__main__':
         cfg = yaml.safe_load(yaml_stream)
 
     StreamerMorrow.run(cfg)
+
+if __name__ == '__main__':
+    main()

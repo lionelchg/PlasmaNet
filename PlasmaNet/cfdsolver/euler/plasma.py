@@ -419,8 +419,7 @@ def get_indices(profile, nny, nnx, threshold):
                 indices.append([j, i])
     return np.array(indices)
 
-
-if __name__ == '__main__':
+def main():
     args = argparse.ArgumentParser(description='PlasmaEuler oscillation run')
     args.add_argument('-c', '--config', required=True, type=str,
                       help='config file path (default: None)')
@@ -430,3 +429,6 @@ if __name__ == '__main__':
         config = yaml.safe_load(yaml_stream)
 
     PlasmaEuler.run(config)
+
+if __name__ == '__main__':
+    main()
