@@ -139,6 +139,46 @@ def matrix_axisym(dx, dr, nx, nr, R, scale):
     return sparse.csc_matrix(
         sparse.dia_matrix((diags, [0, 1, -1, nx, -nx]), shape=(nx * nr, nx * nr)))
 
+def matrix_cart_full_perio(dx, dy, nx, ny, scale):
+    """ Creation of the matrix for the full periodic problem in 
+    Cartesian geometry """
+    diags = np.zeros((9, nx * ny))
+
+    # Filling the diagonals, first in x and then in y (down-up, left-right)
+    for i in range(nx * ny): 
+        # Start by filling in x direction
+        if i % nx == 0:
+            diags[0, i] += - 2 / dx**2 * scale
+            diags[1, i + 1] += 1 / dx**2 * scale
+            diags[5, i + nx - 1] += 1 / dx**2 * scale
+        elif i % nx == nx - 1:
+            diags[0, i] += - 2 / dx**2 * scale
+            diags[2, i - 1] += 1 / dx**2 * scale
+            diags[6, i - (nx - 1)] += 1 / dx**2 * scale
+        else:
+            diags[0, i] += - 2 / dx**2 * scale
+            diags[1, i + 1] += 1 / dx**2 * scale
+            diags[2, i - 1] += 1 / dx**2 * scale
+
+        # Then y direction
+        if (i//nx) == 0:
+            diags[0, i] += - 2 / dy**2 * scale
+            diags[3, i + nx] += 1 / dy**2 * scale
+            diags[7, i + nx*(ny-1)] += 1 / dy**2 * scale
+        elif (i//nx) +1  == ny:
+            diags[0, i] += - 2 / dy**2 * scale
+            diags[4, i - nx] += 1 / dy**2 * scale
+            diags[8, i % nx] += 1 / dx**2 * scale
+        else:
+            diags[0, i] += - 2 / dy**2 * scale
+            diags[3, i + nx] += 1 / dy**2 * scale
+            diags[4, i - nx] += 1 / dy**2 * scale
+
+    # Creating the matrix
+    return sparse.csc_matrix(
+        sparse.dia_matrix((diags, [0, 1, -1, nx, -nx, nx - 1, -(nx - 1), nx*(ny-1), -nx*(ny-1)]), shape=(nx * ny, nx * ny)))
+
+
 def matrix_cart_perio(dx, dy, nx, ny, scale):
     """ Creation of the matrix for the full neumann problem in 
     Cartesian geometry """

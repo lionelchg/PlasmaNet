@@ -14,7 +14,7 @@ from scipy.sparse.linalg import spsolve
 
 from ..common.plot import plot_modes
 from .linsystem import (cartesian_matrix, matrix_axisym, 
-                        matrix_cart_perio, impose_dirichlet)
+                        matrix_cart_perio, impose_dirichlet, matrix_cart_full_perio)
 from .base import BasePoisson
 from ..common.utils import create_dir
 
@@ -26,24 +26,24 @@ class PoissonLinSystem(BasePoisson):
     def __init__(self, cfg):
         super().__init__(cfg)
         self.scale = self.dx * self.dy
+        self.perio = cfg['bcs']=='perio'
 
         # Matrix construction
         self.geom = cfg['geom']
-        if cfg['geom'] in ['cartesian', 'xy']:
+        if cfg['geom'] in ['cartesian', 'xy'] and not self.perio:
             # Reformat boundary conditions if similar on all boundaries
             if isinstance(cfg['bcs'], str):
                 bc = cfg['bcs']
                 cfg['bcs'] = {'left':bc, 'right':bc, 'bottom':bc, 'top':bc}
             
             self.mat = cartesian_matrix(self.dx, self.dy, self.nnx, self.nny, self.scale, cfg['bcs'])
-        elif cfg['geom'] in ['cylindrical', 'xr']:
+        elif cfg['geom'] in ['cylindrical', 'xr'] and not self.perio:
             self.R_nodes = copy.deepcopy(self.Y)
             self.R_nodes[0] = self.dy / 4
             self.mat = matrix_axisym(self.dx, self.dy, self.nnx, self.nny, 
                                 self.R_nodes, self.scale)
-                                
-        # elif cfg['mat'] == 'cart_perio':
-        #     self.mat = matrix_cart_perio(self.dx, self.dy, self.nnx, self.nny, self.scale)
+        elif self.perio:
+             self.mat = matrix_cart_full_perio(self.dx, self.dy, self.nnx, self.nny, self.scale)
 
         # Boundary conditions imposition
         self.impose_dirichlet = impose_dirichlet
