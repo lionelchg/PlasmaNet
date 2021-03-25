@@ -44,7 +44,7 @@ output:
   save: 'iteration'
   verbose: True
   files: 'fig'
-  period: 10
+  period: 50
   dl_save: 'no'
 
 input: 'none'

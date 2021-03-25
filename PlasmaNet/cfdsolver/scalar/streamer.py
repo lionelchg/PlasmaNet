@@ -24,8 +24,10 @@ from .boundary import outlet_x, outlet_y
 from ...common.plot import plot_ax_scalar, plot_ax_scalar_1D
 from ...common.operators_numpy import grad
 from ...common.profiles import gaussian
+from ...common.utils import create_dir
 
 from ...poissonsolver.linsystem import matrix_axisym, dirichlet_bc_axi
+from ...poissonsolver.poisson import PoissonLinSystem
 
 
 class StreamerMorrow(BaseSim):
@@ -38,13 +40,19 @@ class StreamerMorrow(BaseSim):
         self.mu, self.D = np.zeros_like(self.X), np.zeros_like(self.X)
 
         # Background electric field and matrix construction
+        for key, value in config['mesh'].items():
+            config['poisson'][key] = value
+        config['poisson']['geom'] = self.geom
+
+        self.poisson = PoissonLinSystem(config['poisson'])
         self.backE = config['poisson']['backE']
+
         self.up = - self.x * self.backE
         self.left = np.zeros_like(self.y)
         self.right = - np.ones_like(self.y) * self.backE * self.xmax
+        self.bcs = {'left':self.left, 'right':self.right, 'top':self.up}
+
         self.scale = self.dx * self.dy
-        self.mat_poisson = matrix_axisym(self.dx, self.dy, self.nnx,
-                                         self.nny, self.R_nodes, self.scale)
 
         # Photoionization initialization
         self.photo = config['params']['photoionization'] != 'no'
@@ -100,6 +108,21 @@ class StreamerMorrow(BaseSim):
 
             self.number = int(re.search(r'_(\d+)\.npy', config['input']['ne']).group(1)) + 1
             self.dtsum = (self.number - 1) * config['output']['period'] * self.dt
+        
+        # datasets for deep-learning
+        self.dl_save = config['output']['dl_save'] == 'yes'
+        if self.dl_save:
+            self.dl_dir = config['casename'] + 'dl_data/'
+            self.dl_fig = self.dl_dir + 'figures/'
+            create_dir(self.dl_dir)
+            create_dir(self.dl_fig)
+            self.potential_list = np.zeros((self.nit, self.nny, self.nnx))
+            self.physical_rhs_list = np.zeros((self.nit, self.nny, self.nnx))
+            # Compute fourier for 100 iterations
+            self.dl_plot_period = int(0.1 * self.nit)
+            if self.photo:
+                self.irate_list = np.zeros((self.nit, self.nny, self.nnx))
+                self.Sph_list = np.zeros((self.nit, self.nny, self.nnx))
 
         # Temporal values to store (position of positive streamer, position of negative streamer,
         # energy of the discharge)
@@ -119,16 +142,12 @@ class StreamerMorrow(BaseSim):
             logging.info('Restart of simulation')
         logging.info('------------------------------------')
         logging.info('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
-
+    
     def solve_poisson(self):
         """ Solve the Poisson equation in axisymmetric configuration. """
-        self.physical_rhs = (self.nd[1] - self.nd[0] - self.nd[2]).reshape(-1) * co.e / co.epsilon_0
-        self.rhs = - self.physical_rhs * self.scale
-        dirichlet_bc_axi(self.rhs, self.nnx, self.nny, self.up, self.left, self.right)
-        self.potential = spsolve(self.mat_poisson, self.rhs).reshape(self.nny, self.nnx)
-        self.E_field = - grad(self.potential, self.dx, self.dy, self.nnx, self.nny)
-        self.physical_rhs = self.physical_rhs.reshape((self.nny, self.nnx))
-    
+        self.poisson.solve((self.nd[1] - self.nd[0] - self.nd[2]).reshape(-1) * co.e / co.epsilon_0, self.bcs)
+        self.E_field = self.poisson.E_field
+
     def solve_photo(self):
         """ Solve the photoionization source term using approximation in Helmholtz equations """
         self.Sph[:] = 0
@@ -208,6 +227,18 @@ class StreamerMorrow(BaseSim):
         plt.savefig(self.fig_dir + 'instant_%04d' % self.number, bbox_inches='tight')
         plt.close(fig)
 
+    def postproc(self, it):
+        super().postproc(it)
+        if self.dl_save:
+            self.potential_list[it - 1, :, :] = self.poisson.potential
+            self.physical_rhs_list[it - 1, :, :] = self.poisson.physical_rhs
+            if it % self.dl_plot_period == 0:
+                self.poisson.plot_2D(self.dl_fig + f'input_{it:05d}')
+            
+            if self.photo:
+                self.irate_list[it - 1, :, :] = self.irate
+                self.Sph_list[it - 1, :, :] = self.Sph
+
     def save(self):
         """ Save solutions. """
         np.save(self.data_dir + f'nd_{self.number:04d}', self.nd)
@@ -235,6 +266,18 @@ class StreamerMorrow(BaseSim):
 
         fig.savefig(self.fig_dir + 'globals', bbox_inches='tight')
         plt.close(fig)
+
+    def post_temporal(self):
+        self.plot_global()
+        if self.save_data: 
+            np.save(self.data_dir + 'globals', self.gstreamer)
+
+        if self.dl_save:
+            np.save(self.dl_dir + 'potential.npy', self.potential_list)
+            np.save(self.dl_dir + 'physical_rhs.npy', self.physical_rhs_list)
+            if self.photo:
+                np.save(self.dl_dir + 'Sph.npy', self.Sph_list)
+                np.save(self.dl_dir + 'irate.npy', self.irate_list)
 
     @classmethod
     def run(cls, config):
@@ -282,23 +325,8 @@ class StreamerMorrow(BaseSim):
             # General post processing
             sim.postproc(it)
 
-            if config['output']['dl_save'] == 'yes':
-                potential_list[it - 1, :, :] = sim.potential + sim.backE * sim.X
-                physical_rhs_list[it - 1, :, :] = sim.physical_rhs
-                if sim.photo:
-                    irate_list[it - 1, :, :] = sim.irate
-                    Sph_list[it - 1, :, :] = sim.Sph
-
-        sim.plot_global()
-        if sim.save_data: np.save(sim.data_dir + 'globals', sim.gstreamer)
-
-        if config['output']['dl_save'] == 'yes':
-            np.save(config['output']['folder'] + config['casename'] + 'potential.npy', potential_list)
-            np.save(config['output']['folder'] + config['casename'] + 'physical_rhs.npy', physical_rhs_list)
-            if sim.photo:
-                np.save(config['output']['folder'] + config['casename'] + 'Sph.npy', Sph_list)
-                np.save(config['output']['folder'] + config['casename'] + 'irate.npy', irate_list)
-
+        # Post-processing and saving of specified variables
+        sim.post_temporal()
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='Streamer run')

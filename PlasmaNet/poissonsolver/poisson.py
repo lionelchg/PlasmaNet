@@ -26,20 +26,22 @@ class PoissonLinSystem(BasePoisson):
     def __init__(self, cfg):
         super().__init__(cfg)
         self.scale = self.dx * self.dy
-        # Reformat boundary conditions if similar on all boundaries
-        if isinstance(cfg['bcs'], str):
-            bc = cfg['bcs']
-            cfg['bcs'] = {'left':bc, 'right':bc, 'bottom':bc, 'top':bc}
-        
+
         # Matrix construction
         self.geom = cfg['geom']
         if cfg['geom'] in ['cartesian', 'xy']:
+            # Reformat boundary conditions if similar on all boundaries
+            if isinstance(cfg['bcs'], str):
+                bc = cfg['bcs']
+                cfg['bcs'] = {'left':bc, 'right':bc, 'bottom':bc, 'top':bc}
+            
             self.mat = cartesian_matrix(self.dx, self.dy, self.nnx, self.nny, self.scale, cfg['bcs'])
         elif cfg['geom'] in ['cylindrical', 'xr']:
             self.R_nodes = copy.deepcopy(self.Y)
             self.R_nodes[0] = self.dy / 4
             self.mat = matrix_axisym(self.dx, self.dy, self.nnx, self.nny, 
                                 self.R_nodes, self.scale)
+                                
         # elif cfg['mat'] == 'cart_perio':
         #     self.mat = matrix_cart_perio(self.dx, self.dy, self.nnx, self.nny, self.scale)
 
