@@ -14,7 +14,7 @@ from PlasmaNet.common.utils import create_dir
 from PlasmaNet.poissonsolver.poisson import PoissonLinSystem, run_case
 
 if __name__ == '__main__':
-    basecase_dir = 'cases/dirichlet/laplace/'
+    basecase_dir = '../tests/cases/dirichlet/laplace/'
     plot = True
 
     with open('poisson_ls_xy.yml') as yaml_stream:
