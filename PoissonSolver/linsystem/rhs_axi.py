@@ -19,7 +19,7 @@ from PlasmaNet.common.utils import create_dir
 
 
 if __name__ == '__main__':
-    basecase_dir = 'cases/axi/'
+    basecase_dir = '../tests/cases/axi/'
     plot = True
     with open('poisson_ls_xr.yml') as yaml_stream:
         cfg = yaml.safe_load(yaml_stream)
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     x0, y0 = 2e-3, 0
 
     # interior rhs
-    case_dir = f'{basecase_dir}rhs/gaussian/'
+    case_dir = f'{basecase_dir}gaussian/'
     physical_rhs = gaussian(poisson.X.reshape(-1), poisson.Y.reshape(-1), ni0, x0, y0,
                         sigma_x, sigma_y)
     run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)

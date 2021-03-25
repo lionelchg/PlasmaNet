@@ -19,7 +19,7 @@ from PlasmaNet.poissonsolver.poisson import PoissonLinSystem, run_case
 import PlasmaNet.common.profiles as pf
 
 if __name__ == '__main__':
-    basecase_dir = '../tests/cases/dirichlet/'
+    basecase_dir = '../tests/cases/dirichlet/rhs/'
     plot = True
 
     with open('poisson_ls_xy.yml') as yaml_stream:

@@ -31,7 +31,7 @@ atol = 1e-10
 
 class TestRhs:
     def test_random(self):
-        case_dir = os.path.join(base_dir, 'cases/dirichlet/random_left/')
+        case_dir = os.path.join(base_dir, 'cases/dirichlet/laplace/random_left/')
         physical_rhs = np.load(f'{case_dir}physical_rhs.npy').reshape(-1)
         potential = np.load(f'{case_dir}potential.npy')
         random_y = np.load(f'{case_dir}random_left.npy')
@@ -40,7 +40,7 @@ class TestRhs:
         assert np.allclose(poisson.potential, potential, atol=atol, rtol=rtol)
     
     def test_constant_left(self):
-        case_dir = os.path.join(base_dir, 'cases/dirichlet/constant_left/')
+        case_dir = os.path.join(base_dir, 'cases/dirichlet/laplace/constant_left/')
         physical_rhs = np.load(f'{case_dir}physical_rhs.npy').reshape(-1)
         potential = np.load(f'{case_dir}potential.npy')
         bcs = {'left':ones_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
@@ -48,7 +48,7 @@ class TestRhs:
         assert np.allclose(poisson.potential, potential, atol=atol, rtol=rtol)
     
     def test_linear_pot_x(self):
-        case_dir = os.path.join(base_dir, 'cases/dirichlet/linear_pot_x/')
+        case_dir = os.path.join(base_dir, 'cases/dirichlet/laplace/linear_pot_x/')
         physical_rhs = np.load(f'{case_dir}physical_rhs.npy').reshape(-1)
         potential = np.load(f'{case_dir}potential.npy')
         Vmax = 100.0
