@@ -69,6 +69,63 @@ class PoissonAnalytical(BasePoisson):
             self.bc_solution()
         self.potential = np.sum(self.potentials, axis=0)
 
+def dirichlet_mode(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
+    """ Mode for 1D full Dirichlet Poisson problem
+
+    :param x: direction vector
+    :type x: np.ndarray
+    :param Lx: length of the domain in the direction
+    :type Lx: float
+    :param n: mode number
+    :type n: int
+    :return: mode of number n
+    :rtype: np.ndarray
+    """
+    return np.sin(n * np.pi * x / Lx)
+
+def neumann_mode(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
+    """ Mode for 1D full Neumann Poisson problem
+
+    :param x: direction vector
+    :type x: np.ndarray
+    :param Lx: length of the domain in the direction
+    :type Lx: float
+    :param n: mode number
+    :type n: int
+    :return: mode of number n
+    :rtype: np.ndarray
+    """
+    return np.cos(n * np.pi * x / Lx)
+
+def mixed_mode_ldrn(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
+    """ Mode for 1D left Dirichlet - right Neumann Poisson problem
+
+    :param x: direction vector
+    :type x: np.ndarray
+    :param Lx: length of the domain in the direction
+    :type Lx: float
+    :param n: mode number
+    :type n: int
+    :return: mode of number n
+    :rtype: np.ndarray
+    """
+    return np.sin((n + 0.5) * np.pi * x / Lx)
+
+def mixed_mode_lnrd(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
+    """ Mode for 1D left Neumann - right Dirichlet Poisson problem
+
+    :param x: direction vector
+    :type x: np.ndarray
+    :param Lx: length of the domain in the direction
+    :type Lx: float
+    :param n: mode number
+    :type n: int
+    :return: mode of number n
+    :rtype: np.ndarray
+    """
+    return np.cos((n + 0.5) * np.pi * x / Lx)
+
+
 @njit(cache=True)
 def series_term(X, Y, Lx, Ly, voln, rhs, n, m):
     """ Fourier series term of the analytical solution of the 2D Poisson with
@@ -100,3 +157,4 @@ def series_term_dright(V_u, X, Y, Lx, Ly, n):
     """ Series term for the right dirichlet problem """
     return (fourier_coef_1D(V_u, n, Y[:, 0], Ly) * np.sin(n * np.pi * Y / Ly)
             * np.sinh(n * np.pi * X / Ly) / np.sinh(n * np.pi * Lx / Ly))
+

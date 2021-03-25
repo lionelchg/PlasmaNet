@@ -4,63 +4,8 @@ import seaborn as sns
 
 from PlasmaNet.common.plot import plot_ax_scalar
 from PlasmaNet.common.utils import create_dir
-
-
-def dirichlet_mode(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
-    """ Mode for 1D full Dirichlet Poisson problem
-
-    :param x: direction vector
-    :type x: np.ndarray
-    :param Lx: length of the domain in the direction
-    :type Lx: float
-    :param n: mode number
-    :type n: int
-    :return: mode of number n
-    :rtype: np.ndarray
-    """
-    return np.sin(n * np.pi * x / Lx)
-
-def neumann_mode(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
-    """ Mode for 1D full Neumann Poisson problem
-
-    :param x: direction vector
-    :type x: np.ndarray
-    :param Lx: length of the domain in the direction
-    :type Lx: float
-    :param n: mode number
-    :type n: int
-    :return: mode of number n
-    :rtype: np.ndarray
-    """
-    return np.cos(n * np.pi * x / Lx)
-
-def mixed_mode_ldrn(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
-    """ Mode for 1D left Dirichlet - right Neumann Poisson problem
-
-    :param x: direction vector
-    :type x: np.ndarray
-    :param Lx: length of the domain in the direction
-    :type Lx: float
-    :param n: mode number
-    :type n: int
-    :return: mode of number n
-    :rtype: np.ndarray
-    """
-    return np.sin((n + 0.5) * np.pi * x / Lx)
-
-def mixed_mode_lnrd(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
-    """ Mode for 1D left Neumann - right Dirichlet Poisson problem
-
-    :param x: direction vector
-    :type x: np.ndarray
-    :param Lx: length of the domain in the direction
-    :type Lx: float
-    :param n: mode number
-    :type n: int
-    :return: mode of number n
-    :rtype: np.ndarray
-    """
-    return np.cos((n + 0.5) * np.pi * x / Lx)
+from PlasmaNet.poissonsolver.analytical import (dirichlet_mode, 
+                    neumann_mode, mixed_mode_ldrn, mixed_mode_lnrd)
 
 if __name__=='__main__':
     sns.set_context('notebook', font_scale=0.9, rc={"lines.linewidth": 1.5})
