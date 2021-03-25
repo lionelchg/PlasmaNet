@@ -17,7 +17,7 @@ from numba import njit
 
 from PlasmaNet.common.plot import plot_set_2D
 from PlasmaNet.common.operators_numpy import grad
-from PlasmaNet.poissonsolver.linsystem import laplace_square_matrix, dirichlet_bc
+from PlasmaNet.poissonsolver.linsystem import cartesian_matrix, impose_dirichlet
 from scipy.sparse.linalg import spsolve
 
 matplotlib.use('Agg')
@@ -141,12 +141,14 @@ if __name__ == '__main__':
     new_path.mkdir()
     print(new_path.as_posix())
 
+    bcs = 'dirichlet'
+
     # Plot if asked
     if args.plot:
         dx = domain_length / (mesh_size - 1)
         x = np.linspace(0, domain_length, mesh_size)
         X, Y = np.meshgrid(x, x)
-        A = laplace_square_matrix(mesh_size)
+        A = cartesian_matrix(dx, dx, mesh_size, mesh_size, dx * dx, bcs)
         fig_dir = 'figures/'
         if not os.path.exists(fig_dir):
             os.makedirs(fig_dir)

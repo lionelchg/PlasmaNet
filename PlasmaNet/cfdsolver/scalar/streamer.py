@@ -26,7 +26,7 @@ from ...common.operators_numpy import grad
 from ...common.profiles import gaussian
 from ...common.utils import create_dir
 
-from ...poissonsolver.linsystem import matrix_axisym, dirichlet_bc_axi
+from ...poissonsolver.linsystem import matrix_axisym, impose_dirichlet
 from ...poissonsolver.poisson import PoissonLinSystem
 
 
@@ -65,6 +65,7 @@ class StreamerMorrow(BaseSim):
             self.up_photo = np.zeros_like(self.x)
             self.left_photo = np.zeros_like(self.y)
             self.right_photo = np.zeros_like(self.y)
+            self.bcs_photo = {'left':self.left_photo, 'right':self.right_photo, 'top':self.up_photo}
 
             self.mats_photo = []
             self.irate = np.zeros_like(self.X)
@@ -155,12 +156,12 @@ class StreamerMorrow(BaseSim):
         if self.photo_model == 'two':
             for i in range(2):
                 rhs = - self.irate.reshape(-1) * A_j_two[i] * self.pO2**2 * self.scale
-                dirichlet_bc_axi(rhs, self.nnx, self.nny, self.up_photo, self.left_photo, self.right_photo)
+                impose_dirichlet(rhs, self.nnx, self.nny, self.bcs_photo)
                 self.Sph += spsolve(self.mats_photo[i], rhs).reshape(self.nny, self.nnx)
         elif self.photo_model == 'three':
             for i in range(3):
                 rhs = - self.irate.reshape(-1) * A_j_three[i] * self.pO2**2 * self.scale
-                dirichlet_bc_axi(rhs, self.nnx, self.nny, self.up_photo, self.left_photo, self.right_photo)
+                impose_dirichlet(rhs, self.nnx, self.nny, self.bcs_photo)
                 self.Sph += spsolve(self.mats_photo[i], rhs).reshape(self.nny, self.nnx)
 
     def compute_chemistry(self, it):

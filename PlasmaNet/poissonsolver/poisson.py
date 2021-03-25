@@ -13,8 +13,8 @@ import copy
 from scipy.sparse.linalg import spsolve
 
 from ..common.plot import plot_modes
-from .linsystem import (matrix_cart, cartesian_matrix, matrix_axisym, 
-                        matrix_cart_perio, impose_dc_bc, impose_dirichlet)
+from .linsystem import (cartesian_matrix, matrix_axisym, 
+                        matrix_cart_perio, impose_dirichlet)
 from .base import BasePoisson
 from ..common.utils import create_dir
 

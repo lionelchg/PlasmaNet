@@ -18,7 +18,7 @@ os.environ['MKL_NUM_THREADS'] = '25'
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-from PlasmaNet.poissonsolver.linsystem import matrix_axisym, laplace_square_matrix
+from PlasmaNet.poissonsolver.linsystem import matrix_axisym, cartesian_matrix
 from PlasmaNet.common.metric import compute_voln
 from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
@@ -206,8 +206,8 @@ if __name__ == '__main__':
     if args.axisym:
         A = matrix_axisym(dx, dy, nnx, nny, R_nodes, scale)
     else:
-        # A = matrix_cart(dx, dy, nnx, nny, scale)
-        A = laplace_square_matrix(nnx)
+        bcs = 'dirichlet'
+        A = cartesian_matrix(dx, dy, nnx, nny, scale, bcs)
     if args.use_mkl:
         from scipy.sparse import csr_matrix
         from sparse_dot_mkl import sparse_qr_solve_mkl

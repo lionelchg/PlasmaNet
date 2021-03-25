@@ -16,6 +16,7 @@ from numba import njit
 
 from ...common.utils import create_dir
 from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
+from ...poissonsolver.linsystem import matrix_axisym, impose_dirichlet
 
 
 lambda_j_three = np.array([0.0553, 0.1460,0.89]) * 1.0e2
@@ -24,46 +25,6 @@ lambda_j_two = np.array([0.0974, 0.5877]) * 1.0e2
 A_j_two = np.array([0.0021, 0.1775]) * (1.0e2)**2
 
 coef_p = 0.038
-
-
-def photo_axisym(dx, dr, nx, nr, R, coeff, scale):
-    diags = np.zeros((5, nx * nr))
-    r = R.reshape(-1)
-
-    # Filling the diagonals, first the down neumann bc,: the dirichlet bc and finally the interior nodes
-    for i in range(nx * nr):
-        if 0 < i < nx - 1:
-            diags[0, i] = - (2 / dx**2 + 4 / dr**2 + coeff) * scale
-            diags[1, i + 1] = 1 / dx**2 * scale
-            diags[2, i - 1] = 1 / dx**2 * scale
-            diags[3, i + nx] = 4 / dr**2 * scale
-        elif i >= (nr - 1) * nx or i % nx == 0 or i % nx == nx - 1:
-            diags[0, i] = 1
-            diags[1, min(i + 1, nx * nr - 1)] = 0
-            diags[2, max(i - 1, 0)] = 0
-            diags[3, min(i + nx, nx * nr - 1)] = 0
-            diags[4, max(i - nx, 0)] = 0
-        else:
-            diags[0, i] = - (2 / dx**2 + 2 / dr**2 + coeff) * scale
-            diags[1, i + 1] = 1 / dx**2 * scale
-            diags[2, i - 1] = 1 / dx**2 * scale
-            diags[3, i + nx] = (1 + dr / (2 * r[i])) / dr**2 * scale
-            diags[4, i - nx] = (1 - dr / (2 * r[i])) / dr**2 * scale
-
-    # Creating the matrix
-    return sparse.csc_matrix(
-        sparse.dia_matrix((diags, [0, 1, -1, nx, -nx]), shape=(nx * nr, nx * nr)))
-
-
-def dirichlet_bc_axi(rhs, nx, nr, up, left, right):
-    # filling of the three dirichlet boundaries for axisymmetric test case
-    rhs[nx * (nr - 1):] = up
-    rhs[:nx * (nr - 1) + 1:nx] = left
-    rhs[nx - 1::nx] = right
-    # mean approximation in case the potential is not continuous across boundaries
-    rhs[-nx] = 0.5 * (left[-1] + up[0])
-    rhs[-1] = 0.5 * (right[-1] + up[-1])
-
 
 def gaussian(x, y, amplitude, x0, y0, sigma_x, sigma_y):
     return amplitude * np.exp(-((x - x0) / sigma_x) ** 2 - ((y - y0) / sigma_y) ** 2)
@@ -128,15 +89,17 @@ if __name__ == '__main__':
     down = np.zeros_like(x)
     left = np.zeros_like(r)
     right = np.zeros_like(r)
+
+    bcs = {'left':left, 'right':right, 'top':up}
     
     Sph = np.zeros_like(X)
     for i in range(2):
         # Axisymmetric resolution
         R_nodes = copy.deepcopy(R)
         R_nodes[0] = dr / 4
-        A = photo_axisym(dx, dr, nx, nr, R_nodes, (lambda_j_two[i] * pO2)**2, scale)
+        A = matrix_axisym(dx, dr, nx, nr, R_nodes, (lambda_j_two[i] * pO2)**2, scale)
         rhs = - I * A_j_two[i] * pO2**2 * scale
-        dirichlet_bc_axi(rhs, nx, nr, up, left, right)
+        impose_dirichlet(rhs, nx, nr, bcs)
         Sph += spsolve(A, rhs).reshape(nr, nx)
 
     # Plots
