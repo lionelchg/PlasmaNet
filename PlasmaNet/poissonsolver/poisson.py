@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import copy
 from scipy.sparse.linalg import spsolve
+import pdb
 
 from ..common.plot import plot_modes
 from .linsystem import (cartesian_matrix, matrix_axisym, 
@@ -43,7 +44,7 @@ class PoissonLinSystem(BasePoisson):
             self.mat = matrix_axisym(self.dx, self.dy, self.nnx, self.nny, 
                                 self.R_nodes, self.scale)
         elif self.perio:
-             self.mat = matrix_cart_full_perio(self.dx, self.dy, self.nnx, self.nny, self.scale)
+            self.mat = matrix_cart_full_perio(self.dx, self.dy, self.nnx, self.nny, self.scale)
 
         # Boundary conditions imposition
         self.impose_dirichlet = impose_dirichlet
