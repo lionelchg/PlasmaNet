@@ -15,6 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.constants as co
 from numba import njit
+import seaborn as sns
 
 from .euler import Euler
 import PlasmaNet.common.profiles as pf
@@ -23,6 +24,7 @@ from ...poissonsolver.analytical import PoissonAnalytical
 from ...common.plot import plot_ax_scalar, plot_ax_scalar_1D, plot_ax_vector_arrow
 from ...common.utils import create_dir, save_obj
 
+sns.set_context('notebook', font_scale=1.0)
 
 class PlasmaEuler(Euler):
     def __init__(self, config, logger=None):
@@ -182,7 +184,7 @@ class PlasmaEuler(Euler):
         n_e = self.U[0] / self.m_e - self.n_back
         E = self.E_field
         E_norm = self.E_norm
-        fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12, 12))
+        fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(8, 8))
         plot_ax_scalar(fig, axes[0][0], self.X, self.Y, n_e, r"$n_e$", geom='xy', max_value=1.2 * self.temporal_ampl[1])
         plot_ax_scalar_1D(fig, axes[0][1], self.X, [0.4, 0.5, 0.6], n_e, r"$n_e$",
                           ylim=[-1.2 * self.temporal_ampl[1], 1.2 * self.temporal_ampl[1]])
@@ -190,7 +192,8 @@ class PlasmaEuler(Euler):
         plot_ax_scalar_1D(fig, axes[1][1], self.X, [0.25, 0.5, 0.75], E_norm, r"$|\mathbf{E}|$",
                           ylim=[0, 1.1 * self.E_max])
         fig.suptitle(rf'$t$ = {self.dtsum:.2e} s')
-        fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+        # fig.tight_layout(rect=[0, 0.02, 1, 0.98])
+        fig.tight_layout()
         fig.savefig(self.fig_dir + f'variables_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
 

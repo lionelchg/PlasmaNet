@@ -13,6 +13,7 @@ import re
 import argparse
 import yaml
 import logging
+import seaborn as sns
 
 from scipy.sparse.linalg import spsolve
 
@@ -29,6 +30,7 @@ from ...common.utils import create_dir
 from ...poissonsolver.linsystem import matrix_axisym, impose_dirichlet
 from ...poissonsolver.poisson import PoissonLinSystem
 
+sns.set_context('notebook', font_scale=1.0)
 
 class StreamerMorrow(BaseSim):
     def __init__(self, config):
@@ -43,6 +45,7 @@ class StreamerMorrow(BaseSim):
         for key, value in config['mesh'].items():
             config['poisson'][key] = value
         config['poisson']['geom'] = self.geom
+        config['poisson']['bcs'] = 'axi'
 
         self.poisson = PoissonLinSystem(config['poisson'])
         self.backE = config['poisson']['backE']

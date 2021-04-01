@@ -188,8 +188,9 @@ def plot_ax_scalar_1D(fig, ax, X, list_cut, field, title, yscale='linear', ylim=
     if ylim is not None:
         ax.set_ylim(ylim)
     ax.grid(True)
-
     ax.set_title(title)
+    scilimx = int(np.log10(np.max(x)))
+    ax.ticklabel_format(axis='x', style='sci', scilimits=(scilimx, scilimx))
 
 
 def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', 
