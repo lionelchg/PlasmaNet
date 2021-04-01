@@ -21,8 +21,6 @@ cfg['bcs'] = 'neumann'
 
 poisson = PoissonLinSystem(cfg)
 
-zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
-
 rtol = 1e-10
 atol = 1e-10
 
