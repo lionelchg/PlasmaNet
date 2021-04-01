@@ -31,14 +31,14 @@ bcs = {}
 class TestRhs:
     def test_dipole(self):
         case_dir = os.path.join(base_dir, 'cases/neumann/dipole/')
-        physical_rhs = np.load(f'{case_dir}physical_rhs.npy').reshape(-1)
+        physical_rhs = np.load(f'{case_dir}physical_rhs.npy')
         potential = np.load(f'{case_dir}potential.npy')
         poisson.solve(physical_rhs, bcs)
         assert np.allclose(poisson.potential, potential, atol=atol, rtol=rtol)
     
     def test_quadrupole(self):
         case_dir = os.path.join(base_dir, 'cases/neumann/quadrupole/')
-        physical_rhs = np.load(f'{case_dir}physical_rhs.npy').reshape(-1)
+        physical_rhs = np.load(f'{case_dir}physical_rhs.npy')
         potential = np.load(f'{case_dir}potential.npy')
         poisson.solve(physical_rhs, bcs)
         assert np.allclose(poisson.potential, potential, atol=atol, rtol=rtol)

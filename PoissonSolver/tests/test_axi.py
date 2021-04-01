@@ -30,7 +30,7 @@ bcs = {'left':zeros_y, 'right':zeros_y, 'top':zeros_x}
 class TestRhs:
     def test_gaussian(self):
         case_dir = os.path.join(base_dir, 'cases/axi/gaussian/')
-        physical_rhs = np.load(f'{case_dir}physical_rhs.npy').reshape(-1)
+        physical_rhs = np.load(f'{case_dir}physical_rhs.npy')
         potential = np.load(f'{case_dir}potential.npy')
         poisson.solve(physical_rhs, bcs)
         assert np.allclose(poisson.potential, potential, atol=atol, rtol=rtol)

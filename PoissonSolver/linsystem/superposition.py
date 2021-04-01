@@ -19,7 +19,7 @@ from PlasmaNet.poissonsolver.poisson import PoissonLinSystem, run_case
 import PlasmaNet.common.profiles as pf
 
 if __name__ == '__main__':
-    basecase_dir = 'cases/superposition/'
+    basecase_dir = f'{os.getenv("POISSON_DIR")}/cases/superposition/'
     plot = True
 
     with open('poisson_ls_xy.yml') as yaml_stream:
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     poisson = PoissonLinSystem(cfg)
 
-    zero_rhs = np.zeros_like(poisson.X).reshape(-1)
+    zero_rhs = np.zeros_like(poisson.X)
 
     zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
     ones_x, ones_y = np.ones(poisson.nnx), np.ones(poisson.nny)
@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     # rhs alone
     case_dir = f'{basecase_dir}rhs/'
-    physical_rhs = pf.gaussian(poisson.X.reshape(-1), poisson.Y.reshape(-1), 
+    physical_rhs = pf.gaussian(poisson.X, poisson.Y, 
                     ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
     pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
     run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)

@@ -19,7 +19,7 @@ from PlasmaNet.poissonsolver.poisson import PoissonLinSystem, run_case
 import PlasmaNet.common.profiles as pf
 
 if __name__ == '__main__':
-    basecase_dir = '../tests/cases/dirichlet/rhs/'
+    basecase_dir = f'{os.getenv("POISSON_DIR")}/cases/dirichlet/rhs'
     plot = True
 
     with open('poisson_ls_xy.yml') as yaml_stream:
@@ -36,25 +36,25 @@ if __name__ == '__main__':
     sigma_x, sigma_y = 1e-3, 1e-3
     x0, y0 = 0.5e-2, 0.5e-2
     case_dir = f'{basecase_dir}gaussian/'
-    physical_rhs = pf.gaussian(poisson.X.reshape(-1), poisson.Y.reshape(-1), 
+    physical_rhs = pf.gaussian(poisson.X, poisson.Y, 
                     ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
     run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
 
     case_dir = f'{basecase_dir}step/'
-    physical_rhs = pf.step(poisson.X.reshape(-1), poisson.Y.reshape(-1), 
+    physical_rhs = pf.step(poisson.X, poisson.Y, 
                     ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
     run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
 
     case_dir = f'{basecase_dir}two_gaussians/'
     x01, y01 = 0.4e-2, 0.6e-2    
-    physical_rhs = pf.two_gaussians(poisson.X.reshape(-1), poisson.Y.reshape(-1), 
+    physical_rhs = pf.two_gaussians(poisson.X, poisson.Y, 
                     ni0, x0, y0, sigma_x, sigma_y, x01, y01, sigma_x, sigma_y) * co.e / co.epsilon_0
     run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
 
     case_dir = f'{basecase_dir}random_2D/'
-    physical_rhs = pf.random2D(poisson.X, poisson.Y, ni0, 16).reshape(-1) * co.e / co.epsilon_0
+    physical_rhs = pf.random2D(poisson.X, poisson.Y, ni0, 16) * co.e / co.epsilon_0
     run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
 
     case_dir = f'{basecase_dir}sin_2D/'
-    physical_rhs = pf.sin2D(poisson.X, poisson.Y, ni0, poisson.Lx, poisson.Ly, 4, 4).reshape(-1) * co.e / co.epsilon_0
+    physical_rhs = pf.sin2D(poisson.X, poisson.Y, ni0, poisson.Lx, poisson.Ly, 4, 4) * co.e / co.epsilon_0
     run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)

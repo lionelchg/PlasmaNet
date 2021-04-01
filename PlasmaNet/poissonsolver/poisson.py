@@ -13,7 +13,8 @@ import numpy as np
 import scipy.sparse.linalg as linalg
 
 from .base import BasePoisson
-from .linsystem import cartesian_matrix, matrix_axisym, impose_dirichlet, matrix_cart_full_perio
+from .linsystem import (cartesian_matrix, matrix_axisym, impose_dirichlet, 
+                        matrix_cart_perio, matrix_cart_perio_x)
 from ..common.plot import plot_modes
 from ..common.utils import create_dir
 
@@ -26,7 +27,8 @@ class PoissonLinSystem(BasePoisson):
     def __init__(self, cfg):
         super().__init__(cfg)
         self.scale = self.dx * self.dy
-        self.perio = cfg['bcs'] == 'perio'
+        self.perio = 'perio' in cfg['bcs']
+        self.bcs = cfg['bcs']
 
         # Matrix construction
         self.geom = cfg['geom']
@@ -42,14 +44,16 @@ class PoissonLinSystem(BasePoisson):
             self.R_nodes[0] = self.dy / 4
             self.mat = matrix_axisym(self.dx, self.dy, self.nnx, self.nny,
                                 self.R_nodes, self.scale)
-        elif self.perio:
-            self.mat = matrix_cart_full_perio(self.dx, self.dy, self.nnx, self.nny, self.scale)
+        elif cfg['bcs'] == 'perio':
+            self.mat = matrix_cart_perio(self.dx, self.dy, self.nnx - 1, self.nny - 1, self.scale)
+        elif cfg['bcs'] == 'perio_x':
+            self.mat = matrix_cart_perio_x(self.dx, self.dy, self.nnx - 1, self.nny, self.scale)
 
         # Boundary conditions imposition
         self.impose_dirichlet = impose_dirichlet
 
         self.solver = None
-        self.init_solver(cfg)
+        # self.init_solver(cfg)
 
     def init_solver(self, cfg):
         """ Initialize the required solver.
@@ -69,18 +73,29 @@ class PoissonLinSystem(BasePoisson):
         else:
             raise ValueError("Unknown solver_type {}".format(cfg["solver_type"]))
 
-    def solve(self, physical_rhs, bcs):
-        """ Solve the Poisson problem with physical_rhs and args
-        boundary conditions (up to 4 boundary conditions for each side)
+    def solve(self, physical_rhs: np.ndarray, bcs: dict):
+        """ Solve the Poisson equation with physical_rhs as charge density / epsilon_0
 
         :param physical_rhs: - rho / epsilon_0
-        :type physical_rhs: ndarray
+        :type physical_rhs: np.ndarray
+        :param bcs: Dictionnary of boundary conditions
+        :type bcs: dict
         """
-        rhs = - physical_rhs * self.scale
-        self.physical_rhs = physical_rhs.reshape(self.nny, self.nnx)
-        self.impose_dirichlet(rhs, self.nnx, self.nny, bcs)
-        self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
-
+        if not self.perio:
+            self.physical_rhs = physical_rhs
+            rhs = - physical_rhs * self.scale
+            self.impose_dirichlet(rhs, bcs)
+            self.potential = linalg.spsolve(self.mat, rhs.reshape(-1)).reshape(self.nny, self.nnx)
+        elif self.bcs == 'perio':
+            self.physical_rhs = physical_rhs
+            rhs = - physical_rhs[:-1, :-1] * self.scale
+            self.potential[:-1, :-1] = linalg.spsolve(self.mat, rhs.reshape(-1)).reshape(self.nny - 1, self.nnx - 1)
+            self.potential[:-1, -1] = self.potential[:-1, 0]
+            self.potential[-1, :] = self.potential[0, :]
+        elif self.bcs == 'perio_x':
+            rhs = - physical_rhs[:, :-1] * self.scale
+            self.potential[:, :-1] = linalg.spsolve(self.mat, rhs.reshape(-1)).reshape(self.nny, self.nnx - 1)
+            self.potential[:, -1] = self.potential[:, 0]
 
 class DatasetPoisson(PoissonLinSystem):
     """ Class for dataset of poisson rhs and potentials (contains

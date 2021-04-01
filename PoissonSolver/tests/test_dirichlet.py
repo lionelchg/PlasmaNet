@@ -32,7 +32,7 @@ atol = 1e-10
 class TestRhs:
     def test_random(self):
         case_dir = os.path.join(base_dir, 'cases/dirichlet/laplace/random_left/')
-        physical_rhs = np.load(f'{case_dir}physical_rhs.npy').reshape(-1)
+        physical_rhs = np.load(f'{case_dir}physical_rhs.npy')
         potential = np.load(f'{case_dir}potential.npy')
         random_y = np.load(f'{case_dir}random_left.npy')
         bcs = {'left':random_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
@@ -41,7 +41,7 @@ class TestRhs:
     
     def test_constant_left(self):
         case_dir = os.path.join(base_dir, 'cases/dirichlet/laplace/constant_left/')
-        physical_rhs = np.load(f'{case_dir}physical_rhs.npy').reshape(-1)
+        physical_rhs = np.load(f'{case_dir}physical_rhs.npy')
         potential = np.load(f'{case_dir}potential.npy')
         bcs = {'left':ones_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
         poisson.solve(physical_rhs, bcs)
@@ -49,7 +49,7 @@ class TestRhs:
     
     def test_linear_pot_x(self):
         case_dir = os.path.join(base_dir, 'cases/dirichlet/laplace/linear_pot_x/')
-        physical_rhs = np.load(f'{case_dir}physical_rhs.npy').reshape(-1)
+        physical_rhs = np.load(f'{case_dir}physical_rhs.npy')
         potential = np.load(f'{case_dir}potential.npy')
         Vmax = 100.0
         bcs = {'left':zeros_y, 'right':Vmax * ones_y, 'bottom':Vmax * linear_x, 'top':Vmax * linear_x}

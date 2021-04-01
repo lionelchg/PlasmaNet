@@ -19,7 +19,7 @@ from PlasmaNet.poissonsolver.poisson import PoissonLinSystem, run_case
 import PlasmaNet.common.profiles as pf
 
 if __name__ == '__main__':
-    basecase_dir = '../tests/cases/neumann/'
+    basecase_dir = f'{os.getenv("POISSON_DIR")}/cases/neumann/'
     plot = True
 
     with open('poisson_ls_xy.yml') as yaml_stream:
@@ -36,12 +36,12 @@ if __name__ == '__main__':
 
     case_dir = f'{basecase_dir}/dipole/'
     x01, y01 = 0.4e-2, 0.5e-2
-    physical_rhs = pf.gaussians(poisson.X.reshape(-1), poisson.Y.reshape(-1), 
+    physical_rhs = pf.gaussians(poisson.X, poisson.Y, 
                     [ni0, x0, y0, sigma_x, sigma_y, -ni0, x01, y01, sigma_x, sigma_y]) * co.e / co.epsilon_0
     run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
 
     case_dir = f'{basecase_dir}/quadrupole/'
-    physical_rhs = pf.gaussians(poisson.X.reshape(-1), poisson.Y.reshape(-1), 
+    physical_rhs = pf.gaussians(poisson.X, poisson.Y, 
                     [ni0, 0.4e-2, 0.4e-2, sigma_x, sigma_y, 
                     -ni0, 0.6e-2, 0.4e-2, sigma_x, sigma_y,
                     ni0, 0.6e-2, 0.6e-2, sigma_x, sigma_y,

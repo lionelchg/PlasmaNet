@@ -51,7 +51,7 @@ atol = 1e-10
 class TestRhs:
 
     def test_sin(self):
-        physical_rhs = ni0 * th_solution(poisson.X.reshape(-1), poisson.Y.reshape(-1),
+        physical_rhs = ni0 * th_solution(poisson.X, poisson.Y,
                                             n, m, poisson.Lx, poisson.Ly)
         potential_th = (physical_rhs.reshape(nny, nnx) / ((n * np.pi / poisson.Lx)**2 + (m * np.pi / poisson.Ly)**2))
         poisson.solve(physical_rhs, pot_bcs)
