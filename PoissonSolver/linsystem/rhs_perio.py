@@ -31,21 +31,11 @@ if __name__ == '__main__':
 
     ni0 = 1e11
     sigma_x, sigma_y = 1e-3, 1e-3
-    x0, y0 = 0.5e-2, 0.5e-2
-    case_dir = f'{basecase_dir}rhs/gaussian/'
-    physical_rhs = pf.gaussian(poisson.X, poisson.Y, 
-                    ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
-
-    case_dir = f'{basecase_dir}/dipole/'
+    case_dir = f'{basecase_dir}dipole/'
     x0, y0 = 0.6e-2, 0.5e-2
     x01, y01 = 0.4e-2, 0.5e-2
     physical_rhs = pf.gaussians(poisson.X, poisson.Y, 
                     [ni0, x0, y0, sigma_x, sigma_y, -ni0, x01, y01, sigma_x, sigma_y]) * co.e / co.epsilon_0
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
-
-    case_dir = f'{basecase_dir}rhs/sin_2D_3/'
-    physical_rhs = pf.sin2D(poisson.X, poisson.Y, ni0, poisson.Lx, poisson.Ly, 3, 3) * co.e / co.epsilon_0
     run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
 
     case_dir = f'{basecase_dir}rhs/sin_2D_4/'

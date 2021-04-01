@@ -152,7 +152,7 @@ class PlasmaEuler(Euler):
         """ Solve the Poisson equation in axisymmetric configuration. """
         poisson_timer = perf_counter()
         if self.poisson_type == 'lin_system':
-            self.poisson.solve(- (self.U[0] / self.m_e - self.n_back).reshape(-1) * co.e / co.epsilon_0,
+            self.poisson.solve(- (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0,
                                self.pot_bcs)
         elif self.poisson_type == 'analytical':
             self.poisson.compute_sol(- (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0)

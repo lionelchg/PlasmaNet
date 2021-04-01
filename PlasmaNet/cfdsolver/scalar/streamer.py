@@ -146,7 +146,7 @@ class StreamerMorrow(BaseSim):
     
     def solve_poisson(self):
         """ Solve the Poisson equation in axisymmetric configuration. """
-        self.poisson.solve((self.nd[1] - self.nd[0] - self.nd[2]).reshape(-1) * co.e / co.epsilon_0, self.bcs)
+        self.poisson.solve((self.nd[1] - self.nd[0] - self.nd[2]) * co.e / co.epsilon_0, self.bcs)
         self.E_field = self.poisson.E_field
 
     def solve_photo(self):
