@@ -6,13 +6,15 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+import argparse
+import yaml
+import logging
+from time import perf_counter
+
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.constants as co
 from numba import njit
-import argparse
-import yaml
-import logging
 
 from .euler import Euler
 import PlasmaNet.common.profiles as pf
@@ -23,7 +25,7 @@ from ...common.utils import create_dir, save_obj
 
 
 class PlasmaEuler(Euler):
-    def __init__(self, config):
+    def __init__(self, config, logger=None):
         super().__init__(config)
         # Choose the way to solve poisson equation, either classic with linear system
         # or with analytical solution (2D Fourier series)
@@ -40,7 +42,7 @@ class PlasmaEuler(Euler):
             # Boundary conditions
             zeros_x = np.zeros_like(self.x)
             zeros_y = np.zeros_like(self.y)
-            self.pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
+            self.pot_bcs = {'left': zeros_y, 'right': zeros_y, 'bottom': zeros_x, 'top': zeros_x}
         elif self.poisson_type == 'analytical':
             config['poisson']['nmax_rhs'] = config['poisson']['nmax_fourier']
             config['poisson']['mmax_rhs'] = config['poisson']['nmax_fourier']
@@ -128,6 +130,13 @@ class PlasmaEuler(Euler):
                 self.globals['instability_de'] = -1
                 self.globals['instability_max'] = -1
 
+        # If a logger is given, use it to log performance
+        if logger is not None:
+            self.logger = logger
+            self.log_perf = True
+        else:
+            self.log_perf = False
+
     def print_init(self):
         """ Print header to sum up the parameters. """
         logging.info(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
@@ -141,6 +150,7 @@ class PlasmaEuler(Euler):
 
     def solve_poisson(self):
         """ Solve the Poisson equation in axisymmetric configuration. """
+        poisson_timer = perf_counter()
         if self.poisson_type == 'lin_system':
             self.poisson.solve(- (self.U[0] / self.m_e - self.n_back).reshape(-1) * co.e / co.epsilon_0,
                                self.pot_bcs)
@@ -150,6 +160,10 @@ class PlasmaEuler(Euler):
 
         self.E_norm = np.sqrt(self.E_field[0]**2 + self.E_field[1]**2)
         if self.it == 1: self.E_max = np.max(self.E_norm)
+
+        poisson_timer = perf_counter() - poisson_timer
+        if self.log_perf:
+            self.logger.info("Poisson {} perf: {}".format(self.poisson_type[:3], poisson_timer))
 
     def compute_flux_cold(self):
         """ Compute the 2D flux of the Euler equations but without pressure """

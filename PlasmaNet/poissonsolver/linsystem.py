@@ -10,7 +10,7 @@ import numpy as np
 from scipy import sparse
 
 
-def cartesian_matrix(dx:float, dy:float, nx:int, ny:int, scale:float, bcs:dict) -> sparse.csc_matrix:
+def cartesian_matrix(dx: float, dy: float, nx: int, ny: int, scale: float, bcs: dict) -> sparse.csc_matrix:
     """ Generate a cartesian matrix with prescribed boundary conditions
     (Dirichlet or Neumann mixed)
 
@@ -74,8 +74,7 @@ def cartesian_matrix(dx:float, dy:float, nx:int, ny:int, scale:float, bcs:dict) 
         sparse.dia_matrix((diags, [0, 1, -1, nx, -nx]), shape=(nx * ny, nx * ny)))
 
 
-
-def neumann_line(diags:np.array, diag_indices:tuple, res:float, scale:float) -> None:
+def neumann_line(diags: np.array, diag_indices: tuple, res: float, scale: float) -> None:
     """ Fill a Neumann boundary condition line in the Poisson matrix
 
     :param diags: the diagonals used to fill the matrix
@@ -90,7 +89,8 @@ def neumann_line(diags:np.array, diag_indices:tuple, res:float, scale:float) -> 
     diags[0, diag_indices[0]] += - 2 / res**2 * scale
     diags[diag_indices[1]] += 2 / res**2 * scale
 
-def dirichlet_line(diags:np.array, i:int, nx:int, ny:int) -> None:
+
+def dirichlet_line(diags: np.array, i: int, nx: int, ny: int) -> None:
     """ Fill a Dirichlet boundary condition line in the Poisson matrix
 
     :param diags: the diagonals used to fill the matrix
@@ -138,6 +138,7 @@ def matrix_axisym(dx, dr, nx, nr, R, scale):
     # Creating the matrix
     return sparse.csc_matrix(
         sparse.dia_matrix((diags, [0, 1, -1, nx, -nx]), shape=(nx * nr, nx * nr)))
+
 
 def matrix_cart_full_perio(dx, dy, nx, ny, scale):
     """ Creation of the matrix for the full periodic problem in 
@@ -215,7 +216,7 @@ def matrix_cart_perio(dx, dy, nx, ny, scale):
         sparse.dia_matrix((diags, [0, 1, -1, nx, -nx, nx - 1, -(nx - 1)]), shape=(nx * ny, nx * ny)))
 
 
-def impose_dirichlet(rhs:np.ndarray, nx:int, ny:int, bcs:dict) -> None:
+def impose_dirichlet(rhs: np.ndarray, nx: int, ny: int, bcs: dict) -> None:
     """ Impose Dirichlet boundary conditions to the rhs vector
 
     :param rhs: rhs vector of the Poisson equation

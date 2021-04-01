@@ -21,7 +21,8 @@ class PoissonNetwork(BasePoisson):
     :param BasePoisson: Base class for Poisson routines
     """
     def __init__(self, cfg):
-        """ Initialization of PoissonNetwork class
+        """
+        Initialization of PoissonNetwork class
 
         :param cfg: config dictionary
         :type cfg: dict

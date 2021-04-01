@@ -128,7 +128,7 @@ if __name__ == '__main__':
 
     with open(args.config, 'r') as yaml_stream:
         cfg = yaml.safe_load(yaml_stream)
-    
+
     cases, base_cfg, base_cn = make_cases(cfg)
 
     with get_context('spawn').Pool(processes=args.n_procs) as p:

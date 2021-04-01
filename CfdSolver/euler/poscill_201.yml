@@ -39,6 +39,12 @@ params:
 poisson:
   type: 'lin_system'
   nmax_fourier: 10
+  solver_type: "direct/iterative"
+  useUmfpack: True
+  assumeSortedIndices: True
+  rtol: 1e-12
+  atol: 1e-15
+
 
 mesh:
   xmin: 0

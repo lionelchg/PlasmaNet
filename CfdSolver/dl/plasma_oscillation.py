@@ -95,7 +95,7 @@ def run(config):
 
         # boundary conditions
         sim.impose_bc_euler()
-        
+
         # Apply residual
         sim.update_res()
 

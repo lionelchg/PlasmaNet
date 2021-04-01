@@ -6,18 +6,17 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import copy
-from scipy.sparse.linalg import spsolve
-import pdb
 
-from ..common.plot import plot_modes
-from .linsystem import (cartesian_matrix, matrix_axisym, 
-                        matrix_cart_perio, impose_dirichlet, matrix_cart_full_perio)
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.sparse.linalg as linalg
+
 from .base import BasePoisson
+from .linsystem import cartesian_matrix, matrix_axisym, impose_dirichlet, matrix_cart_full_perio
+from ..common.plot import plot_modes
 from ..common.utils import create_dir
+
 
 class PoissonLinSystem(BasePoisson):
     """ Class for linear system solver of Poisson problem
@@ -27,7 +26,7 @@ class PoissonLinSystem(BasePoisson):
     def __init__(self, cfg):
         super().__init__(cfg)
         self.scale = self.dx * self.dy
-        self.perio = cfg['bcs']=='perio'
+        self.perio = cfg['bcs'] == 'perio'
 
         # Matrix construction
         self.geom = cfg['geom']
@@ -35,13 +34,13 @@ class PoissonLinSystem(BasePoisson):
             # Reformat boundary conditions if similar on all boundaries
             if isinstance(cfg['bcs'], str):
                 bc = cfg['bcs']
-                cfg['bcs'] = {'left':bc, 'right':bc, 'bottom':bc, 'top':bc}
-            
+                cfg['bcs'] = {'left': bc, 'right': bc, 'bottom': bc, 'top': bc}
+
             self.mat = cartesian_matrix(self.dx, self.dy, self.nnx, self.nny, self.scale, cfg['bcs'])
         elif cfg['geom'] in ['cylindrical', 'xr'] and not self.perio:
             self.R_nodes = copy.deepcopy(self.Y)
             self.R_nodes[0] = self.dy / 4
-            self.mat = matrix_axisym(self.dx, self.dy, self.nnx, self.nny, 
+            self.mat = matrix_axisym(self.dx, self.dy, self.nnx, self.nny,
                                 self.R_nodes, self.scale)
         elif self.perio:
             self.mat = matrix_cart_full_perio(self.dx, self.dy, self.nnx, self.nny, self.scale)
@@ -49,11 +48,32 @@ class PoissonLinSystem(BasePoisson):
         # Boundary conditions imposition
         self.impose_dirichlet = impose_dirichlet
 
+        self.solver = None
+        self.init_solver(cfg)
+
+    def init_solver(self, cfg):
+        """ Initialize the required solver.
+        Can be either a direct or iterative solver, with different options
+
+        :param cfg: Poisson configuration dict
+        """
+        # Direct solver
+        if cfg["solver_type"] == "direct":
+            linalg.use_solver(**cfg)  # Pass useUmfpack and assumeSortedIndices parameters
+            self.solver = linalg.spsolve
+
+        # Iterative solver
+        elif cfg["solver_type"] == "iterative":
+            self.solver = linalg.cg
+
+        else:
+            raise ValueError("Unknown solver_type {}".format(cfg["solver_type"]))
+
     def solve(self, physical_rhs, bcs):
         """ Solve the Poisson problem with physical_rhs and args
         boundary conditions (up to 4 boundary conditions for each side)
 
-        :param physical_rhs: - rho / epsilon_0 
+        :param physical_rhs: - rho / epsilon_0
         :type physical_rhs: ndarray
         """
         rhs = - physical_rhs * self.scale
@@ -61,9 +81,11 @@ class PoissonLinSystem(BasePoisson):
         self.impose_dirichlet(rhs, self.nnx, self.nny, bcs)
         self.potential = spsolve(self.mat, rhs).reshape(self.nny, self.nnx)
 
+
 class DatasetPoisson(PoissonLinSystem):
     """ Class for dataset of poisson rhs and potentials (contains
-    different plotting of modes) """
+    different plotting of modes)
+    """
     def __init__(self, cfg):
         super().__init__(cfg)
         # Mean, min and max
@@ -79,6 +101,25 @@ class DatasetPoisson(PoissonLinSystem):
         self.coeffs_rhs_dset[1] = np.maximum(self.coeffs_rhs_dset[1], self.coeffs_rhs)
         self.coeffs_pot_dset[0] += self.coeffs_pot
         self.coeffs_pot_dset[1] = np.maximum(self.coeffs_pot_dset[1], self.coeffs_pot)
+
+    def sum_series(self, coefs):
+        """ Series of rhs from Fourier resolution given coefficients """
+        series = np.zeros_like(self.X)
+        for n in range(1, self.nmax + 1):
+            for m in range(1, self.nmax + 1):
+                series += coefs[n - 1, m - 1] * np.sin(n * np.pi * self.X / self.Lx) \
+                          * np.sin(m * np.pi * self.Y / self.Ly)
+        return series
+
+    def pot_series(self, coefs):
+        """ Series of potential from Fourier resolution given coeffs """
+        series = np.zeros_like(self.X)
+        for n in range(1, self.nmax + 1):
+            for m in range(1, self.nmax + 1):
+                series += (coefs[n - 1, m - 1] * np.sin(n * np.pi * self.X / self.Lx)
+                           * np.sin(m * np.pi * self.Y / self.Ly) / ((n * np.pi / self.Lx)**2
+                           + (m * np.pi / self.Ly)**2))
+        return series
 
     def plot_pmodes(self, figname):
         """ Plot the potential and rhs modes from 2D
@@ -99,25 +140,9 @@ class DatasetPoisson(PoissonLinSystem):
         fig.savefig(figname, bbox_inches='tight')
         plt.close()
 
-    def sum_series(self, coefs):
-        """ Series of rhs from Fourier resolution given coeffs """
-        series = np.zeros_like(self.X)
-        for n in range(1, self.nmax + 1):
-            for m in range(1, self.nmax + 1):
-                series += coefs[n - 1, m - 1] * np.sin(n * np.pi * self.X / self.Lx) * np.sin(m * np.pi * self.Y / self.Ly)
-        return series
 
-    def pot_series(self, coefs):
-        """ Series of potential from Fourier resolution given coeffs """
-        series = np.zeros_like(self.X)
-        for n in range(1, self.nmax + 1):
-            for m in range(1, self.nmax + 1):
-                series += (coefs[n - 1, m - 1] * np.sin(n * np.pi * self.X / self.Lx) 
-                    * np.sin(m * np.pi * self.Y / self.Ly) / ((n * np.pi / self.Lx)**2 + (m * np.pi / self.Ly)**2))
-        return series
-
-def run_case(poisson:PoissonLinSystem, case_dir:str, physical_rhs:np.ndarray, 
-                pot_bcs:dict, plot:bool):
+def run_case(poisson: PoissonLinSystem, case_dir: str, physical_rhs: np.ndarray,
+             pot_bcs: dict, plot: bool):
     """ Run a Poisson linear system case
 
     :param poisson: PoissonLinSystem object
@@ -135,7 +160,7 @@ def run_case(poisson:PoissonLinSystem, case_dir:str, physical_rhs:np.ndarray,
         geom = 'xr'
     else:
         geom = 'xy'
-        
+
     create_dir(case_dir)
     poisson.solve(physical_rhs, pot_bcs)
     poisson.save(case_dir)

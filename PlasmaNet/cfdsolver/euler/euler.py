@@ -269,6 +269,7 @@ def compute_res(U, F, dt, volc, snc, ncx, ncy, gamma, ndim, nvert, res, res_c, U
             res[:, j + 1, i + 1] -= 0.5 * (dF_c[:, 0] * snc[2, 0] + dF_c[:, 1] * snc[2, 1])
             res[:, j + 1, i] -= 0.5 * (dF_c[:, 0] * snc[3, 0] + dF_c[:, 1] * snc[3, 1])
 
+
 def main():
     args = argparse.ArgumentParser(description='Euler run')
     args.add_argument('-c', '--config', type=str,
@@ -279,6 +280,7 @@ def main():
         cfg = yaml.safe_load(yaml_stream)
 
     Euler.run(cfg)
+
 
 if __name__ == '__main__':
     main()

@@ -9,6 +9,7 @@
 import numpy as np
 import copy
 
+
 class Mesh:
     def __init__(self, config):
         # Mesh properties
