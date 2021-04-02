@@ -38,4 +38,4 @@ if __name__ == '__main__':
     case_dir = f'{basecase_dir}gaussian/'
     physical_rhs = gaussian(poisson.X, poisson.Y, ni0, x0, y0,
                         sigma_x, sigma_y)
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
+    poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)

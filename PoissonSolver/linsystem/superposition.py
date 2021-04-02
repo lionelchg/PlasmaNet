@@ -44,13 +44,13 @@ if __name__ == '__main__':
     physical_rhs = pf.gaussian(poisson.X, poisson.Y, 
                     ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
     pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
+    poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)
 
     # dirichlet alone
     case_dir = f'{basecase_dir}laplace/'
     Vmax = 5e-3
     pot_bcs = {'left':zeros_y, 'right':Vmax * ones_y, 'bottom':Vmax * linear_x, 'top':Vmax * linear_x}
-    run_case(poisson, case_dir, zero_rhs, pot_bcs, plot)
+    poisson.run_case(case_dir, zero_rhs, pot_bcs, plot)
 
     # superposition
-    run_case(poisson, basecase_dir, physical_rhs, pot_bcs, plot)
+    poisson.run_case(basecase_dir, physical_rhs, pot_bcs, plot)

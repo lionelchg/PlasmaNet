@@ -96,6 +96,33 @@ class PoissonLinSystem(BasePoisson):
             rhs = - physical_rhs[:, :-1] * self.scale
             self.potential[:, :-1] = linalg.spsolve(self.mat, rhs.reshape(-1)).reshape(self.nny, self.nnx - 1)
             self.potential[:, -1] = self.potential[:, 0]
+            
+    def run_case(self, case_dir: str, physical_rhs: np.ndarray,
+                pot_bcs: dict, plot: bool):
+        """ Run a Poisson linear system case
+
+        :param case_dir: Case directory
+        :type case_dir: str
+        :param physical_rhs: physical rhs
+        :type physical_rhs: np.ndarray
+        :param pot_bcs: Dirichlet boundary conditions
+        :type pot_bcs: dict
+        :param plot: logical for plotting
+        :type plot: bool
+        """
+        if self.geom == 'cylindrical':
+            geom = 'xr'
+        else:
+            geom = 'xy'
+
+        create_dir(case_dir)
+        self.solve(physical_rhs, pot_bcs)
+        self.save(case_dir)
+        if plot:
+            fig_dir = case_dir + 'figures/'
+            create_dir(fig_dir)
+            self.plot_2D(fig_dir + '2D', geom=geom)
+            self.plot_1D2D(fig_dir + 'full', geom=geom)
 
 class DatasetPoisson(PoissonLinSystem):
     """ Class for dataset of poisson rhs and potentials (contains
@@ -154,33 +181,3 @@ class DatasetPoisson(PoissonLinSystem):
         fig.tight_layout()
         fig.savefig(figname, bbox_inches='tight')
         plt.close()
-
-
-def run_case(poisson: PoissonLinSystem, case_dir: str, physical_rhs: np.ndarray,
-             pot_bcs: dict, plot: bool):
-    """ Run a Poisson linear system case
-
-    :param poisson: PoissonLinSystem object
-    :type poisson: PoissonLinSystem
-    :param case_dir: Case directory
-    :type case_dir: str
-    :param physical_rhs: physical rhs
-    :type physical_rhs: np.ndarray
-    :param pot_bcs: Dirichlet boundary conditions
-    :type pot_bcs: dict
-    :param plot: logical for plotting
-    :type plot: bool
-    """
-    if poisson.geom == 'cylindrical':
-        geom = 'xr'
-    else:
-        geom = 'xy'
-
-    create_dir(case_dir)
-    poisson.solve(physical_rhs, pot_bcs)
-    poisson.save(case_dir)
-    if plot:
-        fig_dir = case_dir + 'figures/'
-        create_dir(fig_dir)
-        poisson.plot_2D(fig_dir + '2D', geom=geom)
-        poisson.plot_1D2D(fig_dir + 'full', geom=geom)

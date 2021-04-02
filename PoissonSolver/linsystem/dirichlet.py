@@ -33,14 +33,14 @@ if __name__ == '__main__':
     case_dir = f'{basecase_dir}random_left/'
     random_y = random1D(poisson.Y[:, 0], 100.0, 4)
     pot_bcs = {'left':random_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
-    run_case(poisson, case_dir, zero_rhs, pot_bcs, plot)
+    poisson.run_case(case_dir, zero_rhs, pot_bcs, plot)
     np.save(case_dir + 'random_left', random_y)
 
     case_dir = f'{basecase_dir}constant_left/'
     pot_bcs = {'left':ones_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
-    run_case(poisson, case_dir, zero_rhs, pot_bcs, plot)
+    poisson.run_case(case_dir, zero_rhs, pot_bcs, plot)
 
     case_dir = f'{basecase_dir}linear_pot_x/'
     Vmax = 100.0
     pot_bcs = {'left':zeros_y, 'right':Vmax * ones_y, 'bottom':Vmax * linear_x, 'top':Vmax * linear_x}
-    run_case(poisson, case_dir, zero_rhs, pot_bcs, plot)
+    poisson.run_case(case_dir, zero_rhs, pot_bcs, plot)

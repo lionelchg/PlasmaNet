@@ -38,7 +38,7 @@ network:
         coord: 'cart'
         verbosity: 2
 
-    resume: '/scratch/cfd/cheng/DL/plasmanet/NNet/outputs/101x101/models/config_2/random_4'
+    resume: '/scratch/cfd/cheng/DL/plasmanet/NNet/outputs/101x101/models/config_1/random_4'
 
     arch:
         type: 'UNet5'

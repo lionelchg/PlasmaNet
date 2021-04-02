@@ -39,13 +39,13 @@ if __name__ == '__main__':
     case_dir = f'{basecase_dir}/gaussian/'
     physical_rhs = pf.gaussian(poisson.X, poisson.Y, 
                     ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
+    poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)
 
     case_dir = f'{basecase_dir}/dipole/'
     x01, y01 = 0.4e-2, 0.5e-2
     physical_rhs = pf.gaussians(poisson.X, poisson.Y, 
                     [ni0, x0, y0, sigma_x, sigma_y, -ni0, x01, y01, sigma_x, sigma_y]) * co.e / co.epsilon_0
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
+    poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)
 
     # 3 Neumann - 1 Dirichlet
     cfg['bcs'] = {'left':'neumann', 'right':'neumann', 
@@ -62,13 +62,13 @@ if __name__ == '__main__':
     case_dir = f'{basecase_dir}/gaussian/'
     physical_rhs = pf.gaussian(poisson.X, poisson.Y, 
                     ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
+    poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)
 
     case_dir = f'{basecase_dir}/dipole/'
     x01, y01 = 0.4e-2, 0.5e-2
     physical_rhs = pf.gaussians(poisson.X, poisson.Y, 
                     [ni0, x0, y0, sigma_x, sigma_y, -ni0, x01, y01, sigma_x, sigma_y]) * co.e / co.epsilon_0
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
+    poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)
 
     # 1 Neumann - 3 Dirichlet
     cfg['bcs'] = {'left':'dirichlet', 'right':'neumann', 
@@ -85,11 +85,11 @@ if __name__ == '__main__':
     case_dir = f'{basecase_dir}/gaussian/'
     physical_rhs = pf.gaussian(poisson.X, poisson.Y, 
                     ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
+    poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)
 
     case_dir = f'{basecase_dir}/dipole/'
     x01, y01 = 0.4e-2, 0.5e-2
     physical_rhs = pf.gaussians(poisson.X, poisson.Y, 
                     [ni0, x0, y0, sigma_x, sigma_y, -ni0, x01, y01, sigma_x, sigma_y]) * co.e / co.epsilon_0
-    run_case(poisson, case_dir, physical_rhs, pot_bcs, plot)
+    poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)
 

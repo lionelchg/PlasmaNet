@@ -14,7 +14,7 @@ import PlasmaNet.nnet.model as module_arch
 from .base import BasePoisson
 from ..nnet.parse_config import ConfigParser
 from ..nnet.data.data_loaders import ratio_potrhs
-
+from ..common.utils import create_dir
 
 class PoissonNetwork(BasePoisson):
     """ Class for network solver of Poisson problem
@@ -94,3 +94,24 @@ class PoissonNetwork(BasePoisson):
 
         # Retrieve the potential
         self.potential = self.res_scale / self.scaling_factor * potential_torch.detach().cpu().numpy()[0, 0]
+
+    def run_case(self, case_dir: str, physical_rhs: np.ndarray, plot: bool):
+        """ Run a Poisson linear system case
+
+        :param case_dir: Case directory
+        :type case_dir: str
+        :param physical_rhs: physical rhs
+        :type physical_rhs: np.ndarray
+        :param Lx: length of the domain
+        :type Lx: float
+        :param plot: logical for plotting
+        :type plot: bool
+        """
+        create_dir(case_dir)
+        self.solve(physical_rhs)
+        self.save(case_dir)
+        if plot:
+            fig_dir = case_dir + 'figures/'
+            create_dir(fig_dir)
+            self.plot_2D(fig_dir + '2D')
+            self.plot_1D2D(fig_dir + 'full')
