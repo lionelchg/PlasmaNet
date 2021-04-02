@@ -11,195 +11,29 @@ from ..base import BaseModel
 
 # Create the model
 
-class _ConvBlock1(nn.Module):
-    """
-    Two Conv2d layers, all with kernel_size 3 and padding of 1 (padding ensures output size is same as input size)
-    ReLU after first two Conv2d layers
-    """
-    def __init__(self, in_channels, out_channels):
-        super(_ConvBlock1, self).__init__()
-        layers = [
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(),
-        ]
-
-        self.encode = nn.Sequential(*layers)
-
-    def forward(self, x):
-        return self.encode(x)
-
-class _ConvBlock2(nn.Module):
+class _ConvBlock(nn.Module):
     """
     Maxpooling to reduce the size
     Two Conv2d layers, all with kernel_size 3 and padding of 1 (padding ensures output size is same as input size)
     ReLU after first two Conv2d layers
     """
-    def __init__(self, in_channels, out_channels):
-        super(_ConvBlock2, self).__init__()
-        layers = [
-            nn.MaxPool2d(2),
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(),
-        ]
-        self.encode = nn.Sequential(*layers)
+    def __init__(self, fmaps, block_type):
+        super(_ConvBlock, self).__init__()
+        layers = list()
+        # Apply pooling depending on pool boolean
+        if block_type == 'down' or block_type == 'bottom':
+            layers.append(nn.MaxPool2d(2))
 
-    def forward(self, x):
-        return self.encode(x)
+        # Append all the specified layers
+        for i in range(len(fmaps) - 1):
+            layers.append(nn.Conv2d(fmaps[i], fmaps[i + 1], kernel_size=3, padding=1))
+            layers.append(nn.ReLU())
 
-class _ConvBlock3(nn.Module):
-    """
-    Maxpooling to reduce the size
-    Two Conv2d layers, all with kernel_size 3 and padding of 1 (padding ensures output size is same as input size)
-    ReLU after first two Conv2d layers
-    """
-    def __init__(self, in_channels, out_channels):
-        super(_ConvBlock3, self).__init__()
-        layers = [
-            nn.MaxPool2d(2),
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(),
-        ]
-        self.encode = nn.Sequential(*layers)
-
-    def forward(self, x):
-        return self.encode(x)
-
-class _ConvBlock4(nn.Module):
-    """
-    Maxpooling to reduce the size
-    Two Conv2d layers, all with kernel_size 3 and padding of 1 (padding ensures output size is same as input size)
-    ReLU after first two Conv2d layers
-    """
-    def __init__(self, in_channels, out_channels):
-        super(_ConvBlock4, self).__init__()
-        layers = [
-            nn.MaxPool2d(2),
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(),
-        ]
-        self.encode = nn.Sequential(*layers)
-
-    def forward(self, x):
-        return self.encode(x)
-
-
-
-class _ConvBlock5(nn.Module):
-    """
-    Maxpooling to reduce the size
-    Two Conv2d layers, all with kernel_size 3 and padding of 1 (padding ensures output size is same as input size)
-    ReLU after first two Conv2d layers
-    """
-    def __init__(self, in_channels, out_channels):
-        super(_ConvBlock5, self).__init__()
-        layers = [
-            nn.MaxPool2d(2),
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(),
-        ]
-        self.encode = nn.Sequential(*layers)
-
-    def forward(self, x):
-        return self.encode(x)
-
-class _ConvBlock6(nn.Module):
-    """
-    Maxpooling to reduce the size
-    Two Conv2d layers, all with kernel_size 3 and padding of 1 (padding ensures output size is same as input size)
-    ReLU after first two Conv2d layers
-    """
-    def __init__(self, in_channels, out_channels):
-        super(_ConvBlock6, self).__init__()
-        layers = [
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(),
-        ]
-        self.encode = nn.Sequential(*layers)
-
-    def forward(self, x):
-        return self.encode(x)
-
-
-class _ConvBlock7(nn.Module):
-    """
-    Maxpooling to reduce the size
-    Two Conv2d layers, all with kernel_size 3 and padding of 1 (padding ensures output size is same as input size)
-    ReLU after first two Conv2d layers
-    """
-    def __init__(self, in_channels, out_channels):
-        super(_ConvBlock7, self).__init__()
-        layers = [
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(),
-        ]
-        self.encode = nn.Sequential(*layers)
-
-    def forward(self, x):
-        return self.encode(x)
-
-class _ConvBlock8(nn.Module):
-    """
-    Maxpooling to reduce the size
-    Two Conv2d layers, all with kernel_size 3 and padding of 1 (padding ensures output size is same as input size)
-    ReLU after first two Conv2d layers
-    """
-    def __init__(self, in_channels, out_channels):
-        super(_ConvBlock8, self).__init__()
-        layers = [
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(),
-        ]
-        self.encode = nn.Sequential(*layers)
-
-    def forward(self, x):
-        return self.encode(x)
-
-class _ConvBlock9(nn.Module):
-    """
-    Maxpooling to reduce the size
-    Two Conv2d layers, all with kernel_size 3 and padding of 1 (padding ensures output size is same as input size)
-    ReLU after first two Conv2d layers
-    """
-    def __init__(self, in_channels, out_channels):
-        super(_ConvBlock9, self).__init__()
-        layers = [
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(),
-        ]
-        self.encode = nn.Sequential(*layers)
-
-    def forward(self, x):
-        return self.encode(x)          
-
-class _ConvBlock10(nn.Module):
-    """
-    Maxpooling to reduce the size
-    Two Conv2d layers, all with kernel_size 3 and padding of 1 (padding ensures output size is same as input size)
-    ReLU after first two Conv2d layers
-    """
-    def __init__(self, in_channels, out_channels):
-        super(_ConvBlock10, self).__init__()
-        layers = [
-            nn.Conv2d(in_channels, out_channels, kernel_size=1),
-        ]
+        if block_type == 'up' or block_type == 'bottom':
+            # layers.append(nn.ConvTranspose2d(fmaps[-1], fmaps[-1], 2, stride=2))
+            layers.append(nn.Upsample(scale_factor=2.0))
+        
+        # Build the sequence of layers
         self.encode = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -212,30 +46,40 @@ class UNet(BaseModel):
         - When returning to the original size, concatenate output of matching sizes
         - The smaller domains are upsampled to the desired size with the F.upsample function.
     """
-    def __init__(self, data_channels):
+    def __init__(self, in_fmaps, down_blocks, bottom_fmaps, up_blocks, out_fmaps):
         super(UNet, self).__init__()
-        self.convN_1 = _ConvBlock1(1, 32)
-        self.convN_2 = _ConvBlock2(32, 32)
-        self.convN_3 = _ConvBlock3(32, 32)
-        self.convN_4 = _ConvBlock4(32, 64)
-        self.convN_5 = _ConvBlock5(64, 64)
-        self.convN_6 = _ConvBlock6(128, 64)
-        self.convN_7 = _ConvBlock7(96, 64)
-        self.convN_8 = _ConvBlock8(96, 32)
-        self.convN_9 = _ConvBlock9(64, 32)
-        self.final = _ConvBlock10(32, 1)
+        self.ConvsDown = list()
+        # Entry layer
+        self.ConvsDown.append(_ConvBlock(in_fmaps, ''))
+
+        # Intermediate down layers (with MaxPool at the beginning)
+        for down_fmaps in down_blocks:
+            self.ConvsDown.append(_ConvBlock(down_fmaps, 'down'))
+
+        # Bottom layer (MaxPool at the beginning and Upsample/Deconv at the end)
+        self.ConvBottom = _ConvBlock(bottom_fmaps, 'bottom')
+
+        # Intemediate layers up (UpSample/Deconv at the end)
+        self.ConvsUp = list()
+        for up_fmaps in up_blocks:
+            self.ConvsUp.append(_ConvBlock(up_fmaps, 'up'))
+        
+        # Out layer
+        self.ConvsUp.append(_ConvBlock(out_fmaps, ''))
         
     def forward(self, x):
-        convN_1out = self.convN_1(x)
-        convN_2out = self.convN_2(convN_1out)
-        convN_3out = self.convN_3(convN_2out)
-        convN_4out = self.convN_4(convN_3out)
-        convN_5out = self.convN_5(convN_4out)
-        convN_6out = self.convN_6(torch.cat((F.interpolate(convN_5out, size=convN_4out[0,0].shape, mode='bilinear', align_corners= False), convN_4out), dim=1))
-        convN_7out = self.convN_7(torch.cat((F.interpolate(convN_6out, size=convN_3out[0,0].shape, mode='bilinear', align_corners=False), convN_3out), dim=1))
-        convN_8out = self.convN_8(torch.cat((F.interpolate(convN_7out, size=convN_2out[0,0].shape, mode='bilinear', align_corners=False), convN_2out), dim=1))
-        convN_9out = self.convN_9(torch.cat((F.interpolate(convN_8out, size=convN_1out[0,0].shape, mode='bilinear', align_corners=False), convN_1out), dim=1))
-        final_out = self.final(convN_9out)
-        return final_out
+        # List of the temporary x that are used for linking with the up branch
+        inputs_down = list()
 
-        #F.interpolate(x, half_size, mode='bilinear', align_corners=False)
+        # Apply the down loop
+        for ConvDown in self.ConvsDown:
+            x = ConvDown(x)
+            inputs_down.append(x)
+        
+        # Bottom part of the U
+        x = self.ConvBottom(x)
+        
+        # Apply the up loop
+        for ConvUp in self.ConvsUp:
+            x = ConvUp(torch.cat(x, inputs_down.pop()))
+        
