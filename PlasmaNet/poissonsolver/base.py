@@ -174,8 +174,9 @@ class BasePoisson:
         :return: MSE error
         :rtype: float
         """
-        return np.sqrt(np.sum(self.compute_voln() * 
-                    (self.potential - th_potential)**2) / self.Lx / self.Ly)
+        # return np.sqrt(np.sum(self.compute_voln() * 
+        #             (self.potential - th_potential)**2) / self.Lx / self.Ly)
+        return np.sqrt(np.sum((self.potential - th_potential)**2) / self.nnx / self.nny)
 
     def L2error_E(self, th_E_field):
         """ MSE error of the electric field with a theoretical one
@@ -186,7 +187,7 @@ class BasePoisson:
         :rtype: float
         """
         eps_E = (self.E_field[0] - th_E_field[0])**2 + (self.E_field[1] - th_E_field[1])**2
-        return np.sqrt(np.sum(self.compute_voln() * eps_E) / self.Lx / self.Ly)
+        return np.sqrt(np.sum(eps_E) / self.nnx / self.nny)
 
 
 def fourier_coef_1D(V_u, n, x, Lx):

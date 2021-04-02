@@ -25,7 +25,7 @@ def l2_norm(output, target, config):
     output = output[:, 0]
     target = target[:, 0]
     with torch.no_grad():
-        res = torch.sqrt(torch.sum((output - target) ** 2)) / config.nnx / config.nny / config.batch_size
+        res = torch.sqrt(torch.sum((output - target) ** 2) / config.nnx / config.nny / config.batch_size)
     return res
 
 
@@ -39,32 +39,28 @@ def inf_norm(output, target, config):
 
 def Eresidual(output, target, config):
     """ Computes the electric field residual of the current batch. """
-    elec_output = gradient_scalar(output, config.dx, config.dy)
-    elec_target = gradient_scalar(target, config.dx, config.dy)
-    elec_output = torch.sqrt(elec_output[:, 0, :, :]**2 + elec_output[:, 1, :, :]**2)
-    elec_target = torch.sqrt(elec_target[:, 0, :, :]**2 + elec_target[:, 1, :, :]**2)
+    elec_output = - gradient_scalar(output, config.dx, config.dy)
+    elec_target = - gradient_scalar(target, config.dx, config.dy)
     with torch.no_grad():
-        res = torch.sum(torch.abs(elec_output - elec_target)) / config.nnx / config.nny / config.batch_size
+        res = torch.sum(torch.abs(elec_output - elec_target)) \
+                / config.nnx / config.nny / config.batch_size / 2
     return res
 
 
 def El2_norm(output, target, config):
     """ Computes the electric field L2 norm of the residual of the current batch. """
-    elec_output = gradient_scalar(output, config.dx, config.dy)
-    elec_target = gradient_scalar(target, config.dx, config.dy)
-    elec_output = torch.sqrt(elec_output[:, 0, :, :]**2 + elec_output[:, 1, :, :]**2)
-    elec_target = torch.sqrt(elec_target[:, 0, :, :]**2 + elec_target[:, 1, :, :]**2)
+    elec_output = - gradient_scalar(output, config.dx, config.dy)
+    elec_target = - gradient_scalar(target, config.dx, config.dy)
     with torch.no_grad():
-        res = torch.sqrt(torch.sum((elec_output - elec_target) ** 2)) / config.nnx / config.nny / config.batch_size
+        res = torch.sqrt(torch.sum((elec_output - elec_target) ** 2) 
+            / config.nnx / config.nny / config.batch_size / 2)
     return res
 
 
 def Einf_norm(output, target, config):
     """ Computes the electric field infinity norm of the residual of the current batch. """
-    elec_output = gradient_scalar(output, config.dx, config.dy)
-    elec_target = gradient_scalar(target, config.dx, config.dy)
-    elec_output = torch.sqrt(elec_output[:, 0, :, :]**2 + elec_output[:, 1, :, :]**2)
-    elec_target = torch.sqrt(elec_target[:, 0, :, :]**2 + elec_target[:, 1, :, :]**2)
+    elec_output = - gradient_scalar(output, config.dx, config.dy)
+    elec_target = - gradient_scalar(target, config.dx, config.dy)
     with torch.no_grad():
         res = torch.max(torch.abs(elec_output - elec_target))
     return res
