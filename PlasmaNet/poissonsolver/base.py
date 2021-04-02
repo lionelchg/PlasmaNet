@@ -166,7 +166,7 @@ class BasePoisson:
         np.save(f'{save_dir}physical_rhs', self.physical_rhs)
         np.save(f'{save_dir}potential', self.potential)
     
-    def L2error(self, th_potential):
+    def L2error_pot(self, th_potential):
         """ MSE error of the potential with a theoretical one
 
         :param th_potential: theoretical potential
@@ -175,7 +175,18 @@ class BasePoisson:
         :rtype: float
         """
         return np.sqrt(np.sum(self.compute_voln() * 
-                    (self.potential - th_potential)**2)) / self.Lx / self.Ly
+                    (self.potential - th_potential)**2) / self.Lx / self.Ly)
+
+    def L2error_E(self, th_E_field):
+        """ MSE error of the electric field with a theoretical one
+
+        :param th_potential: theoretical potential
+        :type th_potential: ndarray
+        :return: MSE error
+        :rtype: float
+        """
+        eps_E = (self.E_field[0] - th_E_field[0])**2 + (self.E_field[1] - th_E_field[1])**2
+        return np.sqrt(np.sum(self.compute_voln() * eps_E) / self.Lx / self.Ly)
 
 
 def fourier_coef_1D(V_u, n, x, Lx):
