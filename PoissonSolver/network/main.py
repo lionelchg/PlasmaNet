@@ -12,36 +12,36 @@ def run_cases(basecase_dir, poisson, *args):
     ni0 = 1e11
     sigma_x, sigma_y = 1e-3, 1e-3
     x0, y0 = 0.5e-2, 0.5e-2
-    physical_rhs = pf.gaussian(poisson_ls.X, poisson_ls.Y, 
+    physical_rhs = pf.gaussian(poisson.X, poisson.Y, 
                 ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
 
     # Gaussian
     case_dir = f'{basecase_dir}gaussian/'
-    zeros_x, zeros_y = np.zeros(poisson_ls.nnx), np.zeros(poisson_ls.nny)
+    zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
     pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
     poisson.run_case(case_dir, physical_rhs, *args)
 
     # Step
     case_dir = f'{basecase_dir}step/'
-    physical_rhs = pf.step(poisson_ls.X, poisson_ls.Y, 
+    physical_rhs = pf.step(poisson.X, poisson.Y, 
                     ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
     poisson.run_case(case_dir, physical_rhs, *args)
 
     # Two Gaussians
     case_dir = f'{basecase_dir}two_gaussians/'
     x01, y01 = 0.4e-2, 0.6e-2    
-    physical_rhs = pf.two_gaussians(poisson_ls.X, poisson_ls.Y, 
+    physical_rhs = pf.two_gaussians(poisson.X, poisson.Y, 
                     ni0, x0, y0, sigma_x, sigma_y, x01, y01, sigma_x, sigma_y) * co.e / co.epsilon_0
     poisson.run_case(case_dir, physical_rhs, *args)
 
     # Random
     case_dir = f'{basecase_dir}random_2D/'
-    physical_rhs = pf.random2D(poisson_ls.X, poisson_ls.Y, ni0, 4) * co.e / co.epsilon_0
+    physical_rhs = pf.random2D(poisson.X, poisson.Y, ni0, 4) * co.e / co.epsilon_0
     poisson.run_case(case_dir, physical_rhs, *args)
 
     # sin_2D
     case_dir = f'{basecase_dir}sin_2D/'
-    physical_rhs = pf.sin2D(poisson_ls.X, poisson_ls.Y, ni0, poisson_ls.Lx, poisson_ls.Ly, 4, 4) * co.e / co.epsilon_0
+    physical_rhs = pf.sin2D(poisson.X, poisson.Y, ni0, poisson.Lx, poisson.Ly, 4, 4) * co.e / co.epsilon_0
     poisson.run_case(case_dir, physical_rhs, *args)
 
     # Dipole
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     run_cases(basecase_dir, poisson_nn, plot)
 
     # Neural network config_2/random_4
-    config['network']['resume'].replace('config_1', 'config_2')
+    config['network']['resume'] = config['network']['resume'].replace('config_1', 'config_2')
     poisson_nn = PoissonNetwork(config['network'])
     basecase_dir = 'cases/network/config_2/random_4/'
     run_cases(basecase_dir, poisson_nn, plot)
