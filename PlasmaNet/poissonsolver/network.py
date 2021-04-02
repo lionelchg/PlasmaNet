@@ -5,7 +5,7 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
-
+import os
 import numpy as np
 import torch
 
@@ -39,15 +39,17 @@ class PoissonNetwork(BasePoisson):
         logger = self.cfg_dl.get_logger('test')
 
         # Setup data_loader instances
-        data_loader = self.cfg_dl.init_obj('data_loader', module_data)
-        self.alpha = data_loader.alpha
-        self.scaling_factor = data_loader.scaling_factor
+        self.alpha = 0.1
+        self.scaling_factor = self.cfg_dl.scaling_factor
 
         # Build model architecture
         self.model = self.cfg_dl.init_obj('arch', module_arch)
 
-        logger.info('Loading checkpoint: {} ...'.format(self.cfg_dl['resume']))
-        checkpoint = torch.load(self.cfg_dl['resume'])
+        # Load from directory, resume dir does not need to contain the full path to model_best.pth
+        dir_resume = cfg['resume']
+        dir_list = os.listdir(dir_resume)
+        logger.info('Loading checkpoint: {} ...'.format(os.path.join(dir_resume, dir_list[-1], "model_best.pth")))
+        checkpoint = torch.load(os.path.join(dir_resume, dir_list[-1], "model_best.pth"))
         state_dict = checkpoint['state_dict']
         if self.cfg_dl['n_gpu'] > 1:
             self.model = torch.nn.DataParallel(self.model)
@@ -58,17 +60,19 @@ class PoissonNetwork(BasePoisson):
         self.model = self.model.to(device)
         self.model.eval()    
 
-    def solve(self, physical_rhs, res, Lx, Ly):
+    def solve(self, physical_rhs, Lx):
         """ Solve the Poisson problem with physical_rhs from neural network
         :param physical_rhs: - rho / epsilon_0 
         :type physical_rhs: ndtensor
         """
-        ratio = self.alpha / (np.pi**2 / 4)**2 / (1 / Lx**2 + 1 / Ly**2)
+        self.physical_rhs = physical_rhs
+        res = self.physical_rhs.shape[-1]
+        ratio = self.alpha / (np.pi**2 / 4)**2 / (2 / Lx**2)
         
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
-        physical_rhs_torch = torch.from_numpy(self.physical_rhs[:, np.newaxis, :, :] 
+        physical_rhs_torch = torch.from_numpy(self.physical_rhs[np.newaxis, np.newaxis, :, :] 
                                               * ratio * self.scaling_factor).float().cuda()
 
         potential_torch = self.model(physical_rhs_torch)
-        self.potentials = (self.res_train**2 / res**2 * potential_torch.detach().cpu().numpy()[:, 0] 
+        self.potential = (self.res_train**2 / res**2 * potential_torch.detach().cpu().numpy()[0, 0] 
                            / self.scaling_factor)
