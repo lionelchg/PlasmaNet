@@ -9,10 +9,11 @@ import os
 import numpy as np
 import torch
 
-from .base import BasePoisson
 import PlasmaNet.nnet.data.data_loaders as module_data
-from PlasmaNet.nnet.parse_config import ConfigParser
 import PlasmaNet.nnet.model as module_arch
+from .base import BasePoisson
+from ..nnet.parse_config import ConfigParser
+from ..nnet.data.data_loaders import ratio_potrhs
 
 
 class PoissonNetwork(BasePoisson):
@@ -27,20 +28,26 @@ class PoissonNetwork(BasePoisson):
         :param cfg: config dictionary
         :type cfg: dict
         """
-        # First copy values for initialization of base class
-        cfg['xmin'], cfg['xmax'], cfg['nnx'] = 0, cfg['globals']['lx'], cfg['globals']['nnx']
-        cfg['ymin'], cfg['ymax'], cfg['nny'] = 0, cfg['globals']['ly'], cfg['globals']['nny']
-        super().__init__(cfg)
+        # First initialize Base class
+        if 'eval' in cfg:
+            super().__init__(cfg['eval'])
+        else:
+            super().__init__(cfg['globals'])
 
+        # Network configuration
         self.cfg_dl = ConfigParser(cfg)
-        self.res_train = self.cfg_dl.nnx
+        self.nnx_nn = self.cfg_dl.nnx
 
-        # Load the network
+        # Logger
         logger = self.cfg_dl.get_logger('test')
 
         # Setup data_loader instances
-        self.alpha = 0.1
+        self.alpha = self.cfg_dl.alpha
         self.scaling_factor = self.cfg_dl.scaling_factor
+
+        # Case specific properties
+        self.ratio = ratio_potrhs(self.alpha, self.Lx, self.Ly)
+        self.res_scale = self.nnx_nn**2 / self.nnx**2
 
         # Build model architecture
         self.model = self.cfg_dl.init_obj('arch', module_arch)
@@ -58,21 +65,32 @@ class PoissonNetwork(BasePoisson):
         # Prepare self.model for testing
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = self.model.to(device)
-        self.model.eval()    
+        self.model.eval()
+    
+    def case_config(self, cfg: dict):
+        """ Set the case configuration according to dict
+        Reinitialize the base class
 
-    def solve(self, physical_rhs, Lx):
+        :param cfg: configuration dict
+        :type cfg: dict
+        """
+        super().__init__(cfg)
+        self.ratio = ratio_potrhs(self.alpha, self.Lx, self.Ly)
+        self.res_scale = self.nnx_nn**2 / self.nnx**2
+
+    def solve(self, physical_rhs):
         """ Solve the Poisson problem with physical_rhs from neural network
         :param physical_rhs: - rho / epsilon_0 
         :type physical_rhs: ndtensor
         """
         self.physical_rhs = physical_rhs
-        res = self.physical_rhs.shape[-1]
-        ratio = self.alpha / (np.pi**2 / 4)**2 / (2 / Lx**2)
         
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
         physical_rhs_torch = torch.from_numpy(self.physical_rhs[np.newaxis, np.newaxis, :, :] 
-                                              * ratio * self.scaling_factor).float().cuda()
+                                              * self.ratio * self.scaling_factor).float().cuda()
 
+        # Apply the model
         potential_torch = self.model(physical_rhs_torch)
-        self.potential = (self.res_train**2 / res**2 * potential_torch.detach().cpu().numpy()[0, 0] 
-                           / self.scaling_factor)
+
+        # Retrieve the potential
+        self.potential = self.res_scale / self.scaling_factor * potential_torch.detach().cpu().numpy()[0, 0]

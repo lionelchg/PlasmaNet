@@ -76,26 +76,38 @@ class ConfigParser:
                 self.log_dir.mkdir(parents=True, exist_ok=True)
                 write_yaml(self.config, save_dir / 'config.yml')
 
+        # Number of channels of the network
+        self.channels = self.config['arch']['args']['data_channels']
+
+        # data_loader related parameters
+        if 'data_loader' in self.config:
+            if 'args' in self.config['data_loader']:
+                self.batch_size = self.config['data_loader']['args']['batch_size']
+                self.guess = self.config['data_loader']['args'].get('guess')
+                self.modes = self.config['data_loader']['args'].get('modes')
+                
+                # Length and resolution invariance parameters
+                self.normalization = self.config['data_loader']['args']['normalize']
+                self.scaling_factor = self.config['data_loader']['args']['scaling_factor']
+            else:
+                self.scaling_factor = self.config['data_loader']['scaling_factor']
+                self.normalization = self.config['data_loader']['normalize']
+                self.alpha = self.config['data_loader']['alpha']
+        
         # Declare global runtime parameters attributes
         self.nnx = self.config['globals']['nnx']
         self.nny = self.config['globals']['nny']
-        self.lx = self.config['globals']['lx']
-        self.ly = self.config['globals']['ly']
-        self.batch_size = self.config['data_loader']['args']['batch_size']
-        self.channels = self.config['arch']['args']['data_channels']
-        self.guess = self.config['data_loader']['args'].get('guess')
-        self.modes = self.config['data_loader']['args'].get('modes')
-        
-        # Length and resolution invariance parameters
-        self.normalization = self.config['data_loader']['args']['normalize']
-        self.scaling_factor = self.config['data_loader']['args']['scaling_factor']
+        self.xmin, self.xmax = self.config['globals']['xmin'], self.config['globals']['xmax']
+        self.ymin, self.ymax = self.config['globals']['ymin'], self.config['globals']['ymax']
 
-        # Declare global physical parameters attributes
+        # Compute quantities of interest
+        self.lx = self.xmax - self.xmin
+        self.ly = self.ymax - self.ymin
         self.dx = self.lx / (self.nnx - 1)
         self.dy = self.ly / (self.nny - 1)
         self.ds = self.dx * self.dy
         self.surface = self.lx * self.ly
-        x, y = np.linspace(0, self.lx, self.nnx), np.linspace(0, self.ly, self.nny)
+        x, y = np.linspace(self.xmin, self.xmax, self.nnx), np.linspace(self.xmin, self.xmax, self.nny)
         self.X, self.Y = np.meshgrid(x, y)
 
         self.coord = self.config['globals']['coord']

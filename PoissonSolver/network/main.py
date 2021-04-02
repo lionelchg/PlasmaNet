@@ -9,8 +9,8 @@ from PlasmaNet.poissonsolver.poisson import PoissonLinSystem, run_case
 import PlasmaNet.common.profiles as pf
 from PlasmaNet.common.utils import create_dir
 
-def run_case_nn(poisson: PoissonNetwork, case_dir: str, physical_rhs: np.ndarray,
-             Lx: float, plot: bool):
+def run_case_nn(poisson: PoissonNetwork, case_dir: str, 
+                physical_rhs: np.ndarray, plot: bool):
     """ Run a Poisson linear system case
 
     :param poisson: PoissonNetwork object
@@ -25,7 +25,7 @@ def run_case_nn(poisson: PoissonNetwork, case_dir: str, physical_rhs: np.ndarray
     :type plot: bool
     """
     create_dir(case_dir)
-    poisson.solve(physical_rhs, Lx)
+    poisson.solve(physical_rhs)
     poisson.save(case_dir)
     if plot:
         fig_dir = case_dir + 'figures/'
@@ -48,8 +48,9 @@ if __name__ == '__main__':
     plot = True
 
     # Create neural network instance and linear system instance
-    poisson_nn = PoissonNetwork(config['network'])
     poisson_ls = PoissonLinSystem(config['linsystem'])
+    config['network']['eval'] = config['linsystem']
+    poisson_nn = PoissonNetwork(config['network'])
 
     # Case directory
     basecase_dir = 'cases/'
@@ -68,5 +69,5 @@ if __name__ == '__main__':
 
     # Solve using neural network
     nn_case_dir = f'{basecase_dir}network/gaussian/'
-    run_case_nn(poisson_nn, nn_case_dir, physical_rhs, poisson_nn.Lx, plot)
+    run_case_nn(poisson_nn, nn_case_dir, physical_rhs, plot)
 

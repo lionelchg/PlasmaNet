@@ -18,25 +18,27 @@ linsystem:
     bcs: 'dirichlet'
     xmin: 0.0
     xmax: 1.0e-2
-    nnx: 101
+    nnx: 61
     ymin: 0.0
     ymax: 1.0e-2
-    nny: 101
+    nny: 61
     nmax_fourier: 10
 
 network:
-    name: 'eval/101x101/config_1/'      # Experience name
+    casename: 'cases/network/'                  # Experience name
     n_gpu: 1                                    # Number of GPUs to use
 
     globals:                                    # Domain sizes and others, used to compute global attributes
         nnx: 101
         nny: 101
-        lx: 0.01
-        ly: 0.01
+        xmin: 0.0
+        xmax: 1.0e-2
+        ymin: 0.0
+        ymax: 1.0e-2
         coord: 'cart'
         verbosity: 2
 
-    resume: '/scratch/cfd/cheng/DL/plasmanet/NNet/outputs/101x101/models/config_1/random_4'
+    resume: '/scratch/cfd/cheng/DL/plasmanet/NNet/outputs/101x101/models/config_2/random_4'
 
     arch:
         type: 'UNet5'
@@ -45,16 +47,9 @@ network:
 
 
     data_loader:
-        type: 'PoissonDataLoader'
-        pipe_config: True
-        args:
-            data_dir: '/scratch/cfd/cheng/DL/datasets/eval/'
-            batch_size: 128
-            shuffle: True
-            validation_split: 0.0               # if float, fraction of the full dataset, if int, length of validation portion
-            num_workers: 2
-            normalize: 'analytical'
-            scaling_factor: 1.0e+6
+        normalize: 'analytical'
+        alpha: 0.1
+        scaling_factor: 1.0e+6
 
     initializer: 'off'
 
