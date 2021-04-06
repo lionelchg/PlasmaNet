@@ -77,7 +77,8 @@ class ConfigParser:
                 write_yaml(self.config, save_dir / 'config.yml')
 
         # Number of channels of the network
-        self.channels = self.config['arch']['args']['data_channels']
+        # self.channels = self.config['arch']['args']['data_channels']
+        self.channels = self.config['data_loader']['data_channels']
 
         # data_loader related parameters
         if 'data_loader' in self.config:

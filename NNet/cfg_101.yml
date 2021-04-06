@@ -17,26 +17,40 @@
 # `config.init_obj` method.
 
 
-name: 'config_1/random_8_center'                      # Experience name
+name: 'config_1/random_8'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
     nnx: 101
     nny: 101
-    lx: 0.01
-    ly: 0.01
+    xmin: 0.0
+    xmax: 1.0e-2
+    ymin: 0.0
+    ymax: 1.0e-2
     coord: 'cart'
+    verbosity: 2
 
 arch:
-    type: 'UNet5'
+    type: 'UNet'
     args:
-        data_channels: 1                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
+        in_fmaps: [1, 32, 32]
+        down_blocks: [[32, 32, 32],
+                    [32, 32, 32],
+                    [32, 48, 62]]
+        bottom_fmaps: [62, 60, 62]
+        up_blocks: [[124, 64, 64],
+                    [96, 64, 64],
+                    [96, 32, 32]]
+        out_fmaps: [64, 32, 32, 1]
+        input_res: 101
+        up_type: 'deconvolution'
 
 data_loader:
     type: 'PoissonDataLoader'
+    data_channels: 1
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/101x101/random_8_center'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/training/101x101/random_8'
         batch_size: 64
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
@@ -89,7 +103,7 @@ lr_scheduler:
 
 trainer:
     epochs: 500
-    save_dir: 'outputs/2-networks/'
+    save_dir: 'outputs/debug/'
     save_period: 10
     plot_period: 10                         # Period to send plots to TensorBoard
     verbosity: 2
