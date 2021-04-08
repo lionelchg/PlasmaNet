@@ -59,7 +59,7 @@ class UNet(BaseModel):
         - The smaller domains are upsampled to the desired size with the F.upsample function.
     """
     def __init__(self, in_fmaps, down_blocks, bottom_fmaps, up_blocks, out_fmaps, 
-                    input_res, up_type):
+                    input_res, up_type='upsample'):
         super(UNet, self).__init__()
         n_scales = 2 + len(down_blocks)
 
@@ -69,12 +69,8 @@ class UNet(BaseModel):
             list_res = [int(input_res / 2**i) for i in range(n_scales - 1)]
             list_args = list_res
         elif up_type == 'deconvolution':
-            # For deconvolution the difference between the real size and the 
+            # For deconvolution the difference between the real size and the one after upconv without padding
             list_res = [int(input_res / 2**i) for i in range(n_scales)]
-            # lowest_res = list_res[-1]
-            # up_res = [2**i * lowest_res for i in range(n_scales)]
-            # up_res = up_res[::-1]
-            # list_args = [list_res[i] - up_res[i] for i in range(n_scales - 1)]
             list_args = [list_res[i] - 2 * list_res[i + 1] for i in range(n_scales - 1)]
 
         # Entry layer

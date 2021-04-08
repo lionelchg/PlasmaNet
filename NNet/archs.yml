@@ -6,6 +6,15 @@
 #                                                                                                           #
 #############################################################################################################
 
+UNet3:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 64, 64]
+        down_blocks: [[64, 64, 64]]
+        bottom_fmaps: [64, 76, 64]
+        up_blocks: [[128, 64, 64]]
+        out_fmaps: [128, 64, 64, 1]
+
 UNet4:
     type: 'UNet'
     args:
@@ -17,7 +26,8 @@ UNet4:
                 [112, 60, 48]]
         out_fmaps: [96, 48, 48, 1]
 
-UNet5:
+# Original UNet5 used
+UNet5-1:
     type: 'UNet'
     args:
         in_fmaps: [1, 32, 32]
@@ -29,3 +39,63 @@ UNet5:
                     [96, 64, 64],
                     [96, 32, 32]]
         out_fmaps: [64, 32, 32, 1]
+
+# With less parameters
+UNet5-2:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 20, 20]
+        down_blocks: [[20, 20, 20],
+                    [20, 20, 20],
+                    [20, 48, 62]]
+        bottom_fmaps: [62, 60, 62]
+        up_blocks: [[124, 64, 64],
+                    [84, 64, 64],
+                    [84, 20, 20]]
+        out_fmaps: [40, 20, 20, 1]
+
+# With more parameters
+UNet5-3:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 40, 40]
+        down_blocks: [[40, 40, 40],
+                    [40, 40, 40],
+                    [40, 48, 78]]
+        bottom_fmaps: [78, 78, 78]
+        up_blocks: [[156, 78, 78],
+                    [118, 78, 78],
+                    [118, 40, 40]]
+        out_fmaps: [80, 40, 40, 1]
+
+# Original UNet6
+UNet6-1:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 32, 32]
+        down_blocks: [[32, 32, 32],
+                    [32, 32, 32],
+                    [32, 32, 32],
+                    [32, 48, 48]]
+        bottom_fmaps: [48, 48, 48]
+        up_blocks: [[96, 60, 48],
+                    [96, 48, 48],
+                    [80, 48, 48],
+                    [80, 32, 32]]
+        out_fmaps: [64, 32, 32, 1]
+
+# UNet6_big
+UNet6-1:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 40, 40]
+        down_blocks: [[40, 40, 40],
+                    [40, 40, 40],
+                    [40, 40, 40],
+                    [40, 60, 60]]
+        bottom_fmaps: [60, 60, 60]
+        up_blocks: [[60, 60, 60],
+                    [120, 60, 60],
+                    [120, 60, 60],
+                    [100, 40, 40]]
+        out_fmaps: [80, 40, 40, 1]
