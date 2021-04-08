@@ -44,6 +44,7 @@ class Trainer(BaseTrainer):
         self.valid_metrics = MetricTracker('loss', *self.criterion.loss_list,
                                            *[m.__name__ for m in self.metric_ftns], writer=self.writer)
 
+        # For long term loss
         self.lt_loss = config['loss']['args'].get('lt_weight', 0.0)
         if self.lt_loss > 0:
             # Initializes and launch worker subprocesses for cfdsolver
@@ -105,21 +106,24 @@ class Trainer(BaseTrainer):
             loss.backward()
             self.optimizer.step()
 
-            # Update MetricTracker
+            # Update MetricTracker with losses
             for key, value in self.criterion.log().items():
                 self.train_metrics.update(key, value.item())
+            # Update MetricTracker with metrics
             for metric in self.metric_ftns:
                 self.train_metrics.update(metric.__name__, metric(output, target, self.config).item())
 
             # Writer logger output
             if batch_idx % self.log_step == 0:
-                self.logger.debug('Train Epoch: {} {} Loss: {:06e}'.format(
+                self.logger.debug('Train Epoch: {} {} Loss: {:.3e}'.format(
                     epoch,
                     self._progress(batch_idx),
                     loss.item()))
+
             # Set writer step with epoch
             if batch_idx == 0:
                 self.writer.set_step(epoch - 1)
+
             # Figure output after the 1st batch of each epoch
             if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
                 self._batch_plots(output, target, data, epoch, batch_idx)

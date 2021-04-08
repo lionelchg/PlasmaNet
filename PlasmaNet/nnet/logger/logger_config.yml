@@ -14,7 +14,7 @@ handlers:
     info_file_handler:
         class: "logging.handlers.RotatingFileHandler"
         level: "INFO"
-        formatter: "datetime"
+        formatter: "simple"
         filename: "info.log"
         maxBytes: 10485760
         backupCount: 20

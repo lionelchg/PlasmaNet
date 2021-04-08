@@ -73,7 +73,11 @@ class BaseTrainer:
 
             # Print logged information to the screen
             for key, value in log.items():
-                self.logger.info('    {:27s}: {}'.format(str(key), value))
+                if key == 'epoch':
+                    self.logger.info('{:27s}: {:d}'.format(str(key), value))
+                else:
+                    self.logger.info('{:27s}: {:.3e}'.format(str(key), value))
+            self.logger.info('\n')
 
             # Evaluate model performance according to configured metric, save best checkpoint as model_best
             best = False
