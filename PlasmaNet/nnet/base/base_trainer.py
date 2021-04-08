@@ -77,7 +77,7 @@ class BaseTrainer:
                     self.logger.info('{:27s}: {:d}'.format(str(key), value))
                 else:
                     self.logger.info('{:27s}: {:.3e}'.format(str(key), value))
-            self.logger.info('\n')
+            self.logger.info('')
 
             # Evaluate model performance according to configured metric, save best checkpoint as model_best
             best = False

@@ -102,8 +102,8 @@ lr_scheduler:
         verbose: False
 
 trainer:
-    epochs: 500
-    save_dir: 'outputs/debug/'
+    epochs: 300
+    save_dir: 'train/'
     save_period: 10
     plot_period: 10                         # Period to send plots to TensorBoard
     verbosity: 2

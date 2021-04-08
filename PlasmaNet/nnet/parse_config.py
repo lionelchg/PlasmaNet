@@ -21,7 +21,7 @@ from .utils import read_yaml, write_yaml
 
 
 class ConfigParser:
-    def __init__(self, config, resume=None, modification=None, run_id=None):
+    def __init__(self, config, resume=None, modification=None, run_id=''):
         """
         Class to parse a yaml configuration file. Handles hyperparameters for training, initialisations of modules,
         checkpoint saving and logging module.
