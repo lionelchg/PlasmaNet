@@ -102,12 +102,12 @@ class ConfigParser:
         self.ymin, self.ymax = self.config['globals']['ymin'], self.config['globals']['ymax']
 
         # Compute quantities of interest
-        self.lx = self.xmax - self.xmin
-        self.ly = self.ymax - self.ymin
-        self.dx = self.lx / (self.nnx - 1)
-        self.dy = self.ly / (self.nny - 1)
+        self.Lx = self.xmax - self.xmin
+        self.Ly = self.ymax - self.ymin
+        self.dx = self.Lx / (self.nnx - 1)
+        self.dy = self.Ly / (self.nny - 1)
         self.ds = self.dx * self.dy
-        self.surface = self.lx * self.ly
+        self.surface = self.Lx * self.Ly
         x, y = np.linspace(self.xmin, self.xmax, self.nnx), np.linspace(self.xmin, self.xmax, self.nny)
         self.X, self.Y = np.meshgrid(x, y)
 

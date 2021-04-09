@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'config_9/random_8'                      # Experience name
+name: 'config_4/random_8'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -33,17 +33,13 @@ globals:                                    # Domain sizes and others, used to c
 arch:
     type: 'UNet'
     args:
-        in_fmaps: [1, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
-        down_blocks: [[10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                    [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                    [10, 15, 15, 15, 15, 15, 15]]
-        bottom_fmaps: [15, 20, 20, 20, 20]
-        up_blocks: [[35, 15, 15, 15, 15, 15, 15],
-                    [25, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                    [20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]]
-        out_fmaps: [20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1]
+        in_fmaps: [1, 32, 32]
+        down_blocks: [[32, 32, 32]]
+        bottom_fmaps: [32, 38, 32]
+        up_blocks: [[64, 32, 32]]
+        out_fmaps: [64, 32, 32, 1]
         input_res: 101
-        up_type: 'upsample'
+        up_type: 'deconvolution'
 
 data_loader:
     type: 'PoissonDataLoader'
@@ -103,7 +99,7 @@ lr_scheduler:
 
 trainer:
     epochs: 300
-    save_dir: 'train/'
+    save_dir: 'debug/'
     save_period: 20
     plot_period: 20                         # Period to send plots to TensorBoard
     verbosity: 2

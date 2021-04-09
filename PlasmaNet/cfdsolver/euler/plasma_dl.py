@@ -35,7 +35,7 @@ class PlasmaEulerDL(PlasmaEuler):
 
         if hasattr(self, 'globals'):
             self.globals['nnx_nn'] = self.res_train
-            self.globals['Lx_nn'] = config_dl['globals']['lx']
+            self.globals['Lx_nn'] = config_dl['globals']['Lx']
             self.globals['arch'] = config_dl['arch']['type']
 
             re_casename = re.compile(r'.*/(\w*)/(\w*)/(\w*)')

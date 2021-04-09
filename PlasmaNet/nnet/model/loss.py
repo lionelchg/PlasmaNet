@@ -58,6 +58,7 @@ class LaplacianLoss(BaseLoss):
         self.weight = lapl_weight
         self.dx = config.dx
         self.dy = config.dy
+        self.Lx = config.Lx
         self.r_nodes = config.r_nodes
         if self.r_nodes is not None:  # in this case, a NumPy array
             self.r_nodes = torch.from_numpy(self.r_nodes).cuda()
@@ -65,7 +66,7 @@ class LaplacianLoss(BaseLoss):
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy, r=self.r_nodes)
-        return F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
+        return self.Lx**2 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
 
 
 class EnergyLoss(BaseLoss):

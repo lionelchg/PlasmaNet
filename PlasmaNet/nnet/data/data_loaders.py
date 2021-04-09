@@ -48,8 +48,8 @@ class PoissonDataLoader(BaseDataLoader):
 
         # Normalization and length
         self.normalize = normalize
-        self.lx = config.lx
-        self.ly = config.ly
+        self.Lx = config.Lx
+        self.Ly = config.Ly
 
         if self.normalize == 'max':
             self.logger.info("Using max normalization")
@@ -60,7 +60,7 @@ class PoissonDataLoader(BaseDataLoader):
         elif self.normalize == 'analytical' or self.normalize == 'empirical':
             self.logger.info("Using analytical normalization from Fourier series solution")
             self.alpha = 0.1
-            self.ratio_max = ratio_potrhs(self.alpha, self.lx, self.ly)
+            self.ratio_max = ratio_potrhs(self.alpha, self.Lx, self.Ly)
             self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1)) / self.ratio_max
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
             if self.multi:
@@ -154,8 +154,8 @@ class DirichletDataLoader(BaseDataLoader):
 
         # Normalization and length
         self.normalize = normalize
-        self.lx = config.lx
-        self.ly = config.ly
+        self.Lx = config.Lx
+        self.Ly = config.Ly
 
         if self.normalize == 'max':
             self.logger.info("Using max normalization")
@@ -167,7 +167,7 @@ class DirichletDataLoader(BaseDataLoader):
             # Value that is approximately the max of the rhs
             self.logger.info("Using analytical normalization from Fourier series solution")
             self.alpha = 0.1
-            self.ratio_max = ratio_potrhs(self.alpha, self.lx, self.ly)
+            self.ratio_max = ratio_potrhs(self.alpha, self.Lx, self.Ly)
             self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1)) / self.ratio_max
             self.target_norm_bc = torch.ones((potential_bc.size(0), potential_bc.size(1), 1, 1))
             self.target_norm_rhs = torch.ones((potential_rhs.size(0), potential_rhs.size(1), 1, 1)) 
