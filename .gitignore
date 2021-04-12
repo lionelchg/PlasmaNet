@@ -18,7 +18,6 @@ outputs
 /datasets
 figures
 runs
-notes
 
 # Neural network
 train/
