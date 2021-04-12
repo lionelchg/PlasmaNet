@@ -1,85 +1,114 @@
 # Summary of the networks studied
 
-## `51x51` training datasets
-
 ## `101x101` training datasets
 
-### `config_1`
+All in `NNet/train/` on kraken.
+
+### `up_type=upsample`
+
+#### `config_1`
 
 | Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
 | ------------ | ----------------- | ----------- | ----------- |
-| UNet5        | 420 000           | 1.0         | 0.2         |
+| UNet3        | 100 000           | 1.0         | 2.0e+7         |
 
 | Dataset            | Results   |
 | ------------------ | --------- |
 | `random_8`         | OK        |
-| `random_16`        | OK        |
-| `random_4`         | OK        |
 
-### `config_2`
+#### `config_2`
 
 Network to compare the influence of the physical loss compared to a classical points loss
 
-| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_I$ |
+| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
 | ------------ | ----------------- | ----------- | ----------- |
-| UNet5        | 420 000           | 1.0         | 1.0         |
+| UNet4        | 100 000           | 1.0         | 2.0e+7         |
 
 | Dataset            | Results   |
 | ------------------ | --------- |
 | `random_8`         | OK |
-| `random_16`        | OK |
-| `random_4`         | OK |
 
-### `config_3`
+#### `config_3`
 
 UNet5 with a deconvolution when going up, `up_type='deconvolution'`
 
-| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_I$ |
+| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
 | ------------ | ----------------- | ----------- | ----------- |
-| UNet5        | 420 000           | 1.0         | 1.0         |
-
-| Dataset            | Results   |
-| ------------------ | --------- |
-| `random_8`         | *Running* |
-| `random_16`        | *Running* |
-| `random_4`         | *Running* |
-
-### `config_4`
-
-UNet4 run with new architecture
-
-| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_I$ |
-| ------------ | ----------------- | ----------- | ----------- |
-| UNet4        | 420 000           | 1.0         | 1.0         |
+| UNet5        | 100 000           | 1.0         | 2.0e+7         |
 
 | Dataset            | Results   |
 | ------------------ | --------- |
 | `random_8`         | *Running* |
 
-### `config_5`
 
-UNet3 run with new architecture
+### `uptype=deconvolution`
 
-| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_I$ |
+#### `config_4`
+
+`up_type='deconvolution'`
+
+| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
 | ------------ | ----------------- | ----------- | ----------- |
-| UNet3        | 420 000           | 1.0         | 1.0         |
+| UNet3        | 100 000           | 1.0         | 2.0e+7         |
+
+| Dataset            | Results   |
+| ------------------ | --------- |
+| `random_8`         | OK        |
+
+#### `config_5`
+
+`up_type='deconvolution'`
+
+| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
+| ------------ | ----------------- | ----------- | ----------- |
+| UNet4        | 100 000           | 1.0         | 2.0e+7         |
+
+| Dataset            | Results   |
+| ------------------ | --------- |
+| `random_8`         | OK |
+
+#### `config_6`
+
+`up_type='deconvolution'`
+
+| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
+| ------------ | ----------------- | ----------- | ----------- |
+| UNet5        | 100 000           | 1.0         | 2.0e+7         |
 
 | Dataset            | Results   |
 | ------------------ | --------- |
 | `random_8`         | *Running* |
 
-### `config_6`
+### Wider UNets for same number of parameters
 
-UNet5 with a wider receptive field (only)
+This is wider so that the receptive field contains all the image for the bottom part of the architecture
 
-| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_I$ |
+#### `config_7`
+
+| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
 | ------------ | ----------------- | ----------- | ----------- |
-| UNet5        | 420 000           | 1.0         | 1.0         |
+| UNet3        | 100 000           | 1.0         | 2.0e+7         |
+
+| Dataset            | Results   |
+| ------------------ | --------- |
+| `random_8`         | OK        |
+
+#### `config_8`
+
+| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
+| ------------ | ----------------- | ----------- | ----------- |
+| UNet4        | 100 000           | 1.0         | 2.0e+7         |
+
+| Dataset            | Results   |
+| ------------------ | --------- |
+| `random_8`         | OK |
+
+#### `config_9`
+
+| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
+| ------------ | ----------------- | ----------- | ----------- |
+| UNet5        | 100 000           | 1.0         | 2.0e+7         |
 
 | Dataset            | Results   |
 | ------------------ | --------- |
 | `random_8`         | *Running* |
-| `random_16`        | *Running* |
-| `random_4`         | *Running* |
-
-## `201x201` training datasets
