@@ -6,6 +6,8 @@ All in `NNet/train/` on kraken.
 
 ### `up_type=upsample`
 
+The architectures are taken from `NNet/archs/unets_small.yml`
+
 #### `config_1`
 
 | Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
@@ -18,7 +20,6 @@ All in `NNet/train/` on kraken.
 
 #### `config_2`
 
-Network to compare the influence of the physical loss compared to a classical points loss
 
 | Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
 | ------------ | ----------------- | ----------- | ----------- |
@@ -30,7 +31,6 @@ Network to compare the influence of the physical loss compared to a classical po
 
 #### `config_3`
 
-UNet5 with a deconvolution when going up, `up_type='deconvolution'`
 
 | Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
 | ------------ | ----------------- | ----------- | ----------- |
@@ -42,6 +42,8 @@ UNet5 with a deconvolution when going up, `up_type='deconvolution'`
 
 
 ### `uptype=deconvolution`
+
+The architectures are taken from `NNet/archs/unets_small.yml`
 
 #### `config_4`
 
@@ -81,7 +83,7 @@ UNet5 with a deconvolution when going up, `up_type='deconvolution'`
 
 ### Wider UNets for same number of parameters
 
-This is wider so that the receptive field contains all the image for the bottom part of the architecture
+This is wider so that the receptive field contains all the image for the bottom part of the architecture. The architectures are taken from `NNet/archs/unets_wide.yml`. The `upsample` method for the right part of the UNet is used.
 
 #### `config_7`
 
