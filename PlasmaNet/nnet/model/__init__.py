@@ -8,6 +8,7 @@ from .msnets import *
 from .unets import *
 from .dirichletnet import DirichletNet
 from .unet import UNet
+from .msnet import MSNet
 from .singlefilter import SingleFilter
 from .simplenet import SimpleNet
 from .simplemultinet import SimpleScaleNet
