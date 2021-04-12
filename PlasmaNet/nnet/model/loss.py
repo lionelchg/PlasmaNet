@@ -66,7 +66,7 @@ class LaplacianLoss(BaseLoss):
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy, r=self.r_nodes)
-        return self.Lx**2 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
+        return self.Lx**4 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
 
 
 class EnergyLoss(BaseLoss):

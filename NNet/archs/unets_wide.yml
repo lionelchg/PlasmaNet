@@ -30,6 +30,7 @@ UNet4:
 
 # All the recepetive field are filled from the n / 4 resolution
 # The receptive field is in fact propagated after the skip connection ?
+# The network doesn't learn anything with this architecture !!!
 UNet5:
     type: 'UNet'
     args:
@@ -37,7 +38,7 @@ UNet5:
         down_blocks: [[10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
                     [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
                     [10, 15, 15, 15, 15, 15, 15]]
-        bottom_fmaps: [20, 20, 20, 20, 20]
+        bottom_fmaps: [15, 20, 20, 20, 20]
         up_blocks: [[35, 15, 15, 15, 15, 15, 15],
                     [25, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
                     [20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]]
