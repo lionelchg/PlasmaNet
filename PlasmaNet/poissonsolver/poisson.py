@@ -98,7 +98,7 @@ class PoissonLinSystem(BasePoisson):
             self.potential[:, -1] = self.potential[:, 0]
             
     def run_case(self, case_dir: str, physical_rhs: np.ndarray,
-                pot_bcs: dict, plot: bool):
+                pot_bcs: dict, plot: bool, save=True, it=0):
         """ Run a Poisson linear system case
 
         :param case_dir: Case directory
@@ -109,6 +109,8 @@ class PoissonLinSystem(BasePoisson):
         :type pot_bcs: dict
         :param plot: logical for plotting
         :type plot: bool
+        :param save: logical for saving rhs and pot
+        :type save: bool
         """
         if self.geom == 'cylindrical':
             geom = 'xr'
@@ -117,12 +119,13 @@ class PoissonLinSystem(BasePoisson):
 
         create_dir(case_dir)
         self.solve(physical_rhs, pot_bcs)
-        self.save(case_dir)
+        if save:
+            self.save(case_dir)
         if plot:
-            fig_dir = case_dir + 'figures/'
+            fig_dir = case_dir + '/figures/'
             create_dir(fig_dir)
-            self.plot_2D(fig_dir + '2D', geom=geom)
-            self.plot_1D2D(fig_dir + 'full', geom=geom)
+            self.plot_2D(fig_dir + '2D_{}'.format(it), geom=geom)
+            self.plot_1D2D(fig_dir + 'full_{}'.format(it), geom=geom)
 
 class DatasetPoisson(PoissonLinSystem):
     """ Class for dataset of poisson rhs and potentials (contains

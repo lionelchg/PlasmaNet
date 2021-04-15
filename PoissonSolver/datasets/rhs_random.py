@@ -63,6 +63,7 @@ x_lower, y_lower = np.linspace(xmin, xmax, nnx_lower), np.linspace(ymin, ymax, n
 
 # Amplitude of the RhS
 ni0 = 1e11
+bcs={}
 
 def params(nits):
     """ Parameters to give to compute function for imap """
@@ -74,9 +75,9 @@ def params(nits):
 
 def compute(args):
     """ Compute function for imap (multiprocessing) """
-    physical_rhs = ni0 * args.reshape(-1) * co.e / co.epsilon_0
+    physical_rhs = ni0 * args * co.e / co.epsilon_0
 
-    poisson.solve(physical_rhs, zeros_x, zeros_x, zeros_y, zeros_y)
+    poisson.solve(physical_rhs, bcs)
 
     return poisson.potential, poisson.physical_rhs
 

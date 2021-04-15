@@ -8,6 +8,7 @@
 
 import numpy as np
 from scipy import integrate
+import matplotlib
 import matplotlib.pyplot as plt
 
 from ..common.operators_numpy import grad, lapl
@@ -97,13 +98,13 @@ class BasePoisson:
 
         fig, axes = plt.subplots(ncols=3, figsize=(11, 14))
 
-        plot_ax_scalar(fig, axes[0], self.X, self.Y, self.potential, 'Potential', geom=geom)
+        plot_ax_scalar(fig, axes[0], self.X, self.Y, self.potential, r'$\phi$', geom=geom)
 
         E = self.E_field
-        plot_ax_vector_arrow(fig, axes[1], self.X, self.Y, E, 'Electric field', geom=geom)
+        plot_ax_vector_arrow(fig, axes[1], self.X, self.Y, E, r'$\mathbf{E}$', geom=geom)
 
         lapl_field = self.lapl
-        plot_ax_scalar(fig, axes[2], self.X, self.Y, - lapl_field, 'Charge density', geom=geom)
+        plot_ax_scalar(fig, axes[2], self.X, self.Y, - lapl_field, r'$\Delta$ $\phi$', geom=geom)
 
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
         plt.savefig(figname, bbox_inches='tight')

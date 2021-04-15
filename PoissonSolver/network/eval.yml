@@ -1,0 +1,95 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                         NetworkPoisson -- Configuration file                                         #
+#                                                                                                                      #
+#                                           Lionel Cheng, CERFACS, 04.03.2021                                          #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+linsystem:
+    geom: 'cartesian'
+    bcs: 'dirichlet'
+    xmin: 0.0
+    xmax: 1.0e-2
+    nnx: 101
+    ymin: 0.0
+    ymax: 1.0e-2
+    nny: 101
+    nmax_fourier: 10
+
+dataset: '/scratch/cfd/PlasmaDL/datasets/eval/101x101/mixed/'
+plot_every: 50
+
+evaluation:
+    datasets: ['random_4', 'random_8', 'random_16']
+    networks: [1, 2, 3] #[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+
+network:
+    casename: 'cases/network/'                  # Experience name
+    n_gpu: 1                                    # Number of GPUs to use
+
+    globals:                                    # Domain sizes and others, used to compute global attributes
+        nnx: 101
+        nny: 101
+        xmin: 0.0
+        xmax: 1.0e-2
+        ymin: 0.0
+        ymax: 1.0e-2
+        coord: 'cart'
+        verbosity: 2
+
+    #resume: '/scratch/cfd/cheng/DL/plasmanet/NNet/outputs/101x101/models/config_2/random_4'
+    resume: '/scratch/cfd/PlasmaDL/networks/train/models/'
+
+    arch:
+        type: 'UNet'
+        args:
+            in_fmaps: [1, 32, 32]
+            down_blocks: [[32, 32, 32]]
+            bottom_fmaps: [32, 38, 32]
+            up_blocks: [[64, 32, 32]]
+            out_fmaps: [64, 32, 32, 1]
+            input_res: 101
+            up_type: 'upsample'
+
+    #arch:
+    #    type: 'UNet5'
+    #    args:
+    #        data_channels: 1                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
+
+
+    data_loader:
+        data_channels: 1
+        normalize: 'analytical'
+        alpha: 0.1
+        scaling_factor: 1.0e+6
+
+    initializer: 'off'
+
+    loss:
+        type: 'ComposedLoss'
+        pipe_config: True                       # Object initialization require config as first argument
+        args:
+            loss_list:                          # List of the losses to compose if ComposedLoss is used
+                #- InsideLoss
+                - DirichletBoundaryLoss
+                - LaplacianLoss
+            inside_weight: 0.                   # Weighting of the loss inside the domain, excluding boundaries (float)
+            bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
+            elec_weight: 0.                     # Weighting of the loss on the electric field (float)
+            lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
+
+    metrics:
+        - 'residual'
+        - 'inf_norm'
+        - 'Eresidual'
+        - 'Einf_norm'
+

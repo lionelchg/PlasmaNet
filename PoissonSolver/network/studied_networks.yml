@@ -1,0 +1,174 @@
+#############################################################################################################
+#                                                                                                           #
+#                            PlasmaNet -- Architectures with around 100 000 params                          #
+#                                                                                                           #
+#                                     Lionel Cheng, CERFACS, 02.04.2021                                     #
+#                                                                                                           #
+#############################################################################################################
+
+UNet3_u:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 32, 32]
+        down_blocks: [[32, 32, 32]]
+        bottom_fmaps: [32, 38, 32]
+        up_blocks: [[64, 32, 32]]
+        out_fmaps: [64, 32, 32, 1]
+        input_res: 101
+        up_type: 'upsample'
+
+UNet4_u:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 24, 24]
+        down_blocks: [[24, 24, 24],
+                [24, 24, 24]]
+        bottom_fmaps: [24, 32, 32]
+        up_blocks: [[56, 32, 32],
+                [56, 30, 24]]
+        out_fmaps: [48, 24, 24, 1]
+        input_res: 101
+        up_type: 'upsample'
+
+
+UNet5_u:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 16, 16]
+        down_blocks: [[16, 16, 16],
+                    [16, 16, 16],
+                    [16, 24, 31]]
+        bottom_fmaps: [31, 30, 31]
+        up_blocks: [[62, 32, 32],
+                    [48, 32, 32],
+                    [48, 16, 16]]
+        out_fmaps: [32, 16, 16, 1]
+        input_res: 101
+        up_type: 'upsample'
+
+
+UNet3_d:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 32, 32]
+        down_blocks: [[32, 32, 32]]
+        bottom_fmaps: [32, 38, 32]
+        up_blocks: [[64, 32, 32]]
+        out_fmaps: [64, 32, 32, 1]
+        input_res: 101
+        up_type: 'deconvolution'
+
+UNet4_d:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 24, 24]
+        down_blocks: [[24, 24, 24],
+                [24, 24, 24]]
+        bottom_fmaps: [24, 32, 32]
+        up_blocks: [[56, 32, 32],
+                [56, 30, 24]]
+        out_fmaps: [48, 24, 24, 1]
+        input_res: 101
+        up_type: 'deconvolution'
+
+
+UNet5_d:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 16, 16]
+        down_blocks: [[16, 16, 16],
+                    [16, 16, 16],
+                    [16, 24, 31]]
+        bottom_fmaps: [31, 30, 31]
+        up_blocks: [[62, 32, 32],
+                    [48, 32, 32],
+                    [48, 16, 16]]
+        out_fmaps: [32, 16, 16, 1]
+        input_res: 101
+        up_type: 'deconvolution'
+    
+UNet3_wide_u:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+        down_blocks: [[10, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14]]
+        bottom_fmaps: [14, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
+        up_blocks: [[34, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14]]
+        out_fmaps: [24, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1]
+        input_res: 101
+        up_type: 'upsample'
+
+# Receptive field of the coarser resolution filled (6 * 2 + 1 = 12)
+UNet4_wide_u:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 12, 12, 12, 12, 12, 12]
+        down_blocks: [[12, 15, 15, 15, 15, 15, 15],
+                [15, 15, 15, 15, 15, 15, 15]]
+        bottom_fmaps: [15, 25, 25, 25, 25, 25, 25]
+        up_blocks: [[40, 15, 15, 15, 15, 15, 15, 15],
+                [30, 15, 15, 15, 15, 15, 15, 15]]
+        out_fmaps: [27, 12, 12, 12, 12, 12, 12, 1]
+        input_res: 101
+        up_type: 'upsample'
+
+# All the recepetive field are filled from the n / 4 resolution
+# The receptive field is in fact propagated after the skip connection ?
+# The network doesn't learn anything with this architecture !!!
+UNet5_wide_u:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+        down_blocks: [[10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+                    [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+                    [10, 15, 15, 15, 15, 15, 15]]
+        bottom_fmaps: [15, 20, 20, 20, 20]
+        up_blocks: [[35, 15, 15, 15, 15, 15, 15],
+                    [25, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+                    [20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]]
+        out_fmaps: [20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1]
+        input_res: 101
+        up_type: 'upsample'
+
+UNet3_wide_d:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+        down_blocks: [[10, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14]]
+        bottom_fmaps: [14, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
+        up_blocks: [[34, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14]]
+        out_fmaps: [24, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1]
+        input_res: 101
+        up_type: 'deconvolution'
+
+# Receptive field of the coarser resolution filled (6 * 2 + 1 = 12)
+UNet4_wide_d:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 12, 12, 12, 12, 12, 12]
+        down_blocks: [[12, 15, 15, 15, 15, 15, 15],
+                [15, 15, 15, 15, 15, 15, 15]]
+        bottom_fmaps: [15, 25, 25, 25, 25, 25, 25]
+        up_blocks: [[40, 15, 15, 15, 15, 15, 15, 15],
+                [30, 15, 15, 15, 15, 15, 15, 15]]
+        out_fmaps: [27, 12, 12, 12, 12, 12, 12, 1]
+        input_res: 101
+        up_type: 'deconvolution'
+
+# All the recepetive field are filled from the n / 4 resolution
+# The receptive field is in fact propagated after the skip connection ?
+# The network doesn't learn anything with this architecture !!!
+UNet5_wide_d:
+    type: 'UNet'
+    args:
+        in_fmaps: [1, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+        down_blocks: [[10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+                    [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+                    [10, 15, 15, 15, 15, 15, 15]]
+        bottom_fmaps: [15, 20, 20, 20, 20]
+        up_blocks: [[35, 15, 15, 15, 15, 15, 15],
+                    [25, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+                    [20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]]
+        out_fmaps: [20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1]
+        input_res: 101
+        up_type: 'deconvolution'

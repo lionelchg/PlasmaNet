@@ -2,7 +2,7 @@
 
 ## `101x101` training datasets
 
-All in `NNet/train/` on kraken.
+All in `/scratch/cfd/PlasmaDL/networks/train/models/` on kraken.
 
 ### `up_type=upsample`
 
@@ -106,6 +106,40 @@ This is wider so that the receptive field contains all the image for the bottom 
 | `random_8`         | OK |
 
 #### `config_9`
+
+| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
+| ------------ | ----------------- | ----------- | ----------- |
+| UNet5        | 100 000           | 1.0         | 2.0e+7         |
+
+| Dataset            | Results   |
+| ------------------ | --------- |
+| `random_8`         | *Running* |
+
+
+### `uptype=deconvolution` 
+Still using wide networks (same as 7-9, see `NNet/archs/unets_wide.yml`)
+
+#### `config_10`
+
+| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
+| ------------ | ----------------- | ----------- | ----------- |
+| UNet3        | 100 000           | 1.0         | 2.0e+7         |
+
+| Dataset            | Results   |
+| ------------------ | --------- |
+| `random_8`         | *Running* |
+
+#### `config_11`
+
+| Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
+| ------------ | ----------------- | ----------- | ----------- |
+| UNet4        | 100 000           | 1.0         | 2.0e+7         |
+
+| Dataset            | Results   |
+| ------------------ | --------- |
+| `random_8`         | *Running* |
+
+#### `config_12`
 
 | Architecture | $n_\text{params}$ | $\lambda_D$ | $\lambda_L$ |
 | ------------ | ----------------- | ----------- | ----------- |

@@ -55,8 +55,10 @@ class PoissonNetwork(BasePoisson):
         # Load from directory, resume dir does not need to contain the full path to model_best.pth
         dir_resume = cfg['resume']
         dir_list = os.listdir(dir_resume)
-        logger.info('Loading checkpoint: {} ...'.format(os.path.join(dir_resume, dir_list[-1], "model_best.pth")))
-        checkpoint = torch.load(os.path.join(dir_resume, dir_list[-1], "model_best.pth"))
+        logger.info('Loading checkpoint: {} ...'.format(os.path.join(dir_resume, "model_best.pth")))
+        checkpoint = torch.load(os.path.join(dir_resume, "model_best.pth"))
+        #logger.info('Loading checkpoint: {} ...'.format(os.path.join(dir_resume, dir_list[-1], "model_best.pth")))
+        #checkpoint = torch.load(os.path.join(dir_resume, dir_list[-1], "model_best.pth"))
         state_dict = checkpoint['state_dict']
         if self.cfg_dl['n_gpu'] > 1:
             self.model = torch.nn.DataParallel(self.model)
@@ -95,7 +97,7 @@ class PoissonNetwork(BasePoisson):
         # Retrieve the potential
         self.potential = self.res_scale / self.scaling_factor * potential_torch.detach().cpu().numpy()[0, 0]
 
-    def run_case(self, case_dir: str, physical_rhs: np.ndarray, plot: bool):
+    def run_case(self, case_dir: str, physical_rhs: np.ndarray, plot: bool, it=0):
         """ Run a Poisson linear system case
 
         :param case_dir: Case directory
@@ -113,5 +115,5 @@ class PoissonNetwork(BasePoisson):
         if plot:
             fig_dir = case_dir + 'figures/'
             create_dir(fig_dir)
-            self.plot_2D(fig_dir + '2D')
-            self.plot_1D2D(fig_dir + 'full')
+            self.plot_2D(fig_dir + '2D_{}'.format(it))
+            self.plot_1D2D(fig_dir + 'full_{}'.format(it))
