@@ -41,6 +41,7 @@ setup(
             'plasma_euler=PlasmaNet.cfdsolver.euler.plasma:main',
             'scalar=PlasmaNet.cfdsolver.scalar.scalar:main',
             'streamer=PlasmaNet.cfdsolver.scalar.streamer:main',
+            'train_network=PlasmaNet.nnet.trainer.train:main'
         ],
     },
 )
