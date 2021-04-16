@@ -104,7 +104,7 @@ class BasePoisson:
         plot_ax_vector_arrow(fig, axes[1], self.X, self.Y, E, r'$\mathbf{E}$', geom=geom)
 
         lapl_field = self.lapl
-        plot_ax_scalar(fig, axes[2], self.X, self.Y, - lapl_field, r'$\Delta$ $\phi$', geom=geom)
+        plot_ax_scalar(fig, axes[2], self.X, self.Y, - lapl_field, r'$-\nabla^2 \phi$', geom=geom)
 
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
         plt.savefig(figname, bbox_inches='tight')
@@ -122,16 +122,16 @@ class BasePoisson:
         x = self.X[0, :]
         fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(9, 12))
 
-        plot_ax_scalar(fig, axes[0][0], self.X, self.Y, self.potential, 'Potential', geom=geom)
+        plot_ax_scalar(fig, axes[0][0], self.X, self.Y, self.potential, r'$\phi$', geom=geom)
         plot_ax_trial_1D(axes[0][1], x, self.potential, self.nny, '1D cuts')
 
         E = self.E_field
         normE = np.sqrt(E[0]**2 + E[1]**2)
-        plot_ax_vector_arrow(fig, axes[1][0], self.X, self.Y, E, 'Electric field', geom=geom)
+        plot_ax_vector_arrow(fig, axes[1][0], self.X, self.Y, E, r'$\mathbf{E}$', geom=geom)
         plot_ax_trial_1D(axes[1][1], x, normE, self.nny, '1D cuts', ylim=[0.99 * np.min(normE), 1.01 * np.max(normE)])
 
         lapl_field = self.lapl
-        plot_ax_scalar(fig, axes[2, 0], self.X, self.Y, - lapl_field, '- Laplacian', geom=geom)
+        plot_ax_scalar(fig, axes[2, 0], self.X, self.Y, - lapl_field, r'$-\nabla^2 \phi$', geom=geom)
         plot_ax_trial_1D(axes[2][1], x, -  lapl_field, self.nny, '1D cuts')
 
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
