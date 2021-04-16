@@ -90,6 +90,7 @@ class ConfigParser:
                 # Length and resolution invariance parameters
                 self.normalization = self.config['data_loader']['args']['normalize']
                 self.scaling_factor = self.config['data_loader']['args']['scaling_factor']
+                self.alpha = self.config['data_loader']['args']['alpha']
             else:
                 self.scaling_factor = self.config['data_loader']['scaling_factor']
                 self.normalization = self.config['data_loader']['normalize']

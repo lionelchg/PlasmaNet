@@ -24,7 +24,7 @@ class PoissonDataLoader(BaseDataLoader):
     """
 
     def __init__(self, config, data_dir, batch_size, normalize=False, shuffle=True, validation_split=0.0,
-                 input_cutoff_frequency=None, num_workers=1, scaling_factor=1.0):
+                 input_cutoff_frequency=None, num_workers=1, scaling_factor=1.0, alpha=0.1):
         self.data_dir = Path(data_dir)
         self.logger = config.get_logger('PoissonDataLoader', config['globals']['verbosity'])
 
@@ -59,7 +59,7 @@ class PoissonDataLoader(BaseDataLoader):
             potential /= self.target_norm
         elif self.normalize == 'analytical' or self.normalize == 'empirical':
             self.logger.info("Using analytical normalization from Fourier series solution")
-            self.alpha = 0.1
+            self.alpha = alpha
             self.ratio_max = ratio_potrhs(self.alpha, self.Lx, self.Ly)
             self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1)) / self.ratio_max
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
