@@ -42,27 +42,27 @@ network:
     # resume: '/scratch/cfd/cheng/DL/plasmanet/NNet/outputs/101x101/models/config_2/random_4'
     resume: '/scratch/cfd/PlasmaDL/networks/train/models/config_3/random_4'
 
-    # arch:
-    #     type: 'UNet'
-    #     args:
-    #         in_fmaps: [1, 16, 16]
-    #         down_blocks: [[16, 16, 16],
-    #                     [16, 16, 16],
-    #                     [16, 24, 31]]
-    #         bottom_fmaps: [31, 30, 31]
-    #         up_blocks: [[62, 32, 32],
-    #                     [48, 32, 32],
-    #                     [48, 16, 16]]
-    #         out_fmaps: [32, 16, 16, 1]
-    #         input_res: 101
-    #         up_type: 'upsample'
-    
     arch:
-        db_file: 'unets_small.yml'
-        name: 'UNet5'
+        type: 'UNet'
         args:
+            in_fmaps: [1, 16, 16]
+            down_blocks: [[16, 16, 16],
+                        [16, 16, 16],
+                        [16, 24, 31]]
+            bottom_fmaps: [31, 30, 31]
+            up_blocks: [[62, 32, 32],
+                        [48, 32, 32],
+                        [48, 16, 16]]
+            out_fmaps: [32, 16, 16, 1]
             input_res: 101
             up_type: 'upsample'
+    
+    # arch:
+    #     db_file: 'unets_small.yml'
+    #     name: 'UNet5'
+    #     args:
+    #         input_res: 101
+    #         up_type: 'upsample'
 
     # arch:
     #     type: 'UNet5'
