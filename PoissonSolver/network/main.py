@@ -58,8 +58,8 @@ if __name__ == '__main__':
     args = argparse.ArgumentParser(description='PoissonNetwork runs')
     args.add_argument('-c', '--config', default=None, type=str,
                       help='Config file path (default: None)')
-    args.add_argument('-d', '--datadir', default=None, type=str,
-                      help='Dataset directory (should be .npy)')
+    args.add_argument('-t', '--runtype', default='network', type=str,
+                      help='Run type')
     args = args.parse_args()
 
     with open(args.config, 'r') as yaml_stream:
@@ -67,21 +67,16 @@ if __name__ == '__main__':
 
     plot = True
 
-    # Linear system solver
-    poisson_ls = PoissonLinSystem(config['linsystem'])
-    zeros_x, zeros_y = np.zeros(poisson_ls.nnx), np.zeros(poisson_ls.nny)
-    pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
-    basecase_dir = 'cases/linsystem/'
-    run_cases(basecase_dir, poisson_ls, pot_bcs, plot)
+    if args.runtype == 'linsystem':
+        # Linear system solver
+        poisson_ls = PoissonLinSystem(config['eval'])
+        zeros_x, zeros_y = np.zeros(poisson_ls.nnx), np.zeros(poisson_ls.nny)
+        pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
+        basecase_dir = 'cases/linsystem/'
+        run_cases(basecase_dir, poisson_ls, pot_bcs, plot)
 
-    # Neural network config_1/random_4
-    config['network']['eval'] = config['linsystem']
-    poisson_nn = PoissonNetwork(config['network'])
-    basecase_dir = 'cases/network/config_1/random_4/'
-    run_cases(basecase_dir, poisson_nn, plot)
-
-    # Neural network config_2/random_4
-    config['network']['resume'] = config['network']['resume'].replace('config_1', 'config_2')
-    poisson_nn = PoissonNetwork(config['network'])
-    basecase_dir = 'cases/network/config_2/random_4/'
-    run_cases(basecase_dir, poisson_nn, plot)
+    elif args.runtype == 'network':
+        # Neural network config_1/random_4
+        config['network']['eval'] = config['eval']
+        poisson_nn = PoissonNetwork(config['network'])
+        run_cases(config['network']['casename'], poisson_nn, plot)

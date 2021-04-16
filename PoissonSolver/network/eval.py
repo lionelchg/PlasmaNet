@@ -47,7 +47,7 @@ def metric_calc(diff, test_len):
     """ 3 studied metrics, l1, l2 and linf
     """
 
-    l1 = np.sum(np.abs(diff))/ test_len
+    l1 = np.sum(np.abs(diff)) / test_len
     l2 = np.sum(diff**2)/ test_len
     linf = np.sum(np.max(diff, axis=0))/ test_len
 
@@ -162,4 +162,3 @@ if __name__ == '__main__':
 
 
 
-  
