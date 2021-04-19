@@ -44,20 +44,32 @@ You are now ready!
 ### Train a model
 
 To train a model, create a working directory. You simply need:
-- to copy the `train.py` and `config.yml` file from the PlasmaNet repository
-- edit `config.yml` 
-- launch the training using the `batch_KRAKEN` template also available in the repository
+
+- to copy `config.yml` file from the PlasmaNet repository
+- edit `config.yml`
+
+An exec for training is directly
+created named `train_network` when setting up the library. To launch the training, two methods are available:
+
+- Allocate a GPU node on kraken and run:
+
+```shell
+train_network -c config.yml
+```
+
+- A `batch_KRAKEN` template is also available in the repository
 
 ### Evaluate a model
 
-Similar to the training, using the `evaluate.py` and `eval.yml` files.
-You will want to set the `-r` option in the batch file to specify the trained model you want to use.
+Evaluation of the models is done in the `PoissonSolver/network/` directory.
+Two evaluations are possible, one on a fixed set of profiles which are user-defined (`eval_fixed.py`), the other on datasets (`eval_datasets.py`). Running of those files also requires config files which are described in the next section.
 
 ## Configuration file
 
 ### Organisation
 
 The configuration file is organised in sections for each element of the network, with the following keys:
+
 - `type`, the name of the object that will be used (e.g. `Adam` as optimizer)
 - `args`, the list of the arguments that will be passed to the constructor of the specified `type` (e.g. `lr: 4e-4`)
 - `pipe_config`, an optional boolean (default False) if the constructor requires the `config` object containing the 
@@ -70,6 +82,15 @@ the corresponding object by looking for it in the specified module.
 import PlasmaNet.model.loss as module_loss
 
 criterion = config.init_obj('loss', module_loss)
+```
+
+### Architectures of network
+
+Databases of network can also be used to directly call them for `UNet`. To do so, the
+environment variable `ARCHS_DIR` is defined in the `.bashrc` file:
+
+```shell
+export ARCHS_DIR=/scratch/cfd/cheng/DL/plasmanet/NNet/archs
 ```
 
 ### Custom CLI arguments

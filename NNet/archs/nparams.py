@@ -13,6 +13,7 @@ if __name__ == '__main__':
     for key, value in cfg.items():
         print(f'Architecture: {key}')
         value['args']['input_res'] = 101
-        value['args']['up_type'] = 'deconvolution'
+        value['args']['up_type'] = 'upsample'
         tmp_model = getattr(model, value['type'])(**value['args'])
+        print(tmp_model)
         print(f'Number of trainable parameters: {tmp_model.nparams:d}\n')

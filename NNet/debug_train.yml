@@ -30,14 +30,21 @@ globals:                                    # Domain sizes and others, used to c
     coord: 'cart'
     verbosity: 2
 
+# arch:
+#     type: 'UNet'
+#     args:
+#         in_fmaps: [1, 32, 32]
+#         down_blocks: [[32, 32, 32]]
+#         bottom_fmaps: [32, 38, 32]
+#         up_blocks: [[64, 32, 32]]
+#         out_fmaps: [64, 32, 32, 1]
+#         input_res: 101
+#         up_type: 'deconvolution'
+
 arch:
-    type: 'UNet'
+    db_file: 'unets_small.yml'
+    name: 'UNet3'
     args:
-        in_fmaps: [1, 32, 32]
-        down_blocks: [[32, 32, 32]]
-        bottom_fmaps: [32, 38, 32]
-        up_blocks: [[64, 32, 32]]
-        out_fmaps: [64, 32, 32, 1]
         input_res: 101
         up_type: 'deconvolution'
 
@@ -52,6 +59,7 @@ data_loader:
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
         normalize: 'analytical'                   # max, physical or no for normalization types
+        alpha: 0.1
         scaling_factor: 1.0e+6
 initializer: 'off'
 
@@ -75,7 +83,7 @@ loss:
         inside_weight: 0.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.0                    # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
-        lapl_weight: 2.0e+3                    # Weighting of the loss on the Laplacian (float)
+        lapl_weight: 2.0e+7                    # Weighting of the loss on the Laplacian (float)
         energy_weight: 0.0                  # Weighting of the loss on the energy functional (float)
         lt_weight: 0.0                      # Weighting of the lt loss, whoch only has a Laplacian term
         ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation
@@ -98,7 +106,7 @@ lr_scheduler:
         verbose: False
 
 trainer:
-    epochs: 300
+    epochs: 20
     save_dir: 'debug/'
     save_period: 20
     plot_period: 20                         # Period to send plots to TensorBoard
