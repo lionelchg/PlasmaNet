@@ -53,7 +53,8 @@ class PoissonNetwork(BasePoisson):
 
         # Network configuration
         self.cfg_dl = ConfigParser(cfg)
-        self.nnx_nn = self.cfg_dl.nnx
+        #self.nnx_nn = self.cfg_dl.nnx
+        self.nnx_nn = cfg['train_nnx']
 
         # Logger
         self.logger = self.cfg_dl.get_logger('poisson_nn')

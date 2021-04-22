@@ -173,7 +173,7 @@ class MixedDataset:
         y_gauss = (x_middle_max - x_middle_min) * coefs[4] + x_middle_min
 
         self.physical_rhs[i + 2*self.el_3] = pf.gaussian(self.poisson_ls.X, self.poisson_ls.Y, 
-            ampl, x_gauss, y_gauss, sigma_x, sigma_y) * co.e / co.epsilon_0
+            ampl, x_gauss, y_gauss, sigma_x, sigma_y)
 
         case_dir_hills = os.path.join(self.case_dir, 'hills')
         self.poisson_ls.run_case(case_dir_hills, self.physical_rhs[i + 2*self.el_3], self.pot_bcs, 
