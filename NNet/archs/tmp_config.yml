@@ -31,6 +31,7 @@ UNet2:
         depth_0: [[1, 10, 10], [20, 20, 1]]
         depth_1: [10, 10]
       kernel_sizes: 3
+      
 # MSNet3:
 #     type: 'MSNet'
 #     args:

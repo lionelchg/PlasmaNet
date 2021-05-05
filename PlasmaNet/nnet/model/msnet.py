@@ -20,21 +20,21 @@ class _ConvBlock(nn.Module):
     or end with an UpSample or deconvolution layer (for up)
     """
     def __init__(self, fmaps, out_size, block_type, kernel_size, 
-            pad_method='zeros'):
+            padding_mode='zeros', upsample_mode='bilinear'):
         super(_ConvBlock, self).__init__()
         layers = list()
         # Append all the specified layers
         for i in range(len(fmaps) - 1):
             layers.append(nn.Conv2d(fmaps[i], fmaps[i + 1], 
                 kernel_size=kernel_size, padding=int((kernel_size - 1) / 2),
-                padding_mode=pad_method))
+                padding_mode=padding_mode))
             # No ReLu at the very last layer
             if i != len(fmaps) - 2 or block_type != 'out':
                 layers.append(nn.ReLU())
 
         # Apply either Upsample or deconvolution
         if block_type == 'middle':
-            layers.append(nn.Upsample(out_size, mode='bilinear'))
+            layers.append(nn.Upsample(out_size, mode=upsample_mode))
 
         # Build the sequence of layers
         self.encode = nn.Sequential(*layers)
@@ -48,7 +48,8 @@ class MSNet(ScalesNet):
     when going up the U: upsample, deconvolution or interpolation. Only interpolation
     allows the network to work on different resolutions
     """
-    def __init__(self, scales, kernel_sizes, input_res):
+    def __init__(self, scales, kernel_sizes, input_res, padding_mode='zeros',
+                    upsample_mode='bilinear'):
         super(MSNet, self).__init__(scales, kernel_sizes)
         # For upsample the list of resolution is needed when 
         # the number of points is not a power of 2
@@ -65,12 +66,13 @@ class MSNet(ScalesNet):
         for imiddle, middle_fmaps in enumerate(middle_blocks):
             self.ConvsUp.append(_ConvBlock(middle_fmaps, 
                 out_size=self.list_res[-2 -imiddle], 
-                block_type='middle', kernel_size=self.kernel_sizes[-1 - imiddle]))
+                block_type='middle', kernel_size=self.kernel_sizes[-1 - imiddle],
+                padding_mode=padding_mode, upsample_mode=upsample_mode))
         
         # Out layer
         self.ConvsUp.append(_ConvBlock(out_fmaps, 
             out_size=self.list_res[0],
-            block_type='out', kernel_size=self.kernel_sizes[0]))
+            block_type='out', kernel_size=self.kernel_sizes[0], padding_mode=padding_mode))
 
     def forward(self, x):
         initial_map = x
