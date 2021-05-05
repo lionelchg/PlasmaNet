@@ -183,3 +183,80 @@ class PoissonNetwork(BasePoisson):
         self.metrics._data.to_pickle(self.case_dir / 'metrics.pkl')
         
         return self.metrics
+
+
+class PoissonNetworkOpti(BasePoisson):
+    """ Class for network solver of Poisson problem
+
+    :param BasePoisson: Base class for Poisson routines
+
+    """
+
+    def __init__(self, cfg, model):
+        """
+        Initialization of PoissonNetwork class
+
+        :param cfg: config dictionary
+        :type cfg: dict
+        """
+        # First initialize Base class
+        if 'eval' in cfg:
+            super().__init__(cfg['eval'])
+        else:
+            super().__init__(cfg['globals'])
+
+        # Network configuration
+        self.cfg_dl = ConfigParser(cfg)
+        #self.nnx_nn = self.cfg_dl.nnx
+        self.nnx_nn = cfg['train_nnx']
+
+        # Logger
+        self.logger = self.cfg_dl.get_logger('poisson_nn')
+
+        # Data loader if specified for batch evaluation
+        if 'args' in cfg['data_loader']:
+            self.data_loader_cfg = cfg['data_loader']
+            self.metric_ftns = [getattr(module_metric, metric) for metric in cfg['metrics']]
+            self.metrics = MetricTracker(*[m.__name__ for m in self.metric_ftns])
+
+        # Setup data_loader instances
+        self.alpha = self.cfg_dl.alpha
+        self.scaling_factor = self.cfg_dl.scaling_factor
+
+        # Case specific properties
+        self.ratio = ratio_potrhs(self.alpha, self.Lx, self.Ly)
+        self.res_scale = self.nnx_nn**2 / self.nnx**2
+
+        # Build model architecture
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model = model
+        self.model.eval()
+
+        # Load Evaluation data
+        self.data_dir = cfg['data_loader']['args']['data_dir']
+
+    def evaluateopti(self):
+        """
+        Evaluate the network and returns the metrics of the network on the specified dataset
+        """
+
+        # Load dataset
+        self.data_loader_cfg['args']['data_dir'] = self.data_dir
+        data_loader = getattr(module_data, self.data_loader_cfg['type'])(self.cfg_dl, **self.data_loader_cfg['args'])
+        self.metrics.reset()
+
+        # Evaluate the network and follow metrics
+        with torch.no_grad():
+            for i, (data, target, data_norm, target_norm) in enumerate(tqdm(data_loader)):
+                data, target = data.to(self.device), target.to(self.device)
+                data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
+
+                # Divide input and outputs by scaling factor to go back to the real values
+                output = self.res_scale / self.scaling_factor * self.model(data)
+                target /= self.scaling_factor
+
+                # Update MetricTracker with metrics
+                for metric in self.metric_ftns:
+                    self.metrics.update(metric.__name__, metric(output, target, self.cfg_dl).item())
+        
+        return self.metrics._data.values[2,2]

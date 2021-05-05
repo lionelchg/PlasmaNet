@@ -23,7 +23,6 @@ import PlasmaNet.nnet.model as module_arch
 from PlasmaNet.nnet.parse_config import ConfigParser
 from PlasmaNet.nnet.trainer import Trainer
 
-
 # Fix random seeds for reproducibility
 torch.manual_seed(0)
 torch.backends.cudnn.deterministic = True
