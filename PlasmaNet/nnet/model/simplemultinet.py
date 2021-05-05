@@ -135,11 +135,11 @@ class SimpleScaleNet(BaseModel):
             else:
                 x_out = scale_layer(F.interpolate(x, size_int, mode='bilinear', align_corners=False)) 
 
-            y[:,i+1] = F.interpolate(x_out, x.size()[2:], mode='bilinear', align_corners=False)[:,0] 
+            y[:, i+1] = F.interpolate(x_out, x.size()[2:], mode='bilinear', align_corners=False)[:,0] 
 
         if self.add_scales:
-            y[:,0] = y.sum(1)
+            y[:, 0] = y.sum(1)
         else:
-            y[:,0] = y[:,-1]  
+            y[:, 0] = y[:, -1]  
 
         return y
