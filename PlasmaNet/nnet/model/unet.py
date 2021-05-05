@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-from ..base import BaseModel
 from .scalesnet import ScalesNet
 
 # Create the model
