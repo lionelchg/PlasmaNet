@@ -19,14 +19,10 @@ class _ConvBlock(nn.Module):
     in the architecture, the block can begin with a MaxPool2d (for bottom)
     or end with an UpSample or deconvolution layer (for up)
     """
-    def __init__(self, fmaps, in_size, out_size, block_type, kernel_size, 
+    def __init__(self, fmaps, out_size, block_type, kernel_size, 
             pad_method='zeros'):
         super(_ConvBlock, self).__init__()
         layers = list()
-        # Apply downsampling in middle blocks
-        if block_type == 'middle':
-            layers.append(nn.Upsample(in_size, mode='bilinear'))
-
         # Append all the specified layers
         for i in range(len(fmaps) - 1):
             layers.append(nn.Conv2d(fmaps[i], fmaps[i + 1], 
@@ -56,7 +52,7 @@ class MSNet(ScalesNet):
         super(MSNet, self).__init__(scales, kernel_sizes)
         # For upsample the list of resolution is needed when 
         # the number of points is not a power of 2
-        list_res = [int(input_res / 2**i) for i in range(self.n_scales)]
+        self.list_res = [int(input_res / 2**i) for i in range(self.n_scales)]
 
         # create down_blocks, bottom_fmaps and up_blocks
         middle_blocks = list()
@@ -68,31 +64,24 @@ class MSNet(ScalesNet):
         self.ConvsUp = nn.ModuleList()
         for imiddle, middle_fmaps in enumerate(middle_blocks):
             self.ConvsUp.append(_ConvBlock(middle_fmaps, 
-                in_size=list_res[-1 -imiddle], out_size=list_res[-2 -imiddle], 
+                out_size=self.list_res[-2 -imiddle], 
                 block_type='middle', kernel_size=self.kernel_sizes[-1 - imiddle]))
         
         # Out layer
         self.ConvsUp.append(_ConvBlock(out_fmaps, 
-            in_size=list_res[0], out_size=list_res[0],
+            out_size=self.list_res[0],
             block_type='out', kernel_size=self.kernel_sizes[0]))
 
     def forward(self, x):
-        initial_map = x        
+        initial_map = x
         # Apply the up loop
         for iconv, ConvUp in enumerate(self.ConvsUp):
             # First layer of convolution doesn't need concatenation
             if iconv == 0:
                 x = ConvUp(x)
             else:
-                x = ConvUp(torch.cat((x, initial_map), dim=1))
+                tmp_map = F.interpolate(initial_map, x[0, 0].shape, mode='bilinear', align_corners=False)
+                x = ConvUp(torch.cat((x, tmp_map), dim=1))
                 
         return x
-
-
-
-
-
-
-
-
 
