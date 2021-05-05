@@ -10,6 +10,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from ..base import BaseModel
+
 class _ConvSimple(nn.Module):
     """
     Simple Conv Block for init and outputs.
@@ -88,7 +90,7 @@ class _ConvscaleFlexible(nn.Module):
             x = self.scale_filters[i](x)
         return x
 
-class OptiUnet(nn.Module):
+class OptiUnet(BaseModel):
     """
     Define the network with *data_channels* number of inputs while *filters* hold the size of 
     all the convolutional layers applied. The first element of the list will corrrespond to the lowest resolution scale, 

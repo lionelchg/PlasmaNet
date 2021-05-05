@@ -42,7 +42,7 @@ setup(
             'scalar=PlasmaNet.cfdsolver.scalar.scalar:main',
             'streamer=PlasmaNet.cfdsolver.scalar.streamer:main',
             'train_network=PlasmaNet.nnet.trainer.train:main',
-            'opti_train=PlasmaNet.nnet.trainer.opti_train:main
+            'opti_train=PlasmaNet.nnet.trainer.opti_train:main'
         ],
     },
 )
