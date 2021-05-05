@@ -31,12 +31,12 @@ class ScalesNet(BaseModel):
             if isinstance(scale[0], list):
                 for elem in scale:
                     tmp_list += elem
-                    tmp_params += sum([elem[i] * elem[i + 1] * (self.kernel_sizes[iscale]**2) for 
+                    tmp_params += sum([elem[i] * elem[i + 1] * (self.kernel_sizes[iscale]**2 + 1) for 
                         i in range(len(elem) - 1)])
                 self.width.append(len(tmp_list) - 2)
             else:
                 tmp_list = scale
-                tmp_params += sum([scale[i] * scale[i + 1] * (self.kernel_sizes[iscale]**2) for 
+                tmp_params += sum([scale[i] * scale[i + 1] * (self.kernel_sizes[iscale]**2 + 1) for 
                         i in range(len(scale) - 1)])
                 self.width.append(len(tmp_list) - 1)
             self.params.append(tmp_params)
@@ -48,14 +48,19 @@ class ScalesNet(BaseModel):
         # + 1 for initial point
         self.rf_global = 1 + sum(self.receptive_field)
 
+    def global_prop(self):
+        """ Global properties of the network """
+        depth_str = f'Depth of the network: {self.depth:d}'
+        prop_str = 'Global properties of each scale: \n'
+        prop_str += f'{" ":10}|{"RF":^10}|{"width":^10}|{"nparams":^10}|{"k-size":^10}|'
+        for d in range(self.n_scales):
+            prop_str += f'\nDepth {d:d}   |{self.receptive_field[d]:10d}|{self.width[d]:10d}|{self.params[d]:10d}|{self.kernel_sizes[d]:10d}|'
+        prop_str += f'\nTotal     |{self.rf_global:10d}|{sum(self.width):10d}|{sum(self.params):10d}|'
+        return '\n'.join([depth_str, prop_str])
 
     def __str__(self):
         """ Print model with number of trainable parameters as well as
         depth and receptive field """
         base_str = super().__str__()
-        depth_str = f'Depth of the network: {self.depth:d}'
-        prop_str = 'Global properties of each scale: \n    rf - width - kernel_size - nparams'
-        for d in range(self.n_scales):
-            prop_str += f'\n d{d:d}: {self.receptive_field[d]:d} - {self.width[d]:d} - {self.kernel_sizes[d]:d} - {self.params[d]:d}'
-        prop_str += f'\nTotal: {self.rf_global:d} - {sum(self.width):d}'
-        return '\n'.join([base_str, depth_str, prop_str])
+        global_prop_str = self.global_prop()
+        return '\n'.join([base_str, global_prop_str])
