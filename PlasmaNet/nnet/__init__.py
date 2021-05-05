@@ -7,10 +7,10 @@ CERFACS
 
 __author__ = 'Guillaume Bogopolsky, Lionel Cheng, Ekhi Ajuria'
 __mail__ = ''
-__version__ = '0.1'
+__version__ = '1.0'
 
 from .data import data_loaders
-from .model import loss, metric, multiscalenet, dirichletnet, unet
+from .model import loss, metric
 from .trainer.trainer import Trainer
 from .parse_config import ConfigParser
 
@@ -18,9 +18,6 @@ __ALL__ = [
     data_loaders,
     loss,
     metric,
-    multiscalenet,
-    dirichletnet,
-    unet,
     Trainer,
     ConfigParser,
 ]

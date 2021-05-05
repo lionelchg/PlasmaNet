@@ -15,9 +15,7 @@ if __name__ == '__main__':
         print(f'Architecture: {key}')
         if args.network == 'unet':
             value['args']['input_res'] = 101
-            value['args']['up_type'] = 'upsample'
         else:
             value['args']['pad_method'] = 'zeros'
         tmp_model = getattr(model, value['type'])(**value['args'])
         print(tmp_model)
-        print(f'Number of trainable parameters: {tmp_model.nparams:d}\n')

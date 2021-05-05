@@ -11,93 +11,82 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ..base import BaseModel
-
+from .scalesnet import ScalesNet
 
 class _ConvBlock(nn.Module):
     """
-    MSNet convolutional layer.
-    The network will have conv2D layers with an intermediate ReLU activation function at each scale.
-    Each layer will have a kernel of size 3x3 and no stride. Padding method is chosen when initializing
+    General convolution block for UNet. Depending on the location of the block
+    in the architecture, the block can begin with a MaxPool2d (for bottom)
+    or end with an UpSample or deconvolution layer (for up)
     """
-    def __init__(self, filters, kernels, pad_method='zeros'):
-        """Generic scale, only needs the number of feature maps and kernel sizes.
-
-        Args:
-            filters (list): list containing the size of the intermediate feature maps
-            kernels (list): list containing the initial and final kernel sizes (size=2)
-            pad_method (str): padding method, 'zeros' by default.
-        """
+    def __init__(self, fmaps, in_size, out_size, block_type, kernel_size, 
+            pad_method='zeros'):
         super(_ConvBlock, self).__init__()
+        layers = list()
+        # Apply downsampling in middle blocks
+        if block_type == 'middle':
+            layers.append(nn.Upsample(in_size, mode='bilinear'))
 
-        # Module list containing all the layers
-        self.scale_filters = []
+        # Append all the specified layers
+        for i in range(len(fmaps) - 1):
+            layers.append(nn.Conv2d(fmaps[i], fmaps[i + 1], 
+                kernel_size=kernel_size, padding=int((kernel_size - 1) / 2),
+                padding_mode=pad_method))
+            # No ReLu at the very last layer
+            if i != len(fmaps) - 2 or block_type != 'out':
+                layers.append(nn.ReLU())
 
-        # Initialize with input size.
-        self.scale_filters.append(nn.Conv2d(filters[0], filters[1], kernel_size=kernels[0], stride=1, padding=kernels[0]//2, padding_mode=pad_method))
-
-        # Intermediate layers.
-        for i in range(1, len(filters)-2):
-            self.scale_filters.append(nn.ReLU())
-            self.scale_filters.append(nn.Conv2d(filters[i], filters[i+1], kernel_size=3, stride=1, padding=1, padding_mode=pad_method))
-
-        if len(filters) > 1:
-            # Final layer, note that there is no ReLU before and after.
-            self.scale_filters.append(nn.Conv2d(filters[-2], filters[-1], kernel_size=kernels[-1], stride=1, padding=kernels[-1]//2, padding_mode=pad_method))
+        # Apply either Upsample or deconvolution
+        if block_type == 'middle':
+            layers.append(nn.Upsample(out_size, mode='bilinear'))
 
         # Build the sequence of layers
-        self.encode = nn.Sequential(*self.scale_filters)
+        self.encode = nn.Sequential(*layers)
 
     def forward(self, x):
         return self.encode(x)
 
-
-class MSNet(BaseModel):
+class MSNet(ScalesNet):
     """
-    Generic MSNet network definition.
+    General MSNet. All the layers are specified in the config file. Three different options are possible
+    when going up the U: upsample, deconvolution or interpolation. Only interpolation
+    allows the network to work on different resolutions
     """
-    def __init__(self, filters, kernels, pad_method='zeros'):
-        """ The following args are needed when intializing:
+    def __init__(self, scales, kernel_sizes, input_res):
+        super(MSNet, self).__init__(scales, kernel_sizes)
+        # For upsample the list of resolution is needed when 
+        # the number of points is not a power of 2
+        list_res = [int(input_res / 2**i) for i in range(self.n_scales)]
 
-        Args:
-            filters (list): List of lists containing number of FM, i.e., [[1, 32, 32, 1], [2, 32, 32, 1]]
-            kernels (list): List of lists containing the first and last kernel sizes (as they can be 5 for the MSNet)
-            i.e.= [[5,3], [5,5]]
-            pad_method (str, optional): Defaults to 'zeros'.
-        """
+        # create down_blocks, bottom_fmaps and up_blocks
+        middle_blocks = list()
+        for local_depth in range(self.depth):
+            middle_blocks.append(self.scales[f'depth_{self.depth - local_depth:d}'])
+        out_fmaps = self.scales['depth_0']
 
-        super(MSNet, self).__init__()
-
-        self.pad_method = pad_method
-        self.scales = len(filters)
-        self.scales_list = nn.ModuleList()
-        self.final = nn.Conv2d(filters[-1][-1], 1, kernel_size=1)
-
-        for i in range(self.scales):
-            self.scales_list.append(_ConvBlock(filters[i], kernels[i], self.pad_method))
-
+        # Intemediate layers up (UpSample/Deconv at the end)
+        self.ConvsUp = nn.ModuleList()
+        for imiddle, middle_fmaps in enumerate(middle_blocks):
+            self.ConvsUp.append(_ConvBlock(middle_fmaps, 
+                in_size=list_res[-1 -imiddle], out_size=list_res[-2 -imiddle], 
+                block_type='middle', kernel_size=self.kernel_sizes[-1 - imiddle]))
+        
+        # Out layer
+        self.ConvsUp.append(_ConvBlock(out_fmaps, 
+            in_size=list_res[0], out_size=list_res[0],
+            block_type='out', kernel_size=self.kernel_sizes[0]))
 
     def forward(self, x):
-
-        # Loop from lowest to highest resolution
-        for i in range(self.scales):
-            # Identify scales and get correct size for interpolation
-            scale_layer = self.scales_list[i]
-            size_int = [int(j / 2**(self.scales-1-i)) for j in list(x.size()[2:])]
-
-            # First element does not have information from a lower resolution scale           
-            if i == 0:
-                x_out = scale_layer(F.interpolate(x, size_int, mode='bilinear', align_corners=False))
+        initial_map = x        
+        # Apply the up loop
+        for iconv, ConvUp in enumerate(self.ConvsUp):
+            # First layer of convolution doesn't need concatenation
+            if iconv == 0:
+                x = ConvUp(x)
             else:
-                x_out = scale_layer(torch.cat((F.interpolate(x, size_int, mode='bilinear', align_corners=False),
-                                            F.interpolate(x_out, size_int, mode='bilinear', align_corners=False)), dim=1))
-
-        # Final conv to output a single field
-        x = self.final(x_out)
-
+                x = ConvUp(torch.cat((x, initial_map), dim=1))
+                
         return x
-
-
 
 
 
