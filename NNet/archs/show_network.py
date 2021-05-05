@@ -5,7 +5,8 @@ import PlasmaNet.nnet.model as model
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', help='Config filename')
-    parser.add_argument('-n', '--network', help='Network type (msnet or unet')
+    parser.add_argument('-m', '--mode', help='Show all the network or just global parameters',
+                            default='global')
     args = parser.parse_args()
 
     with open(args.config) as yaml_stream:
@@ -15,4 +16,7 @@ if __name__ == '__main__':
         print(f'Architecture: {key}')
         value['args']['input_res'] = 101
         tmp_model = getattr(model, value['type'])(**value['args'])
-        print(tmp_model)
+        if args.mode == 'all': 
+            print(tmp_model)
+        elif args.mode == 'global':
+            print(tmp_model.global_prop())
