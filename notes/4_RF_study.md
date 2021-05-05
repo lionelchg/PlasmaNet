@@ -7,6 +7,8 @@ The intuition is that there would be a gap in performance compared to RF100 netw
 
 Kernel size of 5 is also tested for RF100 networks. For a given receptive field, the width of the network is smaller, so vanishing/exploding gradient problems are less likely to arise and the network should also be able to learn somewhat faster.
 
+The networks are first trained on 101x101 domains.
+
 ## `unets_ks3_rf50.yml`
 
 UNet5 is not possible with RF = 50.
@@ -39,7 +41,7 @@ UNet5 is not possible with RF = 50.
 | ------------------ | --------- |
 | `random_8`         | *Running*       |
 
-### UNet4 - `config_5`
+### UNet5 - `config_5`
 
 | Dataset            | Results   |
 | ------------------ | --------- |

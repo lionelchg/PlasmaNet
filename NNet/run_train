@@ -6,4 +6,5 @@
 #SBATCH --partition=gpu
 #SBATCH --nodelist=krakengpu1
 
-python train.py -c cfg_101.yml
+echo PlasmaNet train network with config file: $1
+train_network -c $1
