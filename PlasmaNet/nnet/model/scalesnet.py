@@ -5,6 +5,7 @@
 #                                  Ekhi Ajuria & Lionel Cheng, CERFACS, 05.05.2021                                     #
 #                                                                                                                      #
 ########################################################################################################################
+
 import numpy as np
 import torch
 from ..base import BaseModel

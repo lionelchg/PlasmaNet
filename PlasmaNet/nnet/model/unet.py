@@ -11,7 +11,7 @@ class _ConvBlock(nn.Module):
     in the architecture, the block can begin with a MaxPool2d (for bottom)
     or end with an UpSample or deconvolution layer (for up)
     """
-    def __init__(self, fmaps, block_type, kernel_size, up_arg=None):
+    def __init__(self, fmaps, block_type, kernel_size, out_size=None):
         super(_ConvBlock, self).__init__()
         layers = list()
         # Apply pooling on down and bottom blocks
@@ -28,8 +28,7 @@ class _ConvBlock(nn.Module):
 
         # Apply either Upsample or deconvolution
         if block_type == 'up' or block_type == 'bottom':
-            output_size = up_arg
-            layers.append(nn.Upsample(output_size))
+            layers.append(nn.Upsample(out_size))
 
         # Build the sequence of layers
         self.encode = nn.Sequential(*layers)
