@@ -25,6 +25,7 @@ UNet5 is not possible with RF = 50.
 | ------------------ | --------- |
 | `random_8`         | *Running*       |
 
+
 ## `unets_ks3_rf100.yml`
 
 UNet5 is not possible with RF = 50.
@@ -58,6 +59,22 @@ UNet5 is not possible with RF = 50.
 | `random_8`         | *Running*       |
 
 ### UNet4 - `config_7`
+
+| Dataset            | Results   |
+| ------------------ | --------- |
+| `random_8`         | *Running*       |
+
+## `unets_ks3_rf75.yml`
+
+UNet5 is not possible with RF = 75.
+
+### UNet3 - `config_8`
+
+| Dataset            | Results   |
+| ------------------ | --------- |
+| `random_8`         | *Running*       |
+
+### UNet4 - `config_9`
 
 | Dataset            | Results   |
 | ------------------ | --------- |
