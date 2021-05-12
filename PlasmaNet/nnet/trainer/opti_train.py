@@ -118,6 +118,27 @@ def main():
     study = optuna.create_study(study_name='parameter_opti',
                     storage='sqlite:////scratch/cfd/PlasmaDL/optim/study/study_long.db',
                     load_if_exists=True, directions=["minimize", "minimize"])
+
+    # 4. Plot final results 
+    pruned_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.PRUNED]
+    complete_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.COMPLETE]
+    print("Study statistics: ")
+    print("  Number of finished trials: ", len(study.trials))
+    print("  Number of pruned trials: ", len(pruned_trials))
+    print("  Number of complete trials: ", len(complete_trials))
+
+
+    print("Best trials:")
+    trials = sorted(study.best_trials, key=lambda t: t.values)
+
+    for trial in trials:
+        print("  Trial#{}".format(trial.number))
+        print("    Values: score ={}, num_params={}".format(trial.values[0], trial.values[1]))
+        print("  Params: ")
+        for key, value in trial.params.items():
+            print("    {}: {}".format(key, value))
+
+
     study.optimize(objective, n_trials= 200) #, n_jobs= 1) #100)
 
     # 4. Plot final results 
