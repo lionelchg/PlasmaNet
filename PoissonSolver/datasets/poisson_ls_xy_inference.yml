@@ -33,5 +33,3 @@ datasets:
     random_factors: [4, 6, 8, 10, 12, 16]
     fourier_modes: [2, 5, 8]
     fourier_decrease: [0, 1]
-
-

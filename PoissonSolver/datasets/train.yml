@@ -19,7 +19,9 @@ n_procs: 30
 output_dir: '/scratch/cfd/cheng/DL/datasets/train/'
 
 poisson:
+  geom: 'cartesian'
   mat: 'cart_dirichlet'
+  bcs: 'dirichlet'
   xmin: 0.0
   xmax: 1.0e-2
   nnx: 101

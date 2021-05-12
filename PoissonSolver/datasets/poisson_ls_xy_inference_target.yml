@@ -14,18 +14,28 @@
 #         config = yaml.safe_load(yaml_stream)
 
 device: 'kraken'
-n_entries: 1000
-n_procs: 30
-output_dir: '/scratch/cfd/cheng/DL/datasets/eval/'
-
+n_entries: 2700
+n_procs: 20
+output_dir: '/scratch/cfd/PlasmaDL/datasets/eval/101x101/mixed/'
+plot_every: 50
 poisson:
-  geom: 'cartesian'
-  mat: 'cart_dirichlet'
-  bcs: 'dirichlet'
-  xmin: 0.0
-  xmax: 1.0e-2
-  nnx: 101
-  ymin: 0.0
-  ymax: 1.0e-2
-  nny: 101
-  nmax_fourier: 5
+    geom: 'cartesian'
+    bcs: 'dirichlet'
+    mat: 'cart_dirichlet'
+    xmin: 0.0
+    xmax: 1.0e-2
+    nnx: 101
+    ymin: 0.0
+    ymax: 1.0e-2
+    nny: 101
+    nmax_fourier: 10
+datasets:
+    random: 
+        factors: [4, 6, 8, 10, 12, 16]
+        size: 200
+    fourier:
+        modes: [2, 5, 8]
+        power_decrease: [0, 1]
+        size: 200
+    gaussian: 
+        size: 200

@@ -58,6 +58,8 @@ ampl_min, ampl_max = 0.01, 1
 sigma_min, sigma_max = 1e-3, 3e-3
 x_middle_min, x_middle_max = 0.35e-2, 0.65e-2
 
+bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
+
 def params(nits):
     """ Parameters to give to compute function for imap """
     for i in range(nits):
@@ -75,8 +77,7 @@ def compute(args):
     ampl, x_gauss, y_gauss, sigma_x, sigma_y = args
     physical_rhs = gaussian(poisson.X.reshape(-1), poisson.Y.reshape(-1), ampl, 
                         x_gauss, y_gauss, sigma_x, sigma_y)
-
-    poisson.solve(physical_rhs, zeros_x, zeros_x, zeros_y, zeros_y)
+    poisson.solve(physical_rhs, bcs)
 
     return poisson.potential, poisson.physical_rhs
 

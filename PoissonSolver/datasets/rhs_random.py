@@ -63,7 +63,7 @@ x_lower, y_lower = np.linspace(xmin, xmax, nnx_lower), np.linspace(ymin, ymax, n
 
 # Amplitude of the RhS
 ni0 = 1e11
-bcs={}
+bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
 
 def params(nits):
     """ Parameters to give to compute function for imap """

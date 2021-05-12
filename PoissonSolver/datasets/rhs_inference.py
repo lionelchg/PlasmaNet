@@ -33,11 +33,7 @@ args.add_argument('-c', '--cfg', type=str, default=None,
                 help='Config filename')
 args.add_argument('-nn', '--nnodes', default=None, type=int,
                     help='Number of nodes in x and y directions')
-args.add_argument('--case', type=str, default=None, help='Case name')
 
-# Specific arguments
-args.add_argument('-nr', '--n_res_factor', default=4, type=int,
-                    help='grid of npts/nres on which the random set is taken')
 args = args.parse_args()
 
 with open(args.cfg, 'r') as yaml_stream:
@@ -52,24 +48,22 @@ if args.nnodes is not None:
     cfg['poisson']['nnx'] = args.nnodes
     cfg['poisson']['nny'] = args.nnodes
 
-
 # Amplitude of the RhS
 ni0 = 1e11
 rhs0 = ni0 * co.e / co.epsilon_0
 ampl_min, ampl_max = 0.01, 1
 sigma_min, sigma_max = 1e-3, 3e-3
 x_middle_min, x_middle_max = 0.35e-2, 0.65e-2
-bcs={}
 
 class MixedDataset:
     """ Class to generate the dataset containing random, fourier and hills (1/3 each)
     """
     def __init__(self, cfg):
         # Generate poisson class and bcs
-        self.poisson_ls = PoissonLinSystem(config['poisson'])
+        self.poisson_ls = PoissonLinSystem(cfg['poisson'])
         zeros_x, zeros_y = np.zeros(self.poisson_ls.nnx), np.zeros(self.poisson_ls.nny)
         self.pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
-        self.case_dir = config['output_dir']
+        self.case_dir = cfg['output_dir']
         self.plot_evr = cfg['plot_every']
 
         # Parameters inside the dataset
@@ -222,6 +216,4 @@ if __name__ == '__main__':
     dataset = MixedDataset(config)
     dataset.run(config)
     dataset.save()
-
-
 
