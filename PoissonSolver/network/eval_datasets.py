@@ -7,8 +7,7 @@
 ############################################################################################################
 import argparse
 import yaml
-import numpy as np
-import scipy.constants as co
+from pathlib import Path
 
 # From PlasmaNet
 from PlasmaNet.poissonsolver.network import PoissonNetwork
@@ -22,8 +21,10 @@ if __name__ == '__main__':
     with open(args.config, 'r') as yaml_stream:
         config = yaml.safe_load(yaml_stream)
 
-    # Neural network config_1/random_4
+    # Neural network configuration
     config['network']['eval'] = config['eval']
     poisson_nn = PoissonNetwork(config['network'])
-    poisson_nn.evaluate('/scratch/cfd/PlasmaDL/datasets/eval/101x101/stand_alone/random_8', 
-                        'cases/eval')
+
+    # Evaluate on the datasets specified in config
+    for ds_name, ds_loc in config['datasets'].items():
+        poisson_nn.evaluate(ds_loc, Path(config['network']['casename']) / 'datasets' / ds_name)

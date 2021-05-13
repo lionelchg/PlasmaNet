@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-linsystem:
+eval:
     geom: 'cartesian'
     bcs: 'dirichlet'
     xmin: 0.0
@@ -24,16 +24,12 @@ linsystem:
     nny: 101
     nmax_fourier: 10
 
-dataset: '/scratch/cfd/PlasmaDL/datasets/eval/101x101/mixed/'
-plot_every: 50
-
-evaluation:
-    datasets: ['random_4', 'random_8', 'random_16']
-    networks: [1, 2, 3] #[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-
+datasets: 
+    ds_1: '/scratch/cfd/PlasmaDL/datasets/eval/101x101/stand_alone/random_8'
+    ds_2: '/scratch/cfd/PlasmaDL/datasets/eval/101x101/stand_alone/random_10'
 
 network:
-    casename: 'cases/network/'                  # Experience name
+    casename: 'cases/4_RF_study/config_5/random_8/'                  # Experience name
     n_gpu: 1                                    # Number of GPUs to use
 
     globals:                                    # Domain sizes and others, used to compute global attributes
@@ -46,31 +42,26 @@ network:
         coord: 'cart'
         verbosity: 2
 
-    #resume: '/scratch/cfd/cheng/DL/plasmanet/NNet/outputs/101x101/models/config_2/random_4'
-    resume: '/scratch/cfd/PlasmaDL/networks/train/models/'
-
+    resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_5/random_8'
+    
     arch:
-        type: 'UNet'
+        db_file: 'unets_ks3_rf100.yml'
+        name: 'UNet5'
         args:
-            in_fmaps: [1, 32, 32]
-            down_blocks: [[32, 32, 32]]
-            bottom_fmaps: [32, 38, 32]
-            up_blocks: [[64, 32, 32]]
-            out_fmaps: [64, 32, 32, 1]
             input_res: 101
-            up_type: 'upsample'
-
-    #arch:
-    #    type: 'UNet5'
-    #    args:
-    #        data_channels: 1                    # For dirichlet use 2 or 3, and keep 1 or 5 for the homogeneous problem 
-
 
     data_loader:
+        type: 'PoissonDataLoader'
         data_channels: 1
-        normalize: 'analytical'
-        alpha: 0.1
-        scaling_factor: 1.0e+6
+        pipe_config: True
+        args:
+            batch_size: 200
+            shuffle: True
+            validation_split: 0.0               # if float, fraction of the full dataset, if int, length of validation portion
+            num_workers: 4
+            normalize: 'analytical'                   # max, physical or no for normalization types
+            alpha: 0.1
+            scaling_factor: 1.0e+6
 
     initializer: 'off'
 

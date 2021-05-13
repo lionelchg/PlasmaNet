@@ -8,8 +8,8 @@
 
 import numpy as np
 from scipy import integrate
-import matplotlib
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 from ..common.operators_numpy import grad, lapl
 from ..common.plot import plot_ax_scalar, plot_ax_vector_arrow, plot_ax_trial_1D, plot_modes
@@ -164,8 +164,13 @@ class BasePoisson:
     
     def save(self, save_dir):
         """ Save the potential and rhs in the specified location """
-        np.save(f'{save_dir}physical_rhs', self.physical_rhs)
-        np.save(f'{save_dir}potential', self.potential)
+        if isinstance(save_dir, Path):
+            np.save(save_dir / 'physical_rhs', self.physical_rhs)
+            np.save(save_dir / 'potential', self.potential)
+        elif isinstance(save_dir, str):
+            if save_dir[-1] != '/': save_dir += '/'
+            np.save(save_dir + 'physical_rhs', self.physical_rhs)
+            np.save(save_dir + 'potential', self.potential)
     
     def L2error_pot(self, th_potential):
         """ MSE error of the potential with a theoretical one

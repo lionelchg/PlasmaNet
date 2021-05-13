@@ -53,8 +53,7 @@ class PoissonNetwork(BasePoisson):
 
         # Network configuration
         self.cfg_dl = ConfigParser(cfg)
-        #self.nnx_nn = self.cfg_dl.nnx
-        self.nnx_nn = cfg['train_nnx']
+        self.nnx_nn = self.cfg_dl.nnx
 
         # Logger
         self.logger = self.cfg_dl.get_logger('poisson_nn')
@@ -121,11 +120,11 @@ class PoissonNetwork(BasePoisson):
         # Retrieve the potential
         self.potential = self.res_scale / self.scaling_factor * potential_torch.detach().cpu().numpy()[0, 0]
 
-    def run_case(self, case_dir: str, physical_rhs: np.ndarray, plot: bool, it=0):
+    def run_case(self, case_dir: Path, physical_rhs: np.ndarray, plot: bool):
         """ Run a Poisson linear system case
 
         :param case_dir: Case directory
-        :type case_dir: str
+        :type case_dir: Path
         :param physical_rhs: physical rhs
         :type physical_rhs: np.ndarray
         :param Lx: length of the domain
@@ -133,14 +132,14 @@ class PoissonNetwork(BasePoisson):
         :param plot: logical for plotting
         :type plot: bool
         """
-        create_dir(case_dir)
+        case_dir.mkdir(parents=True, exist_ok=True)
         self.solve(physical_rhs)
         self.save(case_dir)
         if plot:
-            fig_dir = case_dir + 'figures/'
-            create_dir(fig_dir)
-            self.plot_2D(fig_dir + '2D_{}'.format(it))
-            self.plot_1D2D(fig_dir + 'full_{}'.format(it))
+            fig_dir = case_dir / 'figures'
+            fig_dir.mkdir(parents=True, exist_ok=True)
+            self.plot_2D(fig_dir / '2D')
+            self.plot_1D2D(fig_dir / 'full')
     
     def evaluate(self, data_dir, case_dir):
         """
