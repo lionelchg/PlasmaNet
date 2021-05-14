@@ -35,7 +35,8 @@ if __name__ == '__main__':
     metrics_ds = dict()
 
     # datadir
-    data_dir = Path(config['network']['casename']) / 'datasets'
+    data_dir = Path(config['network']['casename'])
+    data_dir.mkdir(parents=True, exist_ok=True)
 
     # Evaluate on the datasets specified in config for each network
     for nn_name, nn_cfg in networks_cfg.items():
@@ -62,7 +63,7 @@ if __name__ == '__main__':
             tmp_df.loc[nn_name] = tmp_dict
 
         # Save figures for each metric
-        tmp_df.T.plot.bar(ax=axes[imetric], rot=0)
+        tmp_df.T.plot.bar(ax=axes[imetric], rot=30)
         axes[imetric].set_title(metric_name)
 
         # Pass the metrics to a global dict

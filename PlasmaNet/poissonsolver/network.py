@@ -147,8 +147,9 @@ class PoissonNetwork(BasePoisson):
         """
         # Create case directory
         self.case_dir = Path(case_dir)
-        self.fig_dir = self.case_dir / 'figures'
-        self.fig_dir.mkdir(parents=True, exist_ok=True)
+        if plot:
+            self.fig_dir = self.case_dir / 'figures'
+            self.fig_dir.mkdir(parents=True, exist_ok=True)
 
         # Load dataset
         self.data_loader_cfg['args']['data_dir'] = data_dir
@@ -179,8 +180,6 @@ class PoissonNetwork(BasePoisson):
                     fig = plot_batch_Efield(output, target, data, 0, i, self.cfg_dl)
                     fig.savefig(self.fig_dir / 'batch_Efield_{:05d}.png'.format(i), dpi=150, bbox_inches='tight')
                     plt.close()
-        
-        self.metrics._data.to_pickle(self.case_dir / 'metrics.pkl')
         
         return self.metrics
 
