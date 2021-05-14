@@ -25,9 +25,9 @@ if __name__ == '__main__':
     with open(args.config, 'r') as yaml_stream:
         config = yaml.safe_load(yaml_stream)
 
-    # Neural network configuration
-    config['network']['eval'] = config['eval']
-    poisson_nn = PoissonNetwork(config['network'])
+    # Neural network configurations
+    networks_cfg = config['networks']
+    n_networks = len(networks_cfg)
 
     # datasets studied
     datasets = config['datasets']
@@ -37,10 +37,17 @@ if __name__ == '__main__':
     # datadir
     data_dir = Path(config['network']['casename']) / 'datasets'
 
-    # Evaluate on the datasets specified in config
-    for ds_name, ds_loc in datasets.items():
-        metrics_tmp = poisson_nn.evaluate(ds_loc, data_dir / ds_name, plot=False)
-        metrics_ds[ds_name] = deepcopy(metrics_tmp)
+    # Evaluate on the datasets specified in config for each network
+    for nn_name, nn_cfg in networks_cfg.items():
+        metrics_ds[nn_name] = dict()
+        config['network']['eval'] = config['eval']
+        config['network']['resume'] = nn_cfg['resume']
+        config['network']['arch'] = nn_cfg['arch']
+        poisson_nn = PoissonNetwork(config['network'])
+        # Loop on datasets
+        for ds_name, ds_loc in datasets.items():
+            metrics_tmp = poisson_nn.evaluate(ds_loc, data_dir / ds_name, plot=False)
+            metrics_ds[nn_name][ds_name] = deepcopy(metrics_tmp)
     
     # Reformat to one dataframe per metrics with figure plotting
     metrics = dict()
@@ -48,10 +55,11 @@ if __name__ == '__main__':
     fig, axes = plt.subplots(ncols=nmetrics, figsize=(4 * nmetrics, 4))
     for imetric, metric_name in enumerate(config['network']['metrics']):
         tmp_df = pd.DataFrame(columns=datasets.keys())
-        tmp_dict = dict()
-        for ds_name in datasets.keys():
-            tmp_dict[ds_name] = metrics_ds[ds_name]._data.average[metric_name]
-        tmp_df.loc['UNet5'] = tmp_dict
+        for nn_name in networks_cfg.keys():
+            tmp_dict = dict()
+            for ds_name in datasets.keys():
+                tmp_dict[ds_name] = metrics_ds[nn_name][ds_name]._data.average[metric_name]
+            tmp_df.loc[nn_name] = tmp_dict
 
         # Save figures for each metric
         tmp_df.T.plot.bar(ax=axes[imetric], rot=0)

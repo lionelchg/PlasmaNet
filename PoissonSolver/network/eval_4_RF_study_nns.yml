@@ -25,9 +25,9 @@ eval:
     nmax_fourier: 10
 
 datasets: 
-    ds_1: '/scratch/cfd/PlasmaDL/datasets/eval/101x101/stand_alone/random_8'
-    ds_2: '/scratch/cfd/PlasmaDL/datasets/eval/101x101/stand_alone/random_10'
-    ds_3: '/scratch/cfd/PlasmaDL/datasets/eval/101x101/stand_alone/random_12'
+    random_8: '/scratch/cfd/PlasmaDL/datasets/eval/101x101/stand_alone/random_8'
+    random_10: '/scratch/cfd/PlasmaDL/datasets/eval/101x101/stand_alone/random_10'
+    random_12: '/scratch/cfd/PlasmaDL/datasets/eval/101x101/stand_alone/random_12'
 
 networks: 
     UNet5-ks3-rf100:
