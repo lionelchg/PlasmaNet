@@ -29,6 +29,21 @@ datasets:
     ds_2: '/scratch/cfd/PlasmaDL/datasets/eval/101x101/stand_alone/random_10'
     ds_3: '/scratch/cfd/PlasmaDL/datasets/eval/101x101/stand_alone/random_12'
 
+networks: 
+    UNet5-ks3-rf100:
+        resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_5/random_8'
+        arch:
+            db_file: 'unets_ks3_rf100.yml'
+            name: 'UNet5'
+            args:
+                input_res: 101
+    UNet4-ks3-rf100:
+        resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_4/random_8'
+        arch:
+            db_file: 'unets_ks3_rf100.yml'
+            name: 'UNet4'
+            args:
+                input_res: 101
 
 network:
     casename: 'cases/4_RF_study/config_5/random_8/'                  # Experience name
@@ -43,14 +58,6 @@ network:
         ymax: 1.0e-2
         coord: 'cart'
         verbosity: 2
-
-    resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_5/random_8'
-    
-    arch:
-        db_file: 'unets_ks3_rf100.yml'
-        name: 'UNet5'
-        args:
-            input_res: 101
 
     data_loader:
         type: 'PoissonDataLoader'

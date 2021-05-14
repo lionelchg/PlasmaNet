@@ -141,7 +141,7 @@ class PoissonNetwork(BasePoisson):
             self.plot_2D(fig_dir / '2D')
             self.plot_1D2D(fig_dir / 'full')
     
-    def evaluate(self, data_dir, case_dir):
+    def evaluate(self, data_dir, case_dir, plot):
         """
         Evaluate the network and returns the metrics of the network on the specified dataset
         """
@@ -169,16 +169,17 @@ class PoissonNetwork(BasePoisson):
                 for metric in self.metric_ftns:
                     self.metrics.update(metric.__name__, metric(output, target, self.cfg_dl).item())
 
-                #
-                # save sample images for the first images of the batch
-                #
-                fig = plot_batch(output, target, data, 0, i, self.cfg_dl)
-                fig.savefig(self.fig_dir / 'batch_{:05d}.png'.format(i), dpi=150, bbox_inches='tight')
-                fig = plot_batch_Efield(output, target, data, 0, i, self.cfg_dl)
-                fig.savefig(self.fig_dir / 'batch_Efield_{:05d}.png'.format(i), dpi=150, bbox_inches='tight')
-                plt.close()
+                # Plot images if specified
+                if plot:
+                    #
+                    # save sample images for the first images of the batch
+                    #
+                    fig = plot_batch(output, target, data, 0, i, self.cfg_dl)
+                    fig.savefig(self.fig_dir / 'batch_{:05d}.png'.format(i), dpi=150, bbox_inches='tight')
+                    fig = plot_batch_Efield(output, target, data, 0, i, self.cfg_dl)
+                    fig.savefig(self.fig_dir / 'batch_Efield_{:05d}.png'.format(i), dpi=150, bbox_inches='tight')
+                    plt.close()
         
-        print(self.metrics._data)
         self.metrics._data.to_pickle(self.case_dir / 'metrics.pkl')
         
         return self.metrics
