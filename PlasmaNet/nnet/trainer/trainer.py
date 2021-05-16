@@ -9,6 +9,7 @@
 import numpy as np
 import torch
 
+import pandas as pd
 from ..base import BaseTrainer
 from .plot import plot_batch, plot_distrib, plot_scales, plot_batch_Efield
 from ..utils import inf_loop, MetricTracker
@@ -55,6 +56,12 @@ class Trainer(BaseTrainer):
                 self.ctl_pipes,
                 self.work_pipes,
             ) = init_subprocesses(self.config["loss"]["args"]["ltloss_num_procs"])
+
+        # General dataframe to hold metrics for all training and valid epochs
+        self.df_train_metrics = pd.DataFrame(columns=('loss', *self.criterion.loss_list,
+                                           *[m.__name__ for m in self.metric_ftns]))
+        self.df_valid_metrics = pd.DataFrame(columns=('loss', *self.criterion.loss_list,
+                                           *[m.__name__ for m in self.metric_ftns]))
 
     def _train_epoch(self, epoch):
         """
@@ -143,6 +150,7 @@ class Trainer(BaseTrainer):
         for group in self.optimizer.param_groups:
             log['LearningRate'] = group['lr']
         self._send_log_to_tb(log)
+        self.df_train_metrics.loc[epoch] = self.train_metrics._data.average
 
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
@@ -226,8 +234,15 @@ class Trainer(BaseTrainer):
         # Extract averages and send to TensorBoard
         val_log = self.valid_metrics.result()
         self._send_log_to_tb(val_log)
+        self.df_valid_metrics.loc[epoch] = self.valid_metrics._data.average
 
         return val_log
+    
+    def train(self):
+        """ Define train for saving of dataframes """
+        super().train()
+        self.df_train_metrics.to_hdf(self.config.log_dir / 'metrics.h5', key='train', mode='w')
+        self.df_valid_metrics.to_hdf(self.config.log_dir / 'metrics.h5', key='valid', mode='a')
 
     def _batch_plots(self, output, target, data, epoch, batch_idx, mode='train'):
         """ Plots to realise during training and validation loops. File and TensorBoard output. """

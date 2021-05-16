@@ -30,30 +30,18 @@ globals:                                    # Domain sizes and others, used to c
     coord: 'cart'
     verbosity: 2
 
-# arch:
-#     type: 'UNet'
-#     args:
-#         in_fmaps: [1, 32, 32]
-#         down_blocks: [[32, 32, 32]]
-#         bottom_fmaps: [32, 38, 32]
-#         up_blocks: [[64, 32, 32]]
-#         out_fmaps: [64, 32, 32, 1]
-#         input_res: 101
-#         up_type: 'deconvolution'
-
 arch:
-    db_file: 'unets_small.yml'
-    name: 'UNet3'
+    db_file: 'unets_ks3_rf100.yml'
+    name: 'UNet5'
     args:
         input_res: 101
-        up_type: 'deconvolution'
 
 data_loader:
     type: 'PoissonDataLoader'
     data_channels: 1
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/training/101x101/random_8'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/train/101x101/random_8'
         batch_size: 64
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion

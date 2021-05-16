@@ -1,8 +1,6 @@
 #!/usr/bin/bash
 python rhs_random.py -c eval.yml -nr 4 -nn 101
-python rhs_random.py -c eval.yml -nr 6 -nn 101
 python rhs_random.py -c eval.yml -nr 8 -nn 101
-python rhs_random.py -c eval.yml -nr 10 -nn 101
 python rhs_random.py -c eval.yml -nr 12 -nn 101
 python rhs_random.py -c eval.yml -nr 16 -nn 101
 
