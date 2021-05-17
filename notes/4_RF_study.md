@@ -17,13 +17,15 @@ UNet5 is not possible with RF = 50.
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_4`         | *Running*       |
+| `random_8`         | OK       |
 
 ### UNet4 - `config_2`
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_4`         | *Running*       |
+| `random_8`         | OK       |
 
 
 ## `unets_ks3_rf100.yml`
@@ -34,19 +36,22 @@ UNet5 is not possible with RF = 50.
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_4`         | *Running*       |
+| `random_8`         | OK       |
 
 ### UNet4 - `config_4`
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_4`         | *Running*       |
+| `random_8`         | OK       |
 
 ### UNet5 - `config_5`
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_4`         | *Running*       |
+| `random_8`         | OK       |
 
 ## `unets_ks5_rf100.yml`
 
@@ -56,13 +61,15 @@ UNet5 is not possible with RF = 100 and KS=5.
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_4`         | *Running*       |
+| `random_8`         | OK       |
 
 ### UNet4 - `config_7`
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_4`         | *Running*       |
+| `random_8`         | OK       |
 
 ## `unets_ks3_rf75.yml`
 
@@ -72,13 +79,15 @@ UNet5 is not possible with RF = 75.
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_4`         | *Running*       |
+| `random_8`         | OK       |
 
 ### UNet4 - `config_9`
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_4`         | *Running*       |
+| `random_8`         | OK       |
 
 ## `unets_ks3_rf150.yml`
 
@@ -86,19 +95,19 @@ UNet5 is not possible with RF = 75.
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_8`         | OK       |
 
 ### UNet4 - `config_11`
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_8`         | OK       |
 
 ### UNet5 - `config_12`
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_8`         | OK       |
 
 ## `unets_ks3_rf200.yml`
 
@@ -106,16 +115,16 @@ UNet5 is not possible with RF = 75.
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_8`         | OK       |
 
 ### UNet4 - `config_14`
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_8`         | OK       |
 
 ### UNet5 - `config_15`
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running*       |
+| `random_8`         | OK       |

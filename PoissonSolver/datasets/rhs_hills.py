@@ -75,8 +75,7 @@ def params(nits):
 def compute(args):
     """ Compute function for imap (multiprocessing) """
     ampl, x_gauss, y_gauss, sigma_x, sigma_y = args
-    physical_rhs = gaussian(poisson.X.reshape(-1), poisson.Y.reshape(-1), ampl, 
-                        x_gauss, y_gauss, sigma_x, sigma_y)
+    physical_rhs = gaussian(poisson.X, poisson.Y, ampl, x_gauss, y_gauss, sigma_x, sigma_y)
     poisson.solve(physical_rhs, bcs)
 
     return poisson.potential, poisson.physical_rhs
