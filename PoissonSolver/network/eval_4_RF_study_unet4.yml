@@ -33,37 +33,36 @@ datasets:
     fourier_6_0: '/scratch/cfd/cheng/DL/datasets/eval/101x101/fourier_6_0'
 
 networks: 
-    UNet3-ks3-rf50:
-        resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_1/random_8'
+    UNet4-ks3-rf50:
+        resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_2/random_8'
         arch:
             db_file: 'unets_ks3_rf50.yml'
-            name: 'UNet3'
+            name: 'UNet4'
             args:
                 input_res: 101
-    UNet3-ks3-rf75:
-        resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_8/random_8'
+    UNet4-ks3-rf75:
+        resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_9/random_8'
         arch:
             db_file: 'unets_ks3_rf75.yml'
-            name: 'UNet3'
+            name: 'UNet4'
             args:
                 input_res: 101
-    UNet3-ks3-rf100:
-        resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_3/random_8'
+    UNet4-ks3-rf100:
+        resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_4/random_8'
         arch:
             db_file: 'unets_ks3_rf100.yml'
-            name: 'UNet3'
+            name: 'UNet4'
             args:
                 input_res: 101
-    UNet3-ks3-rf150:
-        resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_10/random_8'
+    UNet4-ks3-rf150:
+        resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_11/random_8'
         arch:
             db_file: 'unets_ks3_rf150.yml'
-            name: 'UNet3'
+            name: 'UNet4'
             args:
                 input_res: 101
-
 network:
-    casename: 'cases/4_RF_study/random_8/UNet3s/'                  # Experience name
+    casename: 'cases/4_RF_study/random_8/UNet4s/'                  # Experience name
     n_gpu: 1                                    # Number of GPUs to use
 
     globals:                                    # Domain sizes and others, used to compute global attributes
