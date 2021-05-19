@@ -13,6 +13,8 @@ import collections
 import numpy as np
 import torch
 import yaml
+import pdb
+import matplotlib.pyplot as plt
 
 import optuna
 from pathlib import Path
@@ -138,6 +140,43 @@ def main():
         for key, value in trial.params.items():
             print("    {}: {}".format(key, value))
 
+    results = np.zeros((5, len(complete_trials)))
+    colors = []
+    for j, trial in enumerate(complete_trials):
+        print("  Trial#{}".format(trial.number))
+        print("    Values: score ={}, num_params={}".format(trial.values[0], trial.values[1]))
+        results[0, j] = trial.values[0]
+        results[1, j] = trial.values[1]
+        print("  Params: ")
+        ww = 0
+        for key, value in trial.params.items():
+            print("    {}: {}".format(key, value))
+            if key == 'scales' and value == 1:
+                colors.append('blue')
+            elif key == 'scales' and value == 2:
+                colors.append('orange')
+            elif key == 'scales' and value == 3:
+                colors.append('green')
+            elif key == 'scales' and value == 4:
+                colors.append('red')
+            elif key == 'scales' and value == 5:
+                colors.append('brown')
+            elif key == 'scales' :
+                colors.append('white')
+
+            results[2+ww, j] = value
+            ww +=1
+
+
+
+    plt.scatter(results[1], results[0], c= colors, s= results[2]*10, label = 'scales')
+    plt.ylabel('Accuracy')
+    plt.xlabel('N Parameters')
+    plt.xscale('log')
+    plt.legend()
+    plt.savefig('/scratch/cfd/PlasmaDL/optim/results.png')
+
+    pdb.set_trace()
 
     study.optimize(objective, n_trials= 200) #, n_jobs= 1) #100)
 
