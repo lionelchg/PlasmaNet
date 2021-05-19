@@ -6,4 +6,4 @@
 #SBATCH --time=00:10:00
 #SBATCH --partition=gpu
 
-python eval_datasets_nns.py -c $1
+eval_datasets -c $1

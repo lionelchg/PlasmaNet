@@ -55,30 +55,9 @@ networks:
             args:
                 input_res: 101
                 
-    UNet3-ks3-rf150:
-        resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_10/random_8'
-        arch:
-            db_file: 'unets_ks3_rf150.yml'
-            name: 'UNet3'
-            args:
-                input_res: 101
-    UNet4-ks3-rf150:
-        resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_11/random_8'
-        arch:
-            db_file: 'unets_ks3_rf150.yml'
-            name: 'UNet4'
-            args:
-                input_res: 101
-    UNet5-ks3-rf150:
-        resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_12/random_8'
-        arch:
-            db_file: 'unets_ks3_rf150.yml'
-            name: 'UNet5'
-            args:
-                input_res: 101
 
 network:
-    casename: 'cases/4_RF_study/random_8/UNet345_rf150/'                  # Experience name
+    casename: 'cases/4_RF_study/random_8/UNet345_rf100/'                  # Experience name
     n_gpu: 1                                    # Number of GPUs to use
 
     globals:                                    # Domain sizes and others, used to compute global attributes
