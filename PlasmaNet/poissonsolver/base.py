@@ -165,7 +165,43 @@ class BasePoisson:
         fig.tight_layout()
         fig.savefig(figname, bbox_inches='tight')
         plt.close()
-    
+
+    def plot_difference_modes(self, figname):
+        """ Compute the fourier coefficients of rhs, target potential and output potential """
+
+        # Start computing modes
+        self.compute_modes()
+
+        # Initialize network coeffs and coeff diference
+        self.coeffs_pot_output = np.zeros_like(self.coeffs_pot)
+        self.coeffs_diff = np.zeros_like(self.coeffs_pot)
+
+        for i in self.nrange:
+            for j in self.nrange:
+                self.coeffs_pot_output[j - self.mmin, i - self.nmin] = abs(
+                    fourier_coef_2D(self.X, self.Y, self.Lx, self.Ly, self.voln, self.potential, i, j))
+                self.coeffs_diff[j - self.mmin, i - self.nmin] = abs(
+                    self.coeffs_pot[j - self.mmin, i - self.nmin] - 
+                    self.coeffs_pot_output[j - self.mmin, i - self.nmin])
+
+        fig = plt.figure(figsize=(18, 6))
+        ax1 = fig.add_subplot(141, projection='3d')
+        plot_modes(ax1, self.N, self.M, self.coeffs_rhs, "RHS modes")
+        ax2 = fig.add_subplot(142, projection='3d')
+        plot_modes(ax2, self.N, self.M, self.coeffs_pot, "Analytical Potential modes")
+        ax2.set_zlim(0,self.coeffs_pot.max())
+        ax3 = fig.add_subplot(143, projection='3d')
+        plot_modes(ax3, self.N, self.M, self.coeffs_pot_output, "Output Potential modes")
+        ax3.set_zlim(0,self.coeffs_pot.max())
+        ax4 = fig.add_subplot(144, projection='3d')
+        plot_modes(ax4, self.N, self.M, self.coeffs_diff, "Difference in modes")
+        ax4.set_zlim(0,self.coeffs_pot.max())
+
+        fig.tight_layout()
+        fig.savefig(figname, bbox_inches='tight')
+        plt.close()
+
+
     def save(self, save_dir):
         """ Save the potential and rhs in the specified location """
         if isinstance(save_dir, Path):

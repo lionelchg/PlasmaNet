@@ -41,10 +41,26 @@ def run_cases(basecase_dir, poisson, plot):
                     ni0, x0, y0, sigma_x, sigma_y, x01, y01, sigma_x, sigma_y) * co.e / co.epsilon_0
     poisson.run_case(case_dir, physical_rhs, plot)
 
-    # Random
-    case_dir = basecase_dir / 'random_2D'
+    # Random 4
+    case_dir = basecase_dir / 'random_4'
     physical_rhs = pf.random2D(poisson.X, poisson.Y, ni0, 4) * co.e / co.epsilon_0
     poisson.run_case(case_dir, physical_rhs, plot)
+    fig_dir = case_dir / 'figures'
+    poisson.plot_difference_modes(fig_dir / '2D_modes')
+
+    # Random 8
+    case_dir = basecase_dir / 'random_8'
+    physical_rhs = pf.random2D(poisson.X, poisson.Y, ni0, 8) * co.e / co.epsilon_0
+    poisson.run_case(case_dir, physical_rhs, plot)
+    fig_dir = case_dir / 'figures'
+    poisson.plot_difference_modes(fig_dir / '2D_modes')
+
+    # Random 16
+    case_dir = basecase_dir / 'random_16'
+    physical_rhs = pf.random2D(poisson.X, poisson.Y, ni0, 16) * co.e / co.epsilon_0
+    poisson.run_case(case_dir, physical_rhs, plot)
+    fig_dir = case_dir / 'figures'
+    poisson.plot_difference_modes(fig_dir / '2D_modes')
 
     # sin_2D
     case_dir = basecase_dir / 'sin_2D'
@@ -68,8 +84,19 @@ if __name__ == '__main__':
 
     with open(args.config, 'r') as yaml_stream:
         config = yaml.safe_load(yaml_stream)
+    
+    if 'networks' in config:
+        base_path = config['network']['casename']
+        for net in config['networks']:
+            config['network']['eval'] = config['eval']
+            config['network']['resume'] = config['networks'][net]['resume']
+            config['network']['arch'] = config['networks'][net]['arch']
+            config['network']['casename'] = os.path.join(base_path, net, 'single')
 
-    # Neural network 
-    config['network']['eval'] = config['eval']
-    poisson_nn = PoissonNetwork(config['network'])
-    run_cases(Path(config['network']['casename']) / 'single', poisson_nn, plot=True)
+            poisson_nn = PoissonNetwork(config['network'])
+            np.random.seed(101)
+            run_cases(Path(config['network']['casename']), poisson_nn, plot=True)
+    else:
+        config['network']['eval'] = config['eval']
+        poisson_nn = PoissonNetwork(config['network'])
+        run_cases(Path(config['network']['casename']) / 'single', poisson_nn, plot=True)
