@@ -110,4 +110,7 @@ network:
         # - 'Eresidual'
         # - 'Einf_norm'
         - 'phi11'
+        - 'phi21'
+        - 'phi12'
+        - 'phi22'
 
