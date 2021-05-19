@@ -30,7 +30,7 @@ datasets:
     random_16: '/scratch/cfd/cheng/DL/datasets/eval/101x101/random_12'
     fourier_1: '/scratch/cfd/cheng/DL/datasets/eval/101x101/fourier_1_0'
     fourier_3_0: '/scratch/cfd/cheng/DL/datasets/eval/101x101/fourier_3_0'
-    fourier_6_0: '/scratch/cfd/cheng/DL/datasets/eval/101x101/fourier_6_0'
+    fourier_2_5_1: '/scratch/cfd/cheng/DL/datasets/eval/101x101/fourier_2_5_1'
 
 networks: 
     UNet4-ks3-rf50:
@@ -104,8 +104,12 @@ network:
             lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
 
     metrics:
-        - 'residual'
-        - 'inf_norm'
-        - 'Eresidual'
-        - 'Einf_norm'
+        # - 'residual'
+        # - 'inf_norm'
+        # - 'Eresidual'
+        # - 'Einf_norm'
+        - 'phi11'
+        - 'phi21'
+        - 'phi12'
+        - 'phi22'
 

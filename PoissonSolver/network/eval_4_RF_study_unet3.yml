@@ -30,7 +30,7 @@ datasets:
     random_16: '/scratch/cfd/cheng/DL/datasets/eval/101x101/random_12'
     fourier_1: '/scratch/cfd/cheng/DL/datasets/eval/101x101/fourier_1_0'
     fourier_3_0: '/scratch/cfd/cheng/DL/datasets/eval/101x101/fourier_3_0'
-    fourier_6_0: '/scratch/cfd/cheng/DL/datasets/eval/101x101/fourier_6_0'
+    fourier_2_5_1: '/scratch/cfd/cheng/DL/datasets/eval/101x101/fourier_2_5_1'
 
 networks: 
     UNet3-ks3-rf50:
