@@ -105,9 +105,11 @@ def phi11(output, target, config):
     output = output[:, 0]
     target = target[:, 0]
     with torch.no_grad():
-        phi11_out = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * config.X / config.Lx) * 
-            torch.sin(np.pi * config.Y / config.Ly) * output * config.dx * config.dy)
-        phi11_target = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * config.X / config.Lx) * 
-            torch.sin(np.pi * config.Y / config.Ly) * target * config.dx * config.dy)
-        res = torch.abs(phi11_out - phi11_target) / config.batch_size
+        phi11_out = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * torch.from_numpy(config.X).cuda() / config.Lx) * 
+            torch.sin(np.pi * torch.from_numpy(config.Y).cuda() / config.Ly) 
+            * output * config.dx * config.dy, dim=(1, 2))
+        phi11_target = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * torch.from_numpy(config.X).cuda() / config.Lx) * 
+            torch.sin(np.pi * torch.from_numpy(config.Y).cuda() / config.Ly) 
+            * target * config.dx * config.dy, dim=(1, 2))
+        res = torch.sum(torch.abs(phi11_out - phi11_target)) / config.batch_size
     return res

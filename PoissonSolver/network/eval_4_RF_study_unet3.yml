@@ -105,9 +105,9 @@ network:
             lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
 
     metrics:
-        - 'residual'
-        - 'inf_norm'
-        - 'Eresidual'
-        - 'Einf_norm'
+        # - 'residual'
+        # - 'inf_norm'
+        # - 'Eresidual'
+        # - 'Einf_norm'
         - 'phi11'
 

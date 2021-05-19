@@ -54,6 +54,8 @@ def main():
     metrics = dict()
     nmetrics = len(config['network']['metrics'])
     fig, axes = plt.subplots(ncols=nmetrics, figsize=(4 * nmetrics, 4))
+    if nmetrics == 1:
+        axes = [axes]
     for imetric, metric_name in enumerate(config['network']['metrics']):
         tmp_df = pd.DataFrame(columns=datasets.keys())
         for nn_name in networks_cfg.keys():
