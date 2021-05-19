@@ -54,7 +54,11 @@ class BasePoisson:
         # Fourier series monitoring
         if 'nmax_fourier' in cfg:
             self.nmax, self.mmax = cfg['nmax_fourier'], cfg['nmax_fourier']
-            self.nrange, self.mrange = np.arange(1, self.nmax + 1), np.arange(1, self.mmax + 1)
+            if 'nmin_fourier' in cfg:
+                self.nmin, self.mmin = cfg['nmin_fourier'], cfg['nmin_fourier']
+            else:
+                self.nmin, self.mmin = 1, 1
+            self.nrange, self.mrange = np.arange(self.nmin, self.nmax + 1), np.arange(self.mmin, self.mmax + 1)
             self.N, self.M = np.meshgrid(self.nrange, self.mrange)
             self.coeffs_rhs = np.zeros(self.N.shape)
             self.coeffs_pot = np.zeros(self.N.shape)
@@ -143,8 +147,8 @@ class BasePoisson:
         if self.nmax is not None:
             for i in self.nrange:
                 for j in self.nrange:
-                    self.coeffs_rhs[j - 1, i - 1] = abs(fourier_coef_2D(self.X, self.Y, self.Lx, self.Ly, self.voln, self.physical_rhs, i, j))
-                    self.coeffs_pot[j - 1, i - 1] = self.coeffs_rhs[j - 1, i - 1] / np.pi**2 / ((i / self.Lx)**2 + (j / self.Ly)**2)
+                    self.coeffs_rhs[j - self.mmin, i - self.nmin] = abs(fourier_coef_2D(self.X, self.Y, self.Lx, self.Ly, self.voln, self.physical_rhs, i, j))
+                    self.coeffs_pot[j - self.mmin, i - self.nmin] = self.coeffs_rhs[j - self.mmin, i - self.nmin] / np.pi**2 / ((i / self.Lx)**2 + (j / self.Ly)**2)
         else:
             print("Class is not initialized for computing modes")
     

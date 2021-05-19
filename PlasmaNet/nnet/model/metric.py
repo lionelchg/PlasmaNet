@@ -9,7 +9,7 @@
 import torch
 from ..operators.rotational import scalar_rot
 from ..operators.gradient import gradient_scalar
-
+import numpy as np
 
 def residual(output, target, config):
     """ Computes the residual of the current batch. """
@@ -76,8 +76,8 @@ def ratio_avg(output, target, config):
 
 def pearsonr(output, target, config):
     """ Computes the Pearson correlation coefficient between the output and target of the current batch. """
-    output = output[:,0]
-    target = target[:,0]
+    output = output[:, 0]
+    target = target[:, 0]
     with torch.no_grad():
         out_mean, tar_mean = output.mean(), target.mean()
         out_centered, tar_centered = output - out_mean, target - tar_mean
@@ -98,4 +98,16 @@ def rotational(output, target, config):
     with torch.no_grad():
         elec = gradient_scalar(output, config.dx, config.dy)
         res = torch.sum(scalar_rot(elec, config.dx, config.dy))
+    return res
+
+def phi11(output, target, config):
+    """ Compute the first mode amplitude of the output and target """
+    output = output[:, 0]
+    target = target[:, 0]
+    with torch.no_grad():
+        phi11_out = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * config.X / config.Lx) * 
+            torch.sin(np.pi * config.Y / config.Ly) * output * config.dx * config.dy)
+        phi11_target = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * config.X / config.Lx) * 
+            torch.sin(np.pi * config.Y / config.Ly) * target * config.dx * config.dy)
+        res = torch.abs(phi11_out - phi11_target) / config.batch_size
     return res

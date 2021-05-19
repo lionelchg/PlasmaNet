@@ -135,8 +135,8 @@ class DatasetPoisson(PoissonLinSystem):
     def __init__(self, cfg):
         super().__init__(cfg)
         # Mean, min and max
-        self.coeffs_rhs_dset = np.zeros((2, self.nmax, self.nmax))
-        self.coeffs_pot_dset = np.zeros((2, self.nmax, self.nmax))
+        self.coeffs_rhs_dset = np.zeros((2, len(self.mrange), len(self.nrange)))
+        self.coeffs_pot_dset = np.zeros((2, len(self.mrange), len(self.nrange)))
         self.nfourier_comput = 0
 
     def compute_modes(self):
@@ -151,18 +151,18 @@ class DatasetPoisson(PoissonLinSystem):
     def sum_series(self, coefs):
         """ Series of rhs from Fourier resolution given coefficients """
         series = np.zeros_like(self.X)
-        for n in range(1, self.nmax + 1):
-            for m in range(1, self.nmax + 1):
-                series += coefs[n - 1, m - 1] * np.sin(n * np.pi * self.X / self.Lx) \
+        for n in range(self.nmin, self.nmax + 1):
+            for m in range(self.mmin, self.nmax + 1):
+                series += coefs[m - self.mmin, n - self.nmin] * np.sin(n * np.pi * self.X / self.Lx) \
                           * np.sin(m * np.pi * self.Y / self.Ly)
         return series
 
     def pot_series(self, coefs):
         """ Series of potential from Fourier resolution given coeffs """
         series = np.zeros_like(self.X)
-        for n in range(1, self.nmax + 1):
-            for m in range(1, self.nmax + 1):
-                series += (coefs[n - 1, m - 1] * np.sin(n * np.pi * self.X / self.Lx)
+        for n in range(self.nmin, self.nmax + 1):
+            for m in range(self.mmin, self.nmax + 1):
+                series += (coefs[m - self.mmin, n - self.nmin] * np.sin(n * np.pi * self.X / self.Lx)
                            * np.sin(m * np.pi * self.Y / self.Ly) / ((n * np.pi / self.Lx)**2
                            + (m * np.pi / self.Ly)**2))
         return series

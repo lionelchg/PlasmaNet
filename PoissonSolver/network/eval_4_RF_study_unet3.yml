@@ -109,4 +109,5 @@ network:
         - 'inf_norm'
         - 'Eresidual'
         - 'Einf_norm'
+        - 'phi11'
 

@@ -29,8 +29,10 @@ args.add_argument('-nn', '--nnodes', default=None, type=int,
 args.add_argument('--case', type=str, default=None, help='Case name')
 
 # Specific arguments
-args.add_argument('-nm', '--nmodes', default=5, type=int,
-                    help='Number of modes')
+args.add_argument('-nmin', '--nmin', default=1, type=int,
+                    help='Minimum mode number')
+args.add_argument('-nmax', '--nmax', default=5, type=int,
+                    help='Maximum mode number')
 args.add_argument('-dp', '--decrease_power', default=2, type=int,
                     help='Decreasing power of the modes (polynomial)')
 args = args.parse_args()
@@ -47,7 +49,8 @@ if args.nnodes is not None:
     cfg['poisson']['nnx'] = args.nnodes
     cfg['poisson']['nny'] = args.nnodes
 
-cfg['poisson']['nmax_fourier'] = args.nmodes
+cfg['poisson']['nmin_fourier'] = args.nmin
+cfg['poisson']['nmax_fourier'] = args.nmax
 
 poisson = DatasetPoisson(cfg['poisson'])
 zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
@@ -60,7 +63,7 @@ rhs0 = ni0 * co.e / co.epsilon_0
 def params(nits):
     """ Parameters to give to compute function for imap """
     for i in range(nits):
-        random_array = np.random.random((poisson.nmax, poisson.mmax))
+        random_array = np.random.random((len(poisson.mrange), len(poisson.nrange)))
         rhs_coefs = rhs0 * (2 * random_array - 1)
         yield rhs_coefs / (poisson.N**args.decrease_power + poisson.M**args.decrease_power)
 
@@ -85,7 +88,7 @@ if __name__ == '__main__':
     if args.case is not None:
         casename = args.case + "/"
     else:
-        casename = f'{poisson.nnx:d}x{poisson.nny:d}/fourier_{poisson.nmax:d}_{args.decrease_power:d}/'
+        casename = f'{poisson.nnx:d}x{poisson.nny:d}/fourier_{poisson.nmin:d}_{poisson.nmax:d}_{args.decrease_power:d}/'
 
 
     if device == 'mac':
