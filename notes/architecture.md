@@ -19,7 +19,7 @@ $$
 The receptive field of the scales network is defined as:
 
 $$
-\mrm{RF} = \sum_{d=0}^D \mrm{RF}_d
+\mrm{RF} = 1 + \sum_{d=0}^D \mrm{RF}_d
 $$
 with
 $$
