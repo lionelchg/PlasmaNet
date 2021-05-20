@@ -63,18 +63,43 @@ UNet5 is not possible with RF = 150.|
 | Dataset            | Results   |
 | ------------------ | --------- |
 | `random_8`         |     OK    |
-| `random_4`         | *Running* |
+| `random_4`         |     OK    |
 
 ### UNet4 - `config_6`
 
 | Dataset            | Results   |
 | ------------------ | --------- |
-| `random_8`         | *Running* |
-| `random_4`         | *Running* |
+| `random_8`         |     OK    |
+| `random_4`         |     OK    |
 
 ### UNet5 - `config_8`
 
 | Dataset            | Results   |
 | ------------------ | --------- |
 | `random_8`         |     OK    |
-| `random_4`         | *Running* |
+| `random_4`         |     OK    |
+
+## `unets_ks3_rf150.yml`
+
+# Random 8 jobs were copied from 4 RF study so that random 4 trainings could be launched
+
+### UNet3 - `config_9`
+
+| Dataset            | Results   |
+| ------------------ | --------- |
+| `random_8`         | OK        |
+| `random_4`         | OK        |
+
+### UNet4 - `config_10`
+
+| Dataset            | Results   |
+| ------------------ | --------- |
+| `random_8`         | OK       |
+| `random_4`         | OK       |
+
+### UNet5 - `config_11`
+
+| Dataset            | Results   |
+| ------------------ | --------- |
+| `random_8`         | OK        |
+| `random_4`         | Ok        |
