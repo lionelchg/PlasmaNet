@@ -17,6 +17,11 @@ import shutil
 # From PlasmaNet
 from PlasmaNet.poissonsolver.network import PoissonNetwork
 
+latex_dict = {'Eresidual': r'$||\mathbf{E}_\mathrm{out} - \mathbf{E}_\mathrm{target}||_1$',
+            'Einf_norm': r'$||\mathbf{E}_\mathrm{out} - \mathbf{E}_\mathrm{target}||_\infty$',
+            'residual': r'$||\phi_\mathrm{out} - \phi_\mathrm{target}||_1$',
+            'inf_norm': r'$||\phi_\mathrm{out} - \phi_\mathrm{target}||_1$'}
+
 def concatenate_ds(datasets: dict, output_dsname: Path):
     """ Concatenate the datasets specified in dict into a single dataset """
     physical_rhs_list = list()
@@ -92,12 +97,27 @@ def main():
             tmp_df.loc[nn_name] = tmp_dict
 
         # Save figures for each metric
-        tmp_df.T.plot.bar(ax=axes[imetric], rot=30)
-        axes[imetric].set_title(metric_name)
+        if len(tmp_df.columns) > 1:
+            tmp_df.T.plot.bar(ax=axes[imetric], rot=30, legend=False)
+        elif len(tmp_df.columns) == 1:
+            tmp_df.plot.bar(ax=axes[imetric], rot=30, legend=False)
+            axes[imetric].grid(True, alpha=0.3)
+        axes[imetric].set_ylabel(latex_dict[metric_name])
+
+        # Set the yticks to scientific format
+        scilimx = int(np.log10(max(tmp_df.max())))
+        axes[imetric].ticklabel_format(axis='y', style='sci', scilimits=(scilimx, scilimx))
+
+        # Create grid
+        axes[imetric].grid(True, axis='y', alpha=0.3)
 
         # Pass the metrics to a global dict
         metrics[metric_name] = tmp_df
     
+    # Create one legend for all the subplots
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(1.02, 0.8))
+
     fig.tight_layout()
     fig.savefig(data_dir / args.figname, bbox_inches='tight')
     plt.close()
