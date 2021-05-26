@@ -20,7 +20,11 @@ from PlasmaNet.poissonsolver.network import PoissonNetwork
 latex_dict = {'Eresidual': r'$||\mathbf{E}_\mathrm{out} - \mathbf{E}_\mathrm{target}||_1$',
             'Einf_norm': r'$||\mathbf{E}_\mathrm{out} - \mathbf{E}_\mathrm{target}||_\infty$',
             'residual': r'$||\phi_\mathrm{out} - \phi_\mathrm{target}||_1$',
-            'inf_norm': r'$||\phi_\mathrm{out} - \phi_\mathrm{target}||_1$'}
+            'inf_norm': r'$||\phi_\mathrm{out} - \phi_\mathrm{target}||_1$',
+            'phi11': r'$||\phi^{out}_\mathrm{11} - \phi^{target}_\mathrm{11}||_1$',
+            'phi12': r'$||\phi^{out}_\mathrm{12} - \phi^{targte}_\mathrm{12}||_1$',
+            'phi21': r'$||\phi^{out}_\mathrm{21} - \phi^{target}_\mathrm{21}||_1$',
+            'phi22': r'$||\phi^{out}_\mathrm{22} - \phi^{target}_\mathrm{22}||_1$'}
 
 def concatenate_ds(datasets: dict, output_dsname: Path):
     """ Concatenate the datasets specified in dict into a single dataset """
@@ -108,15 +112,24 @@ def main():
         scilimx = int(np.log10(max(tmp_df.max())))
         axes[imetric].ticklabel_format(axis='y', style='sci', scilimits=(scilimx, scilimx))
 
+        # Set axis limits manually for coherent plots
+        if 'bar_plot_limits' in config['network']:
+            limits = config['network']['bar_plot_limits'][imetric]
+            axes[imetric].set_ylim(limits[0], limits[1])
+
         # Create grid
         axes[imetric].grid(True, axis='y', alpha=0.3)
 
         # Pass the metrics to a global dict
         metrics[metric_name] = tmp_df
     
-    # Create one legend for all the subplots
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(1.02, 0.8))
+    # Create one legend for all the subplots when not combined option
+    if not len(tmp_df.columns) == 1: 
+        handles, labels = axes[0].get_legend_handles_labels()
+        if not nmetrics == 1:
+            fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(1.02, 0.8))
+        else:
+            fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(1.07, 0.8))
 
     fig.tight_layout()
     fig.savefig(data_dir / args.figname, bbox_inches='tight')
