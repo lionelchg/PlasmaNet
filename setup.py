@@ -43,7 +43,8 @@ setup(
             'streamer=PlasmaNet.cfdsolver.scalar.streamer:main',
             'train_network=PlasmaNet.nnet.trainer.train:main',
             'opti_train=PlasmaNet.nnet.trainer.opti_train:main',
-            'eval_datasets=PlasmaNet.poissonsolver.eval_datasets:main'
+            'eval_datasets=PlasmaNet.poissonsolver.eval_datasets:main',
+            'eval_datasets_2=PlasmaNet.poissonsolver.eval_datasets_2:main'
         ],
     },
 )

@@ -27,7 +27,7 @@ eval:
 datasets: 
     random_4: '/scratch/cfd/cheng/DL/datasets/eval/101x101/random_4'
     random_8: '/scratch/cfd/cheng/DL/datasets/eval/101x101/random_8'
-    random_16: '/scratch/cfd/cheng/DL/datasets/eval/101x101/random_12'
+    random_16: '/scratch/cfd/cheng/DL/datasets/eval/101x101/random_16'
     fourier_1: '/scratch/cfd/cheng/DL/datasets/eval/101x101/fourier_1_0'
     fourier_3_0: '/scratch/cfd/cheng/DL/datasets/eval/101x101/fourier_3_0'
     fourier_6_0: '/scratch/cfd/cheng/DL/datasets/eval/101x101/fourier_6_0'
