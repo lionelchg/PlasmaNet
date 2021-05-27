@@ -48,8 +48,8 @@ def main():
                       help='Config file path (default: None)')
     args.add_argument('-m', '--mode', default='separate', type=str,
                       help='Run mode of the dataset (either combined or separated)')
-    args.add_argument('-fn', '--figname', default='metrics', type=str,
-                      help='Name of the figure in the casename directory')
+    args.add_argument('-fn', '--filename', default='metrics', type=str,
+                      help='Name of the h5 file of the DataFrame in the casename directory')
     args = args.parse_args()
 
     with open(args.config, 'r') as yaml_stream:
@@ -106,7 +106,7 @@ def main():
         for ds_name, ds_loc in datasets.items():
             metrics_tmp = poisson_nn.evaluate(ds_loc, data_dir / ds_name, plot=False)
             # Loop on the resulting metrics and create the temporary dict
-            for imetric, metric_name in enumerate(metrics):
+            for metric_name in metrics:
                 tmp_dict = dict()
                 tmp_dict['nn_name'] = nn_name
                 tmp_dict['nn_type'] = type(poisson_nn.model).__name__
@@ -121,7 +121,7 @@ def main():
                 df = df.append(tmp_dict, ignore_index=True)
     
     # Save the dataframe
-    h5filename = args.figname + '.h5'
+    h5filename = args.filename + '.h5'
     df.to_hdf(data_dir / h5filename, key='df', mode='w')
 
     # Delete combined dataset
