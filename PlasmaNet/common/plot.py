@@ -162,7 +162,11 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
             aspect = 1.7 * ymax / fraction_cbar / xmax
         else:
             aspect = 0.85 * ymax / fraction_cbar / xmax
-        fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect, ticks=field_ticks)
+        # Set the colorbar in scientific notation
+        sfmt = mpl.ticker.ScalarFormatter(useMathText=True) 
+        sfmt.set_powerlimits((0, 0))
+        fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect, 
+            ticks=field_ticks, format=sfmt)
 
     if geom == 'xr':
         ax.set_yticks([-ymax, -ymax / 2, 0, ymax / 2, ymax])
@@ -213,7 +217,11 @@ def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues',
         aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
 
     if cbar: 
-        fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect, ticks=np.linspace(0, max_value, 5))
+        # Set the colorbar in scientific notation
+        sfmt = mpl.ticker.ScalarFormatter(useMathText=True) 
+        sfmt.set_powerlimits((0, 0))
+        fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect, 
+            ticks=np.linspace(0, max_value, 5), format=sfmt)
     ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
                 vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
 
