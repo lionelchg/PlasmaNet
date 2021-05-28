@@ -1,14 +1,21 @@
 #!/usr/bin/bash
-python rhs_random.py -c eval.yml -nr 4 -nn 101
-python rhs_random.py -c eval.yml -nr 8 -nn 101
-python rhs_random.py -c eval.yml -nr 12 -nn 101
-python rhs_random.py -c eval.yml -nr 16 -nn 101
 
-python rhs_fourier.py -c eval.yml -nm 1 -dp 0 -nn 101
-python rhs_fourier.py -c eval.yml -nm 3 -dp 0 -nn 101
-python rhs_fourier.py -c eval.yml -nm 6 -dp 0 -nn 101
+#SBATCH --job-name=Pdata
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --time=4:00:00
+#SBATCH --partition=gpu
 
-python rhs_fourier.py -c eval.yml -nm 3 -dp 2 -nn 101
-python rhs_fourier.py -c eval.yml -nm 6 -dp 2 -nn 101
+python rhs_random.py -c eval.yml -nr 4 -nn $1
+python rhs_random.py -c eval.yml -nr 8 -nn $1
+python rhs_random.py -c eval.yml -nr 12 -nn $1
+python rhs_random.py -c eval.yml -nr 16 -nn $1
 
-python rhs_hills.py -c eval.yml -nn 101
+python rhs_fourier.py -c eval.yml -nmin 1 -nmax 1 -dp 0 -nn $1
+python rhs_fourier.py -c eval.yml -nmin 1 -nmax 3 -dp 0 -nn $1
+python rhs_fourier.py -c eval.yml -nmin 1 -nmax 6 -dp 0 -nn $1
+
+python rhs_fourier.py -c eval.yml -nmin 1 -nmax 3 -dp 2 -nn $1
+python rhs_fourier.py -c eval.yml -nmin 1 -nmax 6 -dp 2 -nn $1
+
+python rhs_hills.py -c eval.yml -nn $1

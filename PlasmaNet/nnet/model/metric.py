@@ -104,12 +104,16 @@ def phi11(output, target, config):
     """ Compute the (1, 1) mode amplitude of the output and target """
     output = output[:, 0]
     target = target[:, 0]
+    xmin = config['globals']['xmin']
+    xmax = config['globals']['xmax']
+    x_line, y_line = np.linspace(xmin, xmax, output.size(1)), np.linspace(xmin, xmax, output.size(2))
+    X, Y = np.meshgrid(x_line, y_line)
     with torch.no_grad():
-        phi11_out = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * torch.from_numpy(config.X).cuda() / config.Lx) * 
-            torch.sin(np.pi * torch.from_numpy(config.Y).cuda() / config.Ly) 
+        phi11_out = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * torch.from_numpy(X).cuda() / config.Lx) * 
+            torch.sin(np.pi * torch.from_numpy(Y).cuda() / config.Ly) 
             * output * config.dx * config.dy, dim=(1, 2))
-        phi11_target = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * torch.from_numpy(config.X).cuda() / config.Lx) * 
-            torch.sin(np.pi * torch.from_numpy(config.Y).cuda() / config.Ly) 
+        phi11_target = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * torch.from_numpy(X).cuda() / config.Lx) * 
+            torch.sin(np.pi * torch.from_numpy(Y).cuda() / config.Ly) 
             * target * config.dx * config.dy, dim=(1, 2))
         res = torch.sum(torch.abs(phi11_out - phi11_target)) / config.batch_size
     return res
@@ -118,12 +122,16 @@ def phi21(output, target, config):
     """ Compute the (2, 1) mode amplitude of the output and target """
     output = output[:, 0]
     target = target[:, 0]
+    xmin = config['globals']['xmin']
+    xmax = config['globals']['xmax']
+    x_line, y_line = np.linspace(xmin, xmax, output.size(1)), np.linspace(xmin, xmax, output.size(2))
+    X, Y = np.meshgrid(x_line, y_line)
     with torch.no_grad():
-        phi11_out = 4 / config.Lx / config.Ly * torch.sum(torch.sin(2 * np.pi * torch.from_numpy(config.X).cuda() / config.Lx) * 
-            torch.sin(np.pi * torch.from_numpy(config.Y).cuda() / config.Ly) 
+        phi11_out = 4 / config.Lx / config.Ly * torch.sum(torch.sin(2 * np.pi * torch.from_numpy(X).cuda() / config.Lx) * 
+            torch.sin(np.pi * torch.from_numpy(Y).cuda() / config.Ly) 
             * output * config.dx * config.dy, dim=(1, 2))
-        phi11_target = 4 / config.Lx / config.Ly * torch.sum(torch.sin(2 * np.pi * torch.from_numpy(config.X).cuda() / config.Lx) * 
-            torch.sin(np.pi * torch.from_numpy(config.Y).cuda() / config.Ly) 
+        phi11_target = 4 / config.Lx / config.Ly * torch.sum(torch.sin(2 * np.pi * torch.from_numpy(X).cuda() / config.Lx) * 
+            torch.sin(np.pi * torch.from_numpy(Y).cuda() / config.Ly) 
             * target * config.dx * config.dy, dim=(1, 2))
         res = torch.sum(torch.abs(phi11_out - phi11_target)) / config.batch_size
     return res
@@ -132,12 +140,16 @@ def phi12(output, target, config):
     """ Compute the (1, 2) mode amplitude of the output and target """
     output = output[:, 0]
     target = target[:, 0]
+    xmin = config['globals']['xmin']
+    xmax = config['globals']['xmax']
+    x_line, y_line = np.linspace(xmin, xmax, output.size(1)), np.linspace(xmin, xmax, output.size(2))
+    X, Y = np.meshgrid(x_line, y_line)
     with torch.no_grad():
-        phi11_out = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * torch.from_numpy(config.X).cuda() / config.Lx) * 
-            torch.sin(2 * np.pi * torch.from_numpy(config.Y).cuda() / config.Ly) 
+        phi11_out = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * torch.from_numpy(X).cuda() / config.Lx) * 
+            torch.sin(2 * np.pi * torch.from_numpy(Y).cuda() / config.Ly) 
             * output * config.dx * config.dy, dim=(1, 2))
-        phi11_target = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * torch.from_numpy(config.X).cuda() / config.Lx) * 
-            torch.sin(2 * np.pi * torch.from_numpy(config.Y).cuda() / config.Ly) 
+        phi11_target = 4 / config.Lx / config.Ly * torch.sum(torch.sin(np.pi * torch.from_numpy(X).cuda() / config.Lx) * 
+            torch.sin(2 * np.pi * torch.from_numpy(Y).cuda() / config.Ly) 
             * target * config.dx * config.dy, dim=(1, 2))
         res = torch.sum(torch.abs(phi11_out - phi11_target)) / config.batch_size
     return res
@@ -146,12 +158,16 @@ def phi22(output, target, config):
     """ Compute the (2, 2) mode amplitude of the output and target """
     output = output[:, 0]
     target = target[:, 0]
+    xmin = config['globals']['xmin']
+    xmax = config['globals']['xmax']
+    x_line, y_line = np.linspace(xmin, xmax, output.size(1)), np.linspace(xmin, xmax, output.size(2))
+    X, Y = np.meshgrid(x_line, y_line)
     with torch.no_grad():
-        phi22_out = 4 / config.Lx / config.Ly * torch.sum(torch.sin(2 * np.pi * torch.from_numpy(config.X).cuda() / config.Lx) * 
-            torch.sin(2 * np.pi * torch.from_numpy(config.Y).cuda() / config.Ly) 
+        phi22_out = 4 / config.Lx / config.Ly * torch.sum(torch.sin(2 * np.pi * torch.from_numpy(X).cuda() / config.Lx) * 
+            torch.sin(2 * np.pi * torch.from_numpy(Y).cuda() / config.Ly) 
             * output * config.dx * config.dy, dim=(1, 2))
-        phi22_target = 4 / config.Lx / config.Ly * torch.sum(torch.sin(2 * np.pi * torch.from_numpy(config.X).cuda() / config.Lx) * 
-            torch.sin(2 * np.pi * torch.from_numpy(config.Y).cuda() / config.Ly) 
+        phi22_target = 4 / config.Lx / config.Ly * torch.sum(torch.sin(2 * np.pi * torch.from_numpy(X).cuda() / config.Lx) * 
+            torch.sin(2 * np.pi * torch.from_numpy(Y).cuda() / config.Ly) 
             * target * config.dx * config.dy, dim=(1, 2))
         res = torch.sum(torch.abs(phi22_out - phi22_target)) / config.batch_size
     return res

@@ -80,7 +80,7 @@ def main():
 
     # Global dataframe
     df_columns = ['nn_name', 'nn_type', 'rf_global', 'depth', 'width', 'ks', 'ds_name', 'ds_type',
-                    'metric_name', 'value']
+                       'test_res', 'train_res', 'metric_name', 'value']
     df = pd.DataFrame(columns=df_columns)
 
     # Regex for dstype and rf_list
@@ -101,6 +101,8 @@ def main():
         depth = poisson_nn.model.depth
         width = poisson_nn.model.width
         ks = poisson_nn.model.kernel_sizes[0]
+        test_res = config['eval']['nnx']
+        train_res = config['network']['globals']['nnx'] 
 
         # Loop on datasets
         for ds_name, ds_loc in datasets.items():
@@ -115,6 +117,8 @@ def main():
                 tmp_dict['width'] = sum(width)
                 tmp_dict['ks'] = ks
                 tmp_dict['ds_name'] = ds_name
+                tmp_dict['test_res'] = test_res
+                tmp_dict['train_res'] = train_res
                 tmp_dict['ds_type'] = re_ds_type.search(ds_name).group()
                 tmp_dict['metric_name'] = metric_name
                 tmp_dict['value'] = metrics_tmp._data.average[metric_name]
