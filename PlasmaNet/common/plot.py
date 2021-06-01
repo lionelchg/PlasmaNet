@@ -168,9 +168,8 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
         ax.set_yticks([-ymax, -ymax / 2, 0, ymax / 2, ymax])
 
     # Apply same formatting to x and y axis with scientific notation
-    scilimx = int(np.log10(xmax))
-    ax.ticklabel_format(axis='x', style='sci', scilimits=(scilimx, scilimx))
-    ax.ticklabel_format(axis='y', style='sci', scilimits=(scilimx, scilimx))
+    ax.ticklabel_format(axis='x', style='sci', scilimits=(0, 0))
+    ax.ticklabel_format(axis='y', style='sci', scilimits=(0, 0))
 
     ax.set_aspect("equal")
     ax.set_title(title)
@@ -224,10 +223,8 @@ def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues',
     
     ax.set_title(name)
     ax.set_aspect('equal')
-    scilim_x = int(np.log10(np.max(X)))
-    scilim_y = int(np.log10(np.max(Y)))
-    ax.ticklabel_format(axis='x', style='sci', scilimits=(scilim_x, scilim_x))
-    ax.ticklabel_format(axis='y', style='sci', scilimits=(scilim_y, scilim_y))
+    ax.ticklabel_format(axis='x', style='sci', scilimits=(0, 0))
+    ax.ticklabel_format(axis='y', style='sci', scilimits=(0, 0))
 
 
 def plot_potential(X, Y, dx, dy, potential, nx, ny, figname, figtitle=None, r=None):
@@ -313,6 +310,5 @@ def plot_modes(ax, N, M, coeffs, title, cmap_str='Blues'):
     ax.set_ylabel('M')
     ax.set_xlabel('N')
     ax.set_title(title)
-    scilim_z = int(np.log10(np.max(coeffs)))
-    ax.ticklabel_format(axis='z', style='sci', scilimits=(scilim_z, scilim_z))
+    ax.ticklabel_format(axis='z', style='sci', scilimits=(0, 0))
     ax.view_init(elev=20, azim=35)
