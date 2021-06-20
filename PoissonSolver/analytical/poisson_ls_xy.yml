@@ -13,7 +13,8 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-mat: 'cart_dirichlet'
+geom: 'cartesian'
+bcs: 'dirichlet'
 xmin: 0.0
 xmax: 1.0e-2
 nnx: 101

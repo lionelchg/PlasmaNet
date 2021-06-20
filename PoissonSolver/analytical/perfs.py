@@ -35,6 +35,7 @@ def main():
 
     zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
     ones_x, ones_y = np.ones(poisson.nnx), np.ones(poisson.nny)
+    pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
 
     # creating the rhs
     ni0 = 1e11
@@ -46,7 +47,7 @@ def main():
                             sigma_x, sigma_y) * co.e / co.epsilon_0
 
     for i in range(nsolv):
-        poisson.solve(physical_rhs.reshape(-1), zeros_x, zeros_x, zeros_y, zeros_y)
+        poisson.solve(physical_rhs, pot_bcs)
 
     poisson.plot_2D(fig_dir + '2D')
     poisson.plot_1D2D(fig_dir + 'full')
