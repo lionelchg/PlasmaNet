@@ -50,7 +50,7 @@ if __name__ == '__main__':
     poisson_series = PoissonAnalytical(cfg)
 
     # Variation of number of modes
-    nmax_modes = [2, 4, 6, 8, 10, 12]
+    nmax_modes = [2, 4, 6, 8, 10, 12, 14, 16]
     error_modes = np.zeros((2, len(nmax_modes)))
 
     for inmax, nmax in enumerate(nmax_modes):
