@@ -90,7 +90,7 @@ class BasePoisson:
         """
         return lapl(self.potential, self.dx, self.dy, self.nnx, self.nny, r=self.R_nodes)
 
-    def plot_2D(self, figname, geom='xy'):
+    def plot_2D(self, figname, geom='xy', axis='on'):
         """ Plot the potential, electric field and laplacian of the Poisson problem
         at hand in 2D fields
 
@@ -103,12 +103,17 @@ class BasePoisson:
         fig, axes = plt.subplots(ncols=3, figsize=(11, 14))
 
         plot_ax_scalar(fig, axes[0], self.X, self.Y, self.potential, r'$\phi$', geom=geom)
-
         E = self.E_field
         plot_ax_vector_arrow(fig, axes[1], self.X, self.Y, E, r'$\mathbf{E}$', geom=geom)
 
         lapl_field = self.lapl
         plot_ax_scalar(fig, axes[2], self.X, self.Y, - lapl_field, r'$-\nabla^2 \phi$', geom=geom)
+
+        # Set axes on or off
+        for ax in axes:
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+
 
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
         plt.savefig(figname, bbox_inches='tight')
