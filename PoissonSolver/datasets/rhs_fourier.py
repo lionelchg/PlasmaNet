@@ -120,7 +120,7 @@ if __name__ == '__main__':
         physical_rhs_list[i, :, :] = rhs
         if i % plot_period == 0:
             poisson.potential = pot
-            poisson.plot_2D(fig_dir + f'input_{i:05d}')
+            poisson.plot_2D(fig_dir + f'input_{i:05d}', axis='off')
         if i % freq_period == 0:
             poisson.physical_rhs = rhs
             poisson.compute_modes()
