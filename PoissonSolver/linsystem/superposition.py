@@ -15,8 +15,9 @@ import numpy as np
 import scipy.constants as co
 
 from PlasmaNet.common.utils import create_dir
-from PlasmaNet.poissonsolver.poisson import PoissonLinSystem, run_case
+from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 import PlasmaNet.common.profiles as pf
+
 
 if __name__ == '__main__':
     basecase_dir = f'{os.getenv("POISSON_DIR")}/cases/superposition/'
@@ -43,7 +44,7 @@ if __name__ == '__main__':
     case_dir = f'{basecase_dir}rhs/'
     physical_rhs = pf.gaussian(poisson.X, poisson.Y, 
                     ni0, x0, y0, sigma_x, sigma_y) * co.e / co.epsilon_0
-    pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
+    pot_bcs = {'left': zeros_y, 'right': zeros_y, 'bottom': zeros_x, 'top': zeros_x}
     poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)
 
     # dirichlet alone

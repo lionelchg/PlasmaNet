@@ -178,7 +178,8 @@ def matrix_cart_perio(dx, dy, nx, ny, scale):
     # Creating the matrix
     return sparse.csc_matrix(
         sparse.dia_matrix((diags, [0, 1, -1, nx, -nx, nx - 1, -(nx - 1), nx * (ny - 1), -nx * (ny - 1)]), 
-        shape=(nx * ny, nx * ny)))
+                          shape=(nx * ny, nx * ny)))
+
 
 def matrix_cart_perio_x(dx, dy, nx, ny, scale):
     """ Creation of the matrix for x-periodic / y-dirichlet problem in 
@@ -218,6 +219,7 @@ def matrix_cart_perio_x(dx, dy, nx, ny, scale):
     # Creating the matrix
     return sparse.csc_matrix(
         sparse.dia_matrix((diags, [0, 1, -1, nx, -nx, nx - 1, -(nx - 1)]), shape=(nx * ny, nx * ny)))
+
 
 def impose_dirichlet(rhs: np.ndarray, bcs: dict) -> None:
     """ Impose Dirichlet boundary conditions to the rhs vector

@@ -69,6 +69,7 @@ class PoissonAnalytical(BasePoisson):
             self.bc_solution()
         self.potential = np.sum(self.potentials, axis=0)
 
+
 def dirichlet_mode(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
     """ Mode for 1D full Dirichlet Poisson problem
 
@@ -82,6 +83,7 @@ def dirichlet_mode(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
     :rtype: np.ndarray
     """
     return np.sin(n * np.pi * x / Lx)
+
 
 def neumann_mode(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
     """ Mode for 1D full Neumann Poisson problem
@@ -97,6 +99,7 @@ def neumann_mode(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
     """
     return np.cos(n * np.pi * x / Lx)
 
+
 def mixed_mode_ldrn(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
     """ Mode for 1D left Dirichlet - right Neumann Poisson problem
 
@@ -110,6 +113,7 @@ def mixed_mode_ldrn(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
     :rtype: np.ndarray
     """
     return np.sin((n + 0.5) * np.pi * x / Lx)
+
 
 def mixed_mode_lnrd(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
     """ Mode for 1D left Neumann - right Dirichlet Poisson problem
@@ -138,20 +142,24 @@ def series_term(X, Y, Lx, Ly, voln, rhs, n, m):
     return (4 / Lx / Ly * np.sum(x_mode * y_mode * rhs * voln)
             * x_mode * y_mode / ((n / Lx)**2 + (m / Ly)**2))
 
+
 def series_term_dup(V_u, X, Y, Lx, Ly, n):
     """ Series term for the up dirichlet problem """
     return (fourier_coef_1D(V_u, n, X[0, :], Lx) * np.sin(n * np.pi * X / Lx)
             * np.sinh(n * np.pi * Y / Lx) / np.sinh(n * np.pi * Ly / Lx))
+
 
 def series_term_ddown(V_u, X, Y, Lx, Ly, n):
     """ Series term for the down dirichlet problem """
     return (fourier_coef_1D(V_u, n, X[0, :], Lx) * np.sin(n * np.pi * X / Lx)
             * np.sinh(n * np.pi * (Y - Ly) / Lx) / np.sinh(- n * np.pi * Ly / Lx))
 
+
 def series_term_dleft(V_u, X, Y, Lx, Ly, n):
     """ Series term for the left dirichlet problem """
     return (fourier_coef_1D(V_u, n, Y[:, 0], Ly) * np.sin(n * np.pi * Y / Ly)
             * np.sinh(n * np.pi * (X - Lx) / Ly) / np.sinh(- n * np.pi * Lx / Ly))
+
 
 def series_term_dright(V_u, X, Y, Lx, Ly, n):
     """ Series term for the right dirichlet problem """

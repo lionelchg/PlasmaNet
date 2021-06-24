@@ -21,6 +21,7 @@ from PlasmaNet.common.profiles import gaussian
 from PlasmaNet.common.operators_numpy import grad
 from PlasmaNet.common.utils import create_dir
 
+
 def ax_prop(ax, title):
     ax.grid(True)
     ax.set_xlabel(r'$n_\mathrm{pts}$')
@@ -28,6 +29,7 @@ def ax_prop(ax, title):
     ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_title(title)
+
 
 if __name__ == '__main__':
     fig_dir = 'figures/convergence/'
@@ -43,13 +45,13 @@ if __name__ == '__main__':
     
     nnxs = np.array([51, 101, 201, 401])
     errors = {'potential': np.zeros(len(nnxs)),
-                'E_field': np.zeros(len(nnxs))}
+              'E_field': np.zeros(len(nnxs))}
 
     for i_err, nnx in enumerate(nnxs):
         print(f'nnx = {nnx:d}')
         nny = nnx
         zeros_x, zeros_y = np.zeros(nnx), np.zeros(nny)
-        pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
+        pot_bcs = {'left': zeros_y, 'right': zeros_y, 'bottom': zeros_x, 'top': zeros_x}
 
         # Change the configuration dict
         cfg['nnx'] = nnx

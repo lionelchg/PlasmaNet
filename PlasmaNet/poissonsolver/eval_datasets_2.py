@@ -18,14 +18,17 @@ import re
 # From PlasmaNet
 from PlasmaNet.poissonsolver.network import PoissonNetwork
 
-latex_dict = {'Eresidual': r'$||\mathbf{E}_\mathrm{out} - \mathbf{E}_\mathrm{target}||_1$',
-            'Einf_norm': r'$||\mathbf{E}_\mathrm{out} - \mathbf{E}_\mathrm{target}||_\infty$',
-            'residual': r'$||\phi_\mathrm{out} - \phi_\mathrm{target}||_1$',
-            'inf_norm': r'$||\phi_\mathrm{out} - \phi_\mathrm{target}||_1$',
-            'phi11': r'$||\phi^{out}_\mathrm{11} - \phi^{target}_\mathrm{11}||_1$',
-            'phi12': r'$||\phi^{out}_\mathrm{12} - \phi^{targte}_\mathrm{12}||_1$',
-            'phi21': r'$||\phi^{out}_\mathrm{21} - \phi^{target}_\mathrm{21}||_1$',
-            'phi22': r'$||\phi^{out}_\mathrm{22} - \phi^{target}_\mathrm{22}||_1$'}
+latex_dict = {
+    'Eresidual': r'$||\mathbf{E}_\mathrm{out} - \mathbf{E}_\mathrm{target}||_1$',
+    'Einf_norm': r'$||\mathbf{E}_\mathrm{out} - \mathbf{E}_\mathrm{target}||_\infty$',
+    'residual': r'$||\phi_\mathrm{out} - \phi_\mathrm{target}||_1$',
+    'inf_norm': r'$||\phi_\mathrm{out} - \phi_\mathrm{target}||_1$',
+    'phi11': r'$||\phi^{out}_\mathrm{11} - \phi^{target}_\mathrm{11}||_1$',
+    'phi12': r'$||\phi^{out}_\mathrm{12} - \phi^{targte}_\mathrm{12}||_1$',
+    'phi21': r'$||\phi^{out}_\mathrm{21} - \phi^{target}_\mathrm{21}||_1$',
+    'phi22': r'$||\phi^{out}_\mathrm{22} - \phi^{target}_\mathrm{22}||_1$',
+}
+
 
 def concatenate_ds(datasets: dict, output_dsname: Path):
     """ Concatenate the datasets specified in dict into a single dataset """
@@ -41,6 +44,7 @@ def concatenate_ds(datasets: dict, output_dsname: Path):
     potential_list = np.concatenate(tuple(potential_list), axis=0)
     np.save(output_dsname / 'physical_rhs', physical_rhs_list)
     np.save(output_dsname / 'potential', potential_list)
+
 
 def main():
     args = argparse.ArgumentParser(description='PoissonNetwork runs')
@@ -131,6 +135,7 @@ def main():
     # Delete combined dataset
     if args.mode == 'combined':
         shutil.rmtree(output_dsname)
+
 
 if __name__ == '__main__':
     main()

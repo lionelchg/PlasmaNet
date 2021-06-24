@@ -15,7 +15,7 @@ import numpy as np
 import scipy.constants as co
 
 from PlasmaNet.common.utils import create_dir
-from PlasmaNet.poissonsolver.poisson import PoissonLinSystem, run_case
+from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 import PlasmaNet.common.profiles as pf
 
 if __name__ == '__main__':

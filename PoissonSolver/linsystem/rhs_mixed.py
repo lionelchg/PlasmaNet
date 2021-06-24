@@ -24,13 +24,13 @@ if __name__ == '__main__':
         cfg = yaml.safe_load(yaml_stream)
 
     # 2 neumann - 2 dirichlet
-    cfg['bcs'] = {'left':'neumann', 'right':'neumann', 
-                    'top':'dirichlet', 'bottom':'dirichlet'}
+    cfg['bcs'] = {'left': 'neumann', 'right': 'neumann',
+                  'top': 'dirichlet', 'bottom': 'dirichlet'}
 
     basecase_dir = f'{os.getenv("POISSON_DIR")}/cases/mixed/2d_2n/'
     poisson = PoissonLinSystem(cfg)
     zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
-    pot_bcs = {'bottom':zeros_x, 'top':zeros_x}
+    pot_bcs = {'bottom': zeros_x, 'top': zeros_x}
 
     ni0 = 1e11
     sigma_x, sigma_y = 1e-3, 1e-3
@@ -53,13 +53,13 @@ if __name__ == '__main__':
     poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)
 
     # 3 Neumann - 1 Dirichlet
-    cfg['bcs'] = {'left':'neumann', 'right':'neumann', 
-                    'top':'dirichlet', 'bottom':'neumann'}
+    cfg['bcs'] = {'left': 'neumann', 'right': 'neumann',
+                  'top': 'dirichlet', 'bottom': 'neumann'}
 
     basecase_dir = f'{os.getenv("POISSON_DIR")}/cases/mixed/1d_3n/'
     poisson = PoissonLinSystem(cfg)
     zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
-    pot_bcs = {'top':zeros_x}
+    pot_bcs = {'top': zeros_x}
 
     ni0 = 1e11
     sigma_x, sigma_y = 1e-3, 1e-3
@@ -82,13 +82,13 @@ if __name__ == '__main__':
     poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)
 
     # 1 Neumann - 3 Dirichlet
-    cfg['bcs'] = {'left':'dirichlet', 'right':'neumann', 
-                    'top':'dirichlet', 'bottom':'dirichlet'}
+    cfg['bcs'] = {'left': 'dirichlet', 'right': 'neumann',
+                  'top': 'dirichlet', 'bottom': 'dirichlet'}
 
     basecase_dir = f'{os.getenv("POISSON_DIR")}/cases/mixed/3d_1n/'
     poisson = PoissonLinSystem(cfg)
     zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
-    pot_bcs = {'left':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
+    pot_bcs = {'left': zeros_y, 'bottom': zeros_x, 'top': zeros_x}
 
     ni0 = 1e11
     sigma_x, sigma_y = 1e-3, 1e-3
@@ -110,4 +110,3 @@ if __name__ == '__main__':
     physical_rhs = pf.gaussians(poisson.X, poisson.Y, 
                     [ni0, x0, y0, sigma_x, sigma_y, -ni0, x01, y01, sigma_x, sigma_y]) * co.e / co.epsilon_0
     poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)
-

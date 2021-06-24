@@ -13,12 +13,13 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import yaml
 import numpy as np
 
-from PlasmaNet.poissonsolver.poisson import PoissonLinSystem, run_case
+from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 from PlasmaNet.common.profiles import gaussian
 from PlasmaNet.common.utils import create_dir
 
+
 if __name__ == '__main__':
-    basecase_dir =  f'{os.getenv("POISSON_DIR")}/cases/axi/'
+    basecase_dir = f'{os.getenv("POISSON_DIR")}/cases/axi/'
     plot = True
     with open('poisson_ls_xr.yml') as yaml_stream:
         cfg = yaml.safe_load(yaml_stream)
@@ -27,7 +28,7 @@ if __name__ == '__main__':
     zeros_x, zeros_r = np.zeros(poisson.nnx), np.zeros(poisson.nny)
 
     # Boundary conditions
-    pot_bcs = {'left':zeros_r, 'right':zeros_r, 'top':zeros_x}
+    pot_bcs = {'left': zeros_r, 'right': zeros_r, 'top': zeros_x}
 
     # creating the rhs
     ni0 = 1e16
@@ -37,5 +38,5 @@ if __name__ == '__main__':
     # interior rhs
     case_dir = f'{basecase_dir}gaussian/'
     physical_rhs = gaussian(poisson.X, poisson.Y, ni0, x0, y0,
-                        sigma_x, sigma_y)
+                            sigma_x, sigma_y)
     poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)

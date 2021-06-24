@@ -206,7 +206,6 @@ class BasePoisson:
         fig.savefig(figname, bbox_inches='tight')
         plt.close()
 
-
     def save(self, save_dir):
         """ Save the potential and rhs in the specified location """
         if isinstance(save_dir, Path):

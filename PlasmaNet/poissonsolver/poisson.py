@@ -14,7 +14,7 @@ import numpy as np
 import scipy.sparse.linalg as linalg
 
 from .base import BasePoisson
-from .linsystem import (cartesian_matrix, matrix_axisym, impose_dirichlet, 
+from .linsystem import (cartesian_matrix, matrix_axisym, impose_dirichlet,
                         matrix_cart_perio, matrix_cart_perio_x)
 from ..common.plot import plot_modes
 from ..common.utils import create_dir
@@ -97,9 +97,9 @@ class PoissonLinSystem(BasePoisson):
             rhs = - physical_rhs[:, :-1] * self.scale
             self.potential[:, :-1] = linalg.spsolve(self.mat, rhs.reshape(-1)).reshape(self.nny, self.nnx - 1)
             self.potential[:, -1] = self.potential[:, 0]
-            
+
     def run_case(self, case_dir: str, physical_rhs: np.ndarray,
-                pot_bcs: dict, plot: bool, save=True, axis='off'):
+                 pot_bcs: dict, plot: bool, save=True, axis='off'):
         """ Run a Poisson linear system case
 
         :param case_dir: Case directory
@@ -127,6 +127,7 @@ class PoissonLinSystem(BasePoisson):
             create_dir(fig_dir)
             self.plot_2D(fig_dir + '2D', geom=geom, axis=axis)
             self.plot_1D2D(fig_dir + 'full', geom=geom)
+
 
 class DatasetPoisson(PoissonLinSystem):
     """ Class for dataset of poisson rhs and potentials (contains

@@ -17,6 +17,7 @@ import scipy.constants as co
 from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 import PlasmaNet.common.profiles as pf
 
+
 if __name__ == '__main__':
     basecase_dir = f'{os.getenv("POISSON_DIR")}/cases/dirichlet/rhs/'
     plot = True
@@ -29,7 +30,7 @@ if __name__ == '__main__':
 
     zeros_x, zeros_y = np.zeros(poisson.nnx), np.zeros(poisson.nny)
 
-    pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
+    pot_bcs = {'left': zeros_y, 'right': zeros_y, 'bottom': zeros_x, 'top': zeros_x}
 
     ni0 = 1e11
     sigma_x, sigma_y = 1e-3, 1e-3

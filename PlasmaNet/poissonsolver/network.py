@@ -5,6 +5,7 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,6 +24,7 @@ from ..nnet.utils import MetricTracker
 from ..nnet.trainer.trainer import plot_batch, plot_batch_Efield
 from ..common.utils import create_dir
 from .base import BasePoisson
+
 
 class PoissonNetwork(BasePoisson):
     """ Class for network solver of Poisson problem
@@ -206,7 +208,7 @@ class PoissonNetworkOpti(BasePoisson):
 
         # Network configuration
         self.cfg_dl = ConfigParser(cfg)
-        #self.nnx_nn = self.cfg_dl.nnx
+        # self.nnx_nn = self.cfg_dl.nnx
         self.nnx_nn = cfg['train_nnx']
 
         # Logger
@@ -258,4 +260,4 @@ class PoissonNetworkOpti(BasePoisson):
                 for metric in self.metric_ftns:
                     self.metrics.update(metric.__name__, metric(output, target, self.cfg_dl).item())
         
-        return self.metrics._data.values[2,2]
+        return self.metrics._data.values[2, 2]
