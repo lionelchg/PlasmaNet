@@ -21,6 +21,7 @@ from .euler import Euler
 import PlasmaNet.common.profiles as pf
 from ...poissonsolver.poisson import DatasetPoisson
 from ...poissonsolver.analytical import PoissonAnalytical
+from ...poissonsolver.network import PoissonNetwork
 from ...common.plot import plot_ax_scalar, plot_ax_scalar_1D, plot_ax_vector_arrow
 from ...common.utils import create_dir, save_obj
 
@@ -50,18 +51,23 @@ class PlasmaEuler(Euler):
             config['poisson']['mmax_rhs'] = config['poisson']['nmax_fourier']
             config['poisson']['nmax_d'] = 0
             self.poisson = PoissonAnalytical(config['poisson'])
+        elif self.poisson_type == 'network':
+            config['poisson']['geom'] = self.geom
+            config['network']['eval'] = config['poisson']
+            config['network']['casename'] = config['casename']
+            self.poisson = PoissonNetwork(config['network'])
 
         self.m_e = co.m_e
         self.W = self.m_e * co.N_A
-        self.n_back = config['params']['n_back']
-        self.n_pert = config['params']['n_pert']
+        self.n_back = config['init']['n_back']
+        self.n_pert = config['init']['n_pert']
 
-        if config['params']['init_func'][0] == 'gaussians':
-            n_electron = getattr(pf, config['params']['init_func'][0])(self.X, self.Y,
-                                                                       config['params']['init_func'][1]) + self.n_back
+        if config['init']['func'] == 'gaussians':
+            n_electron = getattr(pf, config['init']['func'])(self.X, 
+                self.Y, config['init']['args']) + self.n_back
         else:
-            n_electron = getattr(pf, config['params']['init_func'][0])(self.X, self.Y, self.n_pert,
-                                                                       *config['params']['init_func'][1]) + self.n_back
+            n_electron = getattr(pf, config['init']['func'])(self.X, 
+                self.Y, self.n_pert, *config['init']['args']) + self.n_back
 
         self.U[0] = self.m_e * n_electron
 
@@ -128,7 +134,7 @@ class PlasmaEuler(Euler):
                 self.globals['casename'] = self.case_dir
                 self.globals['nnx_sim'] = self.nnx
                 self.globals['Lx_sim'] = self.Lx
-                self.globals['init_profile'] = config['params']['init_func'][0] + str(config['params']['init_func'][1])
+                self.globals['init_profile'] = config['init']['func'] + str(config['init']['args'])
                 self.globals['instability_de'] = -1
                 self.globals['instability_max'] = -1
 
@@ -158,6 +164,8 @@ class PlasmaEuler(Euler):
                                self.pot_bcs)
         elif self.poisson_type == 'analytical':
             self.poisson.compute_sol(- (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0)
+        elif self.poisson_type == 'network':
+            self.poisson.solve(- (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0)
         self.E_field = self.poisson.E_field
 
         self.E_norm = np.sqrt(self.E_field[0]**2 + self.E_field[1]**2)

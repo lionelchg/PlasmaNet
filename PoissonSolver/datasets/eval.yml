@@ -15,8 +15,8 @@
 
 device: 'kraken'
 n_entries: 1000
-n_procs: 30
-output_dir: '/scratch/cfd/PlasmaDL/datasets/eval/'
+n_procs: 60
+output_dir: '/scratch/cfd/cheng/DL/datasets/eval/'
 
 poisson:
   geom: 'cartesian'
