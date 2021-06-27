@@ -16,7 +16,7 @@ def residual(output, target, config):
     output = output[:, 0]
     target = target[:, 0]
     with torch.no_grad():
-        res = torch.sum(torch.abs(output - target)) / config.nnx / config.nny / config.batch_size
+        res = torch.sum(torch.abs(output - target)) / np.prod(output.shape[2:]) / config.batch_size
     return res
 
 
@@ -25,7 +25,7 @@ def l2_norm(output, target, config):
     output = output[:, 0]
     target = target[:, 0]
     with torch.no_grad():
-        res = torch.sqrt(torch.sum((output - target) ** 2) / config.nnx / config.nny / config.batch_size)
+        res = torch.sqrt(torch.sum((output - target) ** 2) / np.prod(output.shape[2:]) / config.batch_size)
     return res
 
 
@@ -43,7 +43,7 @@ def Eresidual(output, target, config):
     elec_target = - gradient_scalar(target, config.dx, config.dy)
     with torch.no_grad():
         res = torch.sum(torch.abs(elec_output - elec_target)) \
-                / config.nnx / config.nny / config.batch_size / 2
+                / np.prod(output.shape[2:]) / config.batch_size / 2
     return res
 
 
@@ -53,7 +53,7 @@ def El2_norm(output, target, config):
     elec_target = - gradient_scalar(target, config.dx, config.dy)
     with torch.no_grad():
         res = torch.sqrt(torch.sum((elec_output - elec_target) ** 2) 
-            / config.nnx / config.nny / config.batch_size / 2)
+            / np.prod(output.shape[2:]) / config.batch_size / 2)
     return res
 
 
