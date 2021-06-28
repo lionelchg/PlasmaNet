@@ -1,0 +1,13 @@
+# Configuration file for training/validation 
+# post-processing of networks from PlasmaNet
+data_dir: 'data/nparams'
+type: 'train'
+
+networks:
+  200k: '$2 \times 10^5$'
+  400k: '$4 \times 10^5$'
+  800k: '$8 \times 10^5$'
+
+plot: 
+  loss: ['loss']
+  Efield: ['Eresidual', 'Einf_norm']
