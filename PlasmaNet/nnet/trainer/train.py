@@ -72,8 +72,8 @@ def run_train(config):
 
 def main():
     args = argparse.ArgumentParser(description='PlasmaNet.nnet')
-    args.add_argument('-c', '--config', default=None, type=str,
-                      help='config file path (default: None)')
+    args.add_argument('-c', '--config', required=True, type=str,
+                        help='Config file path (default: None)')
     args = args.parse_args()
 
     with open(args.config, 'r') as yaml_stream:
@@ -88,8 +88,14 @@ def main():
             tmp_cfg_arch['args'] = {**cfg_dict['arch']['args'], **tmp_cfg_arch['args']}
         cfg_dict['arch'] = tmp_cfg_arch
     
+    # Resume the training or not depending on entry in yaml
+    if 'resume' in cfg_dict:
+        resume = cfg_dict['resume']
+    else:
+        resume = None
+    
     # Creation of config object
-    config = ConfigParser(cfg_dict)
+    config = ConfigParser(cfg_dict, resume)
     run_train(config)
 
 if __name__ == '__main__':
