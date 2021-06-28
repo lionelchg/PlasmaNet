@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import scipy.sparse.linalg as linalg
+from time import perf_counter
 
 from .base import BasePoisson
 from .linsystem import (cartesian_matrix, matrix_axisym, impose_dirichlet,
@@ -53,26 +54,21 @@ class PoissonLinSystem(BasePoisson):
         # Boundary conditions imposition
         self.impose_dirichlet = impose_dirichlet
 
-        self.solver = None
-        # self.init_solver(cfg)
-
-    def init_solver(self, cfg):
-        """ Initialize the required solver.
-        Can be either a direct or iterative solver, with different options
-
-        :param cfg: Poisson configuration dict
-        """
-        # Direct solver
-        if cfg["solver_type"] == "direct":
-            linalg.use_solver(**cfg)  # Pass useUmfpack and assumeSortedIndices parameters
-            self.solver = linalg.spsolve
-
-        # Iterative solver
-        elif cfg["solver_type"] == "iterative":
-            self.solver = linalg.cg
-
+        # Solver configuration
+        if "solver_type" in cfg:
+            if cfg["solver_type"] == "direct":
+                # Initializes direct solver
+                self.solver_type = "direct"
+                # pass the useUmfpack and assumeSortedIndices options
+                linalg.use_solver(**cfg["solver_options"])
+            else:
+                self.solver_type = cfg["solver_type"]
+                self.solver_options = cfg["solver_options"]  # Options to pass to the solver
         else:
-            raise ValueError("Unknown solver_type {}".format(cfg["solver_type"]))
+            self.solver_type = "direct"
+
+        # Benchmark switch
+        self.benchmark = cfg["benchmark"]
 
     def solve(self, physical_rhs: np.ndarray, bcs: dict):
         """ Solve the Poisson equation with physical_rhs as charge density / epsilon_0
@@ -86,17 +82,43 @@ class PoissonLinSystem(BasePoisson):
             self.physical_rhs = physical_rhs
             rhs = - physical_rhs * self.scale
             self.impose_dirichlet(rhs, bcs)
-            self.potential = linalg.spsolve(self.mat, rhs.reshape(-1)).reshape(self.nny, self.nnx)
+            self.potential = self._solve(self.mat, rhs.reshape(-1)).reshape(self.nny, self.nnx)
         elif self.bcs == 'perio':
             self.physical_rhs = physical_rhs
             rhs = - physical_rhs[:-1, :-1] * self.scale
-            self.potential[:-1, :-1] = linalg.spsolve(self.mat, rhs.reshape(-1)).reshape(self.nny - 1, self.nnx - 1)
+            self.potential[:-1, :-1] = self._solve(self.mat, rhs.reshape(-1)).reshape(self.nny - 1, self.nnx - 1)
             self.potential[:-1, -1] = self.potential[:-1, 0]
             self.potential[-1, :] = self.potential[0, :]
         elif self.bcs == 'perio_x':
             rhs = - physical_rhs[:, :-1] * self.scale
-            self.potential[:, :-1] = linalg.spsolve(self.mat, rhs.reshape(-1)).reshape(self.nny, self.nnx - 1)
+            self.potential[:, :-1] = self._solve(self.mat, rhs.reshape(-1)).reshape(self.nny, self.nnx - 1)
             self.potential[:, -1] = self.potential[:, 0]
+
+    def _solve(self, A, b):
+        """ Calls the required solver.
+
+        :param cfg: Poisson configuration dict
+        """
+        if self.benchmark:
+            solve_time = perf_counter()
+
+        if self.solver_type == "direct":
+            x = linalg.spsolve(A, b)
+
+        elif self.solver_type == "gmres":
+            x = linalg.gmres(A, b, **self.solver_options)
+
+        elif self.solver_type == "cg":
+            x = linalg.cg(A, b, **self.solver_options)
+
+        else:
+            raise ValueError(f"Unknown solver_type {self.solver_type}")
+
+        if self.benchmark:
+            solve_time = perf_counter() - solve_time
+            print(f"{solve_time=}")
+
+        return x
 
     def run_case(self, case_dir: str, physical_rhs: np.ndarray,
                  pot_bcs: dict, plot: bool, save=True, axis='off'):
