@@ -1,0 +1,15 @@
+#####################################################################################
+#                                                                                   #
+#                       Benchmark config -- Configuration file                      #
+#                                                                                   #
+#                      Guillaume Bogopolsky, CERFACS, 28.06.2021                    #
+#                                                                                   #
+#####################################################################################
+
+sizes: [51, 101, 121, 201, 301, 401, 601, 801, 1001, 1501, 2001]
+#sizes: [51]
+solver_types: ["direct"]
+useUmfpack: [True, False]
+assumeSortedIndices: [True, False]
+nits: 200
+

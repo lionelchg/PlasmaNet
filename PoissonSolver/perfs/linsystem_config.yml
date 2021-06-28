@@ -1,0 +1,37 @@
+#####################################################################################
+#                                                                                   #
+#                        PoissonLinSystem -- Configuration file                     #
+#                                                                                   #
+#                      Guillaume Bogopolsky, CERFACS, 28.06.2021                    #
+#                                                                                   #
+#####################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+geom: 'cartesian'
+bcs:
+  left: dirichlet
+  right: dirichlet
+  top: dirichlet
+  bottom: dirichlet
+xmin: 0.0
+xmax: 1.0e-2
+nnx: 101
+ymin: 0.0
+ymax: 1.0e-2
+nny: 101
+nmax_fourier: 10
+solver_type: direct
+solver_options:
+  useUmfpack: False
+  assumeSortedIndices: False
+benchmark: True
+#solver_type: cg
+#solver_options:
+#  tol: 1e-12
+#  atol: 1e-12
