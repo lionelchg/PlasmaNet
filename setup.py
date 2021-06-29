@@ -33,7 +33,7 @@ setup(
     test_suite='tests',
     tests_require=tests_requirements,
     url='https://nitrox.cerfacs.fr/cfd-apps/plasmanet',
-    version='0.1',
+    version='0.9',
     zip_safe=False,
     entry_points={
         'console_scripts': [
@@ -41,8 +41,9 @@ setup(
             'plasma_euler=PlasmaNet.cfdsolver.euler.plasma:main',
             'scalar=PlasmaNet.cfdsolver.scalar.scalar:main',
             'streamer=PlasmaNet.cfdsolver.scalar.streamer:main',
+            'run_cases=PlasmaNet.cfdsolver.cases:main',
             'train_network=PlasmaNet.nnet.trainer.train:main',
-            'training_pproc=PlasmaNet.nnet.pproc:main',
+            'train_pproc=PlasmaNet.nnet.pproc:main',
             'opti_train=PlasmaNet.nnet.trainer.opti_train:main',
             'eval_datasets=PlasmaNet.poissonsolver.eval_datasets:main',
             'eval_datasets_2=PlasmaNet.poissonsolver.eval_datasets_2:main',

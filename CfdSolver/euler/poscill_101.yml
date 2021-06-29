@@ -55,5 +55,4 @@ output:
   dl_save: 'no'
   globals:
     fig: [1.0, 1.5]
-    # fig: [0.01, 0.05]
     vars: 'yes'

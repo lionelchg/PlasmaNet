@@ -114,9 +114,7 @@ def params(cases, base_cfg, base_cn):
         case_cfg['casename'] = f'{base_cn}case_{ncase:d}/'
         yield case_cfg
 
-
-if __name__ == '__main__':
-
+def main():
     args = argparse.ArgumentParser(description='Multiple cases run')
     args.add_argument('-np', '--n_procs', default=None, type=int,
                       help='Number of procs')
@@ -140,3 +138,6 @@ if __name__ == '__main__':
             p.map(Euler.run, params(cases, base_cfg, base_cn))
         elif args.type == 'pleuler':
             p.map(PlasmaEuler.run, params(cases, base_cfg, base_cn))
+
+if __name__ == '__main__':
+    main()

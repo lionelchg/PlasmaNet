@@ -13,22 +13,24 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/local/101x101/profiles_4p/'
-description: 'Four periods runs of different profiles in 101x101'
+casename: 'runs/kraken/101x101/profiles_2p/'
+description: 'Two periods runs of different profiles in 101x101'
 mode: 'seq'
-params/init_func: [['gaussian', [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
-                  ['gaussian', [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3]],
-                  ['two_gaussians', [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]]]
+init/func: ['gaussian', 'gaussian', 'two_gaussians']
+init/args: [[0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3],
+            [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3],
+            [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]]
 
 base:
   params:
-    n_periods: 4.01
+    n_periods: 2.0
     geom: 'xy'
-    n_back: 1.0e+16
-    n_pert: 1.0e+11
-    sigma: 1.0e-3
     dt: 1.0e-10
     nt_oscill: 5000
+
+  init:
+    n_back: 1.0e+16
+    n_pert: 1.0e+11
 
   poisson:
     type: 'lin_system'
@@ -47,11 +49,10 @@ base:
 
   output:
     save: 'plasma_period'
-    log_run: 'file'
     verbose: True
-    period: 0.01
+    period: 0.1
     files: 'fig'
     dl_save: 'no'
     globals:
-      fig: [2.0, 3.5]
+      fig: [1.0, 1.5]
       vars: 'yes'
