@@ -6,8 +6,8 @@
 #                                                                                   #
 #####################################################################################
 
-#sizes: [51, 101, 121, 201, 301, 401, 601, 801, 1001, 1501, 2001]
-sizes: [51, 101, 121, 201]
+sizes: [51, 101, 121, 201, 301, 401, 601, 801, 1001, 1501, 2001]
+#sizes: [51, 101, 121, 201]
 solver_types: ["direct"]
 useUmfpack: [True]
 assumeSortedIndices: [True]
@@ -22,17 +22,17 @@ networks:
       name: 'UNet3'
       args:
         input_res: 101
-    U4_K3_Rf200:
-      resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/4_scales/k_3/RF_200/models/random_8'
-      arch:
-        db_file: 'unets_ks3_rf200.yml'
-        name: 'UNet4'
-        args:
-          input_res: 101
-    U5_K3_Rf200:
-      resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8'
-      arch:
-        db_file: 'unets_ks3_rf200.yml'
-        name: 'UNet5'
-        args:
-          input_res: 101
+  U4_K3_Rf200:
+    resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/4_scales/k_3/RF_200/models/random_8'
+    arch:
+      db_file: 'unets_ks3_rf200.yml'
+      name: 'UNet4'
+      args:
+        input_res: 101
+  U5_K3_Rf200:
+    resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8'
+    arch:
+      db_file: 'unets_ks3_rf200.yml'
+      name: 'UNet5'
+      args:
+        input_res: 101

@@ -44,7 +44,7 @@ class PoissonNetwork(BasePoisson):
             super().__init__(cfg['eval'])
         else:
             super().__init__(cfg['globals'])
-        
+
         # Architecture parsing in database
         if 'db_file' in cfg['arch']:
             with open(Path(os.getenv('ARCHS_DIR')) / cfg['arch']['db_file']) as yaml_stream:
@@ -94,7 +94,7 @@ class PoissonNetwork(BasePoisson):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = self.model.to(self.device)
         self.model.eval()
-    
+
     def case_config(self, cfg: dict):
         """ Set the case configuration according to dict
         Reinitialize the base class
@@ -108,15 +108,15 @@ class PoissonNetwork(BasePoisson):
 
     def solve(self, physical_rhs):
         """ Solve the Poisson problem with physical_rhs from neural network
-        :param physical_rhs: - rho / epsilon_0 
+        :param physical_rhs: - rho / epsilon_0
         :type physical_rhs: ndtensor
         """
         self.physical_rhs = physical_rhs
-        
+
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
         if self.benchmark:
             comm_timer = perf_counter()
-        physical_rhs_torch = torch.from_numpy(self.physical_rhs[np.newaxis, np.newaxis, :, :] 
+        physical_rhs_torch = torch.from_numpy(self.physical_rhs[np.newaxis, np.newaxis, :, :]
                                               * self.ratio * self.scaling_factor).float().cuda()
         if self.benchmark:
             comm_timer = perf_counter() - comm_timer
@@ -136,6 +136,7 @@ class PoissonNetwork(BasePoisson):
             comm_timer = comm_timer + perf_counter()
 
         # Print benchmarks
+        print(f"benchmark={self.benchmark}")
         if self.benchmark:
             self.logger.info(f"comm_timer={comm_timer}")
             self.logger.info(f"model_timer={model_timer}")
@@ -160,7 +161,7 @@ class PoissonNetwork(BasePoisson):
             fig_dir.mkdir(parents=True, exist_ok=True)
             self.plot_2D(fig_dir / '2D')
             self.plot_1D2D(fig_dir / 'full')
-    
+
     def evaluate(self, data_dir, case_dir, plot):
         """
         Evaluate the network and returns the metrics of the network on the specified dataset
@@ -200,7 +201,7 @@ class PoissonNetwork(BasePoisson):
                     fig = plot_batch_Efield(output, target, data, 0, i, self.cfg_dl)
                     fig.savefig(self.fig_dir / 'batch_Efield_{:05d}.png'.format(i), dpi=150, bbox_inches='tight')
                     plt.close()
-        
+
         return self.metrics
 
 
@@ -277,5 +278,5 @@ class PoissonNetworkOpti(BasePoisson):
                 # Update MetricTracker with metrics
                 for metric in self.metric_ftns:
                     self.metrics.update(metric.__name__, metric(output, target, self.cfg_dl).item())
-        
+
         return self.metrics._data.values[2, 2]

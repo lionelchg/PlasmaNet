@@ -21,16 +21,16 @@ class BasePoisson:
     def __init__(self, cfg):
         """ Initialize BasePoisson class with the box boundaries and number of
         nodes in x and y directions in config dictionary
-        
+
         :param cfg: Configuration dictionary
         :type cfg: dict
         """
-        
+
         # if there is no y properties a square is assumed with same properties on
         # x and y axis
         xmin, xmax, nnx = cfg['xmin'], cfg['xmax'], cfg['nnx']
-        if 'nny' in cfg: 
-            nny, ymin, ymax = cfg['nny'], cfg['ymin'], cfg['ymax'] 
+        if 'nny' in cfg:
+            nny, ymin, ymax = cfg['nny'], cfg['ymin'], cfg['ymax']
         else:
             nny, ymin, ymax = nnx, xmin, xmax
 
@@ -79,13 +79,13 @@ class BasePoisson:
 
     @property
     def E_field(self):
-        """ Electric field computation through the gradient of the potential 
+        """ Electric field computation through the gradient of the potential
 
         :return: Electric field
         :rtype: ndarray
         """
         return - grad(self.potential, self.dx, self.dy, self.nnx, self.nny)
-    
+
     @property
     def lapl(self):
         """ Laplacian computation of the potential
@@ -161,7 +161,7 @@ class BasePoisson:
                     self.coeffs_pot[j - self.mmin, i - self.nmin] = self.coeffs_rhs[j - self.mmin, i - self.nmin] / np.pi**2 / ((i / self.Lx)**2 + (j / self.Ly)**2)
         else:
             print("Class is not initialized for computing modes")
-    
+
     def plot_pmodes(self, figname):
         """ Plot the potential and rhs modes from 2D
         Fourier expansion """
@@ -191,7 +191,7 @@ class BasePoisson:
                 self.coeffs_pot_output[j - self.mmin, i - self.nmin] = abs(
                     fourier_coef_2D(self.X, self.Y, self.Lx, self.Ly, self.voln, self.potential, i, j))
                 self.coeffs_diff[j - self.mmin, i - self.nmin] = abs(
-                    self.coeffs_pot[j - self.mmin, i - self.nmin] - 
+                    self.coeffs_pot[j - self.mmin, i - self.nmin] -
                     self.coeffs_pot_output[j - self.mmin, i - self.nmin])
 
         fig = plt.figure(figsize=(18, 6))
@@ -220,7 +220,7 @@ class BasePoisson:
             if save_dir[-1] != '/': save_dir += '/'
             np.save(save_dir + 'physical_rhs', self.physical_rhs)
             np.save(save_dir + 'potential', self.potential)
-    
+
     def L2error_pot(self, th_potential):
         """ MSE error of the potential with a theoretical one
 
@@ -229,7 +229,7 @@ class BasePoisson:
         :return: MSE error
         :rtype: float
         """
-        # return np.sqrt(np.sum(self.compute_voln() * 
+        # return np.sqrt(np.sum(self.compute_voln() *
         #             (self.potential - th_potential)**2) / self.Lx / self.Ly)
         return np.sqrt(np.sum((self.potential - th_potential)**2) / self.nnx / self.nny)
 

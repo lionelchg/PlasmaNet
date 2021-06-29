@@ -25,8 +25,7 @@ eval:
     ymax: 1.0e-2
     nny: 101
     nmax_fourier: 10
-
-benchmark: True
+    benchmark: True
 
 network:
     casename: 'cases/bench/'                  # Experience name
