@@ -1,57 +1,32 @@
 #!/scratch/cfd/bogopolsky/DL/dl_env/bin/python
 """
-Parse and plot performance analysis of PlasmaNet runs with prints
+Parse and plot performance analysis of PlasmaNet benchmarks
+
+G. Bogopolsky, CERFACS, 28.06.2021
 """
 
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from glob import glob
-import argparse
+import yaml
+from itertools import product
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-p", "--cases_root", type=str, help="Cases root directory")
-args = parser.parse_args()
 
-params = {
-    "case_1": 51,
-    "case_2": 101,
-    "case_3": 121,
-    "case_4": 201,
-    "case_5": 301,
-    "case_6": 401,
-    "case_7": 601,
-    "case_8": 801,
-    "case_9": 1001,
-    "case_10": 1501,
-    "case_11": 2001,
-}
-
-lookup_table = {
-    "dl": ["Poisson DL perf", float],
-    "ana": ["Poisson ana perf", float],
-    "comm": ["CPU/GPU comm", float],
-    "umf": ["Poisson umf perf:", float],
-}
-
-# cases_root = "./runs/IRSPR/1_periods/FlexiNet/lt_F_in_T/random_3.10_1.10"
-# cases_root = "./runs/1_period/random_3.10_1.10"
-# cases_root = "./runs/perf_conda"
-cases_root = args.cases_root
-
-def parse_output(filepath):
+def parse_output(filepath, lookup_table):
     print(f"Reading {filepath}")
     with open(filepath, "r") as fid:
         lines = fid.readlines()
 
-    data = { k: [] for k in lookup_table }
+    data = {k: [] for k in lookup_table}
     for line in lines:
         for value_name, (value_string, value_type) in lookup_table.items():
             if value_string in line:
-                value = value_type(line.split(":")[-1].strip())
+                value = value_type(line.split("=")[-1].strip())
                 data[value_name].append(value)
 
-    n_rows = min([ len(data[k]) for k in data ])
+    n_rows = min([len(data[k]) for k in data])
     print(f"Found {n_rows} data rows")
     # If a set has more data than another, cut it
     # All sets must have the same length for pandas
@@ -64,81 +39,125 @@ def parse_output(filepath):
     return pd.DataFrame.from_dict(data)
 
 
-# Parse output files
-perf = pd.DataFrame()
-for case in params.keys():
-    filepath = f"{cases_root}/{case}/info.log"
+if __name__ == "__main__":
 
-    case_df = parse_output(filepath)
-    case_df["case"] = case
-    perf = perf.append(case_df)
+    with open('bench_config.yml') as yaml_stream:
+        bench_cfg = yaml.safe_load(yaml_stream)
 
-# Print averages and standard deviation
-for case in params.keys():
+    with open("network_base_config.yml", 'r') as yaml_stream:
+        config = yaml.safe_load(yaml_stream)
+
+    # Parse output files
+    perf = pd.DataFrame()
+    n_cases = 0
+    # Parse linsystem benchmark output
+    for nn, solver_type, useUmfpack, assumeSortedIndices in product(
+            bench_cfg["sizes"],
+            bench_cfg["solver_types"],
+            bench_cfg["useUmfpack"],
+            bench_cfg["assumeSortedIndices"]
+    ):
+
+        filepath = "linsystem.out"
+        case_desc = '_'.join([str(tmp) for tmp in [nn, solver_type, useUmfpack, assumeSortedIndices]])
+        lookup_table = {"umf": [case_desc + "_solve_time", float]}
+
+        case_df = parse_output(filepath, lookup_table)
+        case = f"case_{n_cases}"
+        print(f"{case}: size={nn}  solver_type={solver_type}  useUmfpack={useUmfpack}  "
+              f"assumeSortedIndices={assumeSortedIndices}")
+        n_cases += 1
+        case_df["case"] = case
+        case_df["size"] = nn
+        # case_df["solver_type"] = solver_type
+        # case_df["useUmfpack"] = useUmfpack
+        # case_df["assumeSortedIndices"] = assumeSortedIndices
+        perf = perf.append(case_df)
+
+    # Parse network output
+    networks = bench_cfg["networks"].keys()
+    base_casename = config["network"]["casename"]
+    for net, nn in product(bench_cfg["networks"], bench_cfg["sizes"]):
+        filepath = os.path.join(base_casename, str(net), str(nn), "info.log")
+        lookup_table = {
+            f"{net}_model": ["model_timer", float],
+            f"{net}_comm": ["comm_timer", float],
+        }
+        case_df = parse_output(filepath, lookup_table)
+        case = f"case_{n_cases}"
+        print(f"{case}: size={nn}  network={net}")
+        n_cases += 1
+        case_df["case"] = case
+        case_df["size"] = nn
+        case_df[net] = case_df[f"{net}_model"] + case_df[f"{net}_comm"]
+        perf = perf.append(case_df)
+
+    # Print averages and standard deviation
+    for case in perf["case"].unique():
+        work = perf[perf["case"] == case]
+        print("---------------------------------------------")
+        print(f"{case} - nnx = {work['size'].unique().item()}")
+        n_exp = work.shape[0]
+        print(f"Averaging on {n_exp} experiences")
+        tmp = work["umf"]
+        print(f"Perf: {tmp.mean() * 1000:.4f} ± {tmp.std() * 1000:.4f} ms")
+        for net in networks:
+            tmp = work[net]
+            print(f"Perf: {tmp.mean() * 1000:.4f} ± {tmp.std() * 1000:.4f} ms")
     print("---------------------------------------------")
-    print(f"{case} - nnx = {params[case]}")
-    n_exp = perf[perf['case'] == case].shape[0]
-    print(f"Averaging on {n_exp} experiences")
-    for val in lookup_table:
-        tmp = perf[perf["case"] == case][val]
-        print(f"{val} perf: {tmp.mean() * 1000:.4f} ± {tmp.std() * 1000:.4f} ms")
-    speedup = perf[perf["case"] == case]["umf"].mean() / perf[perf["case"] == case]["dl"].mean()
-    print(f"umf/dl speedup: {speedup:.2f}")
-print("---------------------------------------------")
-print(perf[perf["case"] == "case_1"])
 
-# Delete aberrant first data (because std dev is ugly)
-perf = perf.drop([0])
+    # Delete aberrant first data (because std dev is ugly)
+    # perf = perf.drop([0])
+    from IPython import embed
+    embed()
+    # Execute stats
+    # perf = perf.groupby("case").agg(["mean", "std"])
+    perf = perf.groupby("size").agg(["mean", "std"])
 
-# Execute stats
-perf = perf.groupby("case").agg(["mean", "std"])
-# Sort dataset
-# Dataset can be ordered as [case_1, case_10, case_11, case_2...], so we must reorder it
-# We reindex it with a new list of index built by sorting it on the numerical value
-perf = perf.reindex(index=perf.index.to_series().str.rsplit("_").str[-1].astype(int).sort_values().index)
+    # Sort dataset
+    # Dataset can be ordered as [case_1, case_10, case_11, case_2...], so we must reorder it
+    # We reindex it with a new list of index built by sorting it on the numerical value
+    # perf = perf.reindex(index=perf.index.to_series().str.rsplit("_").str[-1].astype(int).sort_values().index)
+    # No need to sort with Int64Index
 
-print(perf)
+    print(perf)
 
-# Plots
-# names = [f"{size}²" for size in params.values()]
-names = np.array(list(params.values())) ** 2
-print(names)
+    # Plots
 
-fig, ax = plt.subplots(figsize=(10, 4), ncols=2)
-ax, ax2 = ax.ravel()
+    fig, ax = plt.subplots(figsize=(10, 4), ncols=2)
+    ax, ax2 = ax.ravel()
 
-ax.plot(names, perf["dl"]["mean"], "-o", label="PlasmaNet")
-ax.fill_between(names, perf["dl"]["mean"] + perf["dl"]["std"], perf["dl"]["mean"] - perf["dl"]["std"], alpha=.2)
-# ax.plot(names, perf["ana"]["mean"], "-x", label="SuperLU GSSV")
-# ax.fill_between(names, perf["ana"]["mean"] + perf["ana"]["std"], perf["ana"]["mean"] - perf["ana"]["std"], alpha=.2)
-ax.plot(names, perf["umf"]["mean"], "-x", label="Linear solver")
-ax.fill_between(names, perf["umf"]["mean"] + perf["umf"]["std"], perf["umf"]["mean"] - perf["umf"]["std"], alpha=.2)
-ax.plot(names, perf["comm"]["mean"], "-+", label="CPU <-> GPU comms")
-ax.fill_between(names, perf["comm"]["mean"] + perf["comm"]["std"], perf["comm"]["mean"] - perf["comm"]["std"], alpha=.2)
-ax.plot(names, perf["dl"]["mean"] - perf["comm"]["mean"], "-^", label="GPU inference")
+    ax.plot(names, perf["umf"]["mean"], "-o", label="PlasmaNet")
+    ax.fill_between(names, perf["dl"]["mean"] + perf["dl"]["std"], perf["dl"]["mean"] - perf["dl"]["std"], alpha=.2)
+    # ax.plot(names, perf["ana"]["mean"], "-x", label="SuperLU GSSV")
+    # ax.fill_between(names, perf["ana"]["mean"] + perf["ana"]["std"], perf["ana"]["mean"] - perf["ana"]["std"], alpha=.2)
+    ax.plot(names, perf["umf"]["mean"], "-x", label="Linear solver")
+    ax.fill_between(names, perf["umf"]["mean"] + perf["umf"]["std"], perf["umf"]["mean"] - perf["umf"]["std"], alpha=.2)
+    ax.plot(names, perf["comm"]["mean"], "-+", label="CPU <-> GPU comms")
+    ax.fill_between(names, perf["comm"]["mean"] + perf["comm"]["std"], perf["comm"]["mean"] - perf["comm"]["std"], alpha=.2)
+    ax.plot(names, perf["dl"]["mean"] - perf["comm"]["mean"], "-^", label="GPU inference")
 
-# ax.errorbar(names, perf["dl"]["mean"], perf["dl"]["std"], fmt="-o", label="PlasmaNet")
-# ax.errorbar(names, perf["ana"]["mean"], perf["ana"]["std"], fmt="-x", label="Linear solver - SuperLU")
-# ax.errorbar(names, perf["comm"]["mean"], perf["comm"]["std"], fmt="-+", label="CPU/GPU comm")
+    # ax.errorbar(names, perf["dl"]["mean"], perf["dl"]["std"], fmt="-o", label="PlasmaNet")
+    # ax.errorbar(names, perf["ana"]["mean"], perf["ana"]["std"], fmt="-x", label="Linear solver - SuperLU")
+    # ax.errorbar(names, perf["comm"]["mean"], perf["comm"]["std"], fmt="-+", label="CPU/GPU comm")
 
-# ax.set_yscale("log")
-ax.loglog()
-ax.legend()
-ax.set_xlabel("Number of nodes")
-ax.set_ylabel(f"Mean execution time with standard deviation [s]", wrap=True)
+    # ax.set_yscale("log")
+    ax.loglog()
+    ax.legend()
+    ax.set_xlabel("Number of nodes")
+    ax.set_ylabel(f"Mean execution time with standard deviation [s]", wrap=True)
 
-speedup = perf["umf"]["mean"] / perf["dl"]["mean"]
-speedup_std = speedup * np.sqrt((perf["umf"]["std"] / perf["umf"]["mean"])**2 + (perf["dl"]["std"] / perf["dl"]["mean"]**2))
-print(speedup)
-print(speedup_std)
-ax2.plot(names, perf["umf"]["mean"] / perf["dl"]["mean"], "-o")
+    speedup = perf["umf"]["mean"] / perf["dl"]["mean"]
+    speedup_std = speedup * np.sqrt((perf["umf"]["std"] / perf["umf"]["mean"])**2 + (perf["dl"]["std"] / perf["dl"]["mean"]**2))
+    print(speedup)
+    print(speedup_std)
+    ax2.plot(names, perf["umf"]["mean"] / perf["dl"]["mean"], "-o")
 
-#ax2.loglog()
-ax2.semilogx()
-ax2.set_xlabel("Number of nodes")
-ax2.set_ylabel("Speedup")
+    #ax2.loglog()
+    ax2.semilogx()
+    ax2.set_xlabel("Number of nodes")
+    ax2.set_ylabel("Speedup")
 
 
-plt.tight_layout()
-fig.savefig("perf_plot.png", dpi=250)
-
+    plt.tight_layout()
+    fig.savefig("perf_plot.png", dpi=250)
