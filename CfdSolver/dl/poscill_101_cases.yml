@@ -16,9 +16,12 @@
 casename: 'runs/kraken/U5_K3/101x101/two_gaussian_2p/'
 description: 'Two periods run of two gaussians with UNet5 - ks3 and different RFs'
 mode: 'seq'
-network/resume: ['/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_100/models/random_8',
+network/resume: ['/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_50/models/random_8',
+                '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_75/models/random_8',
+                '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_100/models/random_8',
+                '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_150/models/random_8',
                 '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8']
-network/arch/db_file: ['unets_ks3_rf100.yml', 'unets_ks3_rf200.yml']
+network/arch/db_file: ['unets_ks3_rf50.yml', 'unets_ks3_rf75.yml', 'unets_ks3_rf100.yml', 'unets_ks3_rf150.yml', 'unets_ks3_rf200.yml']
 
 base:
   params:
