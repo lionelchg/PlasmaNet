@@ -4,6 +4,6 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=01:00:00
 #SBATCH --partition=rome
-#SBATCH --nodelist=krakenepyc2
+#SBATCH --nodelist=krakenepyc1
 
 plasma_euler -c poscill_101.yml

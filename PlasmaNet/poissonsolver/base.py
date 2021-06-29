@@ -115,9 +115,10 @@ class BasePoisson:
         plot_ax_scalar(fig, axes[2], self.X, self.Y, - lapl_field, r'$-\nabla^2 \phi$', geom=geom)
 
         # Set axes on or off
-        for ax in axes:
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
+        if axis == 'off':
+            for ax in axes:
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
 
 
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])

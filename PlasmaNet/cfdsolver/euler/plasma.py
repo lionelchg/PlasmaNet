@@ -94,10 +94,10 @@ class PlasmaEuler(Euler):
 
         self.time = np.zeros(self.nit)
 
-        # Retrieve the domain average and the above 0.9 * max values of n_electron
+        # Retrieve the domain average and the above 0.2 * max values of n_electron
         self.temporals = np.zeros((self.nit, 2))
         nep = n_electron - self.n_back
-        self.temporal_indices = get_indices(nep, self.nny, self.nnx, 0.9)
+        self.temporal_indices = get_indices(nep, self.nny, self.nnx, 0.2)
         self.temporal_ampl = np.zeros(2)
         self.temporal_ampl[0] = self.domain_ave(nep)
         self.temporal_ampl[1] = np.mean(nep[self.temporal_indices[:, 0], self.temporal_indices[:, 1]])
@@ -127,16 +127,12 @@ class PlasmaEuler(Euler):
 
             # Declaration of globals dictionary which holds, norm2 of signal, norm2 of FFT
             # for domain average and > 0.9 max points as well as onset of instabilities
-            # The instability is in [it, iy, ix] format and is triggered if the value goes above
-            # 1.2 of the value at the beginning of the simulation
             if globals_cfg['vars'] == 'yes':
                 self.globals = dict()
                 self.globals['casename'] = self.case_dir
                 self.globals['nnx_sim'] = self.nnx
                 self.globals['Lx_sim'] = self.Lx
                 self.globals['init_profile'] = config['init']['func'] + str(config['init']['args'])
-                self.globals['instability_de'] = -1
-                self.globals['instability_max'] = -1
 
         # If a logger is given, use it to log performance
         if logger is not None:
@@ -200,7 +196,6 @@ class PlasmaEuler(Euler):
         plot_ax_scalar_1D(fig, axes[1][1], self.X, [0.25, 0.5, 0.75], E_norm, r"$|\mathbf{E}|$",
                           ylim=[0, 1.1 * self.E_max])
         fig.suptitle(rf'$t$ = {self.dtsum:.2e} s')
-        # fig.tight_layout(rect=[0, 0.02, 1, 0.98])
         fig.tight_layout()
         fig.savefig(self.fig_dir + f'variables_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
@@ -238,12 +233,6 @@ class PlasmaEuler(Euler):
         self.temporals[it - 1, 0] = self.domain_ave(nep)
         self.temporals[it - 1, 1] = np.mean(nep[self.temporal_indices[:, 0], self.temporal_indices[:, 1]])
 
-        # Detection of values above 1.2 * max
-        if hasattr(self, 'globals'):
-            if abs(self.temporals[it - 1, 0]) > 1.2 * self.temporal_ampl[0] and self.globals['instability_de'] == -1:
-                self.globals['instability_de'] = it - 1
-            if abs(self.temporals[it - 1, 1]) > 1.2 * self.temporal_ampl[1] and self.globals['instability_max'] == -1:
-                self.globals['instability_max'] = it - 1
 
     def save(self):
         pass
@@ -322,10 +311,14 @@ class PlasmaEuler(Euler):
                          xlim=[0, self.n_periods], ylim=[-1.5, 1.5],
                          legend=False)
             tmp_ax.grid(False)
-            self.gfig.axes[0].set_xticks([])
-            self.gfig.axes[2].set_xticks([])
-            self.gfig.axes[2].set_yticks([])
-            self.gfig.axes[4].set_yticks([])
+
+            # The barplots count as axis 
+            # 0 2 3(cbar) 
+            # 1 4 5(cbar)
+            for ifig in [0, 1, 2, 4]:
+                self.gfig.axes[ifig].get_xaxis().set_visible(False)
+                self.gfig.axes[ifig].get_yaxis().set_visible(False)
+
             for i in range(2, 6):
                 tmp_pos = self.gfig.axes[i].get_position()
                 tmp_pos.x0 -= 0.04
