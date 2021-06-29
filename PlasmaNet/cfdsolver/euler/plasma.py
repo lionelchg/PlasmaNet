@@ -190,12 +190,12 @@ class PlasmaEuler(Euler):
         E = self.E_field
         E_norm = self.E_norm
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(8, 8))
-        plot_ax_scalar(fig, axes[0][0], self.X, self.Y, n_e, r"$n_e$", geom='xy', max_value=1.05 * self.nep_max)
+        plot_ax_scalar(fig, axes[0][0], self.X, self.Y, n_e, r"$n_e$", geom='xy', max_value=1.1 * self.nep_max)
         plot_ax_scalar_1D(fig, axes[0][1], self.X, [0.4, 0.5, 0.6], n_e, r"$n_e$",
-                          ylim=[-1.05 * self.nep_max, 1.05 * self.nep_max])
-        plot_ax_vector_arrow(fig, axes[1][0], self.X, self.Y, E, 'Electric field', max_value=1.05 * self.E_max)
+                          ylim=[-1.1 * self.nep_max, 1.1 * self.nep_max])
+        plot_ax_vector_arrow(fig, axes[1][0], self.X, self.Y, E, 'Electric field', max_value=1.1 * self.E_max)
         plot_ax_scalar_1D(fig, axes[1][1], self.X, [0.25, 0.5, 0.75], E_norm, r"$|\mathbf{E}|$",
-                          ylim=[0, 1.05 * self.E_max])
+                          ylim=[0, 1.1 * self.E_max])
         fig.suptitle(rf'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout()
         fig.savefig(self.fig_dir + f'variables_{self.number:04d}', bbox_inches='tight')
@@ -217,7 +217,7 @@ class PlasmaEuler(Euler):
                 tmp_ax1 = self.gfig.add_subplot(2, 3, 2 + self.gindex)
                 plot_ax_scalar(self.gfig, tmp_ax1, self.X, self.Y, n_e,
                                rf"$n_e(t_{self.gindex + 1:d})$", geom='xy',
-                               max_value=1.2 * self.temporal_ampl[1],
+                               max_value=1.1 * self.nep_max,
                                cbar=True if self.gindex == len(self.gperiod) - 1 else False)
                 tmp_ax2 = self.gfig.add_subplot(2, 3, 5 + self.gindex)
                 plot_ax_vector_arrow(self.gfig, tmp_ax2, self.X, self.Y, E,
