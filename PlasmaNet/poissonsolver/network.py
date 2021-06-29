@@ -136,7 +136,6 @@ class PoissonNetwork(BasePoisson):
             comm_timer = comm_timer + perf_counter()
 
         # Print benchmarks
-        print(f"benchmark={self.benchmark}")
         if self.benchmark:
             self.logger.info(f"comm_timer={comm_timer}")
             self.logger.info(f"model_timer={model_timer}")
