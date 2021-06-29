@@ -32,10 +32,10 @@ if __name__ == '__main__':
 
     # Iterate over sizes
     for nn, solver_type, useUmfpack, assumeSortedIndices in product(
-            bench_cfg["sizes"],
-            bench_cfg["solver_types"],
-            bench_cfg["useUmfpack"],
-            bench_cfg["assumeSortedIndices"]
+        bench_cfg["sizes"],
+        bench_cfg["solver_types"],
+        bench_cfg["useUmfpack"],
+        bench_cfg["assumeSortedIndices"]
     ):
         # Set sizes and initialize Poisson linear solver
         cfg["nnx"], cfg["nny"] = nn, nn

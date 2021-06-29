@@ -45,7 +45,7 @@ class PoissonLinSystem(BasePoisson):
             self.R_nodes = copy.deepcopy(self.Y)
             self.R_nodes[0] = self.dy / 4
             self.mat = matrix_axisym(self.dx, self.dy, self.nnx, self.nny,
-                                self.R_nodes, self.scale)
+                                     self.R_nodes, self.scale)
         elif cfg['bcs'] == 'perio':
             self.mat = matrix_cart_perio(self.dx, self.dy, self.nnx - 1, self.nny - 1, self.scale)
         elif cfg['bcs'] == 'perio_x':
@@ -66,9 +66,6 @@ class PoissonLinSystem(BasePoisson):
                 self.solver_options = cfg["solver_options"]  # Options to pass to the solver
         else:
             self.solver_type = "direct"
-
-        # Benchmark switch
-        self.benchmark = cfg["benchmark"]
 
     def solve(self, physical_rhs: np.ndarray, bcs: dict):
         """ Solve the Poisson equation with physical_rhs as charge density / epsilon_0
@@ -100,7 +97,7 @@ class PoissonLinSystem(BasePoisson):
         :param cfg: Poisson configuration dict
         """
         if self.benchmark:
-            solve_time = perf_counter()
+            solve_timer = perf_counter()
 
         if self.solver_type == "direct":
             x = linalg.spsolve(A, b)
@@ -115,8 +112,8 @@ class PoissonLinSystem(BasePoisson):
             raise ValueError(f"Unknown solver_type {self.solver_type}")
 
         if self.benchmark:
-            solve_time = perf_counter() - solve_time
-            print(f"{solve_time=}")
+            solve_timer = perf_counter() - solve_timer
+            print(f"{solve_timer=}")
 
         return x
 

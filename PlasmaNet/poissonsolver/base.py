@@ -63,6 +63,11 @@ class BasePoisson:
             self.coeffs_rhs = np.zeros(self.N.shape)
             self.coeffs_pot = np.zeros(self.N.shape)
 
+        # Benchmark switch
+        self.benchmark = False
+        if "benchmark" in cfg:
+            self.benchmark = cfg["benchmark"]
+
     def compute_voln(self):
         """ Computes the nodal volume associated to each node (j, i) """
         voln = np.ones_like(self.X) * self.dx * self.dy

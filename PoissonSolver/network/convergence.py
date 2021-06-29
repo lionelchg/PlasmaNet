@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                            2D Poisson network convergence                                             #
+#                                            2D Poisson network convergence                                            #
 #                                                                                                                      #
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
@@ -26,6 +26,7 @@ from PlasmaNet.common.utils import create_dir
 
 sns.set_context('notebook', font_scale=1.0)
 
+
 def ax_prop(ax, title):
     ax.grid(True)
     ax.set_xlabel(r'$n_\mathrm{pts}$')
@@ -33,6 +34,7 @@ def ax_prop(ax, title):
     ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_title(title)
+
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='PoissonNetwork runs')

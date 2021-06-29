@@ -13,6 +13,7 @@ import torch
 import yaml
 from tqdm import tqdm
 from pathlib import Path
+from time import perf_counter
 
 # From PlasmaNet
 import PlasmaNet.nnet.data.data_loaders as module_data
@@ -113,14 +114,31 @@ class PoissonNetwork(BasePoisson):
         self.physical_rhs = physical_rhs
         
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
+        if self.benchmark:
+            comm_timer = perf_counter()
         physical_rhs_torch = torch.from_numpy(self.physical_rhs[np.newaxis, np.newaxis, :, :] 
                                               * self.ratio * self.scaling_factor).float().cuda()
+        if self.benchmark:
+            comm_timer = perf_counter() - comm_timer
 
         # Apply the model
+        if self.benchmark:
+            model_timer = perf_counter()
         potential_torch = self.model(physical_rhs_torch)
+        if self.benchmark:
+            model_timer = perf_counter() - model_timer
 
         # Retrieve the potential
+        if self.benchmark:
+            comm_timer = comm_timer - perf_counter()
         self.potential = self.res_scale / self.scaling_factor * potential_torch.detach().cpu().numpy()[0, 0]
+        if self.benchmark:
+            comm_timer = comm_timer + perf_counter()
+
+        # Print benchmarks
+        if self.benchmark:
+            self.logger.info(f"comm_timer={comm_timer}")
+            self.logger.info(f"model_timer={model_timer}")
 
     def run_case(self, case_dir: Path, physical_rhs: np.ndarray, plot: bool):
         """ Run a Poisson linear system case
