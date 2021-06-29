@@ -1,9 +1,9 @@
 #!/usr/bin/bash
 #SBATCH --job-name=POscillNet
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=36
+#SBATCH --ntasks-per-node=8
 #SBATCH --time=10:00:00
 #SBATCH --partition=gpu
-#SBATCH --nodelist=krakengpu2
+#SBATCH --nodelist=krakengpu1
 
-python run_cases.py -c dl_poscill_101_cases_scales.yml -np 6
+run_cases -np 2 -c poscill_101_cases.yml -t pleuler

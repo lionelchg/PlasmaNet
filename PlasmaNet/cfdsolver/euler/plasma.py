@@ -101,6 +101,7 @@ class PlasmaEuler(Euler):
         self.temporal_ampl = np.zeros(2)
         self.temporal_ampl[0] = self.domain_ave(nep)
         self.temporal_ampl[1] = np.mean(nep[self.temporal_indices[:, 0], self.temporal_indices[:, 1]])
+        self.nep_max = np.max(nep)
 
         # datasets for deep-learning
         self.dl_save = config['output']['dl_save'] == 'yes'
@@ -189,12 +190,12 @@ class PlasmaEuler(Euler):
         E = self.E_field
         E_norm = self.E_norm
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(8, 8))
-        plot_ax_scalar(fig, axes[0][0], self.X, self.Y, n_e, r"$n_e$", geom='xy', max_value=1.2 * self.temporal_ampl[1])
+        plot_ax_scalar(fig, axes[0][0], self.X, self.Y, n_e, r"$n_e$", geom='xy', max_value=1.05 * self.nep_max)
         plot_ax_scalar_1D(fig, axes[0][1], self.X, [0.4, 0.5, 0.6], n_e, r"$n_e$",
-                          ylim=[-1.2 * self.temporal_ampl[1], 1.2 * self.temporal_ampl[1]])
-        plot_ax_vector_arrow(fig, axes[1][0], self.X, self.Y, E, 'Electric field', max_value=1.1 * self.E_max)
+                          ylim=[-1.05 * self.nep_max, 1.05 * self.nep_max])
+        plot_ax_vector_arrow(fig, axes[1][0], self.X, self.Y, E, 'Electric field', max_value=1.05 * self.E_max)
         plot_ax_scalar_1D(fig, axes[1][1], self.X, [0.25, 0.5, 0.75], E_norm, r"$|\mathbf{E}|$",
-                          ylim=[0, 1.1 * self.E_max])
+                          ylim=[0, 1.05 * self.E_max])
         fig.suptitle(rf'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout()
         fig.savefig(self.fig_dir + f'variables_{self.number:04d}', bbox_inches='tight')
