@@ -11,7 +11,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from glob import glob
 import yaml
+import argparse
 from itertools import product
+from PlasmaNet.common.utils import create_dir
 
 
 def parse_output(filepath, lookup_table):
@@ -40,6 +42,10 @@ def parse_output(filepath, lookup_table):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--cases_root", type=str, default=None,
+                        help="Cases root directory")
+    args = parser.parse_args()
 
     with open('bench_config.yml') as yaml_stream:
         bench_cfg = yaml.safe_load(yaml_stream)
@@ -77,6 +83,9 @@ if __name__ == "__main__":
     # Parse network output
     networks = bench_cfg["networks"].keys()
     base_casename = config["network"]["casename"]
+    if args.cases_root is not None:
+        base_casename = base_casename.replace("cases", args.cases_root)
+        print(f"Cases root changed to {base_casename}")
     for net, nn in product(bench_cfg["networks"], bench_cfg["sizes"]):
         filepath = os.path.join(base_casename, str(net), str(nn), "info.log")
         lookup_table = {
@@ -132,8 +141,9 @@ if __name__ == "__main__":
 
     # Linear solver
     umf = perf["umf"]
-    ax.plot(perf.index, umf["mean"], "-x", label="Linear solver")
-    ax.fill_between(perf.index, umf["mean"] + umf["std"], umf["mean"] - umf["std"], alpha=.2)
+    idx = perf.index**2
+    ax.plot(idx, umf["mean"], "-x", label="Linear solver")
+    ax.fill_between(idx, umf["mean"] + umf["std"], umf["mean"] - umf["std"], alpha=.2)
     # Networks
     for net in networks:
         tot, model, comm = perf[net], perf[net + "_model"], perf[net + "_comm"]
@@ -144,13 +154,13 @@ if __name__ == "__main__":
         # ax.fill_between(perf.index, comm["mean"] + comm["std"], comm["mean"] - comm["std"], alpha=.2)
         # ax.plot(perf.index, model["mean"], "-^", label="GPU inference")
         # ax.fill_between(perf.index, model["mean"] + model["std"], model["mean"] - model["std"], alpha=.2)
-        ax.plot(perf.index, tot["mean"], "-o", label=net)
-        ax.fill_between(perf.index, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
+        ax.plot(idx, tot["mean"], "-o", label=net)
+        ax.fill_between(idx, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
                         alpha=.2)
-        ax.plot(perf.index, comm["mean"], "-+", label=net + " comm")
-        ax.fill_between(perf.index, comm["mean"] + comm["std"], comm["mean"] - comm["std"], alpha=.2)
-        ax.plot(perf.index, model["mean"], "-^", label=net + " model")
-        ax.fill_between(perf.index, model["mean"] + model["std"], model["mean"] - model["std"], alpha=.2)
+        ax.plot(idx, comm["mean"], "-+", label=net + " comm")
+        ax.fill_between(idx, comm["mean"] + comm["std"], comm["mean"] - comm["std"], alpha=.2)
+        ax.plot(idx, model["mean"], "-^", label=net + " model")
+        ax.fill_between(idx, model["mean"] + model["std"], model["mean"] - model["std"], alpha=.2)
 
     ax.loglog()
     ax.legend()
@@ -160,15 +170,24 @@ if __name__ == "__main__":
     net = list(networks)[-1]
     umf, tot, model, comm = perf["umf"], perf[net], perf[net + "_model"], perf[net + "_comm"]
     speedup = umf["mean"] / tot["mean"]
-    speedup_std = speedup * np.sqrt((umf["std"] / umf["mean"])**2 + (tot["std"] / tot["mean"]**2))
+    speedup_std = speedup * np.sqrt((umf["std"] / umf["mean"])**2 + (tot["std"] / tot["mean"])**2)
     print(speedup)
     print(speedup_std)
-    ax2.plot(perf.index, speedup, "-o")
-    ax2.fill_between(perf.index, speedup - speedup_std, speedup + speedup_std)
+    ax2.plot(idx, speedup, "-o")
+    ax2.fill_between(idx, speedup - speedup_std, speedup + speedup_std, alpha=.2)
 
     ax2.semilogx()
     ax2.set_xlabel("Number of nodes")
     ax2.set_ylabel(f"Speedup of {net} network vs. linear solver")
 
     plt.tight_layout()
-    fig.savefig("perf_plot.png", dpi=250)
+
+    # Save fig in figures directory, with an incremented number if a previous figure already exists
+    create_dir("figures/")
+    fig_list = glob("figures/perf_plot_*.png")
+    if len(fig_list) > 0:
+        i_fig_list = [int(i.split("_")[-1].split(".")[0]) for i in fig_list]
+        i_fig = max(i_fig_list)
+    else:
+        i_fig = 0
+    fig.savefig("figures/perf_plot_{:03d}.png".format(i_fig + 1), dpi=250)
