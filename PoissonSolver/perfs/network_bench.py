@@ -37,7 +37,8 @@ if __name__ == "__main__":
         config["network"]["eval"]["nny"] = nn
         config["network"]["resume"] = bench_cfg["networks"][net]["resume"]
         config["network"]["arch"] = bench_cfg["networks"][net]["arch"]
-        config["network"]["arch"]["args"]["input_res"] = nn
+        if "input_res" in config["network"]["arch"]["args"]:
+            config["network"]["arch"]["args"]["input_res"] = nn
         config["network"]["casename"] = os.path.join(base_casename, str(net), str(nn))
 
         print("------------------------------------------------------")
@@ -53,3 +54,5 @@ if __name__ == "__main__":
                                         x01, y01, sigma_x, sigma_y) * co.e / co.epsilon_0
         for i in range(bench_cfg["nits"]):
             poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=False)
+
+        poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=True)
