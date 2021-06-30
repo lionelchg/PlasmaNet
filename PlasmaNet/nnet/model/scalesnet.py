@@ -51,11 +51,11 @@ class ScalesNet(BaseModel):
 
     def global_prop(self):
         """ Global properties of the network """
-        nscales_str = f'Number of scales of the network: {self.n_scales:d}'
+        nscales_str = f'Number of branches of the network: {self.n_scales:d}'
         prop_str = 'Global properties of each scale: \n'
         prop_str += f'{" ":10}|{"RF":^10}|{"Depth":^10}|{"nparams":^10}|{"k-size":^10}|'
         for s in range(self.n_scales):
-            prop_str += f'\nScale {s:d}   |{self.receptive_field[s]:10d}|{self.depths[s]:10d}|{self.params[s]:10d}|{self.kernel_sizes[s]:10d}|'
+            prop_str += f'\nBranch {s:d}   |{self.receptive_field[s]:10d}|{self.depths[s]:10d}|{self.params[s]:10d}|{self.kernel_sizes[s]:10d}|'
         prop_str += f'\nTotal     |{self.rf_global:10d}|{sum(self.depths):10d}|{sum(self.params):10d}|'
         return '\n'.join([nscales_str, prop_str])
 
