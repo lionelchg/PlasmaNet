@@ -7,7 +7,7 @@
 ########################################################################################################################
 
 import os
-import argparse
+import torch
 import yaml
 from pathlib import Path
 import numpy as np
@@ -56,3 +56,6 @@ if __name__ == "__main__":
             poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=False)
 
         poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=True)
+
+        # Clean GPU cache?
+        torch.cuda.empty_cache()

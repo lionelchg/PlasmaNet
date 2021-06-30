@@ -10,6 +10,7 @@ import numpy as np
 import torch
 from ..base import BaseModel
 
+
 class ScalesNet(BaseModel):
     def __init__(self, scales: dict, kernel_sizes):
         super(ScalesNet, self).__init__()

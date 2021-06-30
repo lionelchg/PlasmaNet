@@ -23,7 +23,6 @@ from ..nnet.parse_config import ConfigParser
 from ..nnet.data.data_loaders import ratio_potrhs
 from ..nnet.utils import MetricTracker
 from ..nnet.trainer.trainer import plot_batch, plot_batch_Efield
-from ..common.utils import create_dir
 from .base import BasePoisson
 
 
@@ -91,7 +90,7 @@ class PoissonNetwork(BasePoisson):
         self.model.load_state_dict(state_dict)
 
         # Prepare self.model for testing
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda' if torch.cuda.is_available() and self.cfg_dl['n_gpu'] > 0 else 'cpu')
         self.model = self.model.to(self.device)
         self.model.eval()
 
@@ -116,8 +115,9 @@ class PoissonNetwork(BasePoisson):
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
         if self.benchmark:
             comm_timer = perf_counter()
+            total_timer = perf_counter()
         physical_rhs_torch = torch.from_numpy(self.physical_rhs[np.newaxis, np.newaxis, :, :]
-                                              * self.ratio * self.scaling_factor).float().cuda()
+                                              * self.ratio * self.scaling_factor).float().to(self.device)
         if self.benchmark:
             comm_timer = perf_counter() - comm_timer
 
@@ -130,15 +130,18 @@ class PoissonNetwork(BasePoisson):
 
         # Retrieve the potential
         if self.benchmark:
-            comm_timer = comm_timer - perf_counter()
+            tmp = perf_counter()
         self.potential = self.res_scale / self.scaling_factor * potential_torch.detach().cpu().numpy()[0, 0]
         if self.benchmark:
-            comm_timer = comm_timer + perf_counter()
+            tmp = perf_counter() - tmp
+            comm_timer += tmp
+            total_timer = perf_counter() - total_timer
 
         # Print benchmarks
         if self.benchmark:
             self.logger.info(f"comm_timer={comm_timer}")
             self.logger.info(f"model_timer={model_timer}")
+            self.logger.info(f"total_timer={total_timer}")
 
     def run_case(self, case_dir: Path, physical_rhs: np.ndarray, plot: bool):
         """ Run a Poisson linear system case
