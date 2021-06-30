@@ -109,10 +109,10 @@ class DirichletBoundaryLoss(BaseLoss):
         self.weight = bound_weight
 
     def _forward(self, output, target, **_):
-        bnd_loss = F.mse_loss(output[:, 0, 0, :], target[:, 0, 0, :])
-        bnd_loss += F.mse_loss(output[:, 0, -1, :], target[:, 0, -1, :])
-        bnd_loss += F.mse_loss(output[:, 0, :, 0], target[:, 0, :, 0])
-        bnd_loss += F.mse_loss(output[:, 0, :, -1], target[:, 0, :, -1])
+        bnd_loss = F.mse_loss(output[:, 0, 0, :], torch.zeros_like(output[:, 0, 0, :]))
+        bnd_loss += F.mse_loss(output[:, 0, -1, :], torch.zeros_like(output[:, 0, -1, :]))
+        bnd_loss += F.mse_loss(output[:, 0, :, 0], torch.zeros_like(output[:, 0, :, 0]))
+        bnd_loss += F.mse_loss(output[:, 0, :, -1], torch.zeros_like(output[:, 0, :, -1]))
         return bnd_loss * self.weight
 
 
