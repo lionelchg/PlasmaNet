@@ -186,7 +186,7 @@ def plot_ax_scalar_1D(fig, ax, X, list_cut, field, title, yscale='linear', ylim=
     for cut_pos in list_cut:
         n = int(cut_pos * (n_points - 1))
         ax.plot(x, field[n, :], label='$\hat{y}$ = %.2f' % cut_pos)
-    ax.legend()
+    ax.legend(loc='upper right')
     ax.set_yscale(yscale)
     if ylim is not None:
         ax.set_ylim(ylim)
