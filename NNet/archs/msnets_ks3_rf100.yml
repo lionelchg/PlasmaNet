@@ -10,28 +10,28 @@ MSNet3:
     type: 'MSNet'
     args:
         scales:
-            depth_0: [2, 24, 24, 24, 24, 24, 24, 24, 1]
-            depth_1: [2, 26, 26, 26, 26, 26, 26, 1]
-            depth_2: [1, 26, 26, 26, 26, 26, 26, 1]
+            scale_0: [2, 24, 24, 24, 24, 24, 24, 24, 1]
+            scale_1: [2, 26, 26, 26, 26, 26, 26, 1]
+            scale_2: [1, 26, 26, 26, 26, 26, 26, 1]
         kernel_sizes: 3
 
 MSNet4:
     type: 'MSNet'
     args:
         scales:
-            depth_0: [2, 50, 50, 1]
-            depth_1: [2, 34, 34, 34, 1]
-            depth_2: [2, 34, 34, 34, 1]
-            depth_3: [1, 50, 50, 1]
+            scale_0: [2, 50, 50, 1]
+            scale_1: [2, 34, 34, 34, 1]
+            scale_2: [2, 34, 34, 34, 1]
+            scale_3: [1, 50, 50, 1]
         kernel_sizes: 3
 
 MSNet5:
     type: 'MSNet'
     args:
         scales:
-            depth_0: [2, 700, 1]
-            depth_1: [2, 700, 1]
-            depth_2: [2, 700, 1]
-            depth_3: [2, 700, 1]
-            depth_4: [1, 960, 1]
+            scale_0: [2, 700, 1]
+            scale_1: [2, 700, 1]
+            scale_2: [2, 700, 1]
+            scale_3: [2, 700, 1]
+            scale_4: [1, 960, 1]
         kernel_sizes: 3

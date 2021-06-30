@@ -49,23 +49,23 @@ class UNet(ScalesNet):
                     padding_mode='zeros', upsample_mode='nearest'):
         super(UNet, self).__init__(scales, kernel_sizes)
         # create down_blocks, bottom_fmaps and up_blocks
-        in_fmaps = self.scales['depth_0'][0]
+        in_fmaps = self.scales['scale_0'][0]
 
         down_blocks = list()
-        for local_depth in range(1, self.depth):
-            down_blocks.append(self.scales[f'depth_{local_depth:d}'][0])
+        for local_depth in range(1, self.max_scale):
+            down_blocks.append(self.scales[f'scale_{local_depth:d}'][0])
         
-        bottom_fmaps = self.scales[f'depth_{self.depth:d}']
+        bottom_fmaps = self.scales[f'scale_{self.max_scale:d}']
 
         up_blocks = list()
-        for local_depth in range(self.depth - 1, 0, -1):
-            up_blocks.append(self.scales[f'depth_{local_depth:d}'][1])
+        for local_depth in range(self.max_scale - 1, 0, -1):
+            up_blocks.append(self.scales[f'scale_{local_depth:d}'][1])
         
-        out_fmaps = self.scales['depth_0'][1]
+        out_fmaps = self.scales['scale_0'][1]
         
         # For upsample the list of resolution is needed when 
         # the number of points is not a power of 2
-        list_res = [int(input_res / 2**i) for i in range(self.depth)]
+        list_res = [int(input_res / 2**i) for i in range(self.max_scale)]
 
         # Entry layer
         self.ConvsDown = nn.ModuleList()
