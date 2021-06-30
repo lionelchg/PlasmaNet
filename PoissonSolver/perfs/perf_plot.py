@@ -107,9 +107,10 @@ if __name__ == "__main__":
     print("---------------------------------------------")
 
     # Delete aberrant first data (because std dev is ugly)
-    # perf = perf.drop([0])
-    from IPython import embed
-    embed()
+    # Drop the first two measurements of each case
+    to_del = perf.groupby("case").head(2)
+    perf = pd.concat([perf, to_del]).drop_duplicates(keep=False)
+
     # Execute stats
     # perf = perf.groupby("case").agg(["mean", "std"])
     perf = perf.groupby("size").agg(["mean", "std"])
@@ -122,42 +123,52 @@ if __name__ == "__main__":
 
     print(perf)
 
-    # Plots
+    ###########################################
+    #   Plots
+    ###########################################
 
     fig, ax = plt.subplots(figsize=(10, 4), ncols=2)
     ax, ax2 = ax.ravel()
 
-    ax.plot(names, perf["umf"]["mean"], "-o", label="PlasmaNet")
-    ax.fill_between(names, perf["dl"]["mean"] + perf["dl"]["std"], perf["dl"]["mean"] - perf["dl"]["std"], alpha=.2)
-    # ax.plot(names, perf["ana"]["mean"], "-x", label="SuperLU GSSV")
-    # ax.fill_between(names, perf["ana"]["mean"] + perf["ana"]["std"], perf["ana"]["mean"] - perf["ana"]["std"], alpha=.2)
-    ax.plot(names, perf["umf"]["mean"], "-x", label="Linear solver")
-    ax.fill_between(names, perf["umf"]["mean"] + perf["umf"]["std"], perf["umf"]["mean"] - perf["umf"]["std"], alpha=.2)
-    ax.plot(names, perf["comm"]["mean"], "-+", label="CPU <-> GPU comms")
-    ax.fill_between(names, perf["comm"]["mean"] + perf["comm"]["std"], perf["comm"]["mean"] - perf["comm"]["std"], alpha=.2)
-    ax.plot(names, perf["dl"]["mean"] - perf["comm"]["mean"], "-^", label="GPU inference")
+    # Linear solver
+    umf = perf["umf"]
+    ax.plot(perf.index, umf["mean"], "-x", label="Linear solver")
+    ax.fill_between(perf.index, umf["mean"] + umf["std"], umf["mean"] - umf["std"], alpha=.2)
+    # Networks
+    for net in networks:
+        tot, model, comm = perf[net], perf[net + "_model"], perf[net + "_comm"]
+        # ax.plot(perf.index, tot["mean"], "-o", label="PlasmaNet")
+        # ax.fill_between(perf.index, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
+        #                 alpha=.2)
+        # ax.plot(perf.index, comm["mean"], "-+", label="CPU <-> GPU comms")
+        # ax.fill_between(perf.index, comm["mean"] + comm["std"], comm["mean"] - comm["std"], alpha=.2)
+        # ax.plot(perf.index, model["mean"], "-^", label="GPU inference")
+        # ax.fill_between(perf.index, model["mean"] + model["std"], model["mean"] - model["std"], alpha=.2)
+        ax.plot(perf.index, tot["mean"], "-o", label=net)
+        ax.fill_between(perf.index, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
+                        alpha=.2)
+        ax.plot(perf.index, comm["mean"], "-+", label=net + " comm")
+        ax.fill_between(perf.index, comm["mean"] + comm["std"], comm["mean"] - comm["std"], alpha=.2)
+        ax.plot(perf.index, model["mean"], "-^", label=net + " model")
+        ax.fill_between(perf.index, model["mean"] + model["std"], model["mean"] - model["std"], alpha=.2)
 
-    # ax.errorbar(names, perf["dl"]["mean"], perf["dl"]["std"], fmt="-o", label="PlasmaNet")
-    # ax.errorbar(names, perf["ana"]["mean"], perf["ana"]["std"], fmt="-x", label="Linear solver - SuperLU")
-    # ax.errorbar(names, perf["comm"]["mean"], perf["comm"]["std"], fmt="-+", label="CPU/GPU comm")
-
-    # ax.set_yscale("log")
     ax.loglog()
     ax.legend()
     ax.set_xlabel("Number of nodes")
     ax.set_ylabel(f"Mean execution time with standard deviation [s]", wrap=True)
 
-    speedup = perf["umf"]["mean"] / perf["dl"]["mean"]
-    speedup_std = speedup * np.sqrt((perf["umf"]["std"] / perf["umf"]["mean"])**2 + (perf["dl"]["std"] / perf["dl"]["mean"]**2))
+    net = list(networks)[-1]
+    umf, tot, model, comm = perf["umf"], perf[net], perf[net + "_model"], perf[net + "_comm"]
+    speedup = umf["mean"] / tot["mean"]
+    speedup_std = speedup * np.sqrt((umf["std"] / umf["mean"])**2 + (tot["std"] / tot["mean"]**2))
     print(speedup)
     print(speedup_std)
-    ax2.plot(names, perf["umf"]["mean"] / perf["dl"]["mean"], "-o")
+    ax2.plot(perf.index, speedup, "-o")
+    ax2.fill_between(perf.index, speedup - speedup_std, speedup + speedup_std)
 
-    #ax2.loglog()
     ax2.semilogx()
     ax2.set_xlabel("Number of nodes")
-    ax2.set_ylabel("Speedup")
-
+    ax2.set_ylabel(f"Speedup of {net} network vs. linear solver")
 
     plt.tight_layout()
     fig.savefig("perf_plot.png", dpi=250)
