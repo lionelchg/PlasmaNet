@@ -2,7 +2,7 @@ import argparse
 import yaml
 import PlasmaNet.nnet.model as model
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', help='Config filename')
     parser.add_argument('-m', '--mode', help='Show all the network or just global parameters',
@@ -20,3 +20,6 @@ if __name__ == '__main__':
             print(tmp_model)
         elif args.mode == 'global':
             print(tmp_model.global_prop())
+
+if __name__ == '__main__':
+    main()
