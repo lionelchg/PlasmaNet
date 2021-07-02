@@ -13,6 +13,7 @@ import pandas as pd
 import yaml
 from glob import glob
 from itertools import product
+import matplotlib as mpl
 from matplotlib.lines import Line2D
 
 from PlasmaNet.common.utils import create_dir
@@ -142,10 +143,11 @@ if __name__ == "__main__":
     #   Plots
     ###########################################
 
-    fig, ax = plt.subplots(figsize=(10, 4), ncols=2)
-    ax, ax2 = ax.ravel()
 
     if not args.paper:
+        fig, ax = plt.subplots(figsize=(10, 4), ncols=2)
+        ax, ax2 = ax.ravel()
+
         # Linear solver
         umf = perf["umf"]
         idx = perf.index**2
@@ -185,40 +187,47 @@ if __name__ == "__main__":
         plt.tight_layout()
 
     else:
+        mpl.rcParams['text.usetex'] = True
+        mpl.rcParams['font.size'] = 7
+        fig, ax = plt.subplots(figsize=(6.3, 2.95), ncols=2)
+        ax, ax2 = ax.ravel()
+
         umf = perf["umf"]
         idx = perf.index**2
         legend = []
-        markers = ["^", "o"]
+        markers = ["d", "o"]
         ax.plot(idx, umf["mean"], "-+", color="black", label="Linear solver")
         ax.fill_between(idx, umf["mean"] + umf["std"], umf["mean"] - umf["std"], alpha=.2, color="black")
         legend.append(Line2D([0], [0], marker="+", color="black", label="Linear solver"))
         legend.extend([
             Line2D([0], [0], lw=2.5, color="C0", label="PlasmaNet solver"),
-            Line2D([0], [0], lw=2.5, color="C1", label="GPU inference"),
-            Line2D([0], [0], lw=2.5, color="C2", label="CPU <-> GPU comms"),
+            Line2D([0], [0], lw=2.5, color="C1", label="CPU $\leftrightarrow$ GPU comms"),
+            Line2D([0], [0], lw=2.5, color="C2", label="GPU inference"),
         ])
         # Networks
         for i, net in enumerate(networks[::2]):
             tot, model, comm = perf[net], perf[net + "_model"], perf[net + "_comm"]
 
-            ax.plot(idx, tot["mean"], marker=markers[i])
+            ax.plot(idx, tot["mean"], marker=markers[i], markersize=4)
             ax.fill_between(idx, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
-                            alpha=.2,  lw=0)
+                            alpha=.2, lw=0)
 
-            ax.plot(idx, comm["mean"], marker=markers[i])
+            ax.plot(idx, comm["mean"], marker=markers[i], markersize=4)
             ax.fill_between(idx, comm["mean"] + comm["std"], comm["mean"] - comm["std"],
-                            alpha=.2,  lw=0)
-            ax.plot(idx, model["mean"], marker=markers[i])
+                            alpha=.2, lw=0)
+            ax.plot(idx, model["mean"], marker=markers[i], markersize=4)
             ax.fill_between(idx, model["mean"] + model["std"], model["mean"] - model["std"],
-                            alpha=.2,  lw=0)
+                            alpha=.2, lw=0)
 
-            legend.append(Line2D([0], [0], marker=markers[i], color="w", markerfacecolor="k", markersize=10, label=net))
+            net_label = net.replace("_", "\_")
+            legend.append(Line2D([0], [0], marker=markers[i], color="w", markerfacecolor="k", markersize=7, label=net_label))
             ax.set_prop_cycle(None)
 
         ax.loglog()
-        ax.legend(handles=legend)
+        ax.legend(handles=legend, frameon=False)
         ax.set_xlabel("Number of nodes")
         ax.set_ylabel(f"Mean execution time with standard deviation [s]", wrap=True)
+        ax.tick_params(which="both", direction="in", top=True, right=True)
 
         # net = networks[-1]
         for i, net in enumerate(networks[::2]):
@@ -227,13 +236,15 @@ if __name__ == "__main__":
             speedup_std = speedup * np.sqrt((umf["std"] / umf["mean"])**2 + (tot["std"] / tot["mean"])**2)
             # print(speedup)
             # print(speedup_std)
-            ax2.plot(idx, speedup, marker=markers[i], color="k", label=net)
+            net_label = net.replace("_", "\_")
+            ax2.plot(idx, speedup, marker=markers[i], markersize=4, color="k", label=net_label)
             ax2.fill_between(idx, speedup - speedup_std, speedup + speedup_std, alpha=.2, color="k", lw=0)
 
         ax2.semilogx()
         ax2.set_xlabel("Number of nodes")
         ax2.set_ylabel(f"Network speedup vs. linear solver")
-        ax2.legend()
+        ax2.legend(frameon=False)
+        ax2.tick_params(which="both", direction="in", top=True, right=True)
 
         plt.tight_layout()
 
