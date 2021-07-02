@@ -5,14 +5,16 @@ Parse and plot performance analysis of PlasmaNet benchmarks
 G. Bogopolsky, CERFACS, 28.06.2021
 """
 
-import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from glob import glob
-import yaml
 import argparse
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+import pandas as pd
+import yaml
+from glob import glob
 from itertools import product
+from matplotlib.lines import Line2D
+
 from PlasmaNet.common.utils import create_dir
 
 
@@ -45,6 +47,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--cases_root", type=str, default=None,
                         help="Cases root directory")
+    parser.add_argument("-l", "--linsystem", type=str, default="linsystem.out",
+                        help="Linsystem benchmark file")
+    parser.add_argument("--paper", action="store_true", help="Plots for paper")
+    parser.add_argument("-o", "--output_name", type=str, default=None,
+                        help="Output figure name")
     args = parser.parse_args()
 
     with open('bench_config.yml') as yaml_stream:
@@ -63,8 +70,7 @@ if __name__ == "__main__":
             bench_cfg["useUmfpack"],
             bench_cfg["assumeSortedIndices"]
     ):
-
-        filepath = "linsystem.out"
+        filepath = args.linsystem
         case_desc = '_'.join([str(tmp) for tmp in [nn, solver_type, useUmfpack, assumeSortedIndices]])
         lookup_table = {"umf": [case_desc + "_solve_time", float]}
 
@@ -81,7 +87,7 @@ if __name__ == "__main__":
         perf = perf.append(case_df)
 
     # Parse network output
-    networks = bench_cfg["networks"].keys()
+    networks = list(bench_cfg["networks"].keys())
     base_casename = config["network"]["casename"]
     if args.cases_root is not None:
         base_casename = base_casename.replace("cases", args.cases_root)
@@ -90,7 +96,7 @@ if __name__ == "__main__":
         filepath = os.path.join(base_casename, str(net), str(nn), "info.log")
         lookup_table = {
             f"{net}_model": ["model_timer", float],
-            f"{net}_comm": ["comm_timer", float],
+            f"{net}_comm" : ["comm_timer", float],
         }
         case_df = parse_output(filepath, lookup_table)
         case = f"case_{n_cases}"
@@ -139,55 +145,115 @@ if __name__ == "__main__":
     fig, ax = plt.subplots(figsize=(10, 4), ncols=2)
     ax, ax2 = ax.ravel()
 
-    # Linear solver
-    umf = perf["umf"]
-    idx = perf.index**2
-    ax.plot(idx, umf["mean"], "-x", label="Linear solver")
-    ax.fill_between(idx, umf["mean"] + umf["std"], umf["mean"] - umf["std"], alpha=.2)
-    # Networks
-    for net in networks:
-        tot, model, comm = perf[net], perf[net + "_model"], perf[net + "_comm"]
-        # ax.plot(perf.index, tot["mean"], "-o", label="PlasmaNet")
-        # ax.fill_between(perf.index, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
-        #                 alpha=.2)
-        # ax.plot(perf.index, comm["mean"], "-+", label="CPU <-> GPU comms")
-        # ax.fill_between(perf.index, comm["mean"] + comm["std"], comm["mean"] - comm["std"], alpha=.2)
-        # ax.plot(perf.index, model["mean"], "-^", label="GPU inference")
-        # ax.fill_between(perf.index, model["mean"] + model["std"], model["mean"] - model["std"], alpha=.2)
-        ax.plot(idx, tot["mean"], "-o", label=net)
-        ax.fill_between(idx, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
-                        alpha=.2)
-        ax.plot(idx, comm["mean"], "-+", label=net + " comm")
-        ax.fill_between(idx, comm["mean"] + comm["std"], comm["mean"] - comm["std"], alpha=.2)
-        ax.plot(idx, model["mean"], "-^", label=net + " model")
-        ax.fill_between(idx, model["mean"] + model["std"], model["mean"] - model["std"], alpha=.2)
+    if not args.paper:
+        # Linear solver
+        umf = perf["umf"]
+        idx = perf.index**2
+        ax.plot(idx, umf["mean"], "-x", label="Linear solver")
+        ax.fill_between(idx, umf["mean"] + umf["std"], umf["mean"] - umf["std"], alpha=.2)
+        # Networks
+        for net in networks[::2]:
+            tot, model, comm = perf[net], perf[net + "_model"], perf[net + "_comm"]
+            # ax.plot(perf.index, tot["mean"], "-o", label="PlasmaNet")
+            # ax.fill_between(perf.index, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
+            #                 alpha=.2)
+            # ax.plot(perf.index, comm["mean"], "-+", label="CPU <-> GPU comms")
+            # ax.fill_between(perf.index, comm["mean"] + comm["std"], comm["mean"] - comm["std"], alpha=.2)
+            # ax.plot(perf.index, model["mean"], "-^", label="GPU inference")
+            # ax.fill_between(perf.index, model["mean"] + model["std"], model["mean"] - model["std"], alpha=.2)
+            ax.plot(idx, tot["mean"], "-o", label=net)
+            ax.fill_between(idx, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
+                            alpha=.2)
+            ax.plot(idx, comm["mean"], "-+", label=net + " comm")
+            ax.fill_between(idx, comm["mean"] + comm["std"], comm["mean"] - comm["std"], alpha=.2)
+            ax.plot(idx, model["mean"], "-^", label=net + " model")
+            ax.fill_between(idx, model["mean"] + model["std"], model["mean"] - model["std"], alpha=.2)
 
-    ax.loglog()
-    ax.legend()
-    ax.set_xlabel("Number of nodes")
-    ax.set_ylabel(f"Mean execution time with standard deviation [s]", wrap=True)
+        ax.loglog()
+        ax.legend()
+        ax.set_xlabel("Number of nodes")
+        ax.set_ylabel(f"Mean execution time with standard deviation [s]", wrap=True)
 
-    net = list(networks)[-1]
-    umf, tot, model, comm = perf["umf"], perf[net], perf[net + "_model"], perf[net + "_comm"]
-    speedup = umf["mean"] / tot["mean"]
-    speedup_std = speedup * np.sqrt((umf["std"] / umf["mean"])**2 + (tot["std"] / tot["mean"])**2)
-    print(speedup)
-    print(speedup_std)
-    ax2.plot(idx, speedup, "-o")
-    ax2.fill_between(idx, speedup - speedup_std, speedup + speedup_std, alpha=.2)
+        # net = networks[-1]
+        for net in networks[::2]:
+            umf, tot, model, comm = perf["umf"], perf[net], perf[net + "_model"], perf[net + "_comm"]
+            speedup = umf["mean"] / tot["mean"]
+            speedup_std = speedup * np.sqrt((umf["std"] / umf["mean"])**2 + (tot["std"] / tot["mean"])**2)
+            print(speedup)
+            print(speedup_std)
+            ax2.plot(idx, speedup, "-o", label=net)
+            ax2.fill_between(idx, speedup - speedup_std, speedup + speedup_std, alpha=.2)
 
-    ax2.semilogx()
-    ax2.set_xlabel("Number of nodes")
-    ax2.set_ylabel(f"Speedup of {net} network vs. linear solver")
+        ax2.semilogx()
+        ax2.set_xlabel("Number of nodes")
+        ax2.set_ylabel(f"Network speedup vs. linear solver")
+        ax2.legend()
 
-    plt.tight_layout()
+        plt.tight_layout()
+
+    else:
+        umf = perf["umf"]
+        idx = perf.index**2
+        legend = []
+        markers = ["^", "o"]
+        ax.plot(idx, umf["mean"], "-+", color="black", label="Linear solver")
+        ax.fill_between(idx, umf["mean"] + umf["std"], umf["mean"] - umf["std"], alpha=.2, color="black")
+        legend.append(Line2D([0], [0], marker="+", color="black", label="Linear solver"))
+        legend.extend([
+            Line2D([0], [0], lw=2.5, color="C0", label="PlasmaNet solver"),
+            Line2D([0], [0], lw=2.5, color="C1", label="GPU inference"),
+            Line2D([0], [0], lw=2.5, color="C2", label="CPU <-> GPU comms"),
+        ])
+        # Networks
+        for i, net in enumerate(networks[::2]):
+            tot, model, comm = perf[net], perf[net + "_model"], perf[net + "_comm"]
+
+            ax.plot(idx, tot["mean"], marker=markers[i])
+            ax.fill_between(idx, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
+                            alpha=.2,  lw=0)
+
+            ax.plot(idx, comm["mean"], marker=markers[i])
+            ax.fill_between(idx, comm["mean"] + comm["std"], comm["mean"] - comm["std"],
+                            alpha=.2,  lw=0)
+            ax.plot(idx, model["mean"], marker=markers[i])
+            ax.fill_between(idx, model["mean"] + model["std"], model["mean"] - model["std"],
+                            alpha=.2,  lw=0)
+
+            legend.append(Line2D([0], [0], marker=markers[i], color="w", markerfacecolor="k", markersize=10, label=net))
+            ax.set_prop_cycle(None)
+
+        ax.loglog()
+        ax.legend(handles=legend)
+        ax.set_xlabel("Number of nodes")
+        ax.set_ylabel(f"Mean execution time with standard deviation [s]", wrap=True)
+
+        # net = networks[-1]
+        for i, net in enumerate(networks[::2]):
+            umf, tot, model, comm = perf["umf"], perf[net], perf[net + "_model"], perf[net + "_comm"]
+            speedup = umf["mean"] / tot["mean"]
+            speedup_std = speedup * np.sqrt((umf["std"] / umf["mean"])**2 + (tot["std"] / tot["mean"])**2)
+            # print(speedup)
+            # print(speedup_std)
+            ax2.plot(idx, speedup, marker=markers[i], color="k", label=net)
+            ax2.fill_between(idx, speedup - speedup_std, speedup + speedup_std, alpha=.2, color="k", lw=0)
+
+        ax2.semilogx()
+        ax2.set_xlabel("Number of nodes")
+        ax2.set_ylabel(f"Network speedup vs. linear solver")
+        ax2.legend()
+
+        plt.tight_layout()
 
     # Save fig in figures directory, with an incremented number if a previous figure already exists
-    create_dir("figures/")
-    fig_list = glob("figures/perf_plot_*.png")
-    if len(fig_list) > 0:
-        i_fig_list = [int(i.split("_")[-1].split(".")[0]) for i in fig_list]
-        i_fig = max(i_fig_list)
+    if args.output_name is None:
+        create_dir("figures/")
+        fig_list = glob("figures/perf_plot_*.png")
+        if len(fig_list) > 0:
+            i_fig_list = [int(i.split("_")[-1].split(".")[0]) for i in fig_list]
+            i_fig = max(i_fig_list)
+        else:
+            i_fig = 0
+        output_name = "figures/perf_plot_{:03d}.png".format(i_fig + 1)
     else:
-        i_fig = 0
-    fig.savefig("figures/perf_plot_{:03d}.png".format(i_fig + 1), dpi=250)
+        output_name = args.output_name
+    fig.savefig(output_name, dpi=250)
