@@ -154,13 +154,6 @@ if __name__ == "__main__":
         # Networks
         for net in networks[::2]:
             tot, model, comm = perf[net], perf[net + "_model"], perf[net + "_comm"]
-            # ax.plot(perf.index, tot["mean"], "-o", label="PlasmaNet")
-            # ax.fill_between(perf.index, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
-            #                 alpha=.2)
-            # ax.plot(perf.index, comm["mean"], "-+", label="CPU <-> GPU comms")
-            # ax.fill_between(perf.index, comm["mean"] + comm["std"], comm["mean"] - comm["std"], alpha=.2)
-            # ax.plot(perf.index, model["mean"], "-^", label="GPU inference")
-            # ax.fill_between(perf.index, model["mean"] + model["std"], model["mean"] - model["std"], alpha=.2)
             ax.plot(idx, tot["mean"], "-o", label=net)
             ax.fill_between(idx, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
                             alpha=.2)
