@@ -91,7 +91,7 @@ def main():
     re_ds_type = re.compile('[^_]+')
 
     # Filter all the rfs to match closest to rf_list
-    rf_list = [50, 75, 100, 150, 200]
+    rf_list = [50, 75, 100, 150, 200, 300, 400]
 
     # Evaluate on the datasets specified in config for each network
     for nn_name, nn_cfg in networks_cfg.items():
@@ -102,8 +102,8 @@ def main():
 
         # Extract network global properties
         rf_global = poisson_nn.model.rf_global
-        depth = poisson_nn.model.depth
-        width = poisson_nn.model.width
+        nbranches = poisson_nn.model.n_scales
+        depths = poisson_nn.model.depths
         ks = poisson_nn.model.kernel_sizes[0]
         test_res = config['eval']['nnx']
         train_res = config['network']['globals']['nnx'] 
@@ -117,8 +117,8 @@ def main():
                 tmp_dict['nn_name'] = nn_name
                 tmp_dict['nn_type'] = type(poisson_nn.model).__name__
                 tmp_dict['rf_global'] = min(rf_list, key=lambda x:abs(x - rf_global))
-                tmp_dict['depth'] = depth
-                tmp_dict['width'] = sum(width)
+                tmp_dict['nbranches'] = nbranches
+                tmp_dict['depth'] = sum(depths)
                 tmp_dict['ks'] = ks
                 tmp_dict['ds_name'] = ds_name
                 tmp_dict['test_res'] = test_res

@@ -33,7 +33,7 @@ def main():
 
     # Retrieve data from h5
     data_dir = Path(cfg['data_dir'])
-    fig_dir = data_dir / 'figures'
+    fig_dir = data_dir / 'figures' / cfg['fig_dir']
     fig_dir.mkdir(parents=True, exist_ok=True)
     data_networks = dict()
     for nn_name in cfg['networks']:
