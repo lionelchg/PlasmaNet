@@ -197,7 +197,7 @@ if __name__ == "__main__":
         legend = []
         markers = ["d", "o"]
         ax.plot(idx, umf["mean"], "-+", color="black", label="Linear solver")
-        ax.fill_between(idx, umf["mean"] + umf["std"], umf["mean"] - umf["std"], alpha=.2, color="black")
+        # ax.fill_between(idx, umf["mean"] + umf["std"], umf["mean"] - umf["std"], alpha=.2, color="black")
         legend.append(Line2D([0], [0], marker="+", color="black", label="Linear solver"))
         legend.extend([
             Line2D([0], [0], lw=2.5, color="C0", label="PlasmaNet solver"),
@@ -209,15 +209,15 @@ if __name__ == "__main__":
             tot, model, comm = perf[net], perf[net + "_model"], perf[net + "_comm"]
 
             ax.plot(idx, tot["mean"], marker=markers[i], markersize=4)
-            ax.fill_between(idx, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
-                            alpha=.2, lw=0)
+            # ax.fill_between(idx, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
+            #                 alpha=.2, lw=0)
 
             ax.plot(idx, comm["mean"], marker=markers[i], markersize=4)
-            ax.fill_between(idx, comm["mean"] + comm["std"], comm["mean"] - comm["std"],
-                            alpha=.2, lw=0)
+            # ax.fill_between(idx, comm["mean"] + comm["std"], comm["mean"] - comm["std"],
+            #                 alpha=.2, lw=0)
             ax.plot(idx, model["mean"], marker=markers[i], markersize=4)
-            ax.fill_between(idx, model["mean"] + model["std"], model["mean"] - model["std"],
-                            alpha=.2, lw=0)
+            # ax.fill_between(idx, model["mean"] + model["std"], model["mean"] - model["std"],
+            #                 alpha=.2, lw=0)
 
             net_label = net.replace("_", "\_")
             legend.append(Line2D([0], [0], marker=markers[i], color="w", markerfacecolor="k", markersize=7, label=net_label))
