@@ -226,7 +226,7 @@ if __name__ == "__main__":
         ax.loglog()
         ax.legend(handles=legend, frameon=False)
         ax.set_xlabel("Number of nodes")
-        ax.set_ylabel(f"Mean execution time with standard deviation [s]", wrap=True)
+        ax.set_ylabel(f"Mean execution time [s]", wrap=True)
         ax.tick_params(which="both", direction="in", top=True, right=True)
 
         # net = networks[-1]
@@ -242,7 +242,7 @@ if __name__ == "__main__":
 
         ax2.semilogx()
         ax2.set_xlabel("Number of nodes")
-        ax2.set_ylabel(f"Network speedup vs. linear solver")
+        ax2.set_ylabel(f"Speedup")
         ax2.legend(frameon=False)
         ax2.tick_params(which="both", direction="in", top=True, right=True)
 
