@@ -12,7 +12,7 @@ import os
 import pandas as pd
 import yaml
 from glob import glob
-from itertools import product
+from itertools import product, cycle
 import matplotlib as mpl
 from matplotlib.lines import Line2D
 
@@ -174,8 +174,7 @@ if __name__ == "__main__":
             umf, tot, model, comm = perf["umf"], perf[net], perf[net + "_model"], perf[net + "_comm"]
             speedup = umf["mean"] / tot["mean"]
             speedup_std = speedup * np.sqrt((umf["std"] / umf["mean"])**2 + (tot["std"] / tot["mean"])**2)
-            print(speedup)
-            print(speedup_std)
+            print(pd.DataFrame({"mean": speedup, "std": speedup_std}))
             ax2.plot(idx, speedup, "-o", label=net)
             ax2.fill_between(idx, speedup - speedup_std, speedup + speedup_std, alpha=.2)
 
@@ -226,7 +225,7 @@ if __name__ == "__main__":
         ax.loglog()
         ax.legend(handles=legend, frameon=False)
         ax.set_xlabel("Number of nodes")
-        ax.set_ylabel(f"Mean execution time [s]", wrap=True)
+        ax.set_ylabel(f"Execution time [s]", wrap=True)
         ax.tick_params(which="both", direction="in", top=True, right=True)
 
         # net = networks[-1]
@@ -234,8 +233,7 @@ if __name__ == "__main__":
             umf, tot, model, comm = perf["umf"], perf[net], perf[net + "_model"], perf[net + "_comm"]
             speedup = umf["mean"] / tot["mean"]
             speedup_std = speedup * np.sqrt((umf["std"] / umf["mean"])**2 + (tot["std"] / tot["mean"])**2)
-            # print(speedup)
-            # print(speedup_std)
+            print(pd.DataFrame({"mean": speedup, "std": speedup_std}))
             net_label = net.replace("_", "\_")
             ax2.plot(idx, speedup, marker=markers[i], markersize=4, color="k", label=net_label)
             ax2.fill_between(idx, speedup - speedup_std, speedup + speedup_std, alpha=.2, color="k", lw=0)
@@ -245,6 +243,10 @@ if __name__ == "__main__":
         ax2.set_ylabel(f"Speedup")
         ax2.legend(frameon=False)
         ax2.tick_params(which="both", direction="in", top=True, right=True)
+
+        index_title = cycle(('(a)','(b)','(c)','(d)','(e)','(f)'))
+        ax.text(0.9, 0.06, f"$\\bf{next(index_title)}$", transform=ax.transAxes)
+        ax2.text(0.9, 0.06, f"$\\bf{next(index_title)}$", transform=ax2.transAxes)
 
         plt.tight_layout()
 
