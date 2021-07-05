@@ -114,27 +114,53 @@ class PoissonNetwork(BasePoisson):
 
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
         if self.benchmark:
+            #start_event = torch.cuda.Event(enable_timing=True)
+            #end_event = torch.cuda.Event(enable_timing=True)
+            #start_event.record()
+            #torch.cuda.synchronize()
             comm_timer = perf_counter()
             total_timer = perf_counter()
         physical_rhs_torch = torch.from_numpy(self.physical_rhs[np.newaxis, np.newaxis, :, :]
                                               * self.ratio * self.scaling_factor).float().to(self.device)
         if self.benchmark:
+
+            #end_event.record()
+            torch.cuda.synchronize()  # Wait for the events to be recorded! 
+            #comm_timer = start_event.elapsed_time(end_event)
             comm_timer = perf_counter() - comm_timer
 
         # Apply the model
         if self.benchmark:
             model_timer = perf_counter()
+            #start_model = torch.cuda.Event(enable_timing=True)
+            #end_model = torch.cuda.Event(enable_timing=True)
+            #start_model.record()
+            #torch.cuda.synchronize()
+
         potential_torch = self.model(physical_rhs_torch)
         if self.benchmark:
+            #end_model.record()
+            torch.cuda.synchronize()  # Wait for the events to be recorded! 
+            #model_timer = start_model.elapsed_time(end_model) 
             model_timer = perf_counter() - model_timer
 
         # Retrieve the potential
         if self.benchmark:
+            #start_comm = torch.cuda.Event(enable_timing=True)
+            #end_comm = torch.cuda.Event(enable_timing=True)
+            #start_comm.record()
+            #torch.cuda.synchronize()
             tmp = perf_counter()
+
         self.potential = self.res_scale / self.scaling_factor * potential_torch.detach().cpu().numpy()[0, 0]
         if self.benchmark:
+            #end_comm.record()
+            #torch.cuda.synchronize()  # Wait for the events to be recorded!
+            #comm_timer_2 = start_comm.elapsed_time(end_comm)
             tmp = perf_counter() - tmp
+            #comm_timer += comm_timer_2
             comm_timer += tmp
+            #total_timer = start_event.elapsed_time(end_comm)
             total_timer = perf_counter() - total_timer
 
         # Print benchmarks
