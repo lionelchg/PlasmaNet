@@ -113,7 +113,7 @@ class PoissonLinSystem(BasePoisson):
 
         if self.benchmark:
             solve_timer = perf_counter() - solve_timer
-            print(f"solve_timer{solve_timer}")
+            print(f"solve_time={solve_timer}")
 
         return x
 

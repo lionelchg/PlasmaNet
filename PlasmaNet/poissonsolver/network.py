@@ -143,7 +143,7 @@ class PoissonNetwork(BasePoisson):
             self.logger.info(f"model_timer={model_timer}")
             self.logger.info(f"total_timer={total_timer}")
 
-    def run_case(self, case_dir: Path, physical_rhs: np.ndarray, plot: bool):
+    def run_case(self, case_dir: Path, physical_rhs: np.ndarray, plot: bool, save=True):
         """ Run a Poisson linear system case
 
         :param case_dir: Case directory
@@ -157,7 +157,8 @@ class PoissonNetwork(BasePoisson):
         """
         case_dir.mkdir(parents=True, exist_ok=True)
         self.solve(physical_rhs)
-        self.save(case_dir)
+        if save:
+            self.save(case_dir)
         if plot:
             fig_dir = case_dir / 'figures'
             fig_dir.mkdir(parents=True, exist_ok=True)

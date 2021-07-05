@@ -53,9 +53,9 @@ if __name__ == "__main__":
         physical_rhs = pf.two_gaussians(poisson.X, poisson.Y, ni0, x0, y0, sigma_x, sigma_y,
                                         x01, y01, sigma_x, sigma_y) * co.e / co.epsilon_0
         for i in range(bench_cfg["nits"]):
-            poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=False)
+            poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=False, save=False)
 
-        poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=True)
+        poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=True, save=False)
 
         # Clean GPU cache?
         torch.cuda.empty_cache()
