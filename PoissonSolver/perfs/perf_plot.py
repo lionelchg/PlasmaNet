@@ -154,7 +154,7 @@ if __name__ == "__main__":
         ax.plot(idx, umf["mean"], "-x", label="Linear solver")
         ax.fill_between(idx, umf["mean"] + umf["std"], umf["mean"] - umf["std"], alpha=.2)
         # Networks
-        for net in networks[::2]:
+        for net in networks:
             tot, model, comm = perf[net], perf[net + "_model"], perf[net + "_comm"]
             ax.plot(idx, tot["mean"], "-o", label=net)
             ax.fill_between(idx, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
@@ -170,7 +170,7 @@ if __name__ == "__main__":
         ax.set_ylabel(f"Mean execution time with standard deviation [s]", wrap=True)
 
         # net = networks[-1]
-        for net in networks[::2]:
+        for net in networks:
             umf, tot, model, comm = perf["umf"], perf[net], perf[net + "_model"], perf[net + "_comm"]
             speedup = umf["mean"] / tot["mean"]
             speedup_std = speedup * np.sqrt((umf["std"] / umf["mean"])**2 + (tot["std"] / tot["mean"])**2)
