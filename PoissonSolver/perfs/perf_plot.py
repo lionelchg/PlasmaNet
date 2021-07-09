@@ -15,6 +15,8 @@ from glob import glob
 from itertools import product, cycle
 import matplotlib as mpl
 from matplotlib.lines import Line2D
+from numpy.polynomial import Polynomial
+from scipy.stats import linregress
 
 from PlasmaNet.common.utils import create_dir
 
@@ -143,7 +145,6 @@ if __name__ == "__main__":
     #   Plots
     ###########################################
 
-
     if not args.paper:
         fig, ax = plt.subplots(figsize=(10, 4), ncols=2)
         ax, ax2 = ax.ravel()
@@ -187,6 +188,7 @@ if __name__ == "__main__":
 
     else:
         mpl.rcParams['text.usetex'] = True
+        mpl.rcParams["text.latex.preamble"] = r"\usepackage{amsmath} \usepackage{physics}"
         mpl.rcParams['font.size'] = 7
         fig, ax = plt.subplots(figsize=(6.3, 2.95), ncols=2)
         ax, ax2 = ax.ravel()
@@ -194,32 +196,51 @@ if __name__ == "__main__":
         umf = perf["umf"]
         idx = perf.index**2
         legend = []
-        markers = ["d", "o"]
+        markers = ["d", "o", "P", "*", "p"]
         ax.plot(idx, umf["mean"], "-+", color="black", label="Linear solver")
         # ax.fill_between(idx, umf["mean"] + umf["std"], umf["mean"] - umf["std"], alpha=.2, color="black")
+        # Fit
+        linsystem_fit = linregress(np.log(idx), np.log(umf["mean"]))
+        ax.plot(idx, np.exp(np.log(idx) * linsystem_fit.slope + linsystem_fit.intercept), "s-", color="blue")
+
         legend.append(Line2D([0], [0], marker="+", color="black", label="Linear solver"))
         legend.extend([
-            Line2D([0], [0], lw=2.5, color="C0", label="PlasmaNet solver"),
-            Line2D([0], [0], lw=2.5, color="C1", label="CPU $\leftrightarrow$ GPU comms"),
-            Line2D([0], [0], lw=2.5, color="C2", label="GPU inference"),
+            # Line2D([0], [0], lw=2.5, color="C0", label="PlasmaNet solver"),
+            # Line2D([0], [0], lw=2.5, color="C2", label="GPU inference"),
+            # Line2D([0], [0], lw=2.5, color="C1", label=r"CPU $\leftrightarrow$ GPU comms"),
+            Line2D([0], [0], lw=1.5, color="C0", label="PlasmaNet solver"),
+            Line2D([0], [0], lw=1.5, color="C0", linestyle="--", label="GPU inference"),
+            Line2D([0], [0], lw=1.5, color="C0", linestyle=":", label=r"CPU $\leftrightarrow$ GPU comms"),
         ])
         # Networks
-        for i, net in enumerate(networks[::2]):
+        work_networks = networks[0:1]  # Select single element by slicing to prevent iteration on the string itself
+        for i, net in enumerate(work_networks):
             tot, model, comm = perf[net], perf[net + "_model"], perf[net + "_comm"]
-
-            ax.plot(idx, tot["mean"], marker=markers[i], markersize=4)
+            ax.plot(idx, tot["mean"], "C0d-", markersize=4)
             # ax.fill_between(idx, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
             #                 alpha=.2, lw=0)
+            # Fit for the two regimes
+            net_fit_1 = linregress(np.log(idx[:6]), np.log(tot["mean"][:6]))
+            ax.plot(idx[:6], np.exp(np.log(idx[:6]) * net_fit_1.slope + net_fit_1.intercept), color="red", marker="s")
+            net_fit_2 = linregress(np.log(idx[5:]), np.log(tot["mean"][5:]))
+            ax.plot(idx[5:], np.exp(np.log(idx[5:]) * net_fit_2.slope + net_fit_2.intercept), color="green", marker="s")
 
-            ax.plot(idx, comm["mean"], marker=markers[i], markersize=4)
-            # ax.fill_between(idx, comm["mean"] + comm["std"], comm["mean"] - comm["std"],
-            #                 alpha=.2, lw=0)
-            ax.plot(idx, model["mean"], marker=markers[i], markersize=4)
+            ax.plot(idx, model["mean"], "C0d--", markersize=4)
             # ax.fill_between(idx, model["mean"] + model["std"], model["mean"] - model["std"],
             #                 alpha=.2, lw=0)
+            ax.plot(idx, comm["mean"], "C0d:", markersize=4)
+            # ax.fill_between(idx, comm["mean"] + comm["std"], comm["mean"] - comm["std"],
+            #                 alpha=.2, lw=0)
 
-            net_label = net.replace("_", "\_")
-            legend.append(Line2D([0], [0], marker=markers[i], color="w", markerfacecolor="k", markersize=7, label=net_label))
+            # Slopes of fits
+            ax.text(0.6, 0.6, "$\\text{{slope}} = {:.2f}$".format(linsystem_fit.slope), transform=ax.transAxes,
+                    color="blue", rotation=35)
+            ax.text(0.2, 0.3, "$\\text{{slope}} = {:.2f}$".format(net_fit_1.slope), transform=ax.transAxes, color="red")
+            ax.text(0.6, 0.38, "$\\text{{slope}} = {:.2f}$".format(net_fit_2.slope), transform=ax.transAxes,
+                    color="green", rotation=26)
+
+            net_label = net.replace("_", r"\_")
+            legend.append(Line2D([0], [0], marker="d", color="w", markerfacecolor="C0", markersize=7, label=net_label))
             ax.set_prop_cycle(None)
 
         ax.loglog()
@@ -229,14 +250,17 @@ if __name__ == "__main__":
         ax.tick_params(which="both", direction="in", top=True, right=True)
 
         # net = networks[-1]
-        for i, net in enumerate(networks[::2]):
+        work_networks = networks
+        for i, net in enumerate(work_networks):
             umf, tot, model, comm = perf["umf"], perf[net], perf[net + "_model"], perf[net + "_comm"]
             speedup = umf["mean"] / tot["mean"]
             speedup_std = speedup * np.sqrt((umf["std"] / umf["mean"])**2 + (tot["std"] / tot["mean"])**2)
             print(pd.DataFrame({"mean": speedup, "std": speedup_std}))
             net_label = net.replace("_", "\_")
-            ax2.plot(idx, speedup, marker=markers[i], markersize=4, color="k", label=net_label)
-            ax2.fill_between(idx, speedup - speedup_std, speedup + speedup_std, alpha=.2, color="k", lw=0)
+            ax2.plot(idx, speedup, marker=markers[i], markersize=4, label=net_label)
+            # ax2.fill_between(idx, speedup - speedup_std, speedup + speedup_std, alpha=.2, lw=0)
+            # ax2.plot(idx, speedup, label=net_label)
+            # ax2.fill_between(idx, speedup - speedup_std, speedup + speedup_std, alpha=.2, lw=0)
 
         ax2.semilogx()
         ax2.set_xlabel("Number of nodes")
@@ -244,11 +268,19 @@ if __name__ == "__main__":
         ax2.legend(frameon=False)
         ax2.tick_params(which="both", direction="in", top=True, right=True)
 
-        index_title = cycle(('(a)','(b)','(c)','(d)','(e)','(f)'))
+        index_title = cycle(('(a)', '(b)', '(c)', '(d)', '(e)', '(f)'))
         ax.text(0.9, 0.06, f"$\\bf{next(index_title)}$", transform=ax.transAxes)
         ax2.text(0.9, 0.06, f"$\\bf{next(index_title)}$", transform=ax2.transAxes)
 
         plt.tight_layout()
+
+        # Print fits at the end
+        print("Linear system fit: slope = {:.2f} +/- {:.2e}".format(linsystem_fit.slope, linsystem_fit.stderr))
+        print("Fit with r^2 = {:.3f}".format(linsystem_fit.rvalue ** 2))
+        print("Network regime 1 fit: slope = {:.2f} +/- {:.2e}".format(net_fit_1.slope, net_fit_1.stderr))
+        print("Fit with r^2 = {:.3f}".format(net_fit_1.rvalue**2))
+        print("Network regime 2 fit: slope = {:.2f} +/- {:.2e}".format(net_fit_2.slope, net_fit_2.stderr))
+        print("Fit with r^2 = {:.3f}".format(net_fit_2.rvalue**2))
 
     # Save fig in figures directory, with an incremented number if a previous figure already exists
     if args.output_name is None:

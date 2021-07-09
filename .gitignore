@@ -18,6 +18,7 @@ outputs
 /datasets
 figures
 runs
+cases*
 
 # Neural network
 train/

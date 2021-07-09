@@ -15,25 +15,25 @@ nits: 200
 
 # Networks to test
 networks:
-  U3_K3_Rf200:
-    resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/3_scales/k_3/RF_200/models/random_8'
+  UNet5-100k:
+    resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8'
     arch:
       db_file: 'unets_ks3_rf200.yml'
-      name: 'UNet3'
+      name: 'UNet5'
       args:
         input_res: 101
-  #U4_K3_Rf200:
+  #UNet4-100k:
   #  resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/4_scales/k_3/RF_200/models/random_8'
   #  arch:
   #    db_file: 'unets_ks3_rf200.yml'
   #    name: 'UNet4'
   #    args:
   #      input_res: 101
-  U5_K3_Rf200:
-    resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8'
+  UNet3-100k:
+    resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/3_scales/k_3/RF_200/models/random_8'
     arch:
       db_file: 'unets_ks3_rf200.yml'
-      name: 'UNet5'
+      name: 'UNet3'
       args:
         input_res: 101
   UNet5-200k:
