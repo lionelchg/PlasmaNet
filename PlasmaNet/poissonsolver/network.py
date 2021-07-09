@@ -78,12 +78,10 @@ class PoissonNetwork(BasePoisson):
         self.model = self.cfg_dl.init_obj('arch', module_arch)
 
         # Load from directory, resume dir does not need to contain the full path to model_best.pth
-        dir_resume = cfg['resume']
-        self.logger.info('Loading checkpoint: {} ...'.format(os.path.join(dir_resume, "model_best.pth")))
-        checkpoint = torch.load(os.path.join(dir_resume, "model_best.pth"))
-        # dir_list = os.listdir(dir_resume)
-        # self.logger.info('Loading checkpoint: {} ...'.format(os.path.join(dir_resume, dir_list[-1], "model_best.pth")))
-        # checkpoint = torch.load(os.path.join(dir_resume, dir_list[-1], "model_best.pth"))
+        path_resume = cfg['resume']
+        self.logger.info(f'Loading checkpoint: {path_resume} ...')
+        checkpoint = torch.load(path_resume)
+
         state_dict = checkpoint['state_dict']
         if self.cfg_dl['n_gpu'] > 1:
             self.model = torch.nn.DataParallel(self.model)
@@ -188,7 +186,7 @@ class PoissonNetwork(BasePoisson):
         if plot:
             fig_dir = case_dir / 'figures'
             fig_dir.mkdir(parents=True, exist_ok=True)
-            self.plot_2D(fig_dir / '2D')
+            self.plot_2D(fig_dir / '2D', axis='off')
             self.plot_1D2D(fig_dir / 'full')
 
     def evaluate(self, data_dir, case_dir, plot):

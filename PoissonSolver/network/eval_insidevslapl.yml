@@ -26,7 +26,7 @@ eval:
 
 networks:
     LaplacianLoss:
-        resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/3_scales/k_3/RF_100/models/random_8'
+        resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/3_scales/k_3/RF_100/models/random_8/checkpoint-epoch00300.pth'
         arch:
             db_file: 'unets_ks3_rf100.yml'
             name: 'UNet3'
@@ -34,7 +34,7 @@ networks:
                 input_res: 101
 
     InsideLoss:
-        resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Inside_loss/Unet/3_scales/k_3/RF_100/models/random_8'
+        resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Inside_loss/Unet/3_scales/k_3/RF_100/models/random_8/checkpoint-epoch00300.pth'
         arch:
             db_file: 'unets_ks3_rf100.yml'
             name: 'UNet3'

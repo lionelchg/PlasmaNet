@@ -83,7 +83,7 @@ def main():
     nmetrics = len(metrics)
 
     # Global dataframe
-    df_columns = ['nn_name', 'nn_type', 'rf_global', 'depth', 'width', 'ks', 'ds_name', 'ds_type',
+    df_columns = ['nn_name', 'nn_type', 'rf_global', 'nbranches', 'depth', 'ks', 'ds_name', 'ds_type',
                        'test_res', 'train_res', 'metric_name', 'value']
     df = pd.DataFrame(columns=df_columns)
 

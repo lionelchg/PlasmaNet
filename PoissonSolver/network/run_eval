@@ -6,4 +6,4 @@
 #SBATCH --time=00:10:00
 #SBATCH --partition=gpu
 
-eval_datasets -c $1
+python eval_single.py -c eval_insidevslapl.yml
