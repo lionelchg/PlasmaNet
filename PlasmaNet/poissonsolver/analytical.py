@@ -130,7 +130,7 @@ def mixed_mode_lnrd(x:np.ndarray, Lx:float, n:int) -> np.ndarray:
     return np.cos((n + 0.5) * np.pi * x / Lx)
 
 
-@njit(cache=True)
+# @njit(cache=True)
 def series_term(X, Y, Lx, Ly, voln, rhs, n, m):
     """ Fourier series term of the analytical solution of the 2D Poisson with
     zero dirichlet bc problem """

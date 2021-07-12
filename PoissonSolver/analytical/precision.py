@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import yaml
 import scipy.constants as co
 from pathlib import Path
+from time import perf_counter, time
 
 from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 from PlasmaNet.poissonsolver.analytical import PoissonAnalytical
@@ -35,13 +36,24 @@ if __name__ == '__main__':
     sigma_x, sigma_y = 1e-3, 1e-3
     x0, y0 = 0.6e-2, 0.5e-2
     x01, y01 = 0.4e-2, 0.5e-2    
+    # params_gauss = [ni0, x0, y0, sigma_x, sigma_y, ni0, x01, y01, sigma_x, sigma_y]
+    params_gauss = [ni0, x0, y0, sigma_x, sigma_y, 
+                    ni0, x01, y01, 2e-3, 2e-3,
+                    8e15, 0.4e-2, 0.7e-2, 1e-3, 1e-3]
 
     # interior rhs
-    physical_rhs = pf.two_gaussians(poisson.X, poisson.Y, 
-                    ni0, x0, y0, sigma_x, sigma_y, x01, y01, sigma_x, sigma_y) * co.e / co.epsilon_0
+    physical_rhs = pf.gaussians(poisson.X, poisson.Y, params_gauss)
+
+    # Number of solves
+    nsolves = 5
+    print(f'{nsolves:d} solves')
 
     # linear system solve and solution norm
-    poisson.solve(physical_rhs, pot_bcs)
+    tstart_ls = perf_counter()
+    for _ in range(nsolves):
+        poisson.solve(physical_rhs, pot_bcs)
+    tend_ls = perf_counter()
+    print(f'Linear system resolution time: {(tend_ls - tstart_ls) / nsolves:.3e} s')
     norm_pot_ref = np.sqrt(np.sum(poisson.potential**2) / poisson.nnx / poisson.nnx)
     norm_E_ref = np.sqrt(np.sum(poisson.E_field[0]**2 + poisson.E_field[1]) / poisson.nnx / poisson.nnx)
     poisson.plot_1D2D(fig_dir / 'ls')
@@ -50,7 +62,8 @@ if __name__ == '__main__':
     poisson_series = PoissonAnalytical(cfg)
 
     # Variation of number of modes
-    nmax_modes = [2, 4, 6, 8, 10, 12, 14, 16]
+    # nmax_modes = [2, 4, 6, 8, 10, 12, 14, 16]
+    nmax_modes = [5, 10, 15, 20]
     error_modes = np.zeros((2, len(nmax_modes)))
 
     for inmax, nmax in enumerate(nmax_modes):
@@ -59,7 +72,12 @@ if __name__ == '__main__':
         poisson_series.mmax_rhs = nmax
         
         # Solve rhs problem
-        poisson_series.compute_sol(physical_rhs, zeros_y, zeros_y, zeros_x, zeros_x)
+        tstart_an = perf_counter()
+        for _ in range(nsolves):
+            poisson_series.compute_sol(physical_rhs)
+        tend_an = perf_counter()
+        print(f'{nmax:d}^2 modes Fourier series resolution time: {(tend_an - tstart_an) / nsolves:.3e} s')
+        poisson_series.plot_1D2D(fig_dir / f'{nmax}_modes')
 
         # Compute error in percentage
         error_modes[0, inmax] = 100 * poisson_series.L2error_pot(poisson.potential) / norm_pot_ref
