@@ -18,10 +18,10 @@ eval:
     bcs: 'dirichlet'
     xmin: 0.0
     xmax: 1.0e-2
-    nnx: 101
+    nnx: 1001
     ymin: 0.0
     ymax: 1.0e-2
-    nny: 101
+    nny: 1001
     nmax_fourier: 10
 
 network:
@@ -44,7 +44,7 @@ network:
         db_file: 'unets_ks3_rf200.yml'
         name: 'UNet5'
         args:
-            input_res: 101
+            input_res: 1001
 
     data_loader:
         type: 'PoissonDataLoader'
