@@ -3,7 +3,12 @@
 #SBATCH --job-name=PlasmaNet
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=12
-#SBATCH --time=00:10:00
+#SBATCH --time=00:20:00
 #SBATCH --partition=gpu
+#SBATCH --nodelist=krakengpu2
 
-python eval_single.py -c eval_insidevslapl.yml
+# python eval_single.py -c eval_insidevslapl.yml
+python convergence.py -c eval_unet5-rf200.yml
+python convergence.py -c eval_unet5-rf300.yml
+python convergence.py -c eval_unet5-rf400.yml
+# python convergence.py -c eval_unet6-rf400.yml

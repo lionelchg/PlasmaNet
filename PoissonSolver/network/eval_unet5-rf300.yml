@@ -1,0 +1,82 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                         NetworkPoisson -- Configuration file                                         #
+#                                                                                                                      #
+#                                           Lionel Cheng, CERFACS, 04.03.2021                                          #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+eval:
+    geom: 'cartesian'
+    bcs: 'dirichlet'
+    xmin: 0.0
+    xmax: 1.0e-2
+    nnx: 101
+    ymin: 0.0
+    ymax: 1.0e-2
+    nny: 101
+    nmax_fourier: 10
+
+network:
+    casename: 'cases/UNet5-rf300/'                  # Experience name
+    n_gpu: 1                                    # Number of GPUs to use
+
+    globals:                                    # Domain sizes and others, used to compute global attributes
+        nnx: 101
+        nny: 101
+        xmin: 0.0
+        xmax: 1.0e-2
+        ymin: 0.0
+        ymax: 1.0e-2
+        coord: 'cart'
+        verbosity: 2
+    
+    resume: '/scratch/cfd/PlasmaDL/networks/train/101x101/models/UNet5/rf300/checkpoint-epoch00300.pth'
+
+    arch:
+        db_file: 'unets_ks3_rf300.yml'
+        name: 'UNet5'
+        args:
+            input_res: 101
+
+    data_loader:
+        type: 'PoissonDataLoader'
+        data_channels: 1
+        pipe_config: True
+        args:
+            batch_size: 200
+            shuffle: True
+            validation_split: 0.0               # if float, fraction of the full dataset, if int, length of validation portion
+            num_workers: 4
+            normalize: 'analytical'                   # max, physical or no for normalization types
+            alpha: 0.1
+            scaling_factor: 1.0e+6
+
+    initializer: 'off'
+
+    loss:
+        type: 'ComposedLoss'
+        pipe_config: True                       # Object initialization require config as first argument
+        args:
+            loss_list:                          # List of the losses to compose if ComposedLoss is used
+                #- InsideLoss
+                - DirichletBoundaryLoss
+                - LaplacianLoss
+            inside_weight: 0.                   # Weighting of the loss inside the domain, excluding boundaries (float)
+            bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
+            elec_weight: 0.                     # Weighting of the loss on the electric field (float)
+            lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
+
+    metrics:
+        - 'residual'
+        - 'inf_norm'
+        - 'Eresidual'
+        - 'Einf_norm'
+

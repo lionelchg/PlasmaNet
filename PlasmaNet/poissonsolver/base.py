@@ -222,6 +222,28 @@ class BasePoisson:
             np.save(save_dir + 'physical_rhs', self.physical_rhs)
             np.save(save_dir + 'potential', self.potential)
 
+    def L1error_pot(self, th_potential):
+        """ 1-norm error of the potential with a theoretical one
+
+        :param th_potential: theoretical potential
+        :type th_potential: ndarray
+        :return: MSE error
+        :rtype: float
+        """
+
+        return np.sum(np.abs(self.potential - th_potential)) / self.nnx / self.nny
+
+    def L1error_E(self, th_E_field):
+        """ 1-norm error of the electric field with a theoretical one
+
+        :param th_potential: theoretical potential
+        :type th_potential: ndarray
+        :return: MSE error
+        :rtype: float
+        """
+        eps_E = np.abs(self.E_field[0] - th_E_field[0]) + np.abs(self.E_field[1] - th_E_field[1])
+        return np.sqrt(np.sum(eps_E) / self.nnx / self.nny)
+
     def L2error_pot(self, th_potential):
         """ MSE error of the potential with a theoretical one
 
@@ -230,8 +252,7 @@ class BasePoisson:
         :return: MSE error
         :rtype: float
         """
-        # return np.sqrt(np.sum(self.compute_voln() *
-        #             (self.potential - th_potential)**2) / self.Lx / self.Ly)
+
         return np.sqrt(np.sum((self.potential - th_potential)**2) / self.nnx / self.nny)
 
     def L2error_E(self, th_E_field):
@@ -244,6 +265,28 @@ class BasePoisson:
         """
         eps_E = (self.E_field[0] - th_E_field[0])**2 + (self.E_field[1] - th_E_field[1])**2
         return np.sqrt(np.sum(eps_E) / self.nnx / self.nny)
+
+    def Linferror_pot(self, th_potential):
+        """ Infinity-norm error of the potential with a theoretical one
+
+        :param th_potential: theoretical potential
+        :type th_potential: ndarray
+        :return: MSE error
+        :rtype: float
+        """
+
+        return np.max(np.abs(self.potential - th_potential))
+
+    def Linferror_E(self, th_E_field):
+        """ Infinity-norm error of the electric field with a theoretical one
+
+        :param th_potential: theoretical potential
+        :type th_potential: ndarray
+        :return: MSE error
+        :rtype: float
+        """
+        eps_E = np.abs(self.E_field[0] - th_E_field[0]) + np.abs(self.E_field[1] - th_E_field[1])
+        return np.max(eps_E)
 
 
 def fourier_coef_1D(V_u, n, x, Lx):
