@@ -47,6 +47,11 @@ def parse_output(filepath, lookup_table):
     return pd.DataFrame.from_dict(data)
 
 
+def linear_model(x, a, b):
+    """ Linear model for fits """
+    return a + b*x
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--cases_root", type=str, default=None,
@@ -201,8 +206,9 @@ if __name__ == "__main__":
         ax.plot(idx, umf["mean"], "-+", color="black", label="Linear solver")
         # ax.fill_between(idx, umf["mean"] + umf["std"], umf["mean"] - umf["std"], alpha=.2, color="black")
         # Fit
-        linsystem_fit = linregress(np.log(idx), np.log(umf["mean"]))
-        # ax.plot(idx, np.exp(np.log(idx) * linsystem_fit.slope + linsystem_fit.intercept), "s-", color="blue")
+        fit0, pcov_fit0 = curve_fit(linear_model, np.log(idx), np.log(umf["mean"]),
+                                    sigma=np.log(umf["std"]))
+        # ax.plot(idx, np.exp(linear_model(np.log(idx), *fit0)), "s-", color="blue")
 
         legend.append(Line2D([0], [0], marker="+", color="black", label="Linear solver"))
         legend.extend([
@@ -221,12 +227,6 @@ if __name__ == "__main__":
             ax.plot(idx, tot["mean"], "d-", markersize=4, color=color)
             # ax.fill_between(idx, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
             #                 alpha=.2, lw=0)
-            # Fit for the two regimes
-            net_fit_1 = linregress(np.log(idx[:5]), np.log(tot["mean"][:5]))
-            net_fit_2 = linregress(np.log(idx[6:]), np.log(tot["mean"][6:]))
-            # ax.plot(idx[:5], np.exp(np.log(idx[:5]) * net_fit_1.slope + net_fit_1.intercept), color="red", marker="s")
-            # ax.plot(idx[6:], np.exp(np.log(idx[6:]) * net_fit_2.slope + net_fit_2.intercept), color="green", marker="s")
-
             ax.plot(idx, model["mean"], "d--", markersize=4, color=color)
             # ax.fill_between(idx, model["mean"] + model["std"], model["mean"] - model["std"],
             #                 alpha=.2, lw=0)
@@ -234,11 +234,19 @@ if __name__ == "__main__":
             # ax.fill_between(idx, comm["mean"] + comm["std"], comm["mean"] - comm["std"],
             #                 alpha=.2, lw=0)
 
-            # Slopes of fits
-            ax.text(0.6, 0.6, "$\\text{{slope}} = {:.1f}$".format(linsystem_fit.slope), transform=ax.transAxes,
+            # Fit for the two regimes
+            fit1, pcov_fit1 = curve_fit(linear_model, np.log(idx[:5]), np.log(tot["mean"][:5]), sigma=np.log(tot["std"][:5]))
+            fit2, pcov_fit2 = curve_fit(linear_model, np.log(idx[6:]), np.log(tot["mean"][6:]), sigma=np.log(tot["std"][6:]))
+            # ax.plot(idx[:5], np.exp(linear_model(np.log(idx[:5]), *fit1)), color="red", marker="s")
+            # ax.plot(idx[6:], np.exp(linear_model(np.log(idx[6:]), *fit2)), color="green", marker="s")
+            slope_cpu = fit0[1]
+            slope_reg1, slope_reg2 = fit1[1], fit2[1]
+            # slope_reg1, slope_reg2 = 0.0, 1.168
+            # Display slopes
+            ax.text(0.6, 0.6, "$\\text{{slope}} = {:.1f}$".format(slope_cpu), transform=ax.transAxes,
                     color="k", rotation=35)
-            ax.text(0.2, 0.3, "$\\text{{slope}} = {:.2f}$".format(net_fit_1.slope), transform=ax.transAxes, color="k")
-            ax.text(0.6, 0.38, "$\\text{{slope}} = {:.1f}$".format(net_fit_2.slope), transform=ax.transAxes,
+            ax.text(0.2, 0.3, "$\\text{{slope}} = {:.2f}$".format(slope_reg1), transform=ax.transAxes, color="k")
+            ax.text(0.6, 0.38, "$\\text{{slope}} = {:.2f}$".format(slope_reg2), transform=ax.transAxes,
                     color="k", rotation=26)
 
             net_label = net.replace("_", r"\_")
@@ -281,13 +289,10 @@ if __name__ == "__main__":
         perf["UNet5-100k"].to_csv("gpu_timings.csv")
 
         # Print fits at the end
-        print("Linear system fit: slope = {:.2f} +/- {:.2e}".format(linsystem_fit.slope, linsystem_fit.stderr))
-        print("Fit with r^2 = {:.3f}".format(linsystem_fit.rvalue ** 2))
-        print("Network regime 1 fit: slope = {:.2f} +/- {:.2e}".format(net_fit_1.slope, net_fit_1.stderr))
-        print("Fit with r^2 = {:.3f}".format(net_fit_1.rvalue**2))
-        print("Network regime 2 fit: slope = {:.2f} +/- {:.2e}".format(net_fit_2.slope, net_fit_2.stderr))
-        print("Fit with r^2 = {:.5f}".format(net_fit_2.rvalue**2))
-        print("Fit with pvalue = {:.5e}".format(net_fit_2.pvalue))
+        print("Linear system fit: slope = {:.2f} with relative error {:.2e}".format(
+            fit0[1], (np.sqrt(np.diag(pcov_fit0))/fit0)[1]))
+        print("Network regime 1 fit: slope = {:.2f} with relative error {:.2e}".format(fit1[1], (np.sqrt(np.diag(pcov_fit1))/fit1)[1]))
+        print("Network regime 2 fit: slope = {:.2f} with relative error {:.2e}".format(fit2[1], (np.sqrt(np.diag(pcov_fit2))/fit2)[1]))
 
     # Save fig in figures directory, with an incremented number if a previous figure already exists
     if args.output_name is None:
