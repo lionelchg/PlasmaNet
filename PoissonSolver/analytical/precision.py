@@ -5,6 +5,8 @@
 #                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
 #                                                                                                                      #
 ########################################################################################################################
+import os
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -83,7 +85,7 @@ if __name__ == '__main__':
     pot_bcs = {'left':zeros_y, 'right':zeros_y, 'bottom':zeros_x, 'top':zeros_x}
 
     # modes studied
-    nmax_modes = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+    nmax_modes = [2, 4, 6, 8, 10, 12, 15, 20]
 
     # creating the rhs
     ni0 = 1e16
@@ -94,9 +96,10 @@ if __name__ == '__main__':
     # Two gaussians rhs
     physical_rhs = pf.gaussians(poisson.X, poisson.Y, params_gauss) * co.e / co.epsilon_0
     # run analytical solutions for physical_rhs
-    precision_runs(fig_dir / 'random_8', physical_rhs, 5, nmax_modes)
+    precision_runs(fig_dir / 'two_gaussians', physical_rhs, 5, nmax_modes)
 
     # creating random rhs
+    nmax_modes = [2, 4, 6, 8, 10, 12, 14, 15, 20, 30, 40, 50]
     n_res_factor = 8
     nnx_lower = int(poisson.nnx / n_res_factor)
     nny_lower = int(poisson.nny / n_res_factor)

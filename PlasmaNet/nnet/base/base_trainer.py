@@ -80,7 +80,6 @@ class BaseTrainer:
             self.logger.info('')
 
             # Evaluate model performance according to configured metric, save best checkpoint as model_best
-            best = False
             if self.mnt_mode != 'off':
                 try:
                     # check whether model performance improved or not, according to specified metric (mnt_metric)
@@ -95,7 +94,7 @@ class BaseTrainer:
                 if improved:
                     self.mnt_best = log[self.mnt_metric]
                     not_improved_count = 0
-                    best = True
+                    self._save_best(epoch)
                 else:
                     not_improved_count += 1
 
@@ -105,7 +104,7 @@ class BaseTrainer:
                     break
 
             if epoch % self.save_period == 0:
-                self._save_checkpoint(epoch, save_best=best)
+                self._save_checkpoint(epoch)
 
     def _prepare_device(self, n_gpu_use):
         """ Setup GPU device if available, move model into configured device. """
@@ -122,7 +121,7 @@ class BaseTrainer:
         list_ids = list(range(n_gpu_use))
         return device, list_ids
 
-    def _save_checkpoint(self, epoch, save_best=False):
+    def _save_checkpoint(self, epoch):
         """ Saving checkpoints. """
         # Create checkpoint dict to be saved
         arch = type(self.model).__name__
@@ -138,10 +137,21 @@ class BaseTrainer:
         # Save checkpoint
         torch.save(state, filename)
         self.logger.info('Saving checkpoint: {} ...'.format(filename))
-        if save_best:
-            best_path = str(self.checkpoint_dir / 'model_best.pth')
-            torch.save(state, best_path)
-            self.logger.info('Saving current best: model_best.pth ...')
+
+    def _save_best(self, epoch):
+        """ Saving the best model """
+        arch = type(self.model).__name__
+        state = {
+            'arch': arch,
+            'epoch': epoch,
+            'state_dict': self.model.state_dict(),
+            'optimizer': self.optimizer.state_dict(),
+            'monitor_best': self.mnt_best,
+            'config': self.config
+        }
+        best_path = str(self.checkpoint_dir / 'model_best.pth')
+        torch.save(state, best_path)
+        self.logger.info('Saving current best: model_best.pth ...')
 
     def _resume_checkpoint(self, resume_path):
         """ Resume from the given saved checkpoint. """
