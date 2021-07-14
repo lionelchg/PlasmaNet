@@ -99,10 +99,10 @@ base:
     trainer:
         # epochs: 300
         # save_dir: 'train/101x101/'
-        epochs: 10
+        epochs: 5
         save_dir: 'debug/'
-        save_period: 5
-        plot_period: 5                        # Period to send plots to TensorBoard
+        save_period: 2
+        plot_period: 2                        # Period to send plots to TensorBoard
         verbosity: 2
         monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
         early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
