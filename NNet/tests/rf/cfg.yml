@@ -1,0 +1,112 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                           PlasmaNet -- Configuration file                                            #
+#                                                                                                                      #
+#                                      Guillaume Bogopolsky, CERFACS, 11.03.2020                                       #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+# The train routine will automatically load the required `type` of each section with the given `args` by using the
+# `config.init_obj` method.
+
+
+name: 'test_rf_101'                       # Experience name
+n_gpu: 1                                    # Number of GPUs to use
+
+files: ['unets_ks3_rf50.yml', 'unets_ks3_rf75.yml', 'unets_ks3_rf100.yml', 'unets_ks3_rf150.yml', 
+        'unets_ks3_rf200.yml', 'unets_ks3_rf300.yml', 'unets_ks3_rf400.yml', 'unets_ks5_rf100.yml',
+        'unets_ks5_rf150.yml', 'unets_ks5_rf200.yml']
+
+
+networks: ['UNet3', 'UNet4', 'UNet5']
+
+globals:                                    # Domain sizes and others, used to compute global attributes
+    nnx: 101
+    nny: 101
+    xmin: 0.0
+    xmax: 1.0e-2
+    ymin: 0.0
+    ymax: 1.0e-2
+    coord: 'cart'
+    verbosity: 2
+
+arch:
+    db_file: 'unets_ks3_rf200.yml'
+    name: 'UNet3'
+    args:
+        input_res: 500
+
+data_loader:
+    type: 'PoissonDataLoader'
+    data_channels: 1
+    pipe_config: True
+    args:
+        data_dir: '/scratch/cfd/PlasmaDL/datasets/train/101x101/random_8'
+        batch_size: 64
+        shuffle: True
+        validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
+        num_workers: 4
+        normalize: 'analytical'                   # max, physical or no for normalization types
+        alpha: 0.1
+        scaling_factor: 1.0e+6
+initializer: 'off'
+
+optimizer:
+    type: 'Adam'
+    args:
+        lr: 4.e-4
+        weight_decay: 0
+        amsgrad: False                      # AMSGrad variant from paper 'On the convergence of Adam and Beyond'
+
+loss:
+    type: 'ComposedLoss'
+    pipe_config: True                       # Object initialization require config as first argument
+    args:
+        loss_list:                          # List of the losses to compose if ComposedLoss is used
+            - InsideLoss
+            - DirichletBoundaryLoss
+            # - LaplacianLoss
+            # - EnergyLoss
+            # - LongTermLaplacianLoss
+        inside_weight: 1.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
+        bound_weight: 1.0                    # Weighting of the loss on the boundaries (float)
+        elec_weight: 0.                     # Weighting of the loss on the electric field (float)
+        lapl_weight: 0. #2.0e+7                    # Weighting of the loss on the Laplacian (float)
+        energy_weight: 0.0                  # Weighting of the loss on the energy functional (float)
+        lt_weight: 0.0                      # Weighting of the lt loss, whoch only has a Laplacian term
+        ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation
+
+metrics:
+    - 'residual'
+    - 'inf_norm'
+    - 'Eresidual'
+    - 'Einf_norm'
+
+lr_scheduler:
+    type: 'ReduceLROnPlateau'
+    plateau_metric: loss                    # monitoring metric for ReduceLROnPlateau step()
+    args:
+        mode: 'min'
+        factor: 0.9                         # Amount scheduler reduces LR by (float)
+        patience: 50                        # Number of epochs the scheduler waits (int)
+        threshold: 3.e-4                    # Relative improvement the scheduler must see (float)
+        threshold_mode: 'rel'
+        verbose: False
+
+trainer:
+    epochs: 300
+    save_dir: 'train/8_RF_study/101x101'
+    save_period: 20
+    plot_period: 20                         # Period to send plots to TensorBoard
+    verbosity: 2
+    monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
+    early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
+    tensorboard: true
+    histograms: false                       # Save weights and bias histograms (turned off to increase TensorBoard perf)
