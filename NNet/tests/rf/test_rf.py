@@ -39,48 +39,69 @@ def plot_test(data, output, model, in_res, folder, network):
     xx = np.arange(0, in_res)
     yy = np.arange(0, in_res)
     Xb, Yb = np.meshgrid(xx, yy)
-    x = [in_res//2 - model.rf_global//2, in_res//2 - model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 - model.rf_global//2]
-    y = [in_res//2 - model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 - model.rf_global//2, in_res//2 - model.rf_global//2]
+
+    if 'center' in folder:
+        x = [in_res//2 - model.rf_global//2, in_res//2 - model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 - model.rf_global//2]
+        y = [in_res//2 - model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 - model.rf_global//2, in_res//2 - model.rf_global//2]
+    else:
+        x = [0, 0, model.rf_global//2, model.rf_global//2, 0]
+        y = [0, model.rf_global//2, model.rf_global//2, 0, 0]        
 
     # Image initialization
     fig, (ax1, ax2) = plt.subplots(ncols=2,figsize=(5.5,3))
     fig.subplots_adjust(wspace=0.3)
 
     # Plot input, output and expected box
-    plot_ax_scalar(fig, ax1, Xb, Yb, data[0, 0, :, :].numpy(), r'Perturbation')
+    plot_ax_scalar(fig, ax1, Xb, Yb, data[0, 0, :, :].numpy(), r'Init')
     plot_ax_scalar(fig, ax2, Xb, Yb, output[0, 0, :, :].numpy(), r'RF')
     ax2.plot(x,y, linestyle = 'dashed', color = 'red', linewidth=5)
 
     # Cut the domain so that only the middle "interesting" part remains
-    ax1.set_ylim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
-    ax1.set_xlim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
-    ax2.set_ylim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
-    ax2.set_xlim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
+    if 'center' in folder:
+        ax1.set_ylim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
+        ax1.set_xlim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
+        ax2.set_ylim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
+        ax2.set_xlim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
+    else:
+        ax1.set_ylim(0, model.rf_global)
+        ax1.set_xlim(0, model.rf_global)
+        ax2.set_ylim(0, model.rf_global)
+        ax2.set_xlim(0, model.rf_global)
+
     
     plt.tight_layout()
     plt.savefig(os.path.join(folder, 'test_{}_rf_{}_k_{}.png'.format(network, model.rf_global, model.kernel_sizes[0])), dpi=100)
     plt.close()
 
 
-def inverse_method(model, cfg_dict, network, saving_folder= 'Images'):
+def inverse_method(model, cfg_dict, network, center, saving_folder= 'Images'):
     # Generate input tensor (all zeros except the middle point)
     in_res = cfg_dict['arch']['args']['input_res'] 
     data = torch.zeros((1,1, in_res, in_res))
-    data[:, :, in_res//2, in_res//2] = 1
+    if center:
+        data[:, :, in_res//2, in_res//2] = 1
+        ctr = 'center'
+    else:
+        data[:, :, 0, 0] = 1
+        ctr = 'BC'
 
     # Evaluate the network and follow metrics
     output = model(data)
     output = torch.where(output > 0, 1.0, 0.0)
 
     # Plot
-    plot_test(data, output, model, in_res, os.path.join(cfg_dict['name'],'figures' , 'Inverse'), network)
+    plot_test(data, output, model, in_res, os.path.join(cfg_dict['name'],'figures' , 'Inverse', '{}'.format(ctr)), network)
 
     return int(torch.sum(output)**0.5)
 
-def direct_method(model, cfg_dict, network, saving_folder= 'Images'):
-
+def direct_method(model, cfg_dict, network, center, saving_folder= 'Images'):
     """ Direct RF calculating method issued from: 
-        https://github.com/rogertrullo/Receptive-Field-in-Pytorch/blob/master/Receptive_Field.ipynb """
+        https://github.com/rogertrullo/Receptive-Field-in-Pytorch/blob/master/Receptive_Field.ipynb 
+    
+    - model: network containing the wieghts initialized to 1  and biases to 0
+    - cfg_dict: dictionary loaded from the cfg.yml file
+    - network: string containing the name of the studied network
+    - center: boolean to study the center or the BC case """
 
     # Generate Input data
     in_res = cfg_dict['arch']['args']['input_res'] 
@@ -89,9 +110,14 @@ def direct_method(model, cfg_dict, network, saving_folder= 'Images'):
     # Evaluatre network
     out_cnn=model(img_.clone())
 
-    # Generate gradient tensor which will be 0 everywhere except in one middle point
+    # Generate gradient tensor which will be 0 everywhere except in one middle or BC point
     grad=torch.zeros(out_cnn.size())
-    grad[:, :, in_res//2, in_res//2] =0.1
+    if center:
+        grad[:, :, in_res//2, in_res//2] =0.1
+        ctr = 'center'
+    else:
+        grad[:, :, 0, 0] =0.1
+        ctr = 'BC'
 
     # Get the gradient only of the middle point!
     # Compute Receptive field
@@ -100,7 +126,7 @@ def direct_method(model, cfg_dict, network, saving_folder= 'Images'):
     grad_torch = torch.where(grad_torch != 0, 1.0, 0.0)
 
     # Plot
-    plot_test(grad, grad_torch, model, in_res, os.path.join(cfg_dict['name'],'figures' ,'Direct'), network)
+    plot_test(grad, grad_torch, model, in_res, os.path.join(cfg_dict['name'],'figures' ,'Direct', '{}'.format(ctr)), network)
 
     return int(torch.sum(grad_torch)**0.5)
 
@@ -159,14 +185,24 @@ def test_rf_2d():
 
             model.apply(weights_init)
 
-            # Compute RF with direct and inverse methods!
-            dir_RF = direct_method(model, cfg_dict, network)
-            inv_RF = inverse_method(model, cfg_dict, network)
-            
+            # Compute RF with direct and inverse methods for the center points
+            dir_RF = direct_method(model, cfg_dict, network, True)
+            inv_RF = inverse_method(model, cfg_dict, network, True)
 
+            print("===================================")
             print('Originally Calculated RF: {}'.format(model.rf_global))
             print('Direct Method RF: {}'.format(dir_RF))
-            print('Inverse Procedure RF: {}'.format(inv_RF))  
+            print('Inverse Procedure RF: {}'.format(inv_RF)) 
+            print("===================================")
+
+            # Compute RF with direct and inverse methods for the BC points
+            dir_RF = direct_method(model, cfg_dict, network, False)
+            inv_RF = inverse_method(model, cfg_dict, network, False)
+            
+            print('Originally Calculated RF: {}'.format(model.rf_global//2))
+            print('Direct Method RF: {}'.format(dir_RF))
+            print('Inverse Procedure RF: {}'.format(inv_RF))
+            print("===================================")   
             
     #assert torch.sum(output) == model.rf_global * model.rf_global
 
