@@ -13,9 +13,11 @@ import pytest
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 
+from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
+
 import PlasmaNet.nnet.model as module_arch
 from PlasmaNet.nnet.parse_config import ConfigParser
-
+from PlasmaNet.common.plot import plot_ax_scalar
 
 import os
 import argparse
@@ -27,6 +29,81 @@ import pdb
 from pathlib import Path
 
 
+def plot_test(data, output, model, in_res, folder, network):
+
+    # Create folder if does not exist
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    # Create grids for plotting
+    xx = np.arange(0, in_res)
+    yy = np.arange(0, in_res)
+    Xb, Yb = np.meshgrid(xx, yy)
+    x = [in_res//2 - model.rf_global//2, in_res//2 - model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 - model.rf_global//2]
+    y = [in_res//2 - model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 - model.rf_global//2, in_res//2 - model.rf_global//2]
+
+    # Image initialization
+    fig, (ax1, ax2) = plt.subplots(ncols=2,figsize=(5.5,3))
+    fig.subplots_adjust(wspace=0.3)
+
+    # Plot input, output and expected box
+    plot_ax_scalar(fig, ax1, Xb, Yb, data[0, 0, :, :].numpy(), r'Perturbation')
+    plot_ax_scalar(fig, ax2, Xb, Yb, output[0, 0, :, :].numpy(), r'RF')
+    ax2.plot(x,y, linestyle = 'dashed', color = 'red', linewidth=5)
+
+    # Cut the domain so that only the middle "interesting" part remains
+    ax1.set_ylim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
+    ax1.set_xlim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
+    ax2.set_ylim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
+    ax2.set_xlim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(folder, 'test_{}_rf_{}_k_{}.png'.format(network, model.rf_global, model.kernel_sizes[0])), dpi=100)
+    plt.close()
+
+
+def inverse_method(model, cfg_dict, network, saving_folder= 'Images'):
+    # Generate input tensor (all zeros except the middle point)
+    in_res = cfg_dict['arch']['args']['input_res'] 
+    data = torch.zeros((1,1, in_res, in_res))
+    data[:, :, in_res//2, in_res//2] = 1
+
+    # Evaluate the network and follow metrics
+    output = model(data)
+    output = torch.where(output > 0, 1.0, 0.0)
+
+    # Plot
+    plot_test(data, output, model, in_res, os.path.join(cfg_dict['name'],'figures' , 'Inverse'), network)
+
+    return int(torch.sum(output)**0.5)
+
+def direct_method(model, cfg_dict, network, saving_folder= 'Images'):
+
+    """ Direct RF calculating method issued from: 
+        https://github.com/rogertrullo/Receptive-Field-in-Pytorch/blob/master/Receptive_Field.ipynb """
+
+    # Generate Input data
+    in_res = cfg_dict['arch']['args']['input_res'] 
+    img_ = torch.ones((1,1,in_res, in_res)).clone().detach().requires_grad_(True)
+
+    # Evaluatre network
+    out_cnn=model(img_.clone())
+
+    # Generate gradient tensor which will be 0 everywhere except in one middle point
+    grad=torch.zeros(out_cnn.size())
+    grad[:, :, in_res//2, in_res//2] =0.1
+
+    # Get the gradient only of the middle point!
+    # Compute Receptive field
+    out_cnn.backward(gradient=grad)
+    grad_torch=img_.grad
+    grad_torch = torch.where(grad_torch != 0, 1.0, 0.0)
+
+    # Plot
+    plot_test(grad, grad_torch, model, in_res, os.path.join(cfg_dict['name'],'figures' ,'Direct'), network)
+
+    return int(torch.sum(grad_torch)**0.5)
+
 
 def test_rf_2d():
 
@@ -35,6 +112,7 @@ def test_rf_2d():
     with open('cfg.yml', 'r') as yaml_stream:
         cfg_dict = yaml.safe_load(yaml_stream)
 
+    
     for file in cfg_dict['files']:
         print('')
         print('-----------------------------------------------------------')
@@ -46,6 +124,8 @@ def test_rf_2d():
             print('')
             print('Load Network: {}'.format(network))
             print('')
+
+            # Model initialization!
 
             cfg_dict['arch']['db_file'] = file
             cfg_dict['arch']['name'] = network
@@ -65,16 +145,12 @@ def test_rf_2d():
                     tmp_cfg_arch['args'] = {**cfg_dict['arch']['args'], **tmp_cfg_arch['args']}
                 cfg_dict['arch'] = tmp_cfg_arch
 
-            in_res = cfg_dict['arch']['args']['input_res'] 
-
             # Creation of config object
             config = ConfigParser(cfg_dict, False)
 
-            logger = config.get_logger('train')
-
-            # Build model architecture, then print to console
+            # Build model architecture and initialize its weights with;
+            # 0 in biases and 1 in weights
             model = config.init_obj('arch', module_arch)
-            #logger.info(model)
 
             def weights_init(m):
                 if isinstance(m, torch.nn.Conv2d):
@@ -83,63 +159,15 @@ def test_rf_2d():
 
             model.apply(weights_init)
 
-
-            data = torch.zeros((1,1, in_res, in_res))
-            data[:, :, in_res//2, in_res//2] = 1
-
-
-            # Evaluate the network and follow metrics
-            #with torch.no_grad():
-            output = model(data)
-
-            output = torch.where(output > 0, 1.0, 0.0)
-      
-
-            x = [in_res//2 - model.rf_global//2, in_res//2 - model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 - model.rf_global//2]
-            y = [in_res//2 - model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 - model.rf_global//2, in_res//2 - model.rf_global//2]
-
-            fig, axarr = plt.subplots(2, 1, figsize=(6, 12))
-            ax1, ax2 = axarr.ravel()
-            p1 = ax1.contourf(data[0, 0, :, :], 100, cmap = 'Blues')
-            cbar1 = fig.colorbar(p1, label='Input Field', ax=ax1)
-            p2 = ax2.contourf(output[0, 0, :, :], 100,  cmap = 'Blues')
-            ax2.plot(x,y, linestyle = 'dashed', color = 'red', linewidth=5)
-
-            ax1.set_ylim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
-            ax1.set_xlim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
-            ax2.set_ylim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
-            ax2.set_xlim(in_res//2 - model.rf_global, in_res//2 + model.rf_global)
-            cbar2 = fig.colorbar(p2, label='Output field', ax=ax2,)
-            plt.tight_layout()
-            plt.savefig('test_{}_rf_{}_k_{}.png'.format(network, model.rf_global, model.kernel_sizes[0]))
-            plt.close()
-
-
-            # Correct Calculating Mehtod
-            img_np = np.ones((1,1,in_res, in_res))
-            img_ = torch.from_numpy(img_np).clone().detach().requires_grad_(True)
-            out_cnn=model(img_.clone())
-            out_shape=out_cnn.size()
-            ndims=len(out_cnn.size())
-            grad=torch.zeros(out_cnn.size())
-            l_tmp=[]
-            for i in range(ndims):
-                if i==0 or i ==1:#batch or channel
-                    l_tmp.append(0)
-                else:
-                    l_tmp.append(out_shape[i]//2)
-    
-            grad[tuple(l_tmp)]=0.1
-            out_cnn.backward(gradient=grad)
-            grad_np=img_.grad[0,0].data.numpy()
-            idx_nonzeros=np.where(grad_np!=0)
-            RF=[np.max(idx)-np.min(idx)+1 for idx in idx_nonzeros]
+            # Compute RF with direct and inverse methods!
+            dir_RF = direct_method(model, cfg_dict, network)
+            inv_RF = inverse_method(model, cfg_dict, network)
+            
 
             print('Originally Calculated RF: {}'.format(model.rf_global))
-            print('Inversed Procedure RF: {}'.format(int(torch.sum(output)**0.5)))  
-            print('Antonio style (correct): {}'.format(RF[0]))
-
-
+            print('Direct Method RF: {}'.format(dir_RF))
+            print('Inverse Procedure RF: {}'.format(inv_RF))  
+            
     #assert torch.sum(output) == model.rf_global * model.rf_global
 
 
