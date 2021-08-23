@@ -242,7 +242,7 @@ class BasePoisson:
         :rtype: float
         """
         eps_E = np.abs(self.E_field[0] - th_E_field[0]) + np.abs(self.E_field[1] - th_E_field[1])
-        return np.sqrt(np.sum(eps_E) / self.nnx / self.nny)
+        return np.sum(eps_E) / self.nnx / self.nny
 
     def L2error_pot(self, th_potential):
         """ MSE error of the potential with a theoretical one
@@ -287,6 +287,30 @@ class BasePoisson:
         """
         eps_E = np.abs(self.E_field[0] - th_E_field[0]) + np.abs(self.E_field[1] - th_E_field[1])
         return np.max(eps_E)
+
+    def L1_pot(self):
+        """ Return the 1 norm of the potential """
+        return np.sum(np.abs(self.potential)) / self.nnx / self.nny
+
+    def L2_pot(self):
+        """ Return the 2 norm of the potential """
+        return np.sqrt(np.sum(self.potential**2) / self.nnx / self.nny)
+
+    def Linf_pot(self):
+        """ Return the infinity norm of the potential """
+        return np.max(np.abs(self.potential))
+
+    def L1_E(self):
+        """ Return the 1 norm of the electric field """
+        return np.sum(np.abs(self.E_field[0]) + np.abs(self.E_field[1])) / self.nnx / self.nny
+
+    def L2_E(self):
+        """ Return the 2 norm of the electric field """
+        return np.sqrt(np.sum(self.E_field[0]**2 + self.E_field[1]**2) / self.nnx / self.nny)
+
+    def Linf_E(self):
+        """ Return the infinity norm of the electric field """
+        return np.max(np.abs(self.E_field[0]) + np.abs(self.E_field[1]))
 
 
 def fourier_coef_1D(V_u, n, x, Lx):

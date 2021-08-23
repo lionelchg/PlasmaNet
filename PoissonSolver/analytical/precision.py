@@ -20,7 +20,7 @@ from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 from PlasmaNet.poissonsolver.analytical import PoissonAnalytical
 import PlasmaNet.common.profiles as pf
 
-def precision_runs(fig_dir, physical_rhs, nsolves, nmax_modes):
+def precision_runs(poisson, fig_dir, physical_rhs, nsolves, nmax_modes):
     # Creation of figures directory
     fig_dir.mkdir(parents=True, exist_ok=True)
 
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     # Two gaussians rhs
     physical_rhs = pf.gaussians(poisson.X, poisson.Y, params_gauss) * co.e / co.epsilon_0
     # run analytical solutions for physical_rhs
-    precision_runs(fig_dir / 'two_gaussians', physical_rhs, 5, nmax_modes)
+    precision_runs(poisson, fig_dir / 'two_gaussians', physical_rhs, 5, nmax_modes)
 
     # creating random rhs
     nmax_modes = [2, 4, 6, 8, 10, 12, 14, 15, 20, 30, 40, 50]
@@ -108,4 +108,4 @@ if __name__ == '__main__':
     f = interpolate.interp2d(x_lower, y_lower, z_lower, kind='cubic')
     physical_rhs = f(poisson.x, poisson.y) * ni0 * co.e / co.epsilon_0
     # run analytical solutions for physical_rhs
-    precision_runs(fig_dir / 'random_8', physical_rhs, 5, nmax_modes)
+    precision_runs(poisson, fig_dir / 'random_8', physical_rhs, 5, nmax_modes)
