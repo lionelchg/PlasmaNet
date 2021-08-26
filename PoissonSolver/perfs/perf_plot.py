@@ -11,6 +11,7 @@ import numpy as np
 import os
 import pandas as pd
 import yaml
+import pdb
 from glob import glob
 from itertools import product, cycle
 import matplotlib as mpl
@@ -146,6 +147,9 @@ if __name__ == "__main__":
     # No need to sort with Int64Index
 
     print(perf)
+    perf["umf"].to_csv(args.linsystem.replace(".out", ".csv"))
+    #print(1/0)
+
 
     ###########################################
     #   Plots
@@ -193,8 +197,8 @@ if __name__ == "__main__":
         plt.tight_layout()
 
     else:
-        mpl.rcParams['text.usetex'] = True
-        mpl.rcParams["text.latex.preamble"] = r"\usepackage{amsmath} \usepackage{physics}"
+        #mpl.rcParams['text.usetex'] = True
+        #mpl.rcParams["text.latex.preamble"] = r"\usepackage{amsmath} \usepackage{physics}"
         mpl.rcParams['font.size'] = 7
         fig, ax = plt.subplots(figsize=(6.3, 2.95), ncols=2)
         ax, ax2 = ax.ravel()
@@ -239,19 +243,19 @@ if __name__ == "__main__":
             fit2, pcov_fit2 = curve_fit(linear_model, np.log(idx[6:]), np.log(tot["mean"][6:]), sigma=np.log(tot["std"][6:]))
             # ax.plot(idx[:5], np.exp(linear_model(np.log(idx[:5]), *fit1)), color="red", marker="s")
             # ax.plot(idx[6:], np.exp(linear_model(np.log(idx[6:]), *fit2)), color="green", marker="s")
-            slope_cpu = fit0[1]
-            slope_reg1, slope_reg2 = fit1[1], fit2[1]
+            #slope_cpu = fit0[1]
+            #slope_reg1, slope_reg2 = fit1[1], fit2[1]
             # slope_reg1, slope_reg2 = 0.0, 1.168
             # Display slopes
-            ax.text(0.6, 0.6, "$\\text{{slope}} = {:.1f}$".format(slope_cpu), transform=ax.transAxes,
-                    color="k", rotation=35)
-            ax.text(0.2, 0.3, "$\\text{{slope}} = {:.2f}$".format(slope_reg1), transform=ax.transAxes, color="k")
-            ax.text(0.6, 0.38, "$\\text{{slope}} = {:.2f}$".format(slope_reg2), transform=ax.transAxes,
-                    color="k", rotation=26)
+            #ax.text(0.6, 0.6, "$\\text{{slope}} = {:.1f}$".format(slope_cpu), transform=ax.transAxes,
+            #        color="k", rotation=35)
+            #ax.text(0.2, 0.3, "$\\text{{slope}} = {:.2f}$".format(slope_reg1), transform=ax.transAxes, color="k")
+            #ax.text(0.6, 0.38, "$\\text{{slope}} = {:.2f}$".format(slope_reg2), transform=ax.transAxes,
+            #        color="k", rotation=26)
 
-            net_label = net.replace("_", r"\_")
-            legend.append(Line2D([0], [0], marker="d", color="w", markerfacecolor="darkblue", markersize=7, label=net_label))
-            ax.set_prop_cycle(None)
+            #net_label = net.replace("_", r"\_")
+            #legend.append(Line2D([0], [0], marker="d", color="w", markerfacecolor="darkblue", markersize=7, label=net_label))
+            #ax.set_prop_cycle(None)
 
         ax.loglog()
         ax.legend(handles=legend, frameon=False)
@@ -275,7 +279,7 @@ if __name__ == "__main__":
 
         ax2.semilogx()
         ax2.set_xlabel("Number of nodes")
-        ax2.set_ylabel(f"Speedup")
+        ax2.set_ylabel(f"Performance Ratio")
         ax2.legend(frameon=False)
         ax2.tick_params(which="both", direction="in", top=True, right=True)
 

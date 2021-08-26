@@ -1,8 +1,8 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                           Test the divergence operator                                               #
+#                                        Test the Receptive field empirically                                          #
 #                                                                                                                      #
-#                               Lionel Cheng, Guillaume Bogopolsky, CERFACS, 28.02.2020                                #
+#                                          Ekhi Ajuria, CERFACS, 28.05.2021                                            #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -86,11 +86,12 @@ def inverse_method(model, cfg_dict, network, center, saving_folder= 'Images'):
         ctr = 'BC'
 
     # Evaluate the network and follow metrics
-    output = model(data)
-    output = torch.where(output > 0, 1.0, 0.0)
+    output = model(data).detach()
 
     # Plot
     plot_test(data, output, model, in_res, os.path.join(cfg_dict['name'],'figures' , 'Inverse', '{}'.format(ctr)), network)
+
+    output = torch.where(output > 0, 1.0, 0.0)
 
     return int(torch.sum(output)**0.5)
 
@@ -122,11 +123,12 @@ def direct_method(model, cfg_dict, network, center, saving_folder= 'Images'):
     # Get the gradient only of the middle point!
     # Compute Receptive field
     out_cnn.backward(gradient=grad)
-    grad_torch=img_.grad
-    grad_torch = torch.where(grad_torch != 0, 1.0, 0.0)
+    grad_torch=img_.grad.detach()
 
     # Plot
     plot_test(grad, grad_torch, model, in_res, os.path.join(cfg_dict['name'],'figures' ,'Direct', '{}'.format(ctr)), network)
+
+    grad_torch = torch.where(grad_torch != 0, 1.0, 0.0)
 
     return int(torch.sum(grad_torch)**0.5)
 
@@ -180,7 +182,8 @@ def test_rf_2d():
 
             def weights_init(m):
                 if isinstance(m, torch.nn.Conv2d):
-                    torch.nn.init.ones_(m.weight)
+                    torch.nn.init.constant_(m.weight, 0.1)
+                    #torch.nn.init.ones_(m.weight)
                     torch.nn.init.zeros_(m.bias)
 
             model.apply(weights_init)
