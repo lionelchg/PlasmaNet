@@ -2,7 +2,7 @@
 #                                                                                                                      #
 #                                        Test the Receptive field empirically                                          #
 #                                                                                                                      #
-#                                          Ekhi Ajuria, CERFACS, 28.05.2021                                            #
+#                                          Ekhi Ajuria, CERFACS, 28.05.2021 (mod. Victor Xing 01.09.21)                #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -45,7 +45,7 @@ def plot_test(data, output, model, in_res, folder, network):
         y = [in_res//2 - model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 + model.rf_global//2, in_res//2 - model.rf_global//2, in_res//2 - model.rf_global//2]
     else:
         x = [0, 0, model.rf_global//2, model.rf_global//2, 0]
-        y = [0, model.rf_global//2, model.rf_global//2, 0, 0]        
+        y = [0, model.rf_global//2, model.rf_global//2, 0, 0]
 
     # Image initialization
     fig, (ax1, ax2) = plt.subplots(ncols=2,figsize=(5.5,3))
@@ -68,15 +68,15 @@ def plot_test(data, output, model, in_res, folder, network):
         ax2.set_ylim(0, model.rf_global)
         ax2.set_xlim(0, model.rf_global)
 
-    
+
     plt.tight_layout()
     plt.savefig(os.path.join(folder, 'test_{}_rf_{}_k_{}.png'.format(network, model.rf_global, model.kernel_sizes[0])), dpi=100)
     plt.close()
 
 
-def inverse_method(model, cfg_dict, network, center, saving_folder= 'Images'):
+def inverse_method(model, cfg_dict, network, center, erf_thres=0.045, saving_folder= 'Images'):
     # Generate input tensor (all zeros except the middle point)
-    in_res = cfg_dict['arch']['args']['input_res'] 
+    in_res = cfg_dict['arch']['args']['input_res']
     data = torch.zeros((1,1, in_res, in_res))
     if center:
         data[:, :, in_res//2, in_res//2] = 1
@@ -91,21 +91,31 @@ def inverse_method(model, cfg_dict, network, center, saving_folder= 'Images'):
     # Plot
     plot_test(data, output, model, in_res, os.path.join(cfg_dict['name'],'figures' , 'Inverse', '{}'.format(ctr)), network)
 
-    output = torch.where(output > 0, 1.0, 0.0)
+    if center:
+        thres = erf_thres * output[0, 0, in_res//2, in_res//2].numpy()
+    else:
+        thres = erf_thres * output[0, 0, 0, 0].numpy()
 
-    return int(torch.sum(output)**0.5)
+    erf_output = torch.where(output > thres, 1.0, 0.0)
+    rf_output = torch.where(output > 0, 1.0, 0.0)
 
-def direct_method(model, cfg_dict, network, center, saving_folder= 'Images'):
-    """ Direct RF calculating method issued from: 
-        https://github.com/rogertrullo/Receptive-Field-in-Pytorch/blob/master/Receptive_Field.ipynb 
-    
+    return int(torch.sum(rf_output)**0.5), int(torch.sum(erf_output)**0.5)
+
+
+def direct_method(model, cfg_dict, network, center, erf_thres=0.045, saving_folder= 'Images'):
+    """ Direct RF calculating method issued from:
+        https://github.com/rogertrullo/Receptive-Field-in-Pytorch/blob/master/Receptive_Field.ipynb
+
     - model: network containing the wieghts initialized to 1  and biases to 0
     - cfg_dict: dictionary loaded from the cfg.yml file
     - network: string containing the name of the studied network
-    - center: boolean to study the center or the BC case """
+    - center: boolean to study the center or the BC case
+
+    Effective receptive field threshold: 2 standard deviations from value at the signal
+    location (cf Luo et al. NIPS 2016) """
 
     # Generate Input data
-    in_res = cfg_dict['arch']['args']['input_res'] 
+    in_res = cfg_dict['arch']['args']['input_res']
     img_ = torch.ones((1,1,in_res, in_res)).clone().detach().requires_grad_(True)
 
     # Evaluatre network
@@ -128,9 +138,15 @@ def direct_method(model, cfg_dict, network, center, saving_folder= 'Images'):
     # Plot
     plot_test(grad, grad_torch, model, in_res, os.path.join(cfg_dict['name'],'figures' ,'Direct', '{}'.format(ctr)), network)
 
-    grad_torch = torch.where(grad_torch != 0, 1.0, 0.0)
+    if center:
+        thres = erf_thres * grad_torch[0, 0, in_res//2, in_res//2].numpy()
+    else:
+        thres = erf_thres * grad_torch[0, 0, 0, 0].numpy()
 
-    return int(torch.sum(grad_torch)**0.5)
+    erf_grad_torch = torch.where(grad_torch > thres, 1.0, 0.0)
+    rf_grad_torch = torch.where(grad_torch > 0, 1.0, 0.0)
+
+    return int(torch.sum(rf_grad_torch)**0.5), int(torch.sum(erf_grad_torch)**0.5)
 
 
 def test_rf_2d():
@@ -140,7 +156,7 @@ def test_rf_2d():
     with open('cfg.yml', 'r') as yaml_stream:
         cfg_dict = yaml.safe_load(yaml_stream)
 
-    
+
     for file in cfg_dict['files']:
         print('')
         print('-----------------------------------------------------------')
@@ -163,7 +179,7 @@ def test_rf_2d():
                 with open(Path(os.getenv('ARCHS_DIR')) / cfg_dict['arch']['db_file']) as yaml_stream:
                     archs = yaml.safe_load(yaml_stream)
 
-                if network in archs: 
+                if network in archs:
                     tmp_cfg_arch = archs[cfg_dict['arch']['name']]
                 else:
                     print('Network {} does not exist on file {} ===> Skipping'.format(network, file))
@@ -189,24 +205,28 @@ def test_rf_2d():
             model.apply(weights_init)
 
             # Compute RF with direct and inverse methods for the center points
-            dir_RF = direct_method(model, cfg_dict, network, True)
-            inv_RF = inverse_method(model, cfg_dict, network, True)
+            dir_RF, dir_ERF = direct_method(model, cfg_dict, network, True)
+            inv_RF, inv_ERF = inverse_method(model, cfg_dict, network, True)
 
             print("===================================")
             print('Originally Calculated RF: {}'.format(model.rf_global))
             print('Direct Method RF: {}'.format(dir_RF))
-            print('Inverse Procedure RF: {}'.format(inv_RF)) 
+            print('Direct Method effective RF: {}'.format(dir_ERF))
+            print('Inverse Procedure RF: {}'.format(inv_RF))
+            print('Inverse Procedure effective RF: {}'.format(inv_ERF))
             print("===================================")
 
             # Compute RF with direct and inverse methods for the BC points
-            dir_RF = direct_method(model, cfg_dict, network, False)
-            inv_RF = inverse_method(model, cfg_dict, network, False)
-            
+            dir_RF, dir_ERF = direct_method(model, cfg_dict, network, False)
+            inv_RF, inv_ERF = inverse_method(model, cfg_dict, network, False)
+
             print('Originally Calculated RF: {}'.format(model.rf_global//2))
             print('Direct Method RF: {}'.format(dir_RF))
+            print('Direct Method effective RF: {}'.format(dir_ERF))
             print('Inverse Procedure RF: {}'.format(inv_RF))
-            print("===================================")   
-            
+            print('Inverse Procedure effective RF: {}'.format(inv_ERF))
+            print("===================================")
+
     #assert torch.sum(output) == model.rf_global * model.rf_global
 
 

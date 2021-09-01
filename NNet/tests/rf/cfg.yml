@@ -20,16 +20,14 @@
 name: 'test_rf'                             # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
-files: ['unets_ks3_rf50.yml', 'unets_ks3_rf75.yml', 'unets_ks3_rf100.yml', 'unets_ks3_rf150.yml', 
-        'unets_ks3_rf200.yml', 'unets_ks3_rf300.yml', 'unets_ks3_rf400.yml', 'unets_ks5_rf100.yml',
-        'unets_ks5_rf150.yml', 'unets_ks5_rf200.yml']
+files: ['unets_ks3_xing.yml']
 
 
-networks: ['UNet3', 'UNet4', 'UNet5']
+networks: ['UNet-Xing']
 
 arch:
-    db_file: 'unets_ks3_rf200.yml'
-    name: 'UNet3'
+    db_file: 'unets_ks3_xing.yml'
+    name: 'UNet-Xing'
     args:
         input_res: 500
 

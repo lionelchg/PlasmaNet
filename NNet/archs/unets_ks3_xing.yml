@@ -1,0 +1,19 @@
+#############################################################################################################
+#                                                                                                           #
+#                            PlasmaNet -- U-Net from Lapeyre et al. C&F 2018. Xing version                  #
+#                                                                                                           #
+#                                     Victor Xing, CERFACS, 01.09.2021                                      #
+#                                                                                                           #
+#############################################################################################################
+
+# Last feature map of stage n-1 and first one of stage n need to have the same size
+# (Maxpooling 2x2 between them) otherwise it crashes.
+# Size of first FM in decoder stages accounts for concatenation
+UNet-Xing:
+    type: 'UNet'
+    args:
+        scales:
+            scale_0: [[1, 32, 32], [96, 32, 32, 1]]
+            scale_1: [[32, 64, 64], [192, 64, 64]]
+            scale_2: [64, 128, 128]
+        kernel_sizes: 3
