@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'test_rf'                             # Experience name
+name: 'figures/test_rf'                             # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 files: ['unets_ks3_rf50.yml', 'unets_ks3_rf75.yml', 'unets_ks3_rf100.yml', 'unets_ks3_rf150.yml', 
