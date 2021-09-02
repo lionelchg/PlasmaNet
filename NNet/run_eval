@@ -7,4 +7,5 @@
 #SBATCH --partition=gpu
 #SBATCH --nodelist=krakengpu2
 
-python evaluate.py -c eval.yml -r outputs/models/64x64/random_4/0520_164902/model_best.pth
+echo PlasmaNet evaluate network with config file: $1
+eval_datasets_2 -c $1
