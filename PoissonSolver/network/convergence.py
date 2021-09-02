@@ -56,8 +56,9 @@ if __name__ == '__main__':
     ni0 = 1e+11
     rhs0 = ni0 * co.e / co.epsilon_0
     modes = ((1, 1), (1, 2), (2, 1), (2, 2), (6, 6), (10, 10))
-    modes_style = [{'color': 'darkblue', 'marker': 'o'}, {'color': 'royalblue', 'marker':'o'}, {'color': 'darkblue', 'marker': '^'}, {'color': 'royalblue', 'marker': '^'}, {'color': 'firebrick', 'marker': 'o'},
-    {'color': 'firebrick', 'marker': '^'}]
+    modes_style = [{'color': 'darkblue', 'marker': 'o'}, {'color': 'royalblue', 'marker':'o', 'linestyle':'dashed'}, 
+    {'color': 'royalblue', 'marker': '^', 'linestyle':'dashed'}, {'color': 'royalblue', 'marker': 's', 'linestyle':'dashed'}, 
+    {'color': 'firebrick', 'marker': 'o', 'linestyle':'dotted'}, {'color': 'firebrick', 'marker': '^', 'linestyle':'dotted'}]
     
     # Different studied resolutions
     nnxs = np.array([51, 101, 201, 401, 701, 1001, 2001])
