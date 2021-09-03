@@ -158,14 +158,14 @@ class StreamerMorrow(BaseSim):
         logging.info('--> Photoionization resolution')
         if self.photo_model == 'two':
             for i in range(2):
-                rhs = - self.irate.reshape(-1) * A_j_two[i] * self.pO2**2 * self.scale
-                impose_dirichlet(rhs, self.nnx, self.nny, self.bcs_photo)
-                self.Sph += spsolve(self.mats_photo[i], rhs).reshape(self.nny, self.nnx)
+                rhs = - self.irate * A_j_two[i] * self.pO2**2 * self.scale
+                impose_dirichlet(rhs, self.bcs_photo)
+                self.Sph += spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
         elif self.photo_model == 'three':
             for i in range(3):
-                rhs = - self.irate.reshape(-1) * A_j_three[i] * self.pO2**2 * self.scale
-                impose_dirichlet(rhs, self.nnx, self.nny, self.bcs_photo)
-                self.Sph += spsolve(self.mats_photo[i], rhs).reshape(self.nny, self.nnx)
+                rhs = - self.irate * A_j_three[i] * self.pO2**2 * self.scale
+                impose_dirichlet(rhs, self.bcs_photo)
+                self.Sph += spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
 
     def compute_chemistry(self, it):
         """ Apply chemistry from Morrow et. al. with or without photoionization. """

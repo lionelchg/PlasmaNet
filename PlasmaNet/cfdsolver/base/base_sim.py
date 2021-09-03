@@ -61,7 +61,8 @@ class BaseSim(Grid):
             self.loglevel = logging.INFO
         logging.basicConfig(filename=f'{self.case_dir}run.log', 
             level=self.loglevel, 
-            format='%(levelname)s %(message)s')
+            format='%(asctime)s %(message)s',
+            datefmt='%m-%d %H:%M')
 
         # Dump the configuration file in the case
         with open(self.case_dir + 'config.yml', 'w') as file:
