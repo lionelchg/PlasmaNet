@@ -1,7 +1,7 @@
 ########################################################################################################################
 #                                                                                                                      #
 #                  2D Poisson datasets using random generation of rhs points for cylindrical geometries                #
-#                                                                                                                      #
+#                       This dataset will be used for networks working on streamer simulations                         #
 #                                          Lionel Cheng, CERFACS, 04.09.2021                                           #
 #                                                                                                                      #
 ########################################################################################################################
@@ -62,7 +62,7 @@ nny_lower = int(nny / n_res_factor)
 x_lower, y_lower = np.linspace(xmin, xmax, nnx_lower), np.linspace(ymin, ymax, nny_lower)
 
 # Amplitude of the RhS
-ni0 = 1e11
+ni0 = 1e16
 bcs = {'left':zeros_y, 'right':zeros_y, 'top':zeros_x}
 
 def params(nits):
