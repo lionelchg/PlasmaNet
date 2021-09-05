@@ -5,6 +5,36 @@ The three modules :mod:`PlasmaNet.nnet`, :mod:`PlasmaNet.cfdsolver` and :mod:`Pl
 each have a corresponding folder in the root of the directory where these libraries are
 used for studies.
 
+``CfdSolver/``
+*******************
+
+Running the studied fluid simulations of plasma oscillation and double headed streamer
+
+``dl/``
+--------------------
+
+Neural networks runs of plasma oscillation and double headed streamers
+
+``euler/``
+---------------------
+
+Convective vortex case for validating the Euler equations Lax-Wendroff scheme and plasma oscillation test case.
+
+``perf/``
+----------------------
+
+Study of the performance of each option to solve the Poisson equation 
+
+``scalar/``
+----------------------
+
+Scalar advection is validated on a simple square geometry. 
+
+``NNet/``
+********************
+
+This repository allows to train neural networks from configuration files and post-process the training (plotting things such as metrics and losses).
+
 ``PoissonSolver/``
 ********************
 

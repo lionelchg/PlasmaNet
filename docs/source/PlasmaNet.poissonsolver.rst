@@ -20,10 +20,34 @@ PlasmaNet.poissonsolver.base module
    :undoc-members:
    :show-inheritance:
 
+PlasmaNet.poissonsolver.eval\_datasets module
+---------------------------------------------
+
+.. automodule:: PlasmaNet.poissonsolver.eval_datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+PlasmaNet.poissonsolver.eval\_datasets\_2 module
+------------------------------------------------
+
+.. automodule:: PlasmaNet.poissonsolver.eval_datasets_2
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 PlasmaNet.poissonsolver.linsystem module
 ----------------------------------------
 
 .. automodule:: PlasmaNet.poissonsolver.linsystem
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+PlasmaNet.poissonsolver.network module
+--------------------------------------
+
+.. automodule:: PlasmaNet.poissonsolver.network
    :members:
    :undoc-members:
    :show-inheritance:

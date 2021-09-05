@@ -24,6 +24,22 @@ PlasmaNet.nnet.parse\_config module
    :undoc-members:
    :show-inheritance:
 
+PlasmaNet.nnet.pproc module
+---------------------------
+
+.. automodule:: PlasmaNet.nnet.pproc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+PlasmaNet.nnet.show\_network module
+-----------------------------------
+
+.. automodule:: PlasmaNet.nnet.show_network
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

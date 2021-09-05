@@ -1,6 +1,9 @@
 Overview of the library
 =========================
 
+Main modules
+-------------------------
+
 The library contains four main modules:
 
 :mod:`PlasmaNet.nnet`
@@ -11,7 +14,7 @@ based on a `pytorch-template <https://github.com/victoresque/pytorch-template/>`
 @victoresque on GitHub. Abstract classes are inherited for specific usage.
 
 :mod:`PlasmaNet.cfdsolver`
-**************************
+***************************
 
 This module allows to solve the 2D advection-diffusion and Euler equations with an object-oriented
 paradigm. One class is defined for each specific set of equations that are needed.
@@ -28,3 +31,17 @@ a classical linear system solver.
 
 Module that holds methods that are common to all the ``PlasmaNet`` modules including plotting,
 profiles.
+
+Interacting with the library
+-----------------------------
+
+Yaml configuration files
+*******************************
+
+The use of yaml configuration files is the primary way of interacting directly with the library. Scripts calls from inside the library usually take
+as argument a yaml configuration file ``.yml``. 
+
+Entry points
+*******************************
+
+Entry points are used whenever a new functionnality is created inside the library to alleviate the calling of the function.

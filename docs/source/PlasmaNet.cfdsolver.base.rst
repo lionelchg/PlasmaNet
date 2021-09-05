@@ -12,10 +12,10 @@ PlasmaNet.cfdsolver.base.base\_plot module
    :undoc-members:
    :show-inheritance:
 
-PlasmaNet.cfdsolver.base.basesim module
----------------------------------------
+PlasmaNet.cfdsolver.base.base\_sim module
+-----------------------------------------
 
-.. automodule:: PlasmaNet.cfdsolver.base.basesim
+.. automodule:: PlasmaNet.cfdsolver.base.base_sim
    :members:
    :undoc-members:
    :show-inheritance:

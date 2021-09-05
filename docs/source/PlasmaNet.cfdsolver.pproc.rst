@@ -12,10 +12,10 @@ PlasmaNet.cfdsolver.pproc.dicts2hdf module
    :undoc-members:
    :show-inheritance:
 
-PlasmaNet.cfdsolver.pproc.pandas module
----------------------------------------
+PlasmaNet.cfdsolver.pproc.pandas2latex module
+---------------------------------------------
 
-.. automodule:: PlasmaNet.cfdsolver.pproc.pandas
+.. automodule:: PlasmaNet.cfdsolver.pproc.pandas2latex
    :members:
    :undoc-members:
    :show-inheritance:

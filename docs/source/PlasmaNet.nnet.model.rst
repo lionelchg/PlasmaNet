@@ -4,26 +4,10 @@ PlasmaNet.nnet.model package
 Submodules
 ----------
 
-PlasmaNet.nnet.model.dirichletnet module
-----------------------------------------
-
-.. automodule:: PlasmaNet.nnet.model.dirichletnet
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 PlasmaNet.nnet.model.flexinet module
 ------------------------------------
 
 .. automodule:: PlasmaNet.nnet.model.flexinet
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PlasmaNet.nnet.model.forwardnet module
---------------------------------------
-
-.. automodule:: PlasmaNet.nnet.model.forwardnet
    :members:
    :undoc-members:
    :show-inheritance:
@@ -52,34 +36,18 @@ PlasmaNet.nnet.model.metric module
    :undoc-members:
    :show-inheritance:
 
-PlasmaNet.nnet.model.mono\_scale module
----------------------------------------
+PlasmaNet.nnet.model.msnet module
+---------------------------------
 
-.. automodule:: PlasmaNet.nnet.model.mono_scale
+.. automodule:: PlasmaNet.nnet.model.msnet
    :members:
    :undoc-members:
    :show-inheritance:
 
-PlasmaNet.nnet.model.msnets module
-----------------------------------
+PlasmaNet.nnet.model.optiunet module
+------------------------------------
 
-.. automodule:: PlasmaNet.nnet.model.msnets
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PlasmaNet.nnet.model.multiscalenet module
------------------------------------------
-
-.. automodule:: PlasmaNet.nnet.model.multiscalenet
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PlasmaNet.nnet.model.multiscalenet\_original module
----------------------------------------------------
-
-.. automodule:: PlasmaNet.nnet.model.multiscalenet_original
+.. automodule:: PlasmaNet.nnet.model.optiunet
    :members:
    :undoc-members:
    :show-inheritance:
@@ -92,18 +60,10 @@ PlasmaNet.nnet.model.resnet module
    :undoc-members:
    :show-inheritance:
 
-PlasmaNet.nnet.model.simplemultinet module
-------------------------------------------
-
-.. automodule:: PlasmaNet.nnet.model.simplemultinet
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PlasmaNet.nnet.model.simplenet module
+PlasmaNet.nnet.model.scalesnet module
 -------------------------------------
 
-.. automodule:: PlasmaNet.nnet.model.simplenet
+.. automodule:: PlasmaNet.nnet.model.scalesnet
    :members:
    :undoc-members:
    :show-inheritance:
@@ -120,22 +80,6 @@ PlasmaNet.nnet.model.unet module
 --------------------------------
 
 .. automodule:: PlasmaNet.nnet.model.unet
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PlasmaNet.nnet.model.unet3 module
----------------------------------
-
-.. automodule:: PlasmaNet.nnet.model.unet3
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PlasmaNet.nnet.model.unets module
----------------------------------
-
-.. automodule:: PlasmaNet.nnet.model.unets
    :members:
    :undoc-members:
    :show-inheritance:

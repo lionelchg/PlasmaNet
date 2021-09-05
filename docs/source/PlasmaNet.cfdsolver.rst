@@ -23,14 +23,6 @@ PlasmaNet.cfdsolver.cases module
    :undoc-members:
    :show-inheritance:
 
-PlasmaNet.cfdsolver.utils module
---------------------------------
-
-.. automodule:: PlasmaNet.cfdsolver.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 
