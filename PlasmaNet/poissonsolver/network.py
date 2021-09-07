@@ -134,7 +134,6 @@ class PoissonNetwork(BasePoisson):
             #end_model = torch.cuda.Event(enable_timing=True)
             #start_model.record()
             #torch.cuda.synchronize()
-
         potential_torch = self.model(physical_rhs_torch)
         if self.benchmark:
             #end_model.record()

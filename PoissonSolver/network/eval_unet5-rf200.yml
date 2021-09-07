@@ -23,6 +23,7 @@ eval:
     ymax: 1.0e-2
     nny: 1001
     nmax_fourier: 10
+    interpol: False
 
 network:
     casename: 'cases/UNet5-rf200/'                  # Experience name
@@ -44,7 +45,7 @@ network:
         db_file: 'unets_ks3_rf200.yml'
         name: 'UNet5'
         args:
-            input_res: 1001
+            input_res: 101
 
     data_loader:
         type: 'PoissonDataLoader'
