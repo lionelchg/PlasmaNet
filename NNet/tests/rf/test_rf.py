@@ -56,7 +56,7 @@ def plot_test(data, output, model, in_res, folder, network):
     # Plot input, output and expected box
     plot_ax_scalar(fig, ax1, Xb, Yb, data[0, 0, :, :].numpy(), r"Init")
     plot_ax_scalar(fig, ax2, Xb, Yb, output[0, 0, :, :].numpy(), r"RF")
-    ax2.plot(x, y, linestyle="dashed", color="red", linewidth=5)
+    ax2.plot(x, y, linestyle="dashed", color="k", linewidth=3)
 
     # Cut the domain so that only the middle "interesting" part remains
     if "center" in folder:
