@@ -197,7 +197,7 @@ class PlasmaEuler(Euler):
 
                 rhs_field = f(x_red, y_red)
                 self.poisson.res_scale = self.poisson.nnx_nn**2 / \
-                        (self.intp_res)**2
+                    (self.intp_res)**2
 
             self.poisson.solve(- (rhs_field / self.m_e -
                                self.n_back) * co.e / co.epsilon_0)
