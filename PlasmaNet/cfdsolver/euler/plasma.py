@@ -196,6 +196,8 @@ class PlasmaEuler(Euler):
                 f = interpolate.interp2d(x, y, self.U[0], kind='cubic')
 
                 rhs_field = f(x_red, y_red)
+                self.poisson.res_scale = self.poisson.nnx_nn**2 / \
+                        (self.intp_res)**2
 
             self.poisson.solve(- (rhs_field / self.m_e -
                                self.n_back) * co.e / co.epsilon_0)

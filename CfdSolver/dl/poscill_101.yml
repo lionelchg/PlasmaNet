@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/interp/orig/U5_K3_RF200/1001x1001/two_gaussian_2p/'
+casename: 'runs/kraken/interp/interp_101/U5_K3_RF200/1001x1001/two_gaussian_2p/'
 # casename: 'runs/kraken/U5_K3_RF200/101x101/two_gaussian_2p/'
 
 params:
@@ -82,7 +82,7 @@ network:
     # db_file: 'unets_ks3_rf200.yml'
     name: 'UNet5'
     args:
-        input_res: 1001
+        input_res: 101
 
   data_loader:
     type: 'PoissonDataLoader'
