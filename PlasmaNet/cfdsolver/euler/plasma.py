@@ -27,6 +27,7 @@ from ...common.utils import create_dir, save_obj
 
 sns.set_context('notebook', font_scale=1.0)
 
+
 class PlasmaEuler(Euler):
     def __init__(self, config, logger=None):
         super().__init__(config)
@@ -45,7 +46,8 @@ class PlasmaEuler(Euler):
             # Boundary conditions
             zeros_x = np.zeros_like(self.x)
             zeros_y = np.zeros_like(self.y)
-            self.pot_bcs = {'left': zeros_y, 'right': zeros_y, 'bottom': zeros_x, 'top': zeros_x}
+            self.pot_bcs = {'left': zeros_y, 'right': zeros_y,
+                            'bottom': zeros_x, 'top': zeros_x}
         elif self.poisson_type == 'analytical':
             config['poisson']['nmax_rhs'] = config['poisson']['nmax_fourier']
             config['poisson']['mmax_rhs'] = config['poisson']['nmax_fourier']
@@ -57,17 +59,24 @@ class PlasmaEuler(Euler):
             config['network']['casename'] = config['casename']
             self.poisson = PoissonNetwork(config['network'])
 
+        if 'hybrid' in config['poisson']:
+            zeros_x = np.zeros_like(self.x)
+            zeros_y = np.zeros_like(self.y)
+            self.pot_bcs = {'left': zeros_y, 'right': zeros_y,
+                            'bottom': zeros_x, 'top': zeros_x}
+            config['poisson']['bcs'] = 'dirichlet'
+
         self.m_e = co.m_e
         self.W = self.m_e * co.N_A
         self.n_back = config['init']['n_back']
         self.n_pert = config['init']['n_pert']
 
         if config['init']['func'] == 'gaussians':
-            n_electron = getattr(pf, config['init']['func'])(self.X, 
-                self.Y, config['init']['args']) + self.n_back
+            n_electron = getattr(pf, config['init']['func'])(self.X,
+                                                             self.Y, config['init']['args']) + self.n_back
         else:
-            n_electron = getattr(pf, config['init']['func'])(self.X, 
-                self.Y, self.n_pert, *config['init']['args']) + self.n_back
+            n_electron = getattr(pf, config['init']['func'])(self.X,
+                                                             self.Y, self.n_pert, *config['init']['args']) + self.n_back
 
         self.U[0] = self.m_e * n_electron
 
@@ -100,7 +109,8 @@ class PlasmaEuler(Euler):
         self.temporal_indices = get_indices(nep, self.nny, self.nnx, 0.2)
         self.temporal_ampl = np.zeros(2)
         self.temporal_ampl[0] = self.domain_ave(nep)
-        self.temporal_ampl[1] = np.mean(nep[self.temporal_indices[:, 0], self.temporal_indices[:, 1]])
+        self.temporal_ampl[1] = np.mean(
+            nep[self.temporal_indices[:, 0], self.temporal_indices[:, 1]])
         self.nep_max = np.max(nep)
 
         # datasets for deep-learning
@@ -123,7 +133,8 @@ class PlasmaEuler(Euler):
             # in period units
             if 'fig' in globals_cfg:
                 self.gfig = plt.figure(figsize=(11, 6))
-                self.gperiod = [int(per * self.nt_oscill) for per in globals_cfg['fig']]
+                self.gperiod = [int(per * self.nt_oscill)
+                                for per in globals_cfg['fig']]
                 self.gindex = 0
 
             # Declaration of globals dictionary which holds, norm2 of signal, norm2 of FFT
@@ -133,7 +144,8 @@ class PlasmaEuler(Euler):
                 self.globals['casename'] = self.case_dir
                 self.globals['nnx_sim'] = self.nnx
                 self.globals['Lx_sim'] = self.Lx
-                self.globals['init_profile'] = config['init']['func'] + str(config['init']['args'])
+                self.globals['init_profile'] = config['init']['func'] + \
+                    str(config['init']['args'])
 
         # If a logger is given, use it to log performance
         if logger is not None:
@@ -144,14 +156,18 @@ class PlasmaEuler(Euler):
 
     def print_init(self):
         """ Print header to sum up the parameters. """
-        logging.info(f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
-        logging.info(f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
+        logging.info(
+            f'Number of nodes: nnx = {self.nnx:d} -- nny = {self.nny:d}')
+        logging.info(
+            f'Bounding box: ({self.xmin:.1e}, {self.ymin:.1e}), ({self.xmax:.1e}, {self.ymax:.1e})')
         logging.info(f'dx = {self.dx:.2e} -- dy = {self.dy:.2e}')
-        logging.info(f'dt = {self.dt:.2e} s - T_p = {self.T_p:.2e} s - omega_p = {self.omega_p:.2e} rad.s-1')
+        logging.info(
+            f'dt = {self.dt:.2e} s - T_p = {self.T_p:.2e} s - omega_p = {self.omega_p:.2e} rad.s-1')
         logging.info('------------------------------------')
         logging.info('Start of simulation')
         logging.info('------------------------------------')
-        logging.info('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
+        logging.info('{:>10} {:>16} {:>17}'.format(
+            'Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
     def solve_poisson(self):
         """ Solve the Poisson equation in axisymmetric configuration. """
@@ -160,17 +176,21 @@ class PlasmaEuler(Euler):
             self.poisson.solve(- (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0,
                                self.pot_bcs)
         elif self.poisson_type == 'analytical':
-            self.poisson.compute_sol(- (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0)
+            self.poisson.compute_sol(- (self.U[0] /
+                                     self.m_e - self.n_back) * co.e / co.epsilon_0)
         elif self.poisson_type == 'network':
-            self.poisson.solve(- (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0)
+            self.poisson.solve(- (self.U[0] / self.m_e -
+                               self.n_back) * co.e / co.epsilon_0)
         self.E_field = self.poisson.E_field
 
         self.E_norm = np.sqrt(self.E_field[0]**2 + self.E_field[1]**2)
-        if self.it == 1: self.E_max = np.max(self.E_norm)
+        if self.it == 1:
+            self.E_max = np.max(self.E_norm)
 
         poisson_timer = perf_counter() - poisson_timer
         if self.log_perf:
-            self.logger.info("Poisson {} perf: {}".format(self.poisson_type[:3], poisson_timer))
+            self.logger.info("Poisson {} perf: {}".format(
+                self.poisson_type[:3], poisson_timer))
 
     def compute_flux_cold(self):
         """ Compute the 2D flux of the Euler equations but without pressure """
@@ -180,9 +200,12 @@ class PlasmaEuler(Euler):
 
     def compute_EM_source(self):
         """ Compute electro-magnetic source terms in vertex-centered approximation """
-        self.res[1] += self.U[0] / self.m_e * co.e * self.E_field[0] * self.voln
-        self.res[2] += self.U[0] / self.m_e * co.e * self.E_field[1] * self.voln
-        self.res[3] += co.e * (self.U[1] * self.E_field[0] + self.U[2] * self.E_field[1]) / self.m_e * self.voln
+        self.res[1] += self.U[0] / self.m_e * \
+            co.e * self.E_field[0] * self.voln
+        self.res[2] += self.U[0] / self.m_e * \
+            co.e * self.E_field[1] * self.voln
+        self.res[3] += co.e * (self.U[1] * self.E_field[0] +
+                               self.U[2] * self.E_field[1]) / self.m_e * self.voln
 
     def plot(self):
         """ 2D maps and 1D cuts at different y of the primitive variables. """
@@ -190,15 +213,18 @@ class PlasmaEuler(Euler):
         E = self.E_field
         E_norm = self.E_norm
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(8, 8))
-        plot_ax_scalar(fig, axes[0][0], self.X, self.Y, n_e, r"$n_e$", geom='xy', max_value=1.1 * self.nep_max)
+        plot_ax_scalar(fig, axes[0][0], self.X, self.Y, n_e,
+                       r"$n_e$", geom='xy', max_value=1.1 * self.nep_max)
         plot_ax_scalar_1D(fig, axes[0][1], self.X, [0.4, 0.5, 0.6], n_e, r"$n_e$",
                           ylim=[-1.1 * self.nep_max, 1.1 * self.nep_max])
-        plot_ax_vector_arrow(fig, axes[1][0], self.X, self.Y, E, 'Electric field', max_value=1.1 * self.E_max)
+        plot_ax_vector_arrow(
+            fig, axes[1][0], self.X, self.Y, E, 'Electric field', max_value=1.1 * self.E_max)
         plot_ax_scalar_1D(fig, axes[1][1], self.X, [0.25, 0.5, 0.75], E_norm, r"$|\mathbf{E}|$",
                           ylim=[0, 1.1 * self.E_max])
         fig.suptitle(rf'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout()
-        fig.savefig(self.fig_dir + f'variables_{self.number:04d}', bbox_inches='tight')
+        fig.savefig(self.fig_dir +
+                    f'variables_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
 
     def postproc(self, it):
@@ -232,8 +258,8 @@ class PlasmaEuler(Euler):
         odd or for the mean of the four points for nnx even """
         nep = self.U[0, :, :] / self.m_e - self.n_back
         self.temporals[it - 1, 0] = self.domain_ave(nep)
-        self.temporals[it - 1, 1] = np.mean(nep[self.temporal_indices[:, 0], self.temporal_indices[:, 1]])
-
+        self.temporals[it - 1, 1] = np.mean(
+            nep[self.temporal_indices[:, 0], self.temporal_indices[:, 1]])
 
     def save(self):
         pass
@@ -296,8 +322,10 @@ class PlasmaEuler(Euler):
         _, fft_ref_max = self.fft(exact_cos, self.time)
         axes[3].plot(freq, fft_ref_max, label='Reference')
 
-        self.ax_prop(axes[2], r'$f / f_p$', "", r"PSD of domain average of $n_e$", xlim=[0, 5])
-        self.ax_prop(axes[3], r'$f / f_p$', "", r"PSD of $> 0.9\mathrm{max}(n_e)$", xlim=[0, 5])
+        self.ax_prop(axes[2], r'$f / f_p$', "",
+                     r"PSD of domain average of $n_e$", xlim=[0, 5])
+        self.ax_prop(axes[3], r'$f / f_p$', "",
+                     r"PSD of $> 0.9\mathrm{max}(n_e)$", xlim=[0, 5])
 
         fig.savefig(self.fig_dir + 'temporals', bbox_inches='tight')
 
@@ -313,8 +341,8 @@ class PlasmaEuler(Euler):
                          legend=False)
             tmp_ax.grid(False)
 
-            # The barplots count as axis 
-            # 0 2 3(cbar) 
+            # The barplots count as axis
+            # 0 2 3(cbar)
             # 1 4 5(cbar)
             for ifig in [0, 1, 2, 4]:
                 self.gfig.axes[ifig].get_xaxis().set_visible(False)
@@ -330,16 +358,22 @@ class PlasmaEuler(Euler):
                 tmp_ind = self.gperiod[i]
                 tmp_time = self.time[tmp_ind]
                 tmp_ne = self.temporals[tmp_ind, 0]
-                self.gfig.axes[-1].text(tmp_time - 0.04 * self.time[-1], - 1.35, rf"$t_{i + 1:d}$", ha='right', size=15)
-                tmp_ax.plot(tmp_time * np.ones(2), [-1.5, tmp_ne], 'k--', lw=1.0)
+                self.gfig.axes[-1].text(tmp_time - 0.04 * self.time[-1], -
+                                        1.35, rf"$t_{i + 1:d}$", ha='right', size=15)
+                tmp_ax.plot(tmp_time * np.ones(2),
+                            [-1.5, tmp_ne], 'k--', lw=1.0)
 
             self.gfig.savefig(self.fig_dir + 'global', bbox_inches='tight')
 
         if hasattr(self, 'globals'):
-            self.globals['error_temporal_de'] = self.norm2(self.temporals[:, 0], exact_cos)
-            self.globals['error_spectral_de'] = self.norm2(fft_nep_de, fft_ref_de)
-            self.globals['error_temporal_max'] = self.norm2(self.temporals[:, 1], exact_cos)
-            self.globals['error_spectral_max'] = self.norm2(fft_nep_max, fft_ref_max)
+            self.globals['error_temporal_de'] = self.norm2(
+                self.temporals[:, 0], exact_cos)
+            self.globals['error_spectral_de'] = self.norm2(
+                fft_nep_de, fft_ref_de)
+            self.globals['error_temporal_max'] = self.norm2(
+                self.temporals[:, 1], exact_cos)
+            self.globals['error_spectral_max'] = self.norm2(
+                fft_nep_max, fft_ref_max)
 
     def set_instability(self, entry):
         """ Fill the value of instability (max or de) into the globals dictionnary """
@@ -380,7 +414,17 @@ class PlasmaEuler(Euler):
             sim.res[:], sim.res_c[:] = 0, 0
 
             # Solve poisson equation
+            if 'hybrid' in config['poisson']:
+                if config['poisson']['hybrid'] and it % config['poisson']['evr_it'] == 0:
+                    sim.poisson_type = 'lin_system'
+                    sim.poisson = DatasetPoisson(config['poisson'])
+
             sim.solve_poisson()
+
+            if 'hybrid' in config['poisson']:
+                if config['poisson']['hybrid'] and it % config['poisson']['evr_it'] == 0:
+                    sim.poisson_type = config['poisson']['type']
+                    sim.poisson = PoissonNetwork(config['network'])
 
             # Compute euler fluxes (without pressure)
             # sim.compute_flux()
@@ -401,7 +445,7 @@ class PlasmaEuler(Euler):
             # Post processing
             sim.postproc(it)
 
-            # Retrieve center variables 
+            # Retrieve center variables
             sim.temporal_variables(it)
 
         # Plot temporals
@@ -438,6 +482,7 @@ def get_indices(profile, nny, nnx, threshold):
                 indices.append([j, i])
     return np.array(indices)
 
+
 def main():
     args = argparse.ArgumentParser(description='PlasmaEuler oscillation run')
     args.add_argument('-c', '--config', required=True, type=str,
@@ -448,6 +493,7 @@ def main():
         config = yaml.safe_load(yaml_stream)
 
     PlasmaEuler.run(config)
+
 
 if __name__ == '__main__':
     main()

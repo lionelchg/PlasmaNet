@@ -19,6 +19,7 @@ import matplotlib as mpl
 import scipy.constants as co
 import seaborn as sns
 from pathlib import Path
+from scipy import interpolate
 
 # From PlasmaNet
 from PlasmaNet.poissonsolver.analytical import dirichlet_mode
@@ -76,7 +77,13 @@ if __name__ == '__main__':
         # Change the configuration dict and initialize new poisson object with good res
         cfg['network']['eval']['nnx'] = nnx
         cfg['network']['eval']['nny'] = nny
-        cfg['network']['arch']['args']['input_res'] = nnx
+
+        if not 'interpol' in cfg['eval']:
+            cfg['network']['arch']['args']['input_res'] = nnx
+        else:
+            if not cfg['eval']['interpol']:
+                cfg['network']['arch']['args']['input_res'] = nnx
+
         poisson = PoissonNetwork(cfg['network'])
         poisson.case_config(cfg['network']['eval'])
 
@@ -86,7 +93,33 @@ if __name__ == '__main__':
                     dirichlet_mode(poisson.Y, poisson.Ly, mode_m)) * co.e / co.epsilon_0
             potential_th = physical_rhs / ((mode_n * np.pi / poisson.Lx)**2 + (mode_m * np.pi / poisson.Ly)**2)
             E_field_th = - grad(potential_th, poisson.dx, poisson.dy, nnx, nny)
+
+            if 'interpol' in cfg['eval']:
+                if cfg['eval']['interpol']:
+                    x = np.linspace(0, cfg['network']['globals']['xmax'], nnx)
+                    y = np.linspace(0, cfg['network']['globals']['xmax'], nny)
+                    xx, yy = np.meshgrid(x, y)
+                    f = interpolate.interp2d(x, y, physical_rhs, kind='cubic')
+
+                    x_red = np.linspace(0, cfg['network']['globals']['xmax'], cfg['network']['globals']['nnx'])
+                    y_red = np.linspace(0, cfg['network']['globals']['xmax'], cfg['network']['globals']['nny'])
+
+                    physical_rhs = f(x_red, y_red)
+
             poisson.solve(physical_rhs)
+
+            if 'interpol' in cfg['eval']:
+                if cfg['eval']['interpol']:
+                    x = np.linspace(0, cfg['network']['globals']['xmax'], cfg['network']['globals']['nnx'])
+                    y = np.linspace(0, cfg['network']['globals']['xmax'], cfg['network']['globals']['nny'])
+                    xx, yy = np.meshgrid(x, y)
+                    f = interpolate.interp2d(x, y, poisson.potential, kind='cubic')
+
+                    x_red = np.linspace(0, cfg['network']['globals']['xmax'], nnx)
+                    y_red = np.linspace(0, cfg['network']['globals']['xmax'], nny)
+
+                    poisson.potential = f(x_red, y_red)
+
             # if i_nnx == len(nnxs) - 1:
             #     poisson.plot_1D2D(fig_dir / f'sol_{nnx}_{mode_n}_{mode_m}')
             for key in errors:
@@ -129,4 +162,5 @@ if __name__ == '__main__':
 
         # fig.tight_layout()
         fig.savefig(fig_dir / f'{error_kind}_error.pdf', format='pdf', bbox_inches='tight')
+        fig.savefig(fig_dir / f'{error_kind}_error.png', format='pdf', bbox_inches='tight')
         plt.close(fig)
