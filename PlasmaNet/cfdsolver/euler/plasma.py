@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import scipy.constants as co
 from numba import njit
 import seaborn as sns
+from scipy import interpolate
 
 from .euler import Euler
 import PlasmaNet.common.profiles as pf
@@ -65,6 +66,12 @@ class PlasmaEuler(Euler):
             self.pot_bcs = {'left': zeros_y, 'right': zeros_y,
                             'bottom': zeros_x, 'top': zeros_x}
             config['poisson']['bcs'] = 'dirichlet'
+
+        if 'interpolate' in config['poisson']:
+            self.interpol = config['poisson']['interpolate']
+            self.intp_res = config['network']['arch']['args']['input_res']
+        else:
+            self.interpol = False
 
         self.m_e = co.m_e
         self.W = self.m_e * co.N_A
@@ -179,8 +186,33 @@ class PlasmaEuler(Euler):
             self.poisson.compute_sol(- (self.U[0] /
                                      self.m_e - self.n_back) * co.e / co.epsilon_0)
         elif self.poisson_type == 'network':
-            self.poisson.solve(- (self.U[0] / self.m_e -
+
+            rhs_field = self.U[0]
+            if self.interpol:
+                x = np.linspace(0, self.xmax, self.nnx)
+                y = np.linspace(0, self.ymax, self.nny)
+                x_red = np.linspace(0, self.xmax, self.intp_res)
+                y_red = np.linspace(0, self.ymax, self.intp_res)
+                f = interpolate.interp2d(x, y, self.U[0], kind='cubic')
+
+                rhs_field = f(x_red, y_red)
+
+            self.poisson.solve(- (rhs_field / self.m_e -
                                self.n_back) * co.e / co.epsilon_0)
+
+            if self.interpol:
+                rhs_field = f(x, y)
+                self.U[0] = rhs_field
+
+                x = np.linspace(0, self.xmax, self.nnx)
+                y = np.linspace(0, self.ymax, self.nny)
+                x_red = np.linspace(0, self.xmax, self.intp_res)
+                y_red = np.linspace(0, self.ymax, self.intp_res)
+                f = interpolate.interp2d(
+                    x_red, y_red, self.poisson.potential, kind='cubic')
+
+                self.poisson.potential = f(x, y)
+
         self.E_field = self.poisson.E_field
 
         self.E_norm = np.sqrt(self.E_field[0]**2 + self.E_field[1]**2)

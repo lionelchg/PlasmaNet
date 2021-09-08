@@ -23,10 +23,11 @@ eval:
     ymax: 1.0e-2
     nny: 1001
     nmax_fourier: 10
-    interpol: False
+    interpol: True
+    interpol_type: 'linear' #try 'linear' or 'cubic'
 
 network:
-    casename: 'cases/UNet5-rf200/'                  # Experience name
+    casename: 'cases/UNet5-rf200_interpol_linear/'                  # Experience name
     n_gpu: 1                                    # Number of GPUs to use
 
     globals:                                    # Domain sizes and others, used to compute global attributes
