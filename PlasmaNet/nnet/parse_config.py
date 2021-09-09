@@ -109,7 +109,8 @@ class ConfigParser:
         self.dy = self.Ly / (self.nny - 1)
         self.ds = self.dx * self.dy
         self.surface = self.Lx * self.Ly
-        x, y = np.linspace(self.xmin, self.xmax, self.nnx), np.linspace(self.xmin, self.xmax, self.nny)
+        x = np.linspace(self.xmin, self.xmax, self.nnx)
+        y = np.linspace(self.ymin, self.ymax, self.nny)
         self.X, self.Y = np.meshgrid(x, y)
 
         self.coord = self.config['globals']['coord']

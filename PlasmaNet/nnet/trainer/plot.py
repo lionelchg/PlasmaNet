@@ -16,7 +16,7 @@ matplotlib.use('Agg')
 
 
 def plot_batch(output, target, data, epoch, batch_idx, config):
-    """ Matplotlib plots during training """
+    """ Matplotlib plots of potential/RHS during training """
     # Detach tensors and send them to cpu as numpy
     data_np = data.detach().cpu().numpy()
     target_np = target.detach().cpu().numpy()
