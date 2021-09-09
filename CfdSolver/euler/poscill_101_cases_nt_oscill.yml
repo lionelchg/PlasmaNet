@@ -1,0 +1,57 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                            cfdsolver -- Configuration file                                           #
+#                                                                                                                      #
+#                                           Lionel Cheng, CERFACS, 05.11.2020                                          #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+casename: 'runs/kraken/101x101/nt_oscill/'
+description: 'Four periods runs of two gaussians in 101x101 for different time resolutions'
+mode: 'seq'
+params/nt_oscill: [100, 200, 500, 1000, 2000, 5000]
+
+base:
+  params:
+    n_periods: 4.0
+    geom: 'xy'
+    dt: 1.0e-10
+    nt_oscill: 5000
+
+  init:
+    n_back: 1.0e+16
+    n_pert: 1.0e+11
+    func: 'two_gaussians'
+    args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]
+
+  poisson:
+    type: 'lin_system'
+    mat: 'cart_dirichlet'
+    nmax_fourier: 10
+
+  mesh:
+    xmin: 0
+    ymin: 0
+    xmax: 1.0e-2
+    ymax: 1.0e-2
+    nnx: 101
+    nny: 101
+
+  BC: 'full_out'
+
+  output:
+    save: 'plasma_period'
+    verbose: True
+    period: 0.25
+    files: 'fig'
+    dl_save: 'no'
+    globals:
+      fig: [1.0, 1.5]
+      vars: 'yes'

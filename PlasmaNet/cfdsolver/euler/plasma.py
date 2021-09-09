@@ -40,6 +40,7 @@ class PlasmaEuler(Euler):
         for key, value in config['mesh'].items():
             config['poisson'][key] = value
 
+        # Initialize the poisson object depending on what is specified
         if self.poisson_type == 'lin_system':
             config['poisson']['geom'] = self.geom
             config['poisson']['bcs'] = 'dirichlet'
@@ -406,21 +407,10 @@ class PlasmaEuler(Euler):
             self.globals['error_spectral_max'] = self.norm2(
                 fft_nep_max, fft_ref_max)
 
-    def set_instability(self, entry):
-        """ Fill the value of instability (max or de) into the globals dictionnary """
-        if self.globals[entry] != - 1:
-            self.globals[f'{entry}_value'] = self.time[self.globals[entry]]
-            self.globals[entry] = 1
-        else:
-            self.globals[f'{entry}_value'] = np.nan
-            self.globals[entry] = 0
-
     def post_temporal(self):
+        """ Saving of different files at the end of simulation """
         self.plot_temporal()
         if hasattr(self, 'globals'):
-            self.set_instability('instability_de')
-            self.set_instability('instability_max')
-
             save_obj(self.globals, self.case_dir + 'globals')
         if self.dl_save:
             np.save(self.dl_dir + 'potential.npy', self.potential_list)
