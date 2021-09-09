@@ -1,9 +1,0 @@
-#!/usr/bin/bash
-#SBATCH --job-name=PO_inter
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=9
-#SBATCH --time=01:00:00
-#SBATCH --partition=gpu
-#SBATCH --nodelist=krakengpu1
-
-plasma_euler -c poscill_101.yml

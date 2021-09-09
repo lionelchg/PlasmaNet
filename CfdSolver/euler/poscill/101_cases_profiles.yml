@@ -13,13 +13,13 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/U5_K3/101x101/two_gaussian_2p/'
-description: 'Two periods run of two gaussians with UNet5 - ks3 and different RFs'
+casename: 'runs/kraken/101x101/profiles_2p/'
+description: 'Two periods runs of different profiles in 101x101'
 mode: 'seq'
-network/resume: ['/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_100/models/random_8/checkpoint-epoch00300.pth',
-                '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_150/models/random_8/checkpoint-epoch00300.pth',
-                '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8/checkpoint-epoch00300.pth']
-network/arch/db_file: ['unets_ks3_rf100.yml', 'unets_ks3_rf150.yml', 'unets_ks3_rf200.yml']
+init/func: ['gaussian', 'gaussian', 'two_gaussians']
+init/args: [[0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3],
+            [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3],
+            [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]]
 
 base:
   params:
@@ -31,18 +31,15 @@ base:
   init:
     n_back: 1.0e+16
     n_pert: 1.0e+11
-    func: 'two_gaussians'
-    args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 
-                0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]
 
   poisson:
-    type: 'network'
+    type: 'lin_system'
     mat: 'cart_dirichlet'
     nmax_fourier: 10
 
   mesh:
-    xmin: 0.0
-    ymin: 0.0
+    xmin: 0
+    ymin: 0
     xmax: 1.0e-2
     ymax: 1.0e-2
     nnx: 101
@@ -53,13 +50,14 @@ base:
   output:
     save: 'plasma_period'
     verbose: True
-    period: 0.01
+    period: 0.1
     files: 'fig'
     dl_save: 'no'
     globals:
       fig: [1.0, 1.5]
       vars: 'yes'
 
+  # This block is useful only if poisson/type = 'network'
   network:
     n_gpu: 1                                    # Number of GPUs to use
 
@@ -73,7 +71,12 @@ base:
       coord: 'cart'
       verbosity: 2
 
+    resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8/model_best.pth'
+    # resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8'
+    
     arch:
+      db_file: 'unets_ks3_rf200.yml'
+      # db_file: 'unets_ks3_rf200.yml'
       name: 'UNet5'
       args:
           input_res: 101
@@ -111,4 +114,3 @@ base:
       - 'inf_norm'
       - 'Eresidual'
       - 'Einf_norm'
-
