@@ -1,0 +1,114 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                            cfdsolver -- Configuration file                                           #
+#                                                                                                                      #
+#                                           Lionel Cheng, CERFACS, 05.11.2020                                          #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+casename: 'runs/kraken/debug/'
+
+params:
+  n_periods: 1.0
+  geom: 'xy'
+  dt: 1.0e-10
+  nt_oscill: 500
+
+init:
+  n_back: 1.0e+16
+  n_pert: 1.0e+11
+  func: 'two_gaussians'
+  args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 
+              0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]
+
+
+poisson:
+  type: 'hybrid'
+  hybrid_it: 1
+  mat: 'cart_dirichlet'
+  nmax_fourier: 10
+
+mesh:
+  xmin: 0
+  ymin: 0
+  xmax: 1.0e-2
+  ymax: 1.0e-2
+  nnx: 101
+  nny: 101
+
+BC: 'full_out'
+
+output:
+  save: 'plasma_period'
+  verbose: True
+  period: 0.1
+  files: 'fig'
+  dl_save: 'no'
+  globals:
+    fig: [0.2, 0.5]
+    vars: 'yes'
+
+# This block is useful only if poisson/type = 'network'
+network:
+  n_gpu: 1                                    # Number of GPUs to use
+
+  globals:                                    # Domain sizes and others, used to compute global attributes
+    nnx: 101
+    nny: 101
+    xmin: 0.0
+    xmax: 1.0e-2
+    ymin: 0.0
+    ymax: 1.0e-2
+    coord: 'cart'
+    verbosity: 2
+
+  resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8/model_best.pth'
+  # resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8'
+  
+  arch:
+    db_file: 'unets_ks3_rf200.yml'
+    # db_file: 'unets_ks3_rf200.yml'
+    name: 'UNet5'
+    args:
+        input_res: 101
+
+  data_loader:
+    type: 'PoissonDataLoader'
+    data_channels: 1
+    pipe_config: True
+    args:
+      batch_size: 200
+      shuffle: True
+      validation_split: 0.0               # if float, fraction of the full dataset, if int, length of validation portion
+      num_workers: 4
+      normalize: 'analytical'                   # max, physical or no for normalization types
+      alpha: 0.1
+      scaling_factor: 1.0e+6
+
+  initializer: 'off'
+
+  loss:
+    type: 'ComposedLoss'
+    pipe_config: True                       # Object initialization require config as first argument
+    args:
+      loss_list:                          # List of the losses to compose if ComposedLoss is used
+        #- InsideLoss
+        - DirichletBoundaryLoss
+        - LaplacianLoss
+      inside_weight: 0.                   # Weighting of the loss inside the domain, excluding boundaries (float)
+      bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
+      elec_weight: 0.                     # Weighting of the loss on the electric field (float)
+      lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
+
+  metrics:
+    - 'residual'
+    - 'inf_norm'
+    - 'Eresidual'
+    - 'Einf_norm'

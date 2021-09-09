@@ -13,11 +13,10 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/101x101/nt_oscill/'
-description: 'Four periods runs of two gaussians in 101x101 for different time resolutions using linsystem and network'
-mode: 'tree'
-params/nt_oscill: [100, 200, 500, 1000, 2000, 5000]
-poisson/type: ['lin_system', 'network']
+casename: 'runs/kraken/101x101/hybrid/'
+description: 'Four periods runs of two gaussians in 101x101 using hybridation for different hybrid_it'
+mode: 'seq'
+poisson/hybrid_it: [1, 2, 5, 10]
 
 base:
   params:
@@ -33,7 +32,7 @@ base:
     args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]
 
   poisson:
-    type: 'lin_system'
+    type: 'hybrid'
     mat: 'cart_dirichlet'
     nmax_fourier: 10
 

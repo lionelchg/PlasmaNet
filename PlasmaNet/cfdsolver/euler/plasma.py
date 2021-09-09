@@ -202,8 +202,9 @@ class PlasmaEuler(Euler):
         elif self.poisson_type == 'network':
             self.poisson.solve(rhs_field)
         elif self.poisson_type == 'hybrid':
-            if it % self.hybrid_it:
+            if it % self.hybrid_it == 0:
                 self.poisson_ls.solve(rhs_field, self.pot_bcs)
+                self.poisson.potential = self.poisson_ls.potential
             else:
                 self.poisson.solve(rhs_field)
 
