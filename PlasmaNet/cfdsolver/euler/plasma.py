@@ -41,36 +41,42 @@ class PlasmaEuler(Euler):
             config['poisson'][key] = value
 
         # Initialize the poisson object depending on what is specified
-        if self.poisson_type == 'lin_system':
+        if self.poisson_type == 'lin_system' or self.poisson_type == 'hybrid':
             config['poisson']['geom'] = self.geom
             config['poisson']['bcs'] = 'dirichlet'
-            self.poisson = DatasetPoisson(config['poisson'])
+
             # Boundary conditions
             zeros_x = np.zeros_like(self.x)
             zeros_y = np.zeros_like(self.y)
             self.pot_bcs = {'left': zeros_y, 'right': zeros_y,
                             'bottom': zeros_x, 'top': zeros_x}
+            
+            if self.poisson_type == 'hybrid':
+                self.hybrid_it = config['poisson']['hybrid_it']
+                self.poisson_ls = DatasetPoisson(config['poisson'])
+            else:
+                self.poisson = DatasetPoisson(config['poisson'])
+        
+        # Analytical solution for 2D cartesian rectangular geometry
         elif self.poisson_type == 'analytical':
             config['poisson']['nmax_rhs'] = config['poisson']['nmax_fourier']
             config['poisson']['mmax_rhs'] = config['poisson']['nmax_fourier']
             config['poisson']['nmax_d'] = 0
             self.poisson = PoissonAnalytical(config['poisson'])
-        elif self.poisson_type == 'network':
+        
+        # The if loop has been changed from elif to if for 'hybrid' case
+        if self.poisson_type == 'network' or self.poisson_type == 'hybrid':
             config['poisson']['geom'] = self.geom
             config['network']['eval'] = config['poisson']
             config['network']['casename'] = config['casename']
             self.poisson = PoissonNetwork(config['network'])
 
-        if 'hybrid' in config['poisson']:
-            zeros_x = np.zeros_like(self.x)
-            zeros_y = np.zeros_like(self.y)
-            self.pot_bcs = {'left': zeros_y, 'right': zeros_y,
-                            'bottom': zeros_x, 'top': zeros_x}
-            config['poisson']['bcs'] = 'dirichlet'
-
         if 'interpolate' in config['poisson']:
             self.interpol = config['poisson']['interpolate']
             self.intp_res = config['network']['arch']['args']['input_res']
+            self.x_intrp = np.linspace(self.xmin, self.xmax, self.intp_res)
+            self.y_intrp = np.linspace(self.ymin, self.ymax, self.intp_res)
+            self.poisson.res_scale = self.poisson.nnx_nn**2 / self.intp_res**2
         else:
             self.interpol = False
 
@@ -177,41 +183,35 @@ class PlasmaEuler(Euler):
         logging.info('{:>10} {:>16} {:>17}'.format(
             'Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
-    def solve_poisson(self):
+    def solve_poisson(self, it: int):
         """ Solve the Poisson equation in axisymmetric configuration. """
         poisson_timer = perf_counter()
+
+        # Creation of rhs variable
+        rhs_field = - (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0
+        
+        # Interpolation of rhs
+        if self.interpol:
+            f = interpolate.interp2d(self.x, self.y, rhs_field, kind='cubic')
+            rhs_field = f(self.x_intrp, self.y_intrp)
+
         if self.poisson_type == 'lin_system':
-            self.poisson.solve(- (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0,
-                               self.pot_bcs)
+            self.poisson.solve(rhs_field, self.pot_bcs)
         elif self.poisson_type == 'analytical':
-            self.poisson.compute_sol(- (self.U[0] /
-                                     self.m_e - self.n_back) * co.e / co.epsilon_0)
+            self.poisson.compute_sol(rhs_field)
         elif self.poisson_type == 'network':
+            self.poisson.solve(rhs_field)
+        elif self.poisson_type == 'hybrid':
+            if it % self.hybrid_it:
+                self.poisson_ls.solve(rhs_field, self.pot_bcs)
+            else:
+                self.poisson.solve(rhs_field)
 
-            rhs_field = self.U[0]
-            if self.interpol:
-                x = np.linspace(0, self.xmax, self.nnx)
-                y = np.linspace(0, self.ymax, self.nny)
-                x_red = np.linspace(0, self.xmax, self.intp_res)
-                y_red = np.linspace(0, self.ymax, self.intp_res)
-                f = interpolate.interp2d(x, y, self.U[0], kind='cubic')
-
-                rhs_field = f(x_red, y_red)
-                self.poisson.res_scale = self.poisson.nnx_nn**2 / \
-                    (self.intp_res)**2
-
-            self.poisson.solve(- (rhs_field / self.m_e -
-                               self.n_back) * co.e / co.epsilon_0)
-
-            if self.interpol:
-                x = np.linspace(0, self.xmax, self.nnx)
-                y = np.linspace(0, self.ymax, self.nny)
-                x_red = np.linspace(0, self.xmax, self.intp_res)
-                y_red = np.linspace(0, self.ymax, self.intp_res)
-                f = interpolate.interp2d(
-                    x_red, y_red, self.poisson.potential, kind='cubic')
-
-                self.poisson.potential = f(x, y)
+        # Interpolation of potential
+        if self.interpol:
+            f = interpolate.interp2d(
+                self.x_intrp, self.y_intrp, self.poisson.potential, kind='cubic')
+            self.poisson.potential = f(self.x, self.y)
 
         self.E_field = self.poisson.E_field
 
@@ -435,17 +435,7 @@ class PlasmaEuler(Euler):
             sim.res[:], sim.res_c[:] = 0, 0
 
             # Solve poisson equation
-            if 'hybrid' in config['poisson']:
-                if config['poisson']['hybrid'] and it % config['poisson']['evr_it'] == 0:
-                    sim.poisson_type = 'lin_system'
-                    sim.poisson = DatasetPoisson(config['poisson'])
-
-            sim.solve_poisson()
-
-            if 'hybrid' in config['poisson']:
-                if config['poisson']['hybrid'] and it % config['poisson']['evr_it'] == 0:
-                    sim.poisson_type = config['poisson']['type']
-                    sim.poisson = PoissonNetwork(config['network'])
+            sim.solve_poisson(it)
 
             # Compute euler fluxes (without pressure)
             # sim.compute_flux()
