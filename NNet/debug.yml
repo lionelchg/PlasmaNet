@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'UNet5_rf200/random_8'                      # Experience name
+name: 'UNet5_rf200/lapl_weight_4'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -49,7 +49,7 @@ data_loader:
         num_workers: 4
         normalize: 'analytical'                   # max, physical or no for normalization types
         alpha: 0.1
-        scaling_factor: 1.0e+1
+        scaling_factor: 1.0e+6
 initializer: 'off'
 
 optimizer:
@@ -64,15 +64,15 @@ loss:
     pipe_config: True                       # Object initialization require config as first argument
     args:
         loss_list:                          # List of the losses to compose if ComposedLoss is used
-            - InsideLoss
+            # - InsideLoss
             - DirichletBoundaryLoss
-            # - LaplacianLoss
+            - LaplacianLoss
             # - EnergyLoss
             # - LongTermLaplacianLoss
-        inside_weight: 1.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
+        inside_weight: 0.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.0                    # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
-        lapl_weight: 2.0e+6                    # Weighting of the loss on the Laplacian (float)
+        lapl_weight: 2.0e+7                    # Weighting of the loss on the Laplacian (float)
         energy_weight: 0.0                  # Weighting of the loss on the energy functional (float)
         lt_weight: 0.0                      # Weighting of the lt loss, whoch only has a Laplacian term
         ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation
@@ -95,10 +95,10 @@ lr_scheduler:
         verbose: False
 
 trainer:
-    epochs: 10
+    epochs: 30
     save_dir: 'train_cyl/debug/'
     save_period: 10
-    plot_period: 1                         # Period to send plots to TensorBoard
+    plot_period: 2                         # Period to send plots to TensorBoard
     verbosity: 2
     monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
     early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs

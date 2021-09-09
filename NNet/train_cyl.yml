@@ -21,10 +21,10 @@ name: 'UNet5_rf200/random_8'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
-    nnx: 101
+    nnx: 401
     nny: 101
     xmin: 0.0
-    xmax: 1.0e-3
+    xmax: 4.0e-3
     ymin: 0.0
     ymax: 1.0e-3
     coord: 'cyl'
@@ -34,15 +34,14 @@ arch:
     db_file: 'unets_ks3_rf200.yml'
     name: 'UNet5'
     args:
-        # input_res: [101, 401]
-        input_res: 101
+        input_res: [101, 401]
 
 data_loader:
     type: 'PoissonDataLoader'
     data_channels: 1
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/train_cyl/101x101/random_8'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/train_cyl/401x101/random_8'
         batch_size: 64
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
@@ -95,10 +94,10 @@ lr_scheduler:
         verbose: False
 
 trainer:
-    epochs: 10
-    save_dir: 'train_cyl/debug/'
-    save_period: 10
-    plot_period: 1                         # Period to send plots to TensorBoard
+    epochs: 100
+    save_dir: 'train_cyl/'
+    save_period: 20
+    plot_period: 20                         # Period to send plots to TensorBoard
     verbosity: 2
     monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
     early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs

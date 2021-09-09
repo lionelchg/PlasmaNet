@@ -22,9 +22,13 @@ class InsideLoss(BaseLoss):
     def __init__(self, config, inside_weight, **_):
         super().__init__()
         self.weight = inside_weight
+        self.cyl = config.coord == 'cyl'
 
     def _forward(self, output, target, **kwargs):
-        return F.mse_loss(output[:, 0, 1:-1, 1:-1], target[:, 0, 1:-1, 1:-1]) * self.weight
+        if self.cyl:
+            return F.mse_loss(output[:, 0, 0:-1, 1:-1], target[:, 0, 0:-1, 1:-1]) * self.weight
+        else:
+            return F.mse_loss(output[:, 0, 1:-1, 1:-1], target[:, 0, 1:-1, 1:-1]) * self.weight
 
 class MSInsideLoss_n(BaseLoss):
     """ Computes the weighted MSELoss of the interior of the domain (excluding boundaries). For the n scale"""
@@ -63,10 +67,14 @@ class LaplacianLoss(BaseLoss):
         if self.r_nodes is not None:  # in this case, a NumPy array
             self.r_nodes = torch.from_numpy(self.r_nodes).cuda()
         self._require_input_data = True  # Need rhs for computation
+        self.cyl = config.coord == 'cyl'
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy, r=self.r_nodes)
-        return self.Lx**4 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
+        if self.cyl:
+            return self.Lx**4 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1], - data[:, 0, 0:-1, 1:-1]) * self.weight
+        else:
+            return self.Lx**4 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
 
 
 class EnergyLoss(BaseLoss):
@@ -103,16 +111,18 @@ class ElectricLoss(BaseLoss):
 
 
 class DirichletBoundaryLoss(BaseLoss):
-    """ Loss for Dirichlet boundaries. """
+    """ Loss for Dirichlet boundaries. self.cyl boolean to determine if the y = 0 boundary is dirichlet or not """
     def __init__(self, config, bound_weight, **_):
         super().__init__()
         self.weight = bound_weight
+        self.cyl = config.coord == 'cyl'
 
     def _forward(self, output, target, **_):
-        bnd_loss = F.mse_loss(output[:, 0, 0, :], torch.zeros_like(output[:, 0, 0, :]))
-        bnd_loss += F.mse_loss(output[:, 0, -1, :], torch.zeros_like(output[:, 0, -1, :]))
+        bnd_loss = F.mse_loss(output[:, 0, -1, :], torch.zeros_like(output[:, 0, -1, :]))
         bnd_loss += F.mse_loss(output[:, 0, :, 0], torch.zeros_like(output[:, 0, :, 0]))
         bnd_loss += F.mse_loss(output[:, 0, :, -1], torch.zeros_like(output[:, 0, :, -1]))
+        # Axis points to add only if we're in cartesian coordinates
+        if self.cyl: bnd_loss += F.mse_loss(output[:, 0, 0, :], torch.zeros_like(output[:, 0, 0, :]))
         return bnd_loss * self.weight
 
 
