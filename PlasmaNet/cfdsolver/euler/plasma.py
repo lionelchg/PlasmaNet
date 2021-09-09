@@ -203,9 +203,6 @@ class PlasmaEuler(Euler):
                                self.n_back) * co.e / co.epsilon_0)
 
             if self.interpol:
-                rhs_field = f(x, y)
-                self.U[0] = rhs_field
-
                 x = np.linspace(0, self.xmax, self.nnx)
                 y = np.linspace(0, self.ymax, self.nny)
                 x_red = np.linspace(0, self.xmax, self.intp_res)

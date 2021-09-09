@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/interp/interp_101/U5_K3_RF200/1001x1001/two_gaussian_2p/'
+casename: 'runs/kraken/interp/interp_101/U5_K3_RF200/201x201/five_gaussian_2p/'
 # casename: 'runs/kraken/U5_K3_RF200/101x101/two_gaussian_2p/'
 
 params:
@@ -26,9 +26,14 @@ init:
   n_back: 1.0e+16
   n_pert: 1.0e+11
   # init_func: ['gaussian', [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]]
-  func: 'two_gaussians'
-  args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 
-              0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]
+  func: 'gaussians' #'two_gaussians'
+  args: [1.0e+11, 0.7e-2, 0.9e-2, 0.3e-3, 0.3e-3,
+         1.0e+11, 0.3e-2, 0.8e-2, 1.2e-3, 1.2e-3,
+         1.0e+11, 0.2e-2, 0.3e-2, 0.4e-3, 0.4e-3,
+         1.0e+11, 0.5e-2, 0.7e-2, 1.6e-3, 1.6e-3,
+         1.0e+11, 0.8e-2, 0.2e-2, 0.8e-3, 0.8e-3]
+  #args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3, 
+  #            0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]
   # init_func: 'sin2D'
   # init_args: [1.0e-2, 1.0e-2, 2.0, 2.0]
   # init_func: ['random', [16, 3.0e-3]]
@@ -46,8 +51,8 @@ mesh:
   ymin: 0.0
   xmax: 1.0e-2
   ymax: 1.0e-2
-  nnx: 1001
-  nny: 1001
+  nnx: 201
+  nny: 201
 
 BC: 'full_out'
 
@@ -65,8 +70,8 @@ network:
   n_gpu: 1                                    # Number of GPUs to use
 
   globals:                                    # Domain sizes and others, used to compute global attributes
-    nnx: 1001
-    nny: 1001
+    nnx: 101
+    nny: 101
     xmin: 0.0
     xmax: 1.0e-2
     ymin: 0.0
