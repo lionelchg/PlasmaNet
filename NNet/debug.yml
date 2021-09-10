@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'UNet5_rf200/lapl_weight_4'                      # Experience name
+name: 'UNet5_rf200/nonew_pad_lapl_axial_Weight'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -36,6 +36,7 @@ arch:
     args:
         # input_res: [101, 401]
         input_res: 101
+        #padding_mode: 'custom'
 
 data_loader:
     type: 'PoissonDataLoader'
@@ -67,12 +68,14 @@ loss:
             # - InsideLoss
             - DirichletBoundaryLoss
             - LaplacianLoss
+            - InsideAxialLoss
             # - EnergyLoss
             # - LongTermLaplacianLoss
-        inside_weight: 0.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
+        inside_weight: 1.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
+        axial_weight: 1.0
         bound_weight: 1.0                    # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
-        lapl_weight: 2.0e+7                    # Weighting of the loss on the Laplacian (float)
+        lapl_weight: 2.0e+8                    # Weighting of the loss on the Laplacian (float)
         energy_weight: 0.0                  # Weighting of the loss on the energy functional (float)
         lt_weight: 0.0                      # Weighting of the lt loss, whoch only has a Laplacian term
         ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation

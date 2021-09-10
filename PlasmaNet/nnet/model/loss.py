@@ -30,6 +30,16 @@ class InsideLoss(BaseLoss):
         else:
             return F.mse_loss(output[:, 0, 1:-1, 1:-1], target[:, 0, 1:-1, 1:-1]) * self.weight
 
+class InsideAxialLoss(BaseLoss):
+    """ Computes the weighted MSELoss of the BC in the axis (for the cylindrical case). """
+    def __init__(self, config, axial_weight, **_):
+        super().__init__()
+        self.weight = axial_weight
+
+    def _forward(self, output, target, **kwargs):
+        return F.mse_loss(output[:, 0, 0, 1:-1], target[:, 0, 0, 1:-1]) * self.weight
+
+
 class MSInsideLoss_n(BaseLoss):
     """ Computes the weighted MSELoss of the interior of the domain (excluding boundaries). For the n scale"""
     def __init__(self, config, inside_weight_n, **_):
