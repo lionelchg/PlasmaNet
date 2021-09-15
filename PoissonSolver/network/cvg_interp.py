@@ -1,8 +1,8 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                            2D Poisson network convergence                                            #
+#                                 2D Poisson network convergence when interpolating                                    #
 #                                                                                                                      #
-#                                          Lionel Cheng, CERFACS, 10.03.2020                                           #
+#                                          Lionel Cheng, CERFACS, 14.09.2021                                           #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -54,7 +54,7 @@ if __name__ == '__main__':
         cfg = yaml.safe_load(yaml_stream)
     cfg['network']['eval'] = cfg['eval']
 
-    fig_dir = Path(cfg['network']['casename']) / 'cvg'
+    fig_dir = Path(cfg['network']['casename']) / 'cvg_interp'
     fig_dir.mkdir(parents=True, exist_ok=True)
 
     # creating the rhs amplitude and the studied modes
@@ -74,6 +74,15 @@ if __name__ == '__main__':
             errors[key][f'({mode_n:d}, {mode_m:d})'] = {'potential': np.zeros(len(nnxs)),
                                                         'E_field': np.zeros(len(nnxs))}
 
+    # Global values
+    xmin, xmax, nnx_nn = cfg['network']['globals']['xmin'], cfg['network']['globals']['xmax'], \
+                            cfg['network']['globals']['nnx']
+    ymin, ymax, nny_nn = cfg['network']['globals']['ymin'], cfg['network']['globals']['ymax'], \
+                            cfg['network']['globals']['nny']
+    x_red = np.linspace(xmin, xmax, nnx_nn)
+    y_red = np.linspace(ymin, ymax, nny_nn)
+    interp_type = cfg['eval']['interpol_type']
+
     # Loop on different resolutions
     for i_nnx, nnx in enumerate(nnxs):
         print(f'Case resolution nnx = {nnx:d}')
@@ -83,14 +92,9 @@ if __name__ == '__main__':
         cfg['network']['eval']['nnx'] = nnx
         cfg['network']['eval']['nny'] = nny
 
-        if not 'interpol' in cfg['eval']:
-            cfg['network']['arch']['args']['input_res'] = nnx
-        else:
-            if not cfg['eval']['interpol']:
-                cfg['network']['arch']['args']['input_res'] = nnx
-
         poisson = PoissonNetwork(cfg['network'])
         poisson.case_config(cfg['network']['eval'])
+        poisson.res_scale = 1.0
 
         # interior rhs for exact solution it is the mode specified by nmax and mmax above
         for (mode_n, mode_m) in modes:
@@ -101,42 +105,19 @@ if __name__ == '__main__':
                  (mode_m * np.pi / poisson.Ly)**2)
             E_field_th = - grad(potential_th, poisson.dx, poisson.dy, nnx, nny)
 
-            if 'interpol' in cfg['eval']:
-                if cfg['eval']['interpol']:
-                    x = np.linspace(0, cfg['network']['globals']['xmax'], nnx)
-                    y = np.linspace(0, cfg['network']['globals']['xmax'], nny)
-                    xx, yy = np.meshgrid(x, y)
-                    f = interpolate.interp2d(
-                        x, y, physical_rhs, kind=cfg['eval']['interpol_type'])
+            # Create the interpolation procedure to go to the network resolution
+            # and evaluate the physival rhs on reduced resolution
+            x = np.linspace(0, cfg['network']['globals']['xmax'], nnx)
+            y = np.linspace(0, cfg['network']['globals']['xmax'], nny)
+            f = interpolate.interp2d(x, y, physical_rhs, kind=interp_type)
+            physical_rhs = f(x_red, y_red)
 
-                    x_red = np.linspace(
-                        0, cfg['network']['globals']['xmax'], cfg['network']['globals']['nnx'])
-                    y_red = np.linspace(
-                        0, cfg['network']['globals']['xmax'], cfg['network']['globals']['nny'])
-
-                    physical_rhs = f(x_red, y_red)
-
-                    poisson.res_scale = poisson.nnx_nn**2 / \
-                        (cfg['network']['globals']['nnx'])**2
-
+            # Solve on reduced resolution
             poisson.solve(physical_rhs)
 
-            if 'interpol' in cfg['eval']:
-                if cfg['eval']['interpol']:
-                    x = np.linspace(
-                        0, cfg['network']['globals']['xmax'], cfg['network']['globals']['nnx'])
-                    y = np.linspace(
-                        0, cfg['network']['globals']['xmax'], cfg['network']['globals']['nny'])
-                    xx, yy = np.meshgrid(x, y)
-                    f = interpolate.interp2d(
-                        x, y, poisson.potential, kind=cfg['eval']['interpol_type'])
-
-                    x_red = np.linspace(
-                        0, cfg['network']['globals']['xmax'], nnx)
-                    y_red = np.linspace(
-                        0, cfg['network']['globals']['xmax'], nny)
-
-                    poisson.potential = f(x_red, y_red)
+            # Create interpolating function to go back to the initial resolution
+            f = interpolate.interp2d(x_red, y_red, poisson.potential, kind=interp_type)
+            poisson.potential = f(x, y)
 
             if i_nnx == len(nnxs) - 1:
                 poisson.plot_1D2D(fig_dir / f'sol_{nnx}_{mode_n}_{mode_m}')
