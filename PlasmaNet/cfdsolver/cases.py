@@ -67,7 +67,7 @@ def make_cases(cfg):
 
     # Write in cases.log the difference cases and their description
     create_dir(base_cn)
-    fp = open(base_cn + 'cases.log', 'w')
+    fp = open(base_cn + '/cases.log', 'w')
     fp.write(description + '\n\n')
     for ncase, case in cases.items():
         fp.write('------------------\n')
@@ -111,7 +111,7 @@ def params(cases, base_cfg, base_cn):
             for i in range(nstr):
                 keys_tmp.append(re_keys.group(i + 1))
             set_nested(case_cfg, value, *keys_tmp)
-        case_cfg['casename'] = f'{base_cn}case_{ncase:d}/'
+        case_cfg['casename'] = f'{base_cn}/case_{ncase:d}/'
         yield case_cfg
 
 def main():

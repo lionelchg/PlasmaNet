@@ -13,11 +13,11 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/101x101/nt_oscill/'
+casename: 'runs/kraken/101x101/nt_oscill/UNet3-rf100-epoch300'
 description: 'Four periods runs of two gaussians in 101x101 for different time resolutions using linsystem and network'
 mode: 'tree'
 params/nt_oscill: [100, 200, 500, 1000, 2000, 5000]
-poisson/type: ['lin_system', 'network']
+poisson/type: ['network']
 
 base:
   params:
@@ -71,13 +71,15 @@ base:
       coord: 'cart'
       verbosity: 2
 
-    resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8/model_best.pth'
+    # resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8/model_best.pth'
     # resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8'
+    # resume: '/scratch/cfd/PlasmaDL/networks/train/101x101/models/UNet5/rf200/checkpoint-epoch00300.pth'
+    resume: '/scratch/cfd/PlasmaDL/networks/train/101x101/models/UNet3/rf100/checkpoint-epoch00300.pth'
     
     arch:
-      db_file: 'unets_ks3_rf200.yml'
+      db_file: 'unets_ks3_rf100.yml'
       # db_file: 'unets_ks3_rf200.yml'
-      name: 'UNet5'
+      name: 'UNet3'
       args:
           input_res: 101
 

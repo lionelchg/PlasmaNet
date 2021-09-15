@@ -72,7 +72,8 @@ class PlasmaEuler(Euler):
             self.poisson = PoissonNetwork(config['network'])
 
         if 'interpolate' in config['poisson']:
-            self.interpol = config['poisson']['interpolate']
+            self.interpol = True
+            self.interp_kind = config['poisson']['interpolate']
             self.intp_res = config['network']['arch']['args']['input_res']
             self.x_intrp = np.linspace(self.xmin, self.xmax, self.intp_res)
             self.y_intrp = np.linspace(self.ymin, self.ymax, self.intp_res)
@@ -192,7 +193,7 @@ class PlasmaEuler(Euler):
         
         # Interpolation of rhs
         if self.interpol:
-            f = interpolate.interp2d(self.x, self.y, rhs_field, kind='cubic')
+            f = interpolate.interp2d(self.x, self.y, rhs_field, kind=self.interp_kind)
             rhs_field = f(self.x_intrp, self.y_intrp)
 
         if self.poisson_type == 'lin_system':
@@ -211,13 +212,13 @@ class PlasmaEuler(Euler):
         # Interpolation of potential
         if self.interpol:
             f = interpolate.interp2d(
-                self.x_intrp, self.y_intrp, self.poisson.potential, kind='cubic')
+                self.x_intrp, self.y_intrp, self.poisson.potential, kind=self.interp_kind)
             self.poisson.potential = f(self.x, self.y)
 
         self.E_field = self.poisson.E_field
 
-        self.E_norm = np.sqrt(self.E_field[0]**2 + self.E_field[1]**2)
         if self.it == 1:
+            self.E_norm = np.sqrt(self.E_field[0]**2 + self.E_field[1]**2)
             self.E_max = np.max(self.E_norm)
 
         poisson_timer = perf_counter() - poisson_timer
@@ -244,6 +245,7 @@ class PlasmaEuler(Euler):
         """ 2D maps and 1D cuts at different y of the primitive variables. """
         n_e = self.U[0] / self.m_e - self.n_back
         E = self.E_field
+        self.E_norm = np.sqrt(self.E_field[0]**2 + self.E_field[1]**2)
         E_norm = self.E_norm
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(8, 8))
         plot_ax_scalar(fig, axes[0][0], self.X, self.Y, n_e,
@@ -467,7 +469,7 @@ class PlasmaEuler(Euler):
 @njit(cache=True)
 def compute_flux_cold(U, gamma, r, F):
     """ Compute the 2D flux of the Euler equations 
-    as well as pressure and temperature. """
+    assuming a zero pressure (and temperature). """
     # rhou - rhov
     F[0, 0] = U[1]
     F[0, 1] = U[2]

@@ -54,7 +54,7 @@ if __name__ == '__main__':
         cfg = yaml.safe_load(yaml_stream)
     cfg['network']['eval'] = cfg['eval']
 
-    fig_dir = Path(cfg['network']['casename']) / 'cvg_interp'
+    fig_dir = Path(cfg['network']['casename']) / 'cvg_interp_cubic'
     fig_dir.mkdir(parents=True, exist_ok=True)
 
     # creating the rhs amplitude and the studied modes

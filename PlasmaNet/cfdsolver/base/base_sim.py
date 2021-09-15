@@ -10,10 +10,10 @@ import numpy as np
 import re
 import yaml
 import logging
+from pathlib import Path
 
 from .metric import Grid
 from ...common.utils import create_dir
-
 
 class BaseSim(Grid):
     def __init__(self, config):
@@ -24,8 +24,9 @@ class BaseSim(Grid):
         self.period = config['output']['period']
 
         # Saving of solutions data and/or figures
-        self.case_dir = config['casename']
-        create_dir(self.case_dir)
+        self.case_dir = Path(config['casename'])
+        # create_dir(self.case_dir)
+        self.case_dir.mkdir(parents=True, exist_ok=True)
 
         self.file_type = config['output']['files']
         self.save_fig, self.save_data = re.search('fig', self.file_type), re.search('data', self.file_type)
@@ -59,13 +60,13 @@ class BaseSim(Grid):
             self.loglevel = eval(f"logging.{config['output']['loglevel'].upper()}")
         else:
             self.loglevel = logging.INFO
-        logging.basicConfig(filename=f'{self.case_dir}run.log', 
+        logging.basicConfig(filename=self.case_dir / 'run.log', 
             level=self.loglevel, 
             format='%(asctime)s %(message)s',
             datefmt='%m-%d %H:%M')
 
         # Dump the configuration file in the case
-        with open(self.case_dir + 'config.yml', 'w') as file:
+        with open(self.case_dir / 'config.yml', 'w') as file:
             yaml.dump(config, file)
 
     def plot(self):
