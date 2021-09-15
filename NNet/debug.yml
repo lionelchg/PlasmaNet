@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'UNet5_rf200/nonew_pad_lapl_axial_Weight'                      # Experience name
+name: 'UNet5_rf200/only_axial_bc_train_no_scalingfactor'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -50,7 +50,7 @@ data_loader:
         num_workers: 4
         normalize: 'analytical'                   # max, physical or no for normalization types
         alpha: 0.1
-        scaling_factor: 1.0e+6
+        scaling_factor: 1.0 #1.0e+6
 initializer: 'off'
 
 optimizer:
@@ -66,16 +66,16 @@ loss:
     args:
         loss_list:                          # List of the losses to compose if ComposedLoss is used
             # - InsideLoss
-            - DirichletBoundaryLoss
+            # - DirichletBoundaryLoss
             - LaplacianLoss
             - InsideAxialLoss
             # - EnergyLoss
             # - LongTermLaplacianLoss
-        inside_weight: 1.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
-        axial_weight: 1.0
-        bound_weight: 1.0                    # Weighting of the loss on the boundaries (float)
+        inside_weight: 0.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
+        axial_weight: 0.0001
+        bound_weight: 0.0                    # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
-        lapl_weight: 2.0e+8                    # Weighting of the loss on the Laplacian (float)
+        lapl_weight: 2.0e+9                    # Weighting of the loss on the Laplacian (float)
         energy_weight: 0.0                  # Weighting of the loss on the energy functional (float)
         lt_weight: 0.0                      # Weighting of the lt loss, whoch only has a Laplacian term
         ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation
@@ -98,10 +98,10 @@ lr_scheduler:
         verbose: False
 
 trainer:
-    epochs: 30
+    epochs: 100
     save_dir: 'train_cyl/debug/'
     save_period: 10
-    plot_period: 2                         # Period to send plots to TensorBoard
+    plot_period: 10                         # Period to send plots to TensorBoard
     verbosity: 2
     monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
     early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs

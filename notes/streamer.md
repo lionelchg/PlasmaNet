@@ -15,6 +15,14 @@ The domain is of size 4 x 1 mm$^2$.
 
 Creation of training datasets with `rhs_random_cyl.py`. The typical value of `n0` has been raised to $10^{16}$ m$^3$ for typical value of charge difference in the streamer cases. The random values from RHS are amplified around the axis so that there is a shift of values and the learning procedure seems to be harder with this kind of dataset. Think about a kind of dataset that will make the network understand this behavior of the Poisson equation in cylindrical coordinates that is different from cartesian coordinates.
 
+### Modifications
+
+Compared to the squared Dirichlet test case:
+
+- Dirichlet Boundary loss only on: top left right
+- Axial Loss added (similar to Inside Loss but only on the axis)
+- Custom padding added (even if not great for now ...)
+
 ### Hyperparameters tunning
 
 No scaling factor has been applied this time. The RHS is 1e8 approximtely and the potential is around unity.
@@ -25,11 +33,32 @@ No scaling factor has been applied this time. The RHS is 1e8 approximtely and th
 
 #### Laplacian loss weight
 
-With `random_8`:
 
-| $\lambda_L$ | Name of run                | Observations                                                                                                                         |
-| ----------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| 2e+7        | -                          | Value previously used for 2D dirichlet square problem, it seems a bit high as the loss has exploded to 1e+20 on the first run        |
-| 2+1         | -                          | Value too low, at epoch 20 the plots show that the network hasn't learned a thing                                                    |
-| 2e+5        | `train_cyl/lapl_weight_1/` | Seems to be OK, learning seems slower due to the need for the network to understand that nodes around the axis have amplified values |
-| 2e+6        | `train_cyl/lapl_weight_2/` | 100 epochs - print/save every 10 |
+| Laplacian | Dirichlet  |   Axial  |
+| --------- | ---------- |----------|
+| 2e9       |     0      |    1e-4  |
+
+After several tests, the following conclusions have been achieved:
+
+- Higher Laplacian losses tend to work better (compared to 2e8 for example)
+- Activating the 3 losses is not too benefitial, as the DirichletBoundary loss tends to over constrain the network (That's why the Dirichlet loss is equal to 0)
+- Higher Axial losses (~1 are not too benefitial, as the network convergence is slower)
+- Using only the Laplacian loss results in an instable network
+
+These conclusions are based on the runs found on:
+
+`/scratch/cfd/ajuria/Plasma/plasmanet_new/plasmanet/NNet/train_cyl/debug/figures/UNet5_rf200`
+
+Particularly, we can focus on the following:
+
+|          Name                | Laplacian | Dirichlet  |   Axial  |
+|------------------------------| --------- | ---------- |----------|
+| `basic_train`                | 2e9       |   1e-4     |    1e-4  |
+| `no_bc_train`                | 2e9       |     0      |    0     |
+| `only_axial_bc_train`        | 2e9       |     0      |    1e-4  |
+| `only_axial_bc_train_weight` | 2e9       |     0      |    1     |
+| `only_dir_bc_train`          | 2e9       |     1e-4   |    0     |
+
+For now, the **best network seems to be `only_axial_bc_train`.** But there is still some improvement margin.
+
+As the values were rather high, a new test was carried out with a new scaling factor, `only_axial_bc_train_no_scalingfactor`, where the scaling factor is 1.0 (previously fixed to 1e6). First results show that this is not a good idea, as the residual is higher.
