@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'UNet5_rf200/only_axial_bc_train_no_scalingfactor'                      # Experience name
+name: 'UNet5_rf200/custom_no_dirich_alpha'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -36,7 +36,7 @@ arch:
     args:
         # input_res: [101, 401]
         input_res: 101
-        #padding_mode: 'custom'
+        padding_mode: 'custom'
 
 data_loader:
     type: 'PoissonDataLoader'
@@ -50,7 +50,7 @@ data_loader:
         num_workers: 4
         normalize: 'analytical'                   # max, physical or no for normalization types
         alpha: 0.1
-        scaling_factor: 1.0 #1.0e+6
+        scaling_factor: 1.0e+6
 initializer: 'off'
 
 optimizer:
@@ -100,7 +100,7 @@ lr_scheduler:
 
 trainer:
     epochs: 100
-    save_dir: 'train_cyl/debug/'
+    save_dir: 'train_cyl/weight_debug/'
     save_period: 10
     plot_period: 10                         # Period to send plots to TensorBoard
     verbosity: 2
