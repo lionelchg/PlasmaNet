@@ -22,6 +22,7 @@ class InsideLoss(BaseLoss):
     def __init__(self, config, inside_weight, **_):
         super().__init__()
         self.weight = inside_weight
+        self.base_weight = self.weight
         self.cyl = config.coord == 'cyl'
 
     def _forward(self, output, target, **kwargs):
@@ -35,6 +36,7 @@ class InsideAxialLoss(BaseLoss):
     def __init__(self, config, axial_weight, **_):
         super().__init__()
         self.weight = axial_weight
+        self.base_weight = self.weight
 
     def _forward(self, output, target, **kwargs):
         return F.mse_loss(output[:, 0, 0, 1:-1], target[:, 0, 0, 1:-1]) * self.weight
@@ -45,6 +47,7 @@ class MSInsideLoss_n(BaseLoss):
     def __init__(self, config, inside_weight_n, **_):
         super().__init__()
         self.weight_n = inside_weight_n
+        self.base_weight = self.weight_n
     def _forward(self, output, target, **kwargs):
         return F.mse_loss(output[:, 1, 1:-1, 1:-1], target[:, 0, 1:-1, 1:-1]) * self.weight_n
 
@@ -70,6 +73,7 @@ class LaplacianLoss(BaseLoss):
     def __init__(self, config, lapl_weight, **_):
         super().__init__()
         self.weight = lapl_weight
+        self.base_weight = self.weight
         self.dx = config.dx
         self.dy = config.dy
         self.Lx = config.Lx
@@ -92,6 +96,7 @@ class EnergyLoss(BaseLoss):
     def __init__(self, config, energy_weight, **_):
         super().__init__()
         self.weight = energy_weight
+        self.base_weight = self.weight
         self.dx = config.dx
         self.dy = config.dy
         self.n_inputs = config.nnx * config.nny * config.batch_size
@@ -110,6 +115,7 @@ class ElectricLoss(BaseLoss):
     def __init__(self, config, elec_weight, **_):
         super().__init__()
         self.weight = elec_weight
+        self.base_weight = self.weight
         self.dx = config.dx
         self.dy = config.dy
         self._require_input_data = False
@@ -125,6 +131,7 @@ class DirichletBoundaryLoss(BaseLoss):
     def __init__(self, config, bound_weight, **_):
         super().__init__()
         self.weight = bound_weight
+        self.base_weight = self.weight
         self.cyl = config.coord == 'cyl'
 
     def _forward(self, output, target, **_):
@@ -141,6 +148,7 @@ class NeumannBoundaryLoss(BaseLoss):
     def __init__(self, config, bound_weight, **_):
         super().__init__()
         self.weight = bound_weight
+        self.base_weight = self.weight
         self.dx = config.dx
         self.dy = config.dy
 
@@ -199,6 +207,48 @@ class ComposedLoss(BaseLoss):
             out += tmp
             self.results[i + 1].copy_(tmp)
         return out
+
+    def intermediate(self, model, optimizer, output, target, **kwargs):
+        """
+        Calculates the mean and max gradients of all the forwarded losses.
+        """    
+        # Initialize list that will contain the max and mean grads    
+        max_grads = []
+        mean_grads = []
+
+        for loss in self.losses:
+            # Compute each individual loss and retain graph as multiple backwards will be performed.
+            loss_indv = loss(output, target, **kwargs)
+            loss_indv.backward(retain_graph=True)
+            
+            # Initialize list containing the gradients of each weight and the max/mean/n_el values
+            # As the list contains elements with variable sizes, the number of weights of each layer 
+            # is stored in the n_el variable to correctly compute the mean
+            gradients = []
+            max_grad = 0
+            mean_grad = 0 
+            n_el = 0
+            
+            # Loop over the network variables, storing the max grad
+            # and adding the sum of each layer, as well as the number of elements
+            for p in model.parameters():
+                gradients.append(p.grad)
+                if torch.max(torch.abs(p.grad)) > max_grad:
+                    max_grad = torch.max(torch.abs(p.grad))
+                mean_grad +=torch.sum(torch.abs(p.grad))
+                n_el += len(p.grad.view(-1)) 
+
+            # Compute overall mean of the gradients
+            mean_grad /= n_el
+
+            # Store the computed values
+            max_grads.append(max_grad)
+            mean_grads.append(mean_grad) 
+
+            # Clean the gradients to avoid overlap!
+            optimizer.zero_grad()  
+
+        return max_grads, mean_grads
 
     def log(self):
         """ Returns log of each loss independently as a dict() with loss names keys and the associated torch values. """

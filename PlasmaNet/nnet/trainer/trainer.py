@@ -13,6 +13,7 @@ import pandas as pd
 from ..base import BaseTrainer
 from .plot import plot_batch, plot_distrib, plot_scales, plot_batch_Efield
 from ..utils import inf_loop, MetricTracker
+from ..model.loss import LaplacianLoss
 #from .long_term_trainer import init_subprocesses, propagate
 
 
@@ -63,6 +64,13 @@ class Trainer(BaseTrainer):
         self.df_valid_metrics = pd.DataFrame(columns=('loss', *self.criterion.loss_list,
                                            *[m.__name__ for m in self.metric_ftns]))
 
+        # Aditional option for adaptative weights (based on Wang 2020.)
+        if  'adaptative' in self.config["loss"]["args"].keys():
+            self.adaptative_weights = True
+            self.alpha_adaptative = self.config["loss"]["args"]["adaptative"]
+        else:
+            self.adaptative_weights = False
+
     def _train_epoch(self, epoch):
         """
         Training method for the specified epoch.
@@ -105,6 +113,27 @@ class Trainer(BaseTrainer):
                 # Add results as a separate channel
                 data = torch.cat((data, data_lt), dim=1)
                 output = torch.cat((output, output_lt), dim=1)
+
+            # Adaptative weight update following Wang 2020 (https://arxiv.org/pdf/2001.04536.pdf)
+            if self.adaptative_weights:
+                # Get Average and Mean gradients for each loss component
+                if self.criterion.require_input_data():
+                    max_grads, mean_grads = self.criterion.intermediate(self.model, self.optimizer, 
+                        output, target, data=data, target_norm=target_norm, data_norm=data_norm)
+                else:
+                    max_grads, mean_grads = self.criterion.intermediate(self.model, self.optimizer, 
+                        output, target)
+                # Loop to get the index of the Laplacian Loss (as need for the update)
+                for i, loss in enumerate(self.criterion.losses):
+                    if isinstance(loss, LaplacianLoss):
+                        lpl_loss_idx = i
+                # Update of each loss weight.  ~ max_grad(laplacialoss) / mean_grad(loss)
+                for i, loss in enumerate(self.criterion.losses):
+                    if i == lpl_loss_idx:
+                        loss.weight = 1.0
+                    else:
+                        loss.weight = self.alpha_adaptative * loss.base_weight + \
+                            (1- self.alpha_adaptative)* max_grads[lpl_loss_idx] / mean_grads[i]
 
             if self.criterion.require_input_data():
                 loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
