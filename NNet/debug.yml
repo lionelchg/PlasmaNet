@@ -79,6 +79,7 @@ loss:
         energy_weight: 0.0                  # Weighting of the loss on the energy functional (float)
         lt_weight: 0.0                      # Weighting of the lt loss, whoch only has a Laplacian term
         ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation
+        adaptative: 0.1                     # Alpha value for adaptative weights
 
 metrics:
     - 'residual'
