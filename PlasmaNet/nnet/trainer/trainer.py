@@ -132,7 +132,7 @@ class Trainer(BaseTrainer):
                     if i == lpl_loss_idx:
                         loss.weight = 1.0
                     else:
-                        loss.weight = self.alpha_adaptative * loss.base_weight + \
+                        loss.weight = self.alpha_adaptative * loss.weight + \
                             (1- self.alpha_adaptative)* max_grads[lpl_loss_idx] / mean_grads[i]
 
             if self.criterion.require_input_data():
