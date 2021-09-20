@@ -119,10 +119,10 @@ class Trainer(BaseTrainer):
                 # Get Average and Mean gradients for each loss component
                 if self.criterion.require_input_data():
                     max_grads, mean_grads = self.criterion.intermediate(self.model, self.optimizer, 
-                        output, target, data=data, target_norm=target_norm, data_norm=data_norm)
+                        output, target, epoch, data=data, target_norm=target_norm, data_norm=data_norm)
                 else:
                     max_grads, mean_grads = self.criterion.intermediate(self.model, self.optimizer, 
-                        output, target)
+                        output, target, epoch)
                 # Loop to get the index of the Laplacian Loss (as need for the update)
                 for i, loss in enumerate(self.criterion.losses):
                     if isinstance(loss, LaplacianLoss):
