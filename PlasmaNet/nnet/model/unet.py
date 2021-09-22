@@ -92,8 +92,10 @@ class UNet(ScalesNet):
         # For upsample the list of resolution is needed when 
         # the number of points is not a power of 2
         if isinstance(input_res, list):
+            self.input_res = tuple(input_res)
             list_res = [(int(input_res[0] / 2**i), int(input_res[1] / 2**i)) for i in range(self.max_scale)]
         else:
+            self.input_res = tuple([input_res, input_res])
             list_res = [int(input_res / 2**i) for i in range(self.max_scale)]
 
         # Entry layer

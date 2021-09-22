@@ -6,7 +6,6 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-from PlasmaNet.nnet.data.data_loaders import ratio_potrhs
 from PlasmaNet.common.operators_numpy import grad
 from PlasmaNet.poissonsolver.network import PoissonNetwork
 from PlasmaNet.poissonsolver.analytical import dirichlet_mode
@@ -19,14 +18,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 import argparse
-from logging import error
 import os
+import time
+import copy
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
-
-
-# From PlasmaNet
-
 
 def ax_prop(ax, ylabel, ymin, ymax):
     ax.grid(True)
@@ -36,26 +32,20 @@ def ax_prop(ax, ylabel, ymin, ymax):
     ax.set_yscale('log')
     ax.set_ylim(ymin, ymax)
 
+def run(cfg: dict, interp_type: str, interp_kind: str):
+    """ Run interpolation runs with interp_type = numpy or torch 
+    and interp_kind = linear/cubic for numpy or bilinear/bicubic for torch"""
+    # Print run
+    print(f'Run {interp_kind} - {interp_type}')
+    
+    # Start time
+    time_start = time.time()
 
-if __name__ == '__main__':
-    # Plotting options for aesthetics
-    sns.set_context('notebook', font_scale=1.1)
-    lines_params = {'basic': {'linewidth': 2, 'markersize': 6}}
-    line_style = {'marker': 'o'}
-    mpl.rc('lines', **lines_params['basic'])
-    # mpl.rc('savefig', format='pdf')
-
-    args = argparse.ArgumentParser(description='PoissonNetwork runs')
-    args.add_argument('-c', '--config', default=None, type=str,
-                      help='Config file path (default: None)')
-    args = args.parse_args()
-
-    with open(args.config, 'r') as yaml_stream:
-        cfg = yaml.safe_load(yaml_stream)
     cfg['network']['eval'] = cfg['eval']
 
-    fig_dir = Path(cfg['network']['casename']) / 'cvg_interp_cubic'
+    fig_dir = Path(cfg['network']['casename']) / f'cvg_interp_{interp_kind}_{interp_type}'
     fig_dir.mkdir(parents=True, exist_ok=True)
+    cfg['network']['interp_kind'] = interp_kind
 
     # creating the rhs amplitude and the studied modes
     ni0 = 1e+11
@@ -81,7 +71,6 @@ if __name__ == '__main__':
                             cfg['network']['globals']['nny']
     x_red = np.linspace(xmin, xmax, nnx_nn)
     y_red = np.linspace(ymin, ymax, nny_nn)
-    interp_type = cfg['eval']['interpol_type']
 
     # Loop on different resolutions
     for i_nnx, nnx in enumerate(nnxs):
@@ -107,19 +96,21 @@ if __name__ == '__main__':
 
             # Create the interpolation procedure to go to the network resolution
             # and evaluate the physival rhs on reduced resolution
-            x = np.linspace(0, cfg['network']['globals']['xmax'], nnx)
-            y = np.linspace(0, cfg['network']['globals']['xmax'], nny)
-            f = interpolate.interp2d(x, y, physical_rhs, kind=interp_type)
-            physical_rhs = f(x_red, y_red)
+            if interp_type == 'scipy':
+                x = np.linspace(0, cfg['network']['globals']['xmax'], nnx)
+                y = np.linspace(0, cfg['network']['globals']['xmax'], nny)
+                f = interpolate.interp2d(x, y, physical_rhs, kind=interp_kind)
+                physical_rhs = f(x_red, y_red)
 
             # Solve on reduced resolution
             poisson.solve(physical_rhs)
 
             # Create interpolating function to go back to the initial resolution
-            f = interpolate.interp2d(x_red, y_red, poisson.potential, kind=interp_type)
-            poisson.potential = f(x, y)
+            if interp_type == 'scipy':
+                f = interpolate.interp2d(x_red, y_red, poisson.potential, kind=interp_kind)
+                poisson.potential = f(x, y)
 
-            if i_nnx == len(nnxs) - 1:
+            if i_nnx == len(nnxs) - 2:
                 poisson.plot_1D2D(fig_dir / f'sol_{nnx}_{mode_n}_{mode_m}')
 
             for key in errors:
@@ -175,3 +166,26 @@ if __name__ == '__main__':
                     format='pdf', bbox_inches='tight')
         fig.savefig(fig_dir / f'{error_kind}_error.png', bbox_inches='tight')
         plt.close(fig)
+
+    time_stop = time.time()
+    print(f'Elapsed time (s) : {time_stop - time_start:.3e}')
+
+if __name__ == '__main__':
+    # Plotting options for aesthetics
+    sns.set_context('notebook', font_scale=1.1)
+    lines_params = {'basic': {'linewidth': 2, 'markersize': 6}}
+    line_style = {'marker': 'o'}
+    mpl.rc('lines', **lines_params['basic'])
+
+    args = argparse.ArgumentParser(description='PoissonNetwork runs')
+    args.add_argument('-c', '--config', default=None, type=str,
+                      help='Config file path (default: None)')
+    args = args.parse_args()
+
+    with open(args.config, 'r') as yaml_stream:
+        cfg = yaml.safe_load(yaml_stream)
+
+    run(copy.deepcopy(cfg), 'scipy', 'linear')
+    run(copy.deepcopy(cfg), 'scipy', 'cubic')
+    run(copy.deepcopy(cfg), 'torch', 'bilinear')
+    run(copy.deepcopy(cfg), 'torch', 'bicubic')

@@ -92,6 +92,10 @@ class PoissonNetwork(BasePoisson):
         self.model = self.model.to(self.device)
         self.model.eval()
 
+        # For interpolation kind if activated
+        if 'interp_kind' in cfg:
+            self.interp_kind = cfg['interp_kind']
+
     def case_config(self, cfg: dict):
         """ Set the case configuration according to dict
         Reinitialize the base class
@@ -110,6 +114,10 @@ class PoissonNetwork(BasePoisson):
         """
         self.physical_rhs = physical_rhs
 
+        # Interpolate if the shape of the rhs does not match
+        # the input resolution of the model
+        interpolate = self.model.input_res != physical_rhs.shape
+
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
         if self.benchmark:
             #start_event = torch.cuda.Event(enable_timing=True)
@@ -127,14 +135,26 @@ class PoissonNetwork(BasePoisson):
             #comm_timer = start_event.elapsed_time(end_event)
             comm_timer = perf_counter() - comm_timer
 
-        # Apply the model
         if self.benchmark:
             model_timer = perf_counter()
             #start_model = torch.cuda.Event(enable_timing=True)
             #end_model = torch.cuda.Event(enable_timing=True)
             #start_model.record()
             #torch.cuda.synchronize()
+
+        # Interpolate if the shape of the rhs does not match
+        if interpolate:
+            physical_rhs_torch = torch.nn.functional.interpolate(physical_rhs_torch, 
+                size=self.model.input_res, mode=self.interp_kind, align_corners=True) 
+
+        # Apply the model
         potential_torch = self.model(physical_rhs_torch)
+
+        # Interpolate back to the wanted resolution
+        if interpolate:
+            potential_torch = torch.nn.functional.interpolate(potential_torch, 
+                size=physical_rhs.shape, mode=self.interp_kind, align_corners=True)   
+
         if self.benchmark:
             #end_model.record()
             torch.cuda.synchronize()  # Wait for the events to be recorded! 

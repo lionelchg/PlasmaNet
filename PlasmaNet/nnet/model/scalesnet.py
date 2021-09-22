@@ -19,7 +19,7 @@ class ScalesNet(BaseModel):
 
         # Handle non-square kernels
         if isinstance(kernel_sizes, int):
-            self.kernel_sizes = [tuple(kernel_sizes, kernel_sizes)] * len(scales)
+            self.kernel_sizes = [tuple([kernel_sizes, kernel_sizes])] * len(scales)
         elif isinstance(kernel_sizes, list):
             if isinstance(kernel_sizes[0], list):
                 self.kernel_sizes = [tuple(kernel_sizes[0])] * len(scales)
