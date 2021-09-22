@@ -11,18 +11,18 @@ class _Custom_pad_layer(nn.Module):
     For now it manually performs replicate on the axis and zero elsewhere
     Although this should be easily generalized
     """
-    def __init__(self):
+    def __init__(self, kernel_size):
         super(_Custom_pad_layer, self).__init__()
+        self.padx = int((kernel_size[1] - 1) / 2)
+        self.pady = int((kernel_size[0] - 1) / 2)
 
     def forward(self, x):
         # Note that for the 2D Fields, the second argument corresponds to the 
         # dimension on which the padding is performed:
         # (padding_left, padding_right, padding_top, padding_bottom)
-        x = F.pad(x, (0, 0, 1, 0), "replicate")
-        x = F.pad(x, (1, 1, 0, 1), "constant", 0)
+        x = F.pad(x, (0, 0, self.pady, 0), "replicate")
+        x = F.pad(x, (self.padx, self.padx, 0, self.pady), "constant", 0)
         return x
-
-
 
 class _ConvBlock(nn.Module):
     """
@@ -41,13 +41,14 @@ class _ConvBlock(nn.Module):
         # Append all the specified layers
         for i in range(len(fmaps) - 1):
             if padding_mode == 'custom':
-                layers.append(_Custom_pad_layer())
+                layers.append(_Custom_pad_layer(kernel_size))
                 layers.append(nn.Conv2d(fmaps[i], fmaps[i + 1], 
                     kernel_size=kernel_size, padding=0, 
                     padding_mode='zeros'))
             else:
                 layers.append(nn.Conv2d(fmaps[i], fmaps[i + 1], 
-                    kernel_size=kernel_size, padding=int((kernel_size - 1) / 2), 
+                    kernel_size=kernel_size, 
+                    padding=(int((kernel_size[0] - 1) / 2), int((kernel_size[0] - 1) / 2)), 
                     padding_mode=padding_mode))
             # No ReLu at the very last layer
             if i != len(fmaps) - 2 or block_type != 'out':

@@ -36,6 +36,9 @@ from ...poissonsolver.network import PoissonNetwork
 sns.set_context('notebook', font_scale=1.0)
 
 class StreamerMorrow(BaseSim):
+    """ Streamer based on Morrow chemistry which inclues electrons, positive ions A+ and negative
+    ions A-.
+    """
     def __init__(self, config):
         super().__init__(config)
         # Convection speed
@@ -256,6 +259,8 @@ class StreamerMorrow(BaseSim):
         plt.close(fig)
 
     def postproc(self, it):
+        """ Post-processing of simulation after each iteration: save data, plot data, accumulate lists
+        for deep-learning training sets as well """
         super().postproc(it)
         if self.dl_save:
             self.potential_list[it - 1, :, :] = self.poisson.potential
@@ -307,8 +312,10 @@ class StreamerMorrow(BaseSim):
         plt.close(fig)
 
     def post_temporal(self):
+        """ Post-temporal processing with saving and plotting of global arrays """
         self.plot_global()
-        np.save(self.data_dir + 'globals', self.gstreamer)
+        if self.save_data:
+            np.save(self.data_dir + 'globals', self.gstreamer)
 
         if self.dl_save:
             np.save(self.dl_dir + 'potential.npy', self.potential_list)

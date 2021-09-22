@@ -16,9 +16,9 @@
 casename: 'runs/kraken/dt_cases/'
 description: 'Different runs of dh_streamers for different timesteps'
 mode: 'seq'
-params/nit: [2000, 4000, 8000]
-params/dt: [2.0e-12, 1.0e-12, 5.0e-13]
-output/period: [200, 400, 800]
+params/nit: [1000, 2000, 4000, 8000]
+params/dt: [4.0e-12, 2.0e-12, 1.0e-12, 5.0e-13]
+output/period: [100, 200, 400, 800]
 
 base:
   params:
@@ -52,7 +52,7 @@ base:
     folder: 'data/'
     save: 'iteration'
     verbose: True
-    files: 'fig'
+    files: 'figdata'
     period: 400
     dl_save: 'no'
 

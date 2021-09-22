@@ -17,7 +17,8 @@
 # `config.init_obj` method.
 
 
-name: 'UNet5_rf200/run_7'                      # Experience name
+# name: 'UNet5_rf200/run_8'                      # Experience name
+name: 'UNet5_ksrect/run_2'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -33,8 +34,10 @@ globals:                                    # Domain sizes and others, used to c
     verbosity: 2
 
 arch:
-    db_file: 'unets_ks3_rf200.yml'
-    name: 'UNet5'
+    # db_file: 'unets_ks3_rf200.yml'
+    db_file: 'unets_rect.yml'
+    # name: 'UNet5'
+    name: 'UNet5-300k'
     args:
         input_res: [101, 401]
         # input_res: 101
@@ -81,7 +84,7 @@ loss:
         axial_dir_weight: 1.0e-2
         axial_neu_weight: 1.0e-2
         # adaptative: 0.1                     # Alpha value for adaptative weights
-        gradients: 10
+        # gradients: 10
 
 metrics:
     - 'residual'
