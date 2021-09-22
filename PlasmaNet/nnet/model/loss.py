@@ -7,15 +7,20 @@
 ########################################################################################################################
 
 import sys
+import os
 
 import scipy.constants as co
 import torch
 import torch.nn.functional as F
+import copy
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 from ..base.base_loss import BaseLoss
 from ..operators.gradient import gradient_scalar
 from ..operators.laplacian import laplacian as lapl
-
+from ..utils.util import initialize_figures, plot_kde, save_gradient_plots
 
 class InsideLoss(BaseLoss):
     """ Computes the weighted MSELoss of the interior of the domain (excluding boundaries). """
@@ -24,6 +29,7 @@ class InsideLoss(BaseLoss):
         self.weight = inside_weight
         self.base_weight = self.weight
         self.cyl = config.coord == 'cyl'
+        self.label = 'Inside'
 
     def _forward(self, output, target, **kwargs):
         if self.cyl:
@@ -37,6 +43,7 @@ class AxialDirichletLoss(BaseLoss):
         super().__init__()
         self.weight = axial_dir_weight
         self.base_weight = self.weight
+        self.label = 'Axial Dirichlet'
 
     def _forward(self, output, target, **kwargs):
         return F.mse_loss(output[:, 0, 0, 1:-1], target[:, 0, 0, 1:-1]) * self.weight
@@ -51,6 +58,7 @@ class AxialNeumannLoss(BaseLoss):
         self.dy = config.dy
         self.Lx = config.Lx
         self.Ly = config.Ly
+        self.label = 'Axial Neumann'
 
     def _forward(self, output, target, **_):
         # Compute normal electric field at the axis
@@ -67,6 +75,7 @@ class MSInsideLoss_n(BaseLoss):
         super().__init__()
         self.weight_n = inside_weight_n
         self.base_weight = self.weight_n
+        self.label = 'Inside n'
     def _forward(self, output, target, **kwargs):
         return F.mse_loss(output[:, 1, 1:-1, 1:-1], target[:, 0, 1:-1, 1:-1]) * self.weight_n
 
@@ -75,6 +84,7 @@ class MSInsideLoss_n2(BaseLoss):
     def __init__(self, config, inside_weight_n2, **_):
         super().__init__()
         self.weight_n2 = inside_weight_n2
+        self.label = 'Inside n2'
     def _forward(self, output, target, **kwargs):
         return F.mse_loss(output[:, 2, 1:-1, 1:-1], target[:, 1, 1:-1, 1:-1]-target[:, 2, 1:-1, 1:-1]) * self.weight_n2
 
@@ -83,6 +93,7 @@ class MSInsideLoss_n4(BaseLoss):
     def __init__(self, config, inside_weight_n4, **_):
         super().__init__()
         self.weight_n4 = inside_weight_n4
+        self.label = 'Inside n4'
     def _forward(self, output, target, **kwargs):
         return F.mse_loss(output[:, 3, 1:-1, 1:-1], target[:, 2, 1:-1, 1:-1]) * self.weight_n4
 
@@ -102,6 +113,7 @@ class LaplacianLoss(BaseLoss):
             self.r_nodes = torch.from_numpy(self.r_nodes).cuda()
         self._require_input_data = True  # Need rhs for computation
         self.cyl = config.coord == 'cyl'
+        self.label = 'Laplacian'
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy, r=self.r_nodes)
@@ -121,6 +133,7 @@ class EnergyLoss(BaseLoss):
         self.dy = config.dy
         self.n_inputs = config.nnx * config.nny * config.batch_size
         self._require_input_data = True  # Need rhs for computation
+        self.label = 'Energy'
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         elec_output = gradient_scalar(output, self.dx, self.dy)
@@ -139,6 +152,7 @@ class ElectricLoss(BaseLoss):
         self.dx = config.dx
         self.dy = config.dy
         self._require_input_data = False
+        self.label = 'Electric'
 
     def _forward(self, output, target, target_norm=1., data_norm=1., **_):
         elec_output = gradient_scalar(output * target_norm / data_norm, self.dx, self.dy)
@@ -153,6 +167,7 @@ class DirichletBoundaryLoss(BaseLoss):
         self.weight = bound_weight
         self.base_weight = self.weight
         self.cyl = config.coord == 'cyl'
+        self.label = 'Dirichlet BC'
 
     def _forward(self, output, target, **_):
         bnd_loss = F.mse_loss(output[:, 0, -1, :], torch.zeros_like(output[:, 0, -1, :]))
@@ -171,6 +186,7 @@ class NeumannBoundaryLoss(BaseLoss):
         self.base_weight = self.weight
         self.dx = config.dx
         self.dy = config.dy
+        self.label = 'Neumann BC'
 
     def _forward(self, output, target, **_):
         # Compute electric field
@@ -218,6 +234,13 @@ class ComposedLoss(BaseLoss):
         self._require_input_data = any([loss.require_input_data() for loss in self.losses])
         # Store results for logger access
         self.results = torch.zeros(len(self.loss_list))  # Use numpy to ensure floating-point sum
+        # Save folder for gradient plotting
+        self.fig_dir = config._fig_dir
+        # If gradient plotting, plot every n epochs, else plot every 0!
+        if config.gradients:
+            self.gradients_every = config.gradients_every
+        else:
+            self.gradients_every = 0
 
     def _forward(self, output, target, **kwargs):
         out = self.losses[0](output, target, **kwargs)
@@ -228,13 +251,27 @@ class ComposedLoss(BaseLoss):
             self.results[i + 1].copy_(tmp)
         return out
 
-    def intermediate(self, model, optimizer, output, target, **kwargs):
+    def intermediate(self, model, optimizer, output, target, epoch, ibatch, **kwargs):
         """
         Calculates the mean and max gradients of all the forwarded losses.
         """    
-        # Initialize list that will contain the max and mean grads    
+        # Initialize lists that will contain the max and mean grads    
         max_grads = []
         mean_grads = []
+
+        # Only perform plots if plot gradients is not 0 
+        plot_gradients = (self.gradients_every > 0) and (epoch % self.gradients_every == 0) and (ibatch == 0)
+
+        # TODO generalizing for specific gradients
+        # Initialize lists to save the gradients of each loss individually
+        #gradients_lapl = []
+        #gradients_rest = []
+        #gradients_bc_ax = []
+
+        # Initialize 4 plots corresponding to last, -1, +1, 0
+        if plot_gradients:
+            fig_list, ax_list = initialize_figures(4)
+            fig_list_norm, ax_list_norm = initialize_figures(4)
 
         for loss in self.losses:
             # Compute each individual loss and retain graph as multiple backwards will be performed.
@@ -253,6 +290,15 @@ class ComposedLoss(BaseLoss):
             # and adding the sum of each layer, as well as the number of elements
             for p in model.parameters():
                 gradients.append(p.grad)
+
+                # TODO generalizing for specific gradients
+                #if isinstance(loss, LaplacianLoss):
+                #    gradients_lapl.append(p.grad.clone().detach())
+                #elif isinstance(loss, DirichletBoundaryLoss):
+                #    gradients_bc_dr.append(p.grad.clone().detach())     
+                #elif isinstance(loss, InsideAxialLoss):
+                #    gradients_bc_ax.append(p.grad.clone().detach())  
+
                 if torch.max(torch.abs(p.grad)) > max_grad:
                     max_grad = torch.max(torch.abs(p.grad))
                 mean_grad +=torch.sum(torch.abs(p.grad))
@@ -265,8 +311,57 @@ class ComposedLoss(BaseLoss):
             max_grads.append(max_grad)
             mean_grads.append(mean_grad) 
 
+            # Plot
+            if plot_gradients:
+
+                # plot k_de for not normalized gradients for the:
+                # last layer (output), m1 layer (minus 1), p1 layer (plus 1), zero (input) 
+                x = np.linspace(-2*max_grad.detach().cpu().numpy(), 2*max_grad.detach().cpu().numpy(), 200)
+                plot_kde(x, gradients[-2], ax_list[0], loss.label)
+                plot_kde(x, gradients[-4], ax_list[1], loss.label)
+                plot_kde(x, gradients[0], ax_list[2], loss.label)
+                plot_kde(x, gradients[2], ax_list[3], loss.label)
+
+                # plot k_de for normalized gradients for the:
+                # last layer (output), m1 layer (minus 1), p1 layer (plus 1), zero (input) 
+                xn = np.linspace(-1, 1, 200)
+                plot_kde(xn, gradients[-2]/max_grad, ax_list_norm[0], loss.label)
+                plot_kde(xn, gradients[-4]/max_grad, ax_list_norm[1], loss.label)
+                plot_kde(xn, gradients[0]/max_grad, ax_list_norm[2], loss.label)
+                plot_kde(xn, gradients[2]/max_grad, ax_list_norm[3], loss.label) 
+                
             # Clean the gradients to avoid overlap!
-            optimizer.zero_grad()  
+            optimizer.zero_grad() 
+
+
+        if plot_gradients:
+            # TODO Generalize to count number of greater gradients ...
+            # Check which gradients are smaller ! Start initializing
+            #values = 0
+            # Loop over network layers
+            #for i in range(len(gradients_lapl)):
+            #    # Check maximum gradient value between axial and dirichlet losses
+            #    max_bc = torch.where(torch.abs(gradients_bc_dr[i]) > torch.abs(gradients_bc_ax[i]), 
+            #                        gradients_bc_dr[i], gradients_bc_ax[i])
+            #    # Check where the laplacian gradients are higher
+            #    lapl_big = torch.where(torch.abs(gradients_lapl[i]) > torch.abs(max_bc), 
+            #                        torch.ones_like(gradients_lapl[i]), torch.zeros_like(gradients_lapl[i]))
+            #    val = torch.sum(lapl_big).detach().cpu()
+            #    #if val >0:
+            #    #    print('There were {} learning weights found in layer: {} with a shape of: {}'.format(int(val), i, gradients_lapl[i].shape))
+            #    values += val
+            #print("Number of laplacian values learning something: ", int(values))
+
+            # Add legend and save plots with raw and normalized gradients, and close images to avoid memory leak
+            name_list = ['_last.png', '_m_1.png', '_zero.png', '_p_1.png']
+            save_gradient_plots(fig_list, ax_list, name_list, self.fig_dir, epoch)
+            name_list = ['_last_normalized.png', '_m_1_normalized.png', '_zero_normalized.png', '_p_1_normalized.png']
+            save_gradient_plots(fig_list_norm, ax_list_norm, name_list, self.fig_dir, epoch)
+            plt.close('all')
+
+            # Useful print?
+            print('Max grads: ', max_grads)
+            print('Mean grads: ', mean_grads)
 
         return max_grads, mean_grads
 
