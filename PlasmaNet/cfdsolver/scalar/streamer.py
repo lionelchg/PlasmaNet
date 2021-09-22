@@ -221,6 +221,7 @@ class StreamerMorrow(BaseSim):
         x = self.x
         self.normE = np.sqrt(E_field[0, :, :]**2 + E_field[1, :, :]**2) 
         self.normE_ax = self.normE[0, :]  # compute norm on the axis
+
         # maximal electric field position in the first half of the domain
         # ie. left streamer position
         self.gstreamer[it, 1] = x[np.argmax(self.normE_ax[:self.n_middle])]  
@@ -274,30 +275,40 @@ class StreamerMorrow(BaseSim):
         """ Global quantities (position of negative streamer, 
         positive streamer and energy of discharge). """
         gstreamer = self.gstreamer
+        
+        # Scale to ns
         time = gstreamer[:, 0] / 1e-9
-        gstreamer[:, 1:3] = gstreamer[:, :2] / 1e-3
+
+        # Put the first iterations to the same value of
+        # later in the simulations when the heads of streamer really appeared
+        gstreamer[:20, 1:3] =  gstreamer[20, 1:3]
+
+        # Scale to mmm and microjoule
+        gstreamer[:, 1:3] = gstreamer[:, 1:3] / 1e-3
         gstreamer[:, 3] = gstreamer[:, 3] / 1e-6
-        fig, axes = plt.subplots(ncols=2, figsize=(12, 6))
-        axes[0].plot(time, gstreamer[:, 1], label='Negative streamer')
-        axes[0].plot(time, gstreamer[:, 2], label='Positive streamer')
+        
+        # Figure creation
+        fig, axes = plt.subplots(ncols=2, figsize=(8, 5))
+        axes[0].plot(time, gstreamer[:, 1], 'k--', lw=2, label='Negative streamer')
+        axes[0].plot(time, gstreamer[:, 2], 'k', lw=2, label='Positive streamer')
         axes[0].set_ylabel('$x$ [mm]')
         axes[0].set_xlabel('$t$ [ns]')
         axes[0].set_ylim(np.array([self.xmin, self.xmax]) / 1e-3)
         axes[0].legend()
         axes[0].grid(True)
 
-        axes[1].plot(time, gstreamer[:, 3])
+        axes[1].plot(time, gstreamer[:, 3], 'k', lw=2)
         axes[1].set_xlabel('$t$ [ns]')
         axes[1].set_ylabel(r'E [$\mu$J]')
         axes[1].grid(True)
 
+        fig.tight_layout()
         fig.savefig(self.fig_dir + 'globals', bbox_inches='tight')
         plt.close(fig)
 
     def post_temporal(self):
         self.plot_global()
-        if self.save_data: 
-            np.save(self.data_dir + 'globals', self.gstreamer)
+        np.save(self.data_dir + 'globals', self.gstreamer)
 
         if self.dl_save:
             np.save(self.dl_dir + 'potential.npy', self.potential_list)

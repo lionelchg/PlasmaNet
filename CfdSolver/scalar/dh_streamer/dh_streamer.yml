@@ -13,18 +13,16 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/dh_streamer_linsys/'
+casename: 'runs/kraken/dh_streamer_linsys/1e-12/'
 
 params:
-  nit: 8000
-  dt: 5.0e-13
+  nit: 1600
+  dt: 1.0e-12
   geom: 'xr'
   photoionization: 'no'
   n_back: 1.0e+14
   #n_back: 1.0e+9
   n_gauss: 1.0e+19
-
-
 
 transport:
   chemistry: 'morrow'
@@ -34,7 +32,6 @@ BC: 'outlet_axi'
 poisson:
   backE: 4.8e+6
   type: 'lin_system'
-  hybrid_it: 1
   mat: 'cart_dirichlet'
   nmax_fourier: 10
 
@@ -49,7 +46,7 @@ output:
   folder: 'data/'
   save: 'iteration'
   verbose: True
-  files: 'fig'
+  files: 'figdata'
   period: 400
   dl_save: 'no'
 
@@ -58,7 +55,7 @@ input: 'none'
   # np: 'data/dh_streamer_7/np_0004.npy'
   # nn: 'data/dh_streamer_7/nn_0004.npy'
   
-  # This block is useful only if poisson/type = 'network'
+# This block is useful only if poisson/type = 'network'
 network:
   n_gpu: 1                                    # Number of GPUs to use
 

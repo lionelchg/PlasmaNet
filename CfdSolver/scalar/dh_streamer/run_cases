@@ -1,9 +1,9 @@
 #!/usr/bin/bash
 #SBATCH --job-name=PlasmaNet
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
+#SBATCH --ntasks-per-node=3
 #SBATCH --time=01:00:00
-#SBATCH --partition=rome
-#SBATCH --nodelist=krakenepyc1
+#SBATCH --partition=biggpu
+# #SBATCH --nodelist=krakenepyc1
 
-run_cases -np 4 -c dh_streamer_cases.yml -t streamer
+run_cases -np 3 -c dh_streamer_cases_dt.yml -t streamer
