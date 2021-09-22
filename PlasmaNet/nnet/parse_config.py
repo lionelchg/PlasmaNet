@@ -121,6 +121,17 @@ class ConfigParser:
         else:
             self.r_nodes = None
 
+        # If adaptative weights and gradient plots
+        if 'adaptative' in config['loss']['args']:
+            self.adaptative = True
+            self.adaptative_weight= config['loss']['args']['adaptative']
+
+        if 'gradients' in config['loss']['args']:
+            self.gradients = True
+            self.gradients_every= config['loss']['args']['gradients']   
+        else:
+            self.gradients = False
+
         # Configure logging module
         setup_logging(self.log_dir)
         self.log_levels = {

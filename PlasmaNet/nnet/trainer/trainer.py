@@ -70,6 +70,14 @@ class Trainer(BaseTrainer):
             self.alpha_adaptative = self.config["loss"]["args"]["adaptative"]
         else:
             self.adaptative_weights = False
+        
+        # Loop to get the index of the Laplacian Loss (as need for the update)
+        for i_loss, loss in enumerate(self.criterion.losses):
+            if isinstance(loss, LaplacianLoss):
+                self.lpl_loss_idx = i_loss
+
+        # Get gradient information (so that weights are updated but gradients not plotted)
+        self.gradient_info = self.adaptative_weights or config.gradients
 
     def _train_epoch(self, epoch):
         """
@@ -114,27 +122,26 @@ class Trainer(BaseTrainer):
                 data = torch.cat((data, data_lt), dim=1)
                 output = torch.cat((output, output_lt), dim=1)
 
-            # Adaptative weight update following Wang 2020 (https://arxiv.org/pdf/2001.04536.pdf)
-            if self.adaptative_weights: #and epoch >1:
+            # Get gradient information!
+            if self.gradient_info:
                 # Get Average and Mean gradients for each loss component
                 if self.criterion.require_input_data():
                     max_grads, mean_grads = self.criterion.intermediate(self.model, self.optimizer, 
-                        output, target, epoch, data=data, target_norm=target_norm, data_norm=data_norm)
+                        output, target, epoch, batch_idx, data=data, target_norm=target_norm, data_norm=data_norm)
                 else:
                     max_grads, mean_grads = self.criterion.intermediate(self.model, self.optimizer, 
-                        output, target, epoch)
-                # Loop to get the index of the Laplacian Loss (as need for the update)
-                for i, loss in enumerate(self.criterion.losses):
-                    if isinstance(loss, LaplacianLoss):
-                        lpl_loss_idx = i
-                # Update of each loss weight.  ~ max_grad(laplacialoss) / mean_grad(loss)
-                #for i, loss in enumerate(self.criterion.losses):
-                    #loss.weight = loss.base_weight / max_grads[i]
-                    #if i == lpl_loss_idx:
-                    #    loss.weight = 1.0
-                    #else:
-                    #    loss.weight = self.alpha_adaptative * loss.base_weight + \
-                    #        (1- self.alpha_adaptative)* max_grads[lpl_loss_idx] / mean_grads[i]
+                        output, target, epoch, batch_idx)
+
+                # Adaptative weight update following Wang 2020 (https://arxiv.org/pdf/2001.04536.pdf)
+                if self.adaptative_weights:
+                    # Update of each loss weight.  ~ max_grad(laplacialoss) / mean_grad(loss)
+                    for i_loss, loss in enumerate(self.criterion.losses):
+                        loss.weight = loss.base_weight / max_grads[i_loss]
+                        if i_loss == self.lpl_loss_idx:
+                            loss.weight = 1.0
+                        else:
+                            loss.weight = self.alpha_adaptative * loss.base_weight + \
+                                (1- self.alpha_adaptative)* max_grads[self.lpl_loss_idx] / mean_grads[i_loss]
 
             if self.criterion.require_input_data():
                 loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)

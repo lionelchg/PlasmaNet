@@ -17,7 +17,7 @@
 # `config.init_obj` method.
 
 
-name: 'UNet5_rf200/gradients_3losses_understanding_e-14' # Experience name
+name: 'UNet5_rf200/gradients_3losses_understanding_debug' # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -68,18 +68,19 @@ loss:
             # - InsideLoss
             - DirichletBoundaryLoss
             - LaplacianLoss
-            - InsideAxialLoss
+            - AxialDirichletLoss
             # - EnergyLoss
             # - LongTermLaplacianLoss
         inside_weight: 0.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
-        axial_weight: 1.0e-14 #0.0001
+        axial_dir_weight: 1.0e-14 #0.0001
         bound_weight: 1.0e-14                    # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
         lapl_weight: 1.0 #2.0e+9                    # Weighting of the loss on the Laplacian (float)
         energy_weight: 0.0                  # Weighting of the loss on the energy functional (float)
         lt_weight: 0.0                      # Weighting of the lt loss, whoch only has a Laplacian term
         ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation
-        adaptative: 0.1                     # Alpha value for adaptative weights
+        #adaptative: 0.1                     # Alpha value for adaptative weights
+        gradients: 1                        # N of every epochs to plot gradients
 
 metrics:
     - 'residual'
