@@ -107,6 +107,7 @@ class LaplacianLoss(BaseLoss):
         self.dx = config.dx
         self.dy = config.dy
         self.Lx = config.Lx
+        self.Ly = config.Ly
         self.r_nodes = config.r_nodes
         if self.r_nodes is not None:  # in this case, a NumPy array
             self.r_nodes = torch.from_numpy(self.r_nodes).cuda()
@@ -117,9 +118,9 @@ class LaplacianLoss(BaseLoss):
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy, r=self.r_nodes)
         if self.cyl:
-            return self.Lx**4 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1], - data[:, 0, 0:-1, 1:-1]) * self.weight
+            return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1], - data[:, 0, 0:-1, 1:-1]) * self.weight
         else:
-            return self.Lx**4 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
+            return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
 
 
 class EnergyLoss(BaseLoss):
@@ -194,8 +195,8 @@ class NeumannBoundaryLoss(BaseLoss):
         # Loss on the boundaries
         bnd_loss = F.mse_loss(grad_output[:, 0, 1:-1, 0], grad_target[:, 0, 1:-1, 0])  # line for x = 0
         bnd_loss += F.mse_loss(grad_output[:, 0, 1:-1, -1], grad_target[:, 0, 1:-1, -1])
-        bnd_loss += F.mse_loss(grad_output[:, 0, 0, 1:-1], grad_target[:, 0, 0, 1:-1])
-        bnd_loss += F.mse_loss(grad_output[:, 0, -1, 1:-1], grad_target[:, 0, -1, 1:-1])
+        bnd_loss += F.mse_loss(grad_output[:, 1, 0, 1:-1], grad_target[:, 1, 0, 1:-1])
+        bnd_loss += F.mse_loss(grad_output[:, 1, -1, 1:-1], grad_target[:, 1, -1, 1:-1])
         return bnd_loss * self.weight
 
 

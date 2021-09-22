@@ -33,6 +33,9 @@ No scaling factor has been applied this time. The RHS is 1e8 approximtely and th
 
 #### Laplacian loss weight
 
+##### 101x101 dataset
+
+The following results correspond to the 101x101 streammer dataset, which is first used as a simpler version to tune the network. For now, the parameters which seem to yield the best results are:
 
 | Laplacian | Dirichlet  |   Axial  |
 | --------- | ---------- |----------|
@@ -62,3 +65,42 @@ Particularly, we can focus on the following:
 For now, the **best network seems to be `only_axial_bc_train`.** But there is still some improvement margin.
 
 As the values were rather high, a new test was carried out with a new scaling factor, `only_axial_bc_train_no_scalingfactor`, where the scaling factor is 1.0 (previously fixed to 1e6). First results show that this is not a good idea, as the residual is higher.
+
+Note that for this particular case, **custom padding** does not yield better results.
+
+
+##### 401x101 dataset
+
+The following results correspond to the 401x101 streammer dataset, thus matching the targeted resolution.
+
+After several tests, the following conclusions have been achieved:
+
+- For the rectangular domain, the **custom padding** seems benefitial (as result improve considerably)
+- The Dirichlet Boundary loss seems to over-constrain the problem, as while the laplacian loss decreases, it increases or remains constant ... This results should be further investigated.
+
+These conclusions are based on the runs found on:
+
+`/scratch/cfd/ajuria/Plasma/plasmanet_new/plasmanet/NNet/train_cyl/rectangle_debug/figures/UNet5_rf200`
+
+Particularly, we can focus on the following:
+
+- Traditional padding (zeros):
+
+|          Name                | Laplacian | Dirichlet  |   Axial  |
+|------------------------------| --------- | ---------- |----------|
+| `basic_train`                | 2e9       |   1e-4     |    1e-4  |
+| `no_bc_train`                | 2e9       |     0      |    0     |
+| `only_axial_bc_train`        | 2e9       |     0      |    1e-4  |
+| `only_dir_bc_train`          | 2e9       |     1e-4   |    0     |
+
+- Custom Padding:
+
+|          Name                | Laplacian | Dirichlet  |   Axial  |
+|------------------------------|-----------|------------|----------|
+| `basic_train_pad`            | 2e9       |   1e-4     |    1e-4  |
+| `no_bc_train_pad`            | 2e9       |     0      |    0     |
+| `only_axial_bc_train_pad`    | 2e9       |     0      |    1e-4  |
+| `only_dir_bc_train_pad`      | 2e9       |     1e-4   |    0     |
+
+
+For now, there is no clear best network, although the **custom** padding networks seem to considerably outperform the others.
