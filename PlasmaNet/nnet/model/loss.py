@@ -7,10 +7,16 @@
 ########################################################################################################################
 
 import sys
+import os
 
 import scipy.constants as co
 import torch
 import torch.nn.functional as F
+import copy
+
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.stats as stats
 
 from ..base.base_loss import BaseLoss
 from ..operators.gradient import gradient_scalar
@@ -208,13 +214,29 @@ class ComposedLoss(BaseLoss):
             self.results[i + 1].copy_(tmp)
         return out
 
-    def intermediate(self, model, optimizer, output, target, **kwargs):
+    def intermediate(self, model, optimizer, output, target, it, **kwargs):
         """
         Calculates the mean and max gradients of all the forwarded losses.
         """    
         # Initialize list that will contain the max and mean grads    
         max_grads = []
         mean_grads = []
+
+        filename = '/scratch/cfd/ajuria/Plasma/plasmanet_new/plasmanet/NNet/train_cyl/gradient_debug/figures/UNet5_rf200/gradients_3losses_understanding_e-14/Gradient_distribution_{}_last.png'.format(it)
+        if it % 2 == 1 and not os.path.isfile(filename):
+            fig, ax = plt.subplots()
+            fig1, ax1 = plt.subplots()
+            fig2, ax2 = plt.subplots()
+            fig3, ax3 = plt.subplots()
+
+            fign, axn = plt.subplots()
+            fig1n, ax1n = plt.subplots()
+            fig2n, ax2n = plt.subplots()
+            fig3n, ax3n = plt.subplots()
+
+        gradients_lapl = []
+        gradients_bc_dr = []
+        gradients_bc_ax = []
 
         for loss in self.losses:
             # Compute each individual loss and retain graph as multiple backwards will be performed.
@@ -233,6 +255,14 @@ class ComposedLoss(BaseLoss):
             # and adding the sum of each layer, as well as the number of elements
             for p in model.parameters():
                 gradients.append(p.grad)
+
+                if isinstance(loss, LaplacianLoss):
+                    gradients_lapl.append(p.grad.clone().detach())
+                elif isinstance(loss, DirichletBoundaryLoss):
+                    gradients_bc_dr.append(p.grad.clone().detach())     
+                elif isinstance(loss, InsideAxialLoss):
+                    gradients_bc_ax.append(p.grad.clone().detach())  
+
                 if torch.max(torch.abs(p.grad)) > max_grad:
                     max_grad = torch.max(torch.abs(p.grad))
                 mean_grad +=torch.sum(torch.abs(p.grad))
@@ -245,8 +275,80 @@ class ComposedLoss(BaseLoss):
             max_grads.append(max_grad)
             mean_grads.append(mean_grad) 
 
+            # Plot
+            if it % 2 == 1 and not os.path.isfile(filename):
+                if isinstance(loss, LaplacianLoss):
+                    label = 'Laplacian'
+                elif isinstance(loss, DirichletBoundaryLoss):
+                    label = 'Dirichlet'      
+                elif isinstance(loss, InsideAxialLoss):
+                    label = 'Axial'  
+
+                x = np.linspace(-2*max_grad.detach().cpu().numpy(), 2*max_grad.detach().cpu().numpy(), 200)
+
+                density = stats.gaussian_kde(gradients[-2].view(-1).detach().cpu().numpy())
+                ax.plot(x, density(x), label=label)
+                density1 = stats.gaussian_kde(gradients[-4].view(-1).detach().cpu().numpy())
+                ax1.plot(x, density1(x), label=label)
+                density2 = stats.gaussian_kde(gradients[0].view(-1).detach().cpu().numpy())
+                ax2.plot(x, density2(x), label=label)
+                density3 = stats.gaussian_kde(gradients[2].view(-1).detach().cpu().numpy())
+                ax3.plot(x, density3(x), label=label)
+
+                xn = np.linspace(-1, 1, 200)
+
+                densityn = stats.gaussian_kde(gradients[-2].view(-1).detach().cpu().numpy()/max_grad.detach().cpu().numpy())
+                axn.plot(xn, densityn(xn), label=label)
+                density1n = stats.gaussian_kde(gradients[-4].view(-1).detach().cpu().numpy()/max_grad.detach().cpu().numpy())
+                ax1n.plot(xn, density1n(xn), label=label)
+                density2n = stats.gaussian_kde(gradients[0].view(-1).detach().cpu().numpy()/max_grad.detach().cpu().numpy())
+                ax2n.plot(xn, density2n(xn), label=label)
+                density3n = stats.gaussian_kde(gradients[2].view(-1).detach().cpu().numpy()/max_grad.detach().cpu().numpy())
+                ax3n.plot(xn, density3n(xn), label=label)
+
+
             # Clean the gradients to avoid overlap!
-            optimizer.zero_grad()  
+            optimizer.zero_grad() 
+
+
+        if it % 2 == 1 and not os.path.isfile(filename):
+
+            # Check which gradients are smaller !
+            values = 0
+            for i in range(len(gradients_lapl)):
+                max_bc = torch.where(torch.abs(gradients_bc_dr[i])> torch.abs(gradients_bc_ax[i]), gradients_bc_dr[i], gradients_bc_ax[i])
+                lapl_big = torch.where(torch.abs(gradients_lapl[i])> torch.abs(max_bc), torch.ones_like(gradients_lapl[i]), torch.zeros_like(gradients_lapl[i]))
+                val = torch.sum(lapl_big).detach().cpu()
+                if val >0:
+                    print('There were {} learning weights found in layer: {} with a shape of: {}'.format(int(val), i, gradients_lapl[i].shape))
+                values += val
+            print("Number of laplacian values learning something: ", int(values))
+
+            ax.legend()
+            ax1.legend()
+            ax2.legend()
+            ax3.legend()
+
+            axn.legend()
+            ax1n.legend()
+            ax2n.legend()
+            ax3n.legend()
+
+            folder = '/scratch/cfd/ajuria/Plasma/plasmanet_new/plasmanet/NNet/train_cyl/gradient_debug/figures/UNet5_rf200/gradients_3losses_understanding_e-14'
+            fig.savefig(os.path.join(folder, 'Gradient_distribution_{}_last.png'.format(it)))
+            fig1.savefig(os.path.join(folder, 'Gradient_distribution_{}_m_1.png'.format(it)))
+            fig2.savefig(os.path.join(folder, 'Gradient_distribution_{}_zero.png'.format(it)))
+            fig3.savefig(os.path.join(folder, 'Gradient_distribution_{}_p_1.png'.format(it)))
+
+            fign.savefig(os.path.join(folder, 'Gradient_normalized_distribution_{}_last.png'.format(it)))
+            fig1n.savefig(os.path.join(folder, 'Gradient_normalized_distribution_{}_m_1.png'.format(it)))
+            fig2n.savefig(os.path.join(folder, 'Gradient_normalized_distribution_{}_zero.png'.format(it)))
+            fig3n.savefig(os.path.join(folder, 'Gradient_normalized_distribution_{}_p_1.png'.format(it)))
+            
+            plt.close('all')
+
+            print('Max grads: ', max_grads)
+            print('Mean grads: ', mean_grads)
 
         return max_grads, mean_grads
 

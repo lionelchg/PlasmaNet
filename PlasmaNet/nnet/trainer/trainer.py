@@ -115,25 +115,26 @@ class Trainer(BaseTrainer):
                 output = torch.cat((output, output_lt), dim=1)
 
             # Adaptative weight update following Wang 2020 (https://arxiv.org/pdf/2001.04536.pdf)
-            if self.adaptative_weights:
+            if self.adaptative_weights: #and epoch >1:
                 # Get Average and Mean gradients for each loss component
                 if self.criterion.require_input_data():
                     max_grads, mean_grads = self.criterion.intermediate(self.model, self.optimizer, 
-                        output, target, data=data, target_norm=target_norm, data_norm=data_norm)
+                        output, target, epoch, data=data, target_norm=target_norm, data_norm=data_norm)
                 else:
                     max_grads, mean_grads = self.criterion.intermediate(self.model, self.optimizer, 
-                        output, target)
+                        output, target, epoch)
                 # Loop to get the index of the Laplacian Loss (as need for the update)
                 for i, loss in enumerate(self.criterion.losses):
                     if isinstance(loss, LaplacianLoss):
                         lpl_loss_idx = i
                 # Update of each loss weight.  ~ max_grad(laplacialoss) / mean_grad(loss)
-                for i, loss in enumerate(self.criterion.losses):
-                    if i == lpl_loss_idx:
-                        loss.weight = 1.0
-                    else:
-                        loss.weight = self.alpha_adaptative * loss.base_weight + \
-                            (1- self.alpha_adaptative)* max_grads[lpl_loss_idx] / mean_grads[i]
+                #for i, loss in enumerate(self.criterion.losses):
+                    #loss.weight = loss.base_weight / max_grads[i]
+                    #if i == lpl_loss_idx:
+                    #    loss.weight = 1.0
+                    #else:
+                    #    loss.weight = self.alpha_adaptative * loss.base_weight + \
+                    #        (1- self.alpha_adaptative)* max_grads[lpl_loss_idx] / mean_grads[i]
 
             if self.criterion.require_input_data():
                 loss = self.criterion(output, target, data=data, target_norm=target_norm, data_norm=data_norm)
