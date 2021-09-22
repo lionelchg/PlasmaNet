@@ -29,6 +29,9 @@ from ...common.utils import create_dir
 
 from ...poissonsolver.linsystem import matrix_axisym, impose_dirichlet
 from ...poissonsolver.poisson import PoissonLinSystem
+from ...poissonsolver.poisson import DatasetPoisson
+from ...poissonsolver.analytical import PoissonAnalytical
+from ...poissonsolver.network import PoissonNetwork
 
 sns.set_context('notebook', font_scale=1.0)
 
@@ -47,13 +50,25 @@ class StreamerMorrow(BaseSim):
         config['poisson']['geom'] = self.geom
         config['poisson']['bcs'] = 'axi'
 
-        self.poisson = PoissonLinSystem(config['poisson'])
         self.backE = config['poisson']['backE']
 
-        self.up = - self.x * self.backE
-        self.left = np.zeros_like(self.y)
-        self.right = - np.ones_like(self.y) * self.backE * self.xmax
-        self.bcs = {'left':self.left, 'right':self.right, 'top':self.up}
+        # Choose the way to solve poisson equation, either classic with linear system
+        # or with analytical solution (2D Fourier series)
+        self.poisson_type = config['poisson']['type']
+
+        # Initialize the poisson object depending on what is specified
+        if self.poisson_type == 'lin_system':
+            self.up = - self.x * self.backE
+            self.left = np.zeros_like(self.y)
+            self.right = - np.ones_like(self.y) * self.backE * self.xmax
+            self.bcs = {'left':self.left, 'right':self.right, 'top':self.up}
+            self.poisson = DatasetPoisson(config['poisson'])
+
+        # Network case
+        if self.poisson_type == 'network':
+            config['network']['eval'] = config['poisson']
+            config['network']['casename'] = config['casename']
+            self.poisson = PoissonNetwork(config['network'])
 
         self.scale = self.dx * self.dy
 
@@ -149,8 +164,16 @@ class StreamerMorrow(BaseSim):
     
     def solve_poisson(self):
         """ Solve the Poisson equation in axisymmetric configuration. """
-        self.poisson.solve((self.nd[1] - self.nd[0] - self.nd[2]) * co.e / co.epsilon_0, self.bcs)
-        self.E_field = self.poisson.E_field
+        rhs_field = (self.nd[1] - self.nd[0] - self.nd[2]) * co.e / co.epsilon_0
+
+        if self.poisson_type == 'lin_system':
+            self.poisson.solve(rhs_field, self.bcs)
+            self.E_field = self.poisson.E_field
+        elif self.poisson_type == 'network':
+            self.poisson.solve(rhs_field)
+            self.E_field = self.poisson.E_field
+            # Add background electric field for network as it trained from Dirichlets imposed at zero
+            self.E_field[0, :, :] += self.backE
 
     def solve_photo(self):
         """ Solve the photoionization source term using approximation in Helmholtz equations """
