@@ -1,10 +1,10 @@
 #!/usr/bin/bash
 #SBATCH --job-name=PlasmaNet
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=9
+#SBATCH --ntasks-per-node=4
 #SBATCH --time=16:00:00
-#SBATCH --partition=gpu
-#SBATCH --nodelist=krakengpu1
+#SBATCH --partition=biggpu
+# #SBATCH --nodelist=krakengpu1
 
 echo PlasmaNet train network with config file: $1
 train_network -c $1

@@ -31,16 +31,35 @@ class InsideLoss(BaseLoss):
         else:
             return F.mse_loss(output[:, 0, 1:-1, 1:-1], target[:, 0, 1:-1, 1:-1]) * self.weight
 
-class InsideAxialLoss(BaseLoss):
+class AxialDirichletLoss(BaseLoss):
     """ Computes the weighted MSELoss of the BC in the axis (for the cylindrical case). """
-    def __init__(self, config, axial_weight, **_):
+    def __init__(self, config, axial_dir_weight, **_):
         super().__init__()
-        self.weight = axial_weight
+        self.weight = axial_dir_weight
         self.base_weight = self.weight
 
     def _forward(self, output, target, **kwargs):
         return F.mse_loss(output[:, 0, 0, 1:-1], target[:, 0, 0, 1:-1]) * self.weight
 
+class AxialNeumannLoss(BaseLoss):
+    """ Loss for Neumann boundary at the axis enforcing \nabla \phi \cdot \vb{n} = 0. """
+    def __init__(self, config, axial_neu_weight, **_):
+        super().__init__()
+        self.weight = axial_neu_weight
+        self.base_weight = self.weight
+        self.dx = config.dx
+        self.dy = config.dy
+        self.Lx = config.Lx
+        self.Ly = config.Ly
+
+    def _forward(self, output, target, **_):
+        # Compute normal electric field at the axis
+        grad_output = (4 * output[:, 0, 1, 1:-1] - 3 * output[:, 0, 0, 1:-1] - output[:, 0, 2, 1:-1]) / (2 * self.dy)
+        
+        # Loss on that boundary
+        bnd_loss = F.mse_loss(grad_output, torch.zeros_like(grad_output))
+
+        return self.Lx * self.Ly * bnd_loss * self.weight
 
 class MSInsideLoss_n(BaseLoss):
     """ Computes the weighted MSELoss of the interior of the domain (excluding boundaries). For the n scale"""
@@ -77,6 +96,7 @@ class LaplacianLoss(BaseLoss):
         self.dx = config.dx
         self.dy = config.dy
         self.Lx = config.Lx
+        self.Ly = config.Ly
         self.r_nodes = config.r_nodes
         if self.r_nodes is not None:  # in this case, a NumPy array
             self.r_nodes = torch.from_numpy(self.r_nodes).cuda()
@@ -86,9 +106,9 @@ class LaplacianLoss(BaseLoss):
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy, r=self.r_nodes)
         if self.cyl:
-            return self.Lx**4 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1], - data[:, 0, 0:-1, 1:-1]) * self.weight
+            return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1], - data[:, 0, 0:-1, 1:-1]) * self.weight
         else:
-            return self.Lx**4 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
+            return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
 
 
 class EnergyLoss(BaseLoss):
@@ -139,7 +159,7 @@ class DirichletBoundaryLoss(BaseLoss):
         bnd_loss += F.mse_loss(output[:, 0, :, 0], torch.zeros_like(output[:, 0, :, 0]))
         bnd_loss += F.mse_loss(output[:, 0, :, -1], torch.zeros_like(output[:, 0, :, -1]))
         # Axis points to add only if we're in cartesian coordinates
-        if self.cyl: bnd_loss += F.mse_loss(output[:, 0, 0, :], torch.zeros_like(output[:, 0, 0, :]))
+        if not self.cyl: bnd_loss += F.mse_loss(output[:, 0, 0, :], torch.zeros_like(output[:, 0, 0, :]))
         return bnd_loss * self.weight
 
 
@@ -159,8 +179,8 @@ class NeumannBoundaryLoss(BaseLoss):
         # Loss on the boundaries
         bnd_loss = F.mse_loss(grad_output[:, 0, 1:-1, 0], grad_target[:, 0, 1:-1, 0])  # line for x = 0
         bnd_loss += F.mse_loss(grad_output[:, 0, 1:-1, -1], grad_target[:, 0, 1:-1, -1])
-        bnd_loss += F.mse_loss(grad_output[:, 0, 0, 1:-1], grad_target[:, 0, 0, 1:-1])
-        bnd_loss += F.mse_loss(grad_output[:, 0, -1, 1:-1], grad_target[:, 0, -1, 1:-1])
+        bnd_loss += F.mse_loss(grad_output[:, 1, 0, 1:-1], grad_target[:, 1, 0, 1:-1])
+        bnd_loss += F.mse_loss(grad_output[:, 1, -1, 1:-1], grad_target[:, 1, -1, 1:-1])
         return bnd_loss * self.weight
 
 
