@@ -13,10 +13,11 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/dh_streamer_linsys/1e-12/'
+# casename: 'runs/kraken/dh_streamer_linsys/1e-12/'
+casename: 'runs/kraken/UNet5-rect-100k/'
 
 params:
-  nit: 1600
+  nit: 2000
   dt: 1.0e-12
   geom: 'xr'
   photoionization: 'no'
@@ -31,8 +32,9 @@ BC: 'outlet_axi'
 
 poisson:
   backE: 4.8e+6
-  type: 'lin_system'
-  mat: 'cart_dirichlet'
+  type: 'network'
+  # type: 'lin_system'
+  # mat: 'cart_dirichlet'
   nmax_fourier: 10
 
 mesh:
@@ -51,9 +53,6 @@ output:
   dl_save: 'no'
 
 input: 'none'
-  # ne: 'data/dh_streamer_7/ne_0004.npy'
-  # np: 'data/dh_streamer_7/np_0004.npy'
-  # nn: 'data/dh_streamer_7/nn_0004.npy'
   
 # This block is useful only if poisson/type = 'network'
 network:
@@ -69,13 +68,14 @@ network:
     coord: 'cart'
     verbosity: 2
 
-  resume: '/scratch/cfd/ajuria/Plasma/plasmanet_new/plasmanet/NNet/train_cyl/rectangle_debug/models/UNet5_rf200/basic_train_pad/model_best.pth'
+  # resume: '/scratch/cfd/ajuria/Plasma/plasmanet_new/plasmanet/NNet/train_cyl/rectangle_debug/models/UNet5_rf200/basic_train_pad/model_best.pth'
   # resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8'
-  
+  resume: '/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study/models/UNet5_ksrect/run_1/model_best.pth'
+
   arch:
-    db_file: 'unets_ks3_rf200.yml'
+    db_file: 'unets_rect.yml'
     # db_file: 'unets_ks3_rf200.yml'
-    name: 'UNet5'
+    name: 'UNet5-100k'
     args:
         input_res: [101, 401]
         padding_mode: 'custom'
@@ -100,12 +100,9 @@ network:
     pipe_config: True                       # Object initialization require config as first argument
     args:
       loss_list:                          # List of the losses to compose if ComposedLoss is used
-        #- InsideLoss
         - DirichletBoundaryLoss
         - LaplacianLoss
-      inside_weight: 0.                   # Weighting of the loss inside the domain, excluding boundaries (float)
       bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
-      elec_weight: 0.                     # Weighting of the loss on the electric field (float)
       lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
 
   metrics:

@@ -258,6 +258,26 @@ class StreamerMorrow(BaseSim):
         plt.savefig(self.fig_dir + 'instant_%04d' % self.number, bbox_inches='tight')
         plt.close(fig)
 
+        # 2D contour plots only
+        if self.photo:
+            fig, axes = plt.subplots(nrows=3, figsize=(8, 6))
+        else:
+            fig, axes = plt.subplots(nrows=2, figsize=(6, 6))
+
+        axes = axes.reshape(-1)
+
+        plot_ax_scalar(fig, axes[0], self.X, self.Y, self.nd[0], r"$n_e$", geom=self.geom, cmap_scale='log')
+        plot_ax_scalar(fig, axes[1], self.X, self.Y, self.normE, r"$|\mathbf{E}|$", geom=self.geom)
+        if self.photo:
+            plot_ax_scalar(fig, axes[2], self.X, self.Y, self.Sph, r"$S_{ph}$", 
+                    geom=self.geom, cmap_scale='log', field_ticks=[1e23, 1e26, 1e29])
+
+        plt.tight_layout()
+        fig.suptitle(f'$t$ = {self.dtsum:.2e} s')
+        fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+        plt.savefig(self.fig_dir + 'instant_2D_%04d' % self.number, bbox_inches='tight')
+        plt.close(fig)
+
     def postproc(self, it):
         """ Post-processing of simulation after each iteration: save data, plot data, accumulate lists
         for deep-learning training sets as well """

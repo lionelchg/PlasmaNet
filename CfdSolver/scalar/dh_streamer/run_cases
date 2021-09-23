@@ -2,9 +2,8 @@
 #SBATCH --job-name=PlasmaNet
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --time=01:00:00
-#SBATCH --partition=prod
-# #SBATCH --partition=biggpu
+#SBATCH --time=03:00:00
+#SBATCH --partition=biggpu
 # #SBATCH --nodelist=krakenepyc1
 
-run_cases -np 4 -c dh_streamer_cases_dt.yml -t streamer
+run_cases -np 4 -c $1 -t streamer
