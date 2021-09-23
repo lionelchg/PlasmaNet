@@ -130,7 +130,7 @@ class StreamerMorrow(BaseSim):
 
             self.number = int(re.search(r'_(\d+)\.npy', config['input']['ne']).group(1)) + 1
             self.dtsum = (self.number - 1) * config['output']['period'] * self.dt
-        
+
         # datasets for deep-learning
         self.dl_save = config['output']['dl_save'] == 'yes'
         if self.dl_save:
@@ -164,7 +164,7 @@ class StreamerMorrow(BaseSim):
             logging.info('Restart of simulation')
         logging.info('------------------------------------')
         logging.info('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
-    
+
     def solve_poisson(self):
         """ Solve the Poisson equation in axisymmetric configuration. """
         rhs_field = (self.nd[1] - self.nd[0] - self.nd[2]) * co.e / co.epsilon_0
@@ -222,12 +222,12 @@ class StreamerMorrow(BaseSim):
         """ Compute global propagation of the streamers and discharge power."""
         E_field = self.E_field
         x = self.x
-        self.normE = np.sqrt(E_field[0, :, :]**2 + E_field[1, :, :]**2) 
+        self.normE = np.sqrt(E_field[0, :, :]**2 + E_field[1, :, :]**2)
         self.normE_ax = self.normE[0, :]  # compute norm on the axis
 
         # maximal electric field position in the first half of the domain
         # ie. left streamer position
-        self.gstreamer[it, 1] = x[np.argmax(self.normE_ax[:self.n_middle])]  
+        self.gstreamer[it, 1] = x[np.argmax(self.normE_ax[:self.n_middle])]
         # right streamer position
         self.gstreamer[it, 2] = x[self.n_middle + np.argmax(self.normE_ax[self.n_middle:])]
         # instantaneous discharge power
@@ -247,9 +247,9 @@ class StreamerMorrow(BaseSim):
         plot_ax_scalar(fig, axes[2], self.X, self.Y, self.normE, r"$|\mathbf{E}|$", geom=self.geom)
         plot_ax_scalar_1D(fig, axes[3], self.X, [0.0, 0.1, 0.2], self.normE, r"$|\mathbf{E}|$")
         if self.photo:
-            plot_ax_scalar(fig, axes[4], self.X, self.Y, self.Sph, r"$S_{ph}$", 
+            plot_ax_scalar(fig, axes[4], self.X, self.Y, self.Sph, r"$S_{ph}$",
                     geom=self.geom, cmap_scale='log', field_ticks=[1e23, 1e26, 1e29])
-            plot_ax_scalar_1D(fig, axes[5], self.X, [0.0, 0.1, 0.2], self.Sph, r"$S_{ph}$", 
+            plot_ax_scalar_1D(fig, axes[5], self.X, [0.0, 0.1, 0.2], self.Sph, r"$S_{ph}$",
                     yscale='log', ylim=[1e23, 1e29])
 
         plt.tight_layout()
@@ -266,10 +266,15 @@ class StreamerMorrow(BaseSim):
 
         axes = axes.reshape(-1)
 
-        plot_ax_scalar(fig, axes[0], self.X, self.Y, self.nd[0], r"$n_e$", geom=self.geom, cmap_scale='log')
-        plot_ax_scalar(fig, axes[1], self.X, self.Y, self.normE, r"$|\mathbf{E}|$", geom=self.geom)
+        plot_ax_scalar(fig, axes[0], self.X, self.Y, self.nd[0], r"$n_e$", geom=self.geom, cmap_scale='log',
+                            field_ticks=[1e17, 1e18, 1e19, 1e20, 1e21])
+        plot_ax_scalar(fig, axes[1], self.X, self.Y, self.normE, r"$|\mathbf{E}|$", geom=self.geom, max_value=1.9e7)
+        fig.axes[0].get_xaxis().set_visible(False)
+        fig.axes[0].get_yaxis().set_visible(False)
+        fig.axes[1].get_xaxis().set_visible(False)
+        fig.axes[1].get_yaxis().set_visible(False)
         if self.photo:
-            plot_ax_scalar(fig, axes[2], self.X, self.Y, self.Sph, r"$S_{ph}$", 
+            plot_ax_scalar(fig, axes[2], self.X, self.Y, self.Sph, r"$S_{ph}$",
                     geom=self.geom, cmap_scale='log', field_ticks=[1e23, 1e26, 1e29])
 
         plt.tight_layout()
@@ -286,7 +291,7 @@ class StreamerMorrow(BaseSim):
             self.physical_rhs_list[it - 1, :, :] = self.poisson.physical_rhs
             if it % self.dl_plot_period == 0:
                 self.poisson.plot_2D(self.dl_fig + f'input_{it:05d}')
-            
+
             if self.photo:
                 self.irate_list[it - 1, :, :] = self.irate
                 self.Sph_list[it - 1, :, :] = self.Sph
@@ -296,10 +301,10 @@ class StreamerMorrow(BaseSim):
         np.save(self.data_dir + f'nd_{self.number:04d}', self.nd)
 
     def plot_global(self):
-        """ Global quantities (position of negative streamer, 
+        """ Global quantities (position of negative streamer,
         positive streamer and energy of discharge). """
         gstreamer = self.gstreamer
-        
+
         # Scale to ns
         time = gstreamer[:, 0] / 1e-9
 
@@ -310,7 +315,7 @@ class StreamerMorrow(BaseSim):
         # Scale to mmm and microjoule
         gstreamer[:, 1:3] = gstreamer[:, 1:3] / 1e-3
         gstreamer[:, 3] = gstreamer[:, 3] / 1e-6
-        
+
         # Figure creation
         fig, axes = plt.subplots(ncols=2, figsize=(8, 5))
         axes[0].plot(time, gstreamer[:, 1], 'k--', lw=2, label='Negative streamer')

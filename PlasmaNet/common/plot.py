@@ -56,7 +56,7 @@ def plot_set_1D(x, physical_rhs, pot, E_field_norm, lapl_pot, n_points, figtitle
     else:
         list_cut = [0, 0.25, 0.5]
         fig, axes = plt.subplots(ncols=3, figsize=(15, 7))
-        for cut_pos in list_cut:        
+        for cut_pos in list_cut:
             n = int(cut_pos * (n_points - 1))
             axes[1].plot(x, pot[n, :], label='%s = %.2f %smax' % (direction, cut_pos, direction))
             axes[2].plot(x, E_field_norm[n, :], label='%s = %.2f %smax' % (direction, cut_pos, direction))
@@ -105,7 +105,7 @@ def plot_set_2D(X, Y, physical_rhs, pot, E, figtitle, figname, no_rhs=False, geo
     plt.close()
 
 
-def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu', 
+def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
         geom='xy', field_ticks=None, max_value=None, cbar=True, contour=True):
     """ Plot a 2D field on mesh X and Y with contourf and contour. Automatic
     handling of maximum values for the colorbar with an up rounding to a certain
@@ -163,9 +163,9 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
         else:
             aspect = 0.85 * ymax / fraction_cbar / xmax
         # Set the colorbar in scientific notation
-        sfmt = mpl.ticker.ScalarFormatter(useMathText=True) 
+        sfmt = mpl.ticker.ScalarFormatter(useMathText=True)
         sfmt.set_powerlimits((0, 0))
-        fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect, 
+        fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect,
             ticks=field_ticks, format=sfmt)
 
     if geom == 'xr':
@@ -196,7 +196,7 @@ def plot_ax_scalar_1D(fig, ax, X, list_cut, field, title, yscale='linear', ylim=
     ax.ticklabel_format(axis='x', style='sci', scilimits=(scilimx, scilimx))
 
 
-def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues', 
+def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues',
                             geom='xy', max_value=None, cbar=True):
     norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
     arrow_step = int(len(X[:, 0]) / 10)
@@ -216,19 +216,19 @@ def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues',
     else:
         aspect = 0.85 * np.max(Y) / fraction_cbar / np.max(X)
 
-    if cbar: 
+    if cbar:
         # Set the colorbar in scientific notation
-        sfmt = mpl.ticker.ScalarFormatter(useMathText=True) 
+        sfmt = mpl.ticker.ScalarFormatter(useMathText=True)
         sfmt.set_powerlimits((0, 0))
-        fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect, 
+        fig.colorbar(CS, pad=0.05, fraction=fraction_cbar, ax=ax, aspect=aspect,
             ticks=np.linspace(0, max_value, 5), format=sfmt)
-    ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step], 
+    ax.quiver(X[::arrow_step, ::arrow_step], Y[::arrow_step, ::arrow_step],
                 vector_field[0, ::arrow_step, ::arrow_step], vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
 
     if geom == 'xr':
-        ax.quiver(X[::arrow_step, ::arrow_step], - Y[::arrow_step, ::arrow_step], 
+        ax.quiver(X[::arrow_step, ::arrow_step], - Y[::arrow_step, ::arrow_step],
             vector_field[0, ::arrow_step, ::arrow_step], - vector_field[1, ::arrow_step, ::arrow_step], pivot='mid')
-    
+
     ax.set_title(name)
     ax.set_aspect('equal')
     ax.ticklabel_format(axis='x', style='sci', scilimits=(0, 0))
@@ -303,7 +303,7 @@ def plot_lapl_rhs(X, Y, dx, dy, potential, physical_rhs, nx, ny, figname, figtit
 
 
 def plot_modes(ax, N, M, coeffs, title, cmap_str='Blues'):
-    """ Plot of the different modes of a 2D Fourier expansion """            
+    """ Plot of the different modes of a 2D Fourier expansion """
     # ax.plot_surface(N, M, coeffs, alpha=0.7)
     N, M, coeffs = N.reshape(-1), M.reshape(-1), coeffs.reshape(-1)
 

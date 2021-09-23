@@ -1,0 +1,30 @@
+#####################################################################################
+#                                                                                   #
+#                        PoissonLinSystem -- Configuration file                     #
+#                                                                                   #
+#                          Lionel Cheng, CERFACS, 04.03.2021                        #
+#                                                                                   #
+#####################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+device: 'kraken'
+n_entries: 1000
+n_procs: 30
+output_dir: '/scratch/cfd/cheng/DL/datasets/eval_cyl/'
+
+poisson:
+  geom: 'cylindrical'
+  bcs: 'dirichlet_axi'
+  xmin: 0.0
+  xmax: 4.0e-3
+  nnx: 401
+  ymin: 0.0
+  ymax: 1.0e-3
+  nny: 101
+  nmax_fourier: 5

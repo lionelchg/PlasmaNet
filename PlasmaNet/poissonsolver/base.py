@@ -9,6 +9,7 @@
 import numpy as np
 from scipy import integrate
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 from pathlib import Path
 
 from ..common.operators_numpy import grad, lapl
@@ -105,6 +106,14 @@ class BasePoisson:
         :type geom: str, optional
         """
 
+        # # For rectangular domains good plotting
+        # fig = plt.figure(figsize=(8, 3))
+        # gs = GridSpec(2, 4, figure=fig)
+        # axes = list()
+        # axes.append(fig.add_subplot(gs[0, :2]))
+        # axes.append(fig.add_subplot(gs[0, 2:]))
+        # axes.append(fig.add_subplot(gs[1, 1:3]))
+
         fig, axes = plt.subplots(ncols=3, figsize=(11, 14))
 
         plot_ax_scalar(fig, axes[0], self.X, self.Y, self.potential, r'$\phi$', geom=geom)
@@ -122,7 +131,7 @@ class BasePoisson:
 
 
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
-        plt.savefig(figname, bbox_inches='tight')
+        plt.savefig(figname, dpi=150, bbox_inches='tight')
         plt.close()
 
     def plot_1D2D(self, figname, geom='xy'):
