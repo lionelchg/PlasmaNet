@@ -15,7 +15,7 @@ from tqdm import tqdm
 from pathlib import Path
 from time import perf_counter
 from scipy.sparse.linalg import inv
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, tril
 
 # From PlasmaNet
 import PlasmaNet.nnet.data.data_loaders as module_data
@@ -104,7 +104,7 @@ class PoissonNetwork(BasePoisson):
         # Hybrid from E. Ajuria
         if "iterative_refine" in cfg['eval']:
             self.iterative_refine = True
-            self.refine_method = "jacobi"
+            self.refine_method = cfg['eval']['iterative_refine']
             self.refine_its = cfg['eval']['refine_its']
 
             zeros_x = np.zeros_like(self.x)
@@ -114,14 +114,25 @@ class PoissonNetwork(BasePoisson):
             self.bcs = {'left': 'dirichlet', 'right': 'dirichlet', 'bottom': 'dirichlet', 'top': 'dirichlet'}
             self.mat = cartesian_matrix(self.dx, self.dy, self.nnx, self.nny, 1.0, self.bcs)
             self.bc = {'left': zeros_y, 'right': zeros_y, 'bottom': zeros_x, 'top': zeros_x}
+
+            print('Domain of size {} x {}'.format(self.nnx, self.nny))
             
             # Iterative decomposition
-            self.P = csr_matrix(self.mat.shape)
-            self.P.setdiag(self.mat.diagonal())
-            self.Pinv = csr_matrix(self.mat.shape)
-            self.Pinv.setdiag(np.where(self.P.diagonal() != 0.0, 1 / self.P.diagonal(), 0.0))
-            self.N = self.P - self.mat
-            self.PinvN = self.Pinv * self.N
+            if self.refine_method == 'gauss_seidel':
+                self.lstar =  tril(self.mat)
+                self.triu = self.mat - self.lstar
+                print('Start Inversion')
+                self.lstar_inv = inv(self.lstar)
+                print('End inversion')
+                self.lstar_invU = self.lstar_inv * self.triu
+            else:
+                self.P = csr_matrix(self.mat.shape)
+                self.P.setdiag(self.mat.diagonal())
+                self.Pinv = csr_matrix(self.mat.shape)
+                self.Pinv.setdiag(np.where(self.P.diagonal() != 0.0, 1 / self.P.diagonal(), 0.0))
+                self.N = self.P - self.mat
+                self.PinvN = self.Pinv * self.N
+
         else:
             self.iterative_refine = False
 
@@ -147,6 +158,7 @@ class PoissonNetwork(BasePoisson):
         # Interpolate if the shape of the rhs does not match
         # the input resolution of the model
         interpolate = self.model.input_res != physical_rhs.shape
+        print('Interpolate: ', interpolate, self.model.input_res, physical_rhs.shape)
 
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
         if self.benchmark:
@@ -214,10 +226,16 @@ class PoissonNetwork(BasePoisson):
         if self.iterative_refine:
             impose_dirichlet(self.physical_rhs, self.bc)
             for _ in range(self.refine_its):
-                self.potential = (
-                    self.PinvN.dot(self.potential.reshape(-1)) - self.Pinv.dot(self.physical_rhs.reshape(-1))
-                ).reshape(self.nny, self.nnx)
-                print('Jacobi it')
+                if self.refine_method == 'gauss_seidel':
+                    self.potential = (
+                        - self.lstar_inv.dot(self.physical_rhs.reshape(-1)) - self.lstar_invU.dot(self.potential.reshape(-1))
+                    ).reshape(self.nny, self.nnx)     
+                    print('Gauss it')   
+                else:
+                    self.potential = (
+                        self.PinvN.dot(self.potential.reshape(-1)) - self.Pinv.dot(self.physical_rhs.reshape(-1))
+                    ).reshape(self.nny, self.nnx)
+                    print('Jacobi it')
 
         # Print benchmarks
         if self.benchmark:

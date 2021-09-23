@@ -24,7 +24,7 @@ eval:
     nny: 1001
     nmax_fourier: 10
     # For hybrid solver (to comment if not used)
-    iterative_refine: 'jacobi'
+    iterative_refine: 'gauss_seidel'
     refine_its: 3
     mat: 'cart_dirichlet'
 
