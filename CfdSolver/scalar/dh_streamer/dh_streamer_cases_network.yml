@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/network_vs_ls/1e9_back_photo/'
+casename: 'runs/kraken/network_vs_ls/1e14_back/'
 description: 'Different runs of dh_streamers for network vs linear system'
 mode: 'seq'
 poisson/type: ['network', 'network', 'lin_system']
@@ -27,9 +27,9 @@ base:
     nit: 3000
     dt: 1.0e-12
     geom: 'xr'
-    photoionization: 'three'
-    # n_back: 1.0e+14
-    n_back: 1.0e+9
+    photoionization: 'no'
+    n_back: 1.0e+14
+    # n_back: 1.0e+9
     n_gauss: 1.0e+19
 
   transport:

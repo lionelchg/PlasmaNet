@@ -97,6 +97,8 @@ class PoissonNetwork(BasePoisson):
         # For interpolation kind if activated
         if 'interp_kind' in cfg:
             self.interp_kind = cfg['interp_kind']
+        else:
+            self.interp_kind = 'bilinear'
         
         # Hybrid with iteration from linear system solver
         # Hybrid from E. Ajuria

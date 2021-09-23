@@ -33,8 +33,8 @@ def ax_prop(ax, ylabel, ymin, ymax):
     ax.set_ylim(ymin, ymax)
 
 def run(cfg: dict, interp_type: str, interp_kind: str):
-    """ Run interpolation runs with interp_type = numpy or torch 
-    and interp_kind = linear/cubic for numpy or bilinear/bicubic for torch"""
+    """ Run interpolation runs with interp_type = scipy or torch 
+    and interp_kind = linear/cubic for scipy or bilinear/bicubic for torch"""
     # Print run
     print(f'Run {interp_kind} - {interp_type}')
     
@@ -43,7 +43,7 @@ def run(cfg: dict, interp_type: str, interp_kind: str):
 
     cfg['network']['eval'] = cfg['eval']
 
-    fig_dir = Path(cfg['network']['casename']) / f'cvg_interp_{interp_kind}_{interp_type}'
+    fig_dir = Path(cfg['network']['casename']) / 'cvg_interp' / f'{interp_kind}_{interp_type}'
     fig_dir.mkdir(parents=True, exist_ok=True)
     cfg['network']['interp_kind'] = interp_kind
 
