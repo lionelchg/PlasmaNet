@@ -99,7 +99,7 @@ class PoissonNetwork(BasePoisson):
             self.interp_kind = cfg['interp_kind']
         else:
             self.interp_kind = 'bilinear'
-        
+
         # Hybrid with iteration from linear system solver
         # Hybrid from E. Ajuria
         if "iterative_refine" in cfg['eval']:
@@ -116,7 +116,7 @@ class PoissonNetwork(BasePoisson):
             self.bc = {'left': zeros_y, 'right': zeros_y, 'bottom': zeros_x, 'top': zeros_x}
 
             print('Domain of size {} x {}'.format(self.nnx, self.nny))
-            
+
             # Iterative decomposition
             if self.refine_method == 'gauss_seidel':
                 self.lstar =  tril(self.mat)
@@ -167,27 +167,27 @@ class PoissonNetwork(BasePoisson):
 
         physical_rhs_torch = torch.from_numpy(self.physical_rhs[np.newaxis, np.newaxis, :, :]
                                               * self.ratio * self.scaling_factor).float().to(self.device)
-        
+
         if self.benchmark:
-            torch.cuda.synchronize()  # Wait for the events to be recorded! 
+            torch.cuda.synchronize()  # Wait for the events to be recorded!
             comm_timer = perf_counter() - comm_timer
             model_timer = perf_counter()
 
         # Interpolate if the shape of the rhs does not match
         if interpolate:
-            physical_rhs_torch = torch.nn.functional.interpolate(physical_rhs_torch, 
-                size=self.model.input_res, mode=self.interp_kind, align_corners=True) 
+            physical_rhs_torch = torch.nn.functional.interpolate(physical_rhs_torch,
+                size=self.model.input_res, mode=self.interp_kind, align_corners=True)
 
         # Apply the model
         potential_torch = self.model(physical_rhs_torch)
 
         # Interpolate back to the wanted resolution
         if interpolate:
-            potential_torch = torch.nn.functional.interpolate(potential_torch, 
-                size=physical_rhs.shape, mode=self.interp_kind, align_corners=True)   
+            potential_torch = torch.nn.functional.interpolate(potential_torch,
+                size=physical_rhs.shape, mode=self.interp_kind, align_corners=True)
 
         if self.benchmark:
-            torch.cuda.synchronize()  # Wait for the events to be recorded! 
+            torch.cuda.synchronize()  # Wait for the events to be recorded!
             model_timer = perf_counter() - model_timer
 
         # Retrieve the potential
@@ -208,8 +208,8 @@ class PoissonNetwork(BasePoisson):
                 if self.refine_method == 'gauss_seidel':
                     self.potential = (
                         - self.lstar_inv.dot(self.physical_rhs.reshape(-1)) - self.lstar_invU.dot(self.potential.reshape(-1))
-                    ).reshape(self.nny, self.nnx)     
-                    print('Gauss it')   
+                    ).reshape(self.nny, self.nnx)
+                    print('Gauss it')
                 else:
                     self.potential = (
                         self.PinvN.dot(self.potential.reshape(-1)) - self.Pinv.dot(self.physical_rhs.reshape(-1))

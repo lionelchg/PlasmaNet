@@ -1,4 +1,11 @@
-fig_dir: 'network_vs_ls'
+# Comparison of globals from streamer
+fig_dir: 'network_vs_ls/1e14_back'
 
-solut_paths: 
-solut_labels: 
+# solut_paths: ['runs/kraken/network_vs_ls/1e14_back/case_1/data',
+#               'runs/kraken/network_vs_ls/1e14_back/case_2/data',
+#               'runs/kraken/network_vs_ls/1e14_back/case_3/data']
+# solut_labels: ['UNet5-100k', 'UNet5-300k', 'Linear system']
+
+solut_paths: ['runs/kraken/network_vs_ls/1e14_back/case_1/data',
+              'runs/kraken/network_vs_ls/1e14_back/case_3/data']
+solut_labels: ['UNet5', 'Linear system']
