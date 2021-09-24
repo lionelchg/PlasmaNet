@@ -147,7 +147,10 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
         if geom == 'xr':
             ax.contourf(X, - Y, field, levels, cmap=cmap)
         if contour:
-            clevels = np.array([- 0.8, - 0.2, 0.2, 0.8]) * np.max(np.abs(field))
+            if cmap == 'Blues':
+                clevels = np.array([0.2, 0.5, 0.8]) * np.max(np.abs(field))
+            else:
+                clevels = np.array([- 0.8, - 0.2, 0.2, 0.8]) * np.max(np.abs(field))
             ax.contour(X, Y, field, levels=clevels, colors='k', linewidths=0.9)
             if geom == 'xr':
                 ax.contour(X, -Y, field, levels=clevels, colors='k', linewidths=0.9)

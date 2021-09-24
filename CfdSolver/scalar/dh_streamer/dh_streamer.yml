@@ -17,7 +17,7 @@
 casename: 'runs/kraken/UNet5-rect-100k/'
 
 params:
-  nit: 2000
+  nit: 3200
   dt: 1.0e-12
   geom: 'xr'
   photoionization: 'no'
@@ -34,7 +34,6 @@ poisson:
   backE: 4.8e+6
   type: 'network'
   # type: 'lin_system'
-  # mat: 'cart_dirichlet'
   nmax_fourier: 10
 
 mesh:
@@ -53,7 +52,7 @@ output:
   dl_save: 'no'
 
 input: 'none'
-  
+
 # This block is useful only if poisson/type = 'network'
 network:
   n_gpu: 1                                    # Number of GPUs to use

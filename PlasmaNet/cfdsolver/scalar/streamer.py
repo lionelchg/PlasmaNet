@@ -14,6 +14,7 @@ import argparse
 import yaml
 import logging
 import seaborn as sns
+import copy
 
 from scipy.sparse.linalg import spsolve
 
@@ -268,7 +269,7 @@ class StreamerMorrow(BaseSim):
 
         plot_ax_scalar(fig, axes[0], self.X, self.Y, self.nd[0], r"$n_e$", geom=self.geom, cmap_scale='log',
                             field_ticks=[1e17, 1e18, 1e19, 1e20, 1e21])
-        plot_ax_scalar(fig, axes[1], self.X, self.Y, self.normE, r"$|\mathbf{E}|$", geom=self.geom, max_value=1.9e7)
+        plot_ax_scalar(fig, axes[1], self.X, self.Y, self.normE, r"$|\mathbf{E}|$", cmap='Blues', geom=self.geom, max_value=1.9e7)
         fig.axes[0].get_xaxis().set_visible(False)
         fig.axes[0].get_yaxis().set_visible(False)
         fig.axes[1].get_xaxis().set_visible(False)
@@ -286,6 +287,7 @@ class StreamerMorrow(BaseSim):
         """ Post-processing of simulation after each iteration: save data, plot data, accumulate lists
         for deep-learning training sets as well """
         super().postproc(it)
+
         if self.dl_save:
             self.potential_list[it - 1, :, :] = self.poisson.potential
             self.physical_rhs_list[it - 1, :, :] = self.poisson.physical_rhs
@@ -299,11 +301,14 @@ class StreamerMorrow(BaseSim):
     def save(self):
         """ Save solutions. """
         np.save(self.data_dir + f'nd_{self.number:04d}', self.nd)
+        np.save(self.data_dir + f'globals_{self.number:04d}', self.gstreamer)
 
     def plot_global(self):
         """ Global quantities (position of negative streamer,
         positive streamer and energy of discharge). """
-        gstreamer = self.gstreamer
+        # Copy to not influence data in the .npy file that is saved
+        # afterwards
+        gstreamer = copy.deepcopy(self.gstreamer)
 
         # Scale to ns
         time = gstreamer[:, 0] / 1e-9
@@ -356,15 +361,6 @@ class StreamerMorrow(BaseSim):
 
         # Print information
         sim.print_init()
-
-        nit, nny, nnx = sim.nit, sim.nny, sim.nnx
-
-        if config['output']['dl_save'] == 'yes':
-            potential_list = np.zeros((nit, nny, nnx))
-            physical_rhs_list = np.zeros((nit, nny, nnx))
-            if sim.photo:
-                Sph_list = np.zeros((nit, nny, nnx))
-                irate_list = np.zeros((nit, nny, nnx))
 
         # Iterations
         for it in range(1, sim.nit + 1):

@@ -30,7 +30,7 @@ def main():
     solut_labels = cfg['solut_labels']
     nsols = len(solut_paths)
 
-    # colors = ['lightsteelblue', 'royalblue', 'darkblue', 
+    # colors = ['lightsteelblue', 'royalblue', 'darkblue',
     #             'lightcoral', 'firebrick', 'darkred']
     colors = ['royalblue', 'indianred']
     markers = ['--o', '--^']
@@ -38,8 +38,18 @@ def main():
     fig, axes = plt.subplots(ncols=2, figsize=(8, 5))
     for isol, solut_path in enumerate(solut_paths):
         gstreamer = np.load(Path(solut_path) / 'globals.npy')
+        # gstreamer = gstreamer[:2800, :] # For filtering not filled values yet
+
         # Scale to ns
         time = gstreamer[:, 0] / 1e-9
+
+        # Put the first iterations to the same value of
+        # later in the simulations when the heads of streamer really appeared
+        gstreamer[:20, 1:3] =  gstreamer[20, 1:3]
+
+        # Scale to mmm and microjoule
+        gstreamer[:, 1:3] = gstreamer[:, 1:3] / 1e-3
+        gstreamer[:, 3] = gstreamer[:, 3] / 1e-6
 
         # Cut positive streamer and negative streamers
         ineg_cut = np.argmax(gstreamer[:, 1] < 0.01)
@@ -48,11 +58,11 @@ def main():
         if ipos_cut == 0: ipos_cut = -1
         if ineg_cut == 0: ineg_cut = -1
 
-        axes[0].plot(time[:ineg_cut], gstreamer[:ineg_cut, 1], markers[isol], 
+        axes[0].plot(time[:ineg_cut], gstreamer[:ineg_cut, 1], markers[isol],
             markevery=int(len(time) / 6), color=colors[isol], lw=2, label=solut_labels[isol])
-        axes[0].plot(time[:ipos_cut], gstreamer[:ipos_cut, 2], markers[isol], 
+        axes[0].plot(time[:ipos_cut], gstreamer[:ipos_cut, 2], markers[isol],
             markevery=int(len(time) / 6), color=colors[isol], lw=2)
-        axes[1].plot(time, gstreamer[:, 3], markers[isol], 
+        axes[1].plot(time, gstreamer[:, 3], markers[isol],
             markevery=int(len(time) / 6), color=colors[isol], lw=2, label=solut_labels[isol])
 
     ax_prop(axes[0], '$t$ [ns]', '$x$ [mm]')
