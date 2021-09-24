@@ -11,8 +11,8 @@ setup_requirements = []
 tests_requirements = ['pytest']
 
 setup(
-    author='G. Bogopolsky, L. Cheng, E. Ajuria',
-    author_email='bogopolsky@cerfacs.fr',
+    author='L. Cheng, E. Ajuria, G. Bogopolsky',
+    author_email='cheng@cerfacs.fr',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -49,6 +49,7 @@ setup(
             'opti_train=PlasmaNet.nnet.trainer.opti_train:main',
             'eval_datasets=PlasmaNet.poissonsolver.eval_datasets:main',
             'eval_datasets_2=PlasmaNet.poissonsolver.eval_datasets_2:main',
+            'compute_rf=PlasmaNet.nnet.compute_rf:compute_RF_2D',
         ],
     },
 )

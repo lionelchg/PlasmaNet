@@ -16,8 +16,7 @@
 # The train routine will automatically load the required `type` of each section with the given `args` by using the
 # `config.init_obj` method.
 
-
-name: 'figures/debug'                             # Experience name
+name: 'figures/debug'                               # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 # files: ['unets_ks3_rf50.yml', 'unets_ks3_rf75.yml', 'unets_ks3_rf100.yml', 'unets_ks3_rf150.yml',
@@ -33,7 +32,7 @@ arch:
     db_file: 'unets_ks3_rf200.yml'
     name: 'UNet3'
     args:
-        input_res: 500
+        input_res: 201
 
 globals:                                    # Domain sizes and others, used to compute global attributes
     nnx: 101
@@ -63,8 +62,8 @@ loss:
     type: 'ComposedLoss'
     pipe_config: True                       # Object initialization require config as first argument
     args:
-    loss_list:                          # List of the losses to compose if ComposedLoss is used
-        - DirichletBoundaryLoss
-        - LaplacianLoss
-    bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
-    lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
+        loss_list:                          # List of the losses to compose if ComposedLoss is used
+            - DirichletBoundaryLoss
+            - LaplacianLoss
+        bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
+        lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)

@@ -1,8 +1,8 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                                        Test the Receptive field empirically                                          #
+#                                        Compute the receptive field empirically                                       #
 #                                                                                                                      #
-#                                          Ekhi Ajuria, CERFACS, 28.05.2021 (mod. Victor Xing 01.09.21)                #
+#                              Ekhi Ajuria, Lionel Cheng, CERFACS, 24.09.2021 (mod. Victor Xing 01.09.21)              #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -12,102 +12,95 @@ import yaml
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
+import argparse
 
 import PlasmaNet.nnet.model as module_arch
 from PlasmaNet.nnet.parse_config import ConfigParser
 from PlasmaNet.common.plot import plot_ax_scalar
-from pathlib import Path
 
-
-def plot_test(data, output, model, in_res, folder, network):
+def plot_test(output, model, in_res, folder: Path, network, location):
+    """ Plot the propagated gradients or values to deduce receptive fields """
 
     # Create folder if does not exist
-    if not os.path.exists(folder):
-        os.makedirs(folder)
+    folder.mkdir(parents=True, exist_ok=True)
 
     # Create grids for plotting
     xx = np.arange(0, in_res)
     yy = np.arange(0, in_res)
     Xb, Yb = np.meshgrid(xx, yy)
 
-    if "center" in folder:
-        x = [
-            in_res // 2 - model.rf_global // 2,
-            in_res // 2 - model.rf_global // 2,
-            in_res // 2 + model.rf_global // 2,
-            in_res // 2 + model.rf_global // 2,
-            in_res // 2 - model.rf_global // 2,
-        ]
-        y = [
-            in_res // 2 - model.rf_global // 2,
-            in_res // 2 + model.rf_global // 2,
-            in_res // 2 + model.rf_global // 2,
-            in_res // 2 - model.rf_global // 2,
-            in_res // 2 - model.rf_global // 2,
-        ]
-    else:
-        x = [0, 0, model.rf_global // 2, model.rf_global // 2, 0]
-        y = [0, model.rf_global // 2, model.rf_global // 2, 0, 0]
+    # Define receptive field variables
+    rf_global_x = model.rf_global_x
+    rf_global_y = model.rf_global_y
+
+    # Define bounding box of expected receptive field
+    if "center" in location:
+        # For a center point the receptive field from the kernel sizes goes both ways
+        x_rf = [in_res // 2 - rf_global_x // 2, in_res // 2 - rf_global_x // 2,
+            in_res // 2 + rf_global_x // 2, in_res // 2 + rf_global_x // 2,
+            in_res // 2 - rf_global_x // 2]
+        y_rf = [in_res // 2 - rf_global_y // 2, in_res // 2 + rf_global_y // 2,
+            in_res // 2 + rf_global_y // 2, in_res // 2 - rf_global_y // 2,
+            in_res // 2 - rf_global_y // 2]
+    elif "boundary" in location:
+        # For a boundary point it only goes one way so that the receptive
+        # field is two times lower
+        x_rf = [0, 0, rf_global_x // 2, rf_global_x // 2, 0]
+        y_rf = [0, rf_global_y // 2, rf_global_y // 2, 0, 0]
 
     # Image initialization
-    fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(5.5, 3))
-    fig.subplots_adjust(wspace=0.3)
+    fig, ax = plt.subplots(figsize=(5, 5))
 
     # Plot input, output and expected box
-    plot_ax_scalar(fig, ax1, Xb, Yb, data[0, 0, :, :].numpy(), r"Init")
-    plot_ax_scalar(fig, ax2, Xb, Yb, output[0, 0, :, :].numpy(), r"RF")
-    ax2.plot(x, y, linestyle="dashed", color="k", linewidth=3)
+    plot_ax_scalar(fig, ax, Xb, Yb, output[0, 0, :, :].numpy(), r"RF", contour=False)
+    ax.plot(x_rf, y_rf, linestyle="dashed", color="k", lw=2)
 
     # Cut the domain so that only the middle "interesting" part remains
-    if "center" in folder:
-        ax1.set_ylim(in_res // 2 - model.rf_global, in_res // 2 + model.rf_global)
-        ax1.set_xlim(in_res // 2 - model.rf_global, in_res // 2 + model.rf_global)
-        ax2.set_ylim(in_res // 2 - model.rf_global, in_res // 2 + model.rf_global)
-        ax2.set_xlim(in_res // 2 - model.rf_global, in_res // 2 + model.rf_global)
-    else:
-        ax1.set_ylim(0, model.rf_global)
-        ax1.set_xlim(0, model.rf_global)
-        ax2.set_ylim(0, model.rf_global)
-        ax2.set_xlim(0, model.rf_global)
+    if "center" in location:
+        ax.set_ylim(in_res // 2 - 0.6 * rf_global_y, in_res // 2 + 0.6 * rf_global_y)
+        ax.set_xlim(in_res // 2 - 0.6 * rf_global_x, in_res // 2 + 0.6 * rf_global_x)
+    elif "boundary" in location:
+        ax.set_ylim(-0.1 * rf_global_y, 0.6 * rf_global_y)
+        ax.set_xlim(-0.1 * rf_global_x, 0.6 * rf_global_x)
 
     plt.tight_layout()
     plt.savefig(
-        os.path.join(
-            folder,
-            "test_{}_rf_{}_k_{}.png".format(
-                network, model.rf_global, model.kernel_sizes[0]
-            ),
-        ),
-        dpi=100,
+        os.path.join(folder, "fig_{}_rfx_{}_rfy_{}_k_{}.png".format(
+                network, rf_global_x, rf_global_y, model.kernel_sizes[0]
+            )),
+        dpi=150,
     )
     plt.close()
 
 
-def inverse_method(
-    model, cfg_dict, network, center, erf_thres=0.045, saving_folder="Images"
-):
+def inverse_method(model, cfg_dict, network, center, erf_thres=0.045):
+    """ Inverse RF calculating method where a value at the input map is propagated down
+    the network.
+
+    - model: network containing the weights initialized to a constant value and biases to 0
+    - cfg_dict: dictionary loaded from the cfg.yml file
+    - network: string containing the name of the studied network
+    - center: boolean to study the center or the BC case
+
+    Effective receptive field threshold: 2 standard deviations from value at the signal
+    location (cf Luo et al. NIPS 2016) """
     # Generate input tensor (all zeros except the middle point)
     in_res = cfg_dict["arch"]["args"]["input_res"]
     data = torch.zeros((1, 1, in_res, in_res))
     if center:
         data[:, :, in_res // 2, in_res // 2] = 1
-        ctr = "center"
+        location = "center"
     else:
         data[:, :, 0, 0] = 1
-        ctr = "BC"
+        location = "boundary_0_0"
 
     # Evaluate the network and follow metrics
     output = model(data).detach()
 
     # Plot
-    plot_test(
-        data,
-        output,
-        model,
-        in_res,
-        os.path.join(cfg_dict["name"], "figures", "Inverse", "{}".format(ctr)),
-        network,
-    )
+    fig_dir = Path(cfg_dict["name"]) / 'inverse' / location
+    plot_test(output, model, in_res, fig_dir, network, location)
 
     if center:
         thres = erf_thres * output[0, 0, in_res // 2, in_res // 2].numpy()
@@ -119,14 +112,11 @@ def inverse_method(
 
     return int(torch.sum(rf_output) ** 0.5), int(torch.sum(erf_output) ** 0.5)
 
-
-def direct_method(
-    model, cfg_dict, network, center, erf_thres=0.045, saving_folder="Images"
-):
+def direct_method(model, cfg_dict, network, center, erf_thres=0.045):
     """ Direct RF calculating method issued from:
         https://github.com/rogertrullo/Receptive-Field-in-Pytorch/blob/master/Receptive_Field.ipynb
 
-    - model: network containing the weights initialized to 1 and biases to 0
+    - model: network containing the weights initialized to a constant value and biases to 0
     - cfg_dict: dictionary loaded from the cfg.yml file
     - network: string containing the name of the studied network
     - center: boolean to study the center or the BC case
@@ -145,10 +135,10 @@ def direct_method(
     grad = torch.zeros(out_cnn.size())
     if center:
         grad[:, :, in_res // 2, in_res // 2] = 0.1
-        ctr = "center"
+        location = "center"
     else:
         grad[:, :, 0, 0] = 0.1
-        ctr = "BC"
+        location = "boundary_0_0"
 
     # Get the gradient only of the middle point!
     # Compute Receptive field
@@ -156,14 +146,8 @@ def direct_method(
     grad_torch = img_.grad.detach()
 
     # Plot
-    plot_test(
-        grad,
-        grad_torch,
-        model,
-        in_res,
-        os.path.join(cfg_dict["name"], "figures", "Direct", "{}".format(ctr)),
-        network,
-    )
+    fig_dir = Path(cfg_dict["name"]) / 'direct' / location
+    plot_test(grad_torch, model, in_res, fig_dir, network, location)
 
     if center:
         thres = erf_thres * grad_torch[0, 0, in_res // 2, in_res // 2].numpy()
@@ -175,14 +159,30 @@ def direct_method(
 
     return int(torch.sum(rf_grad_torch) ** 0.5), int(torch.sum(erf_grad_torch) ** 0.5)
 
+def weights_init_constant(m):
+    """ Weight initialization enforced for receptive field study. """
+    if isinstance(m, torch.nn.Conv2d):
+        torch.nn.init.constant_(m.weight, 0.1)
+        # torch.nn.init.ones_(m.weight)
+        torch.nn.init.zeros_(m.bias)
 
-def test_rf_2d():
+def compute_RF_2D():
+    """ Compute receptive fields for given networks and input resolutions
+    from inverse and direct methods for center and boundary points. """
 
+    # Work with float64 to avoid overflow
     torch.set_default_dtype(torch.float64)
 
-    with open("cfg.yml", "r") as yaml_stream:
+    # Parse cli argument
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config', type=str, required=True)
+    args = parser.parse_args()
+
+    # Open configuration file
+    with open(args.config, "r") as yaml_stream:
         cfg_dict = yaml.safe_load(yaml_stream)
 
+    # Loop on options
     for file in cfg_dict["files"]:
         print("")
         print("-----------------------------------------------------------")
@@ -225,23 +225,15 @@ def test_rf_2d():
             # 0 in biases and 1 in weights
             model = config.init_obj("arch", module_arch)
 
-            # Initialize the weights to 0.1 instead of 1.0 to have less huge values
-            # At the center in the end
-            def weights_init(m):
-                if isinstance(m, torch.nn.Conv2d):
-                    torch.nn.init.constant_(m.weight, 0.1)
-                    # torch.nn.init.ones_(m.weight)
-                    torch.nn.init.zeros_(m.bias)
-
             # Apply the model with the defined weights
-            model.apply(weights_init)
+            model.apply(weights_init_constant)
 
             # Compute RF with direct and inverse methods for the center points
             dir_RF, dir_ERF = direct_method(model, cfg_dict, network, True)
             inv_RF, inv_ERF = inverse_method(model, cfg_dict, network, True)
 
             print("===================================")
-            print("Originally Calculated RF: {}".format(model.rf_global))
+            print("Originally Calculated RF: {}".format(model.rf_global_x))
             print("Direct Method RF: {}".format(dir_RF))
             print("Direct Method effective RF: {}".format(dir_ERF))
             print("Inverse Procedure RF: {}".format(inv_RF))
@@ -252,16 +244,12 @@ def test_rf_2d():
             dir_RF, dir_ERF = direct_method(model, cfg_dict, network, False)
             inv_RF, inv_ERF = inverse_method(model, cfg_dict, network, False)
 
-            print("Originally Calculated RF: {}".format(model.rf_global // 2))
+            print("Originally Calculated RF: {}".format(model.rf_global_x // 2))
             print("Direct Method RF: {}".format(dir_RF))
             print("Direct Method effective RF: {}".format(dir_ERF))
             print("Inverse Procedure RF: {}".format(inv_RF))
             print("Inverse Procedure effective RF: {}".format(inv_ERF))
             print("===================================")
 
-    # assert torch.sum(output) == model.rf_global * model.rf_global
-
-
 if __name__ == "__main__":
-
-    test_rf_2d()
+    compute_RF_2D()
