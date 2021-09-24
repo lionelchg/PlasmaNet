@@ -28,6 +28,14 @@ PlasmaNet.cfdsolver.scalar.photo module
    :undoc-members:
    :show-inheritance:
 
+PlasmaNet.cfdsolver.scalar.pproc module
+---------------------------------------
+
+.. automodule:: PlasmaNet.cfdsolver.scalar.pproc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 PlasmaNet.cfdsolver.scalar.scalar module
 ----------------------------------------
 

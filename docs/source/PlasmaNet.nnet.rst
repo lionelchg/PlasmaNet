@@ -16,6 +16,14 @@ Subpackages
 Submodules
 ----------
 
+PlasmaNet.nnet.compute\_rf module
+---------------------------------
+
+.. automodule:: PlasmaNet.nnet.compute_rf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 PlasmaNet.nnet.parse\_config module
 -----------------------------------
 
