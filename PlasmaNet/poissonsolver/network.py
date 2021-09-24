@@ -115,15 +115,12 @@ class PoissonNetwork(BasePoisson):
             self.mat = cartesian_matrix(self.dx, self.dy, self.nnx, self.nny, 1.0, self.bcs)
             self.bc = {'left': zeros_y, 'right': zeros_y, 'bottom': zeros_x, 'top': zeros_x}
 
-            print('Domain of size {} x {}'.format(self.nnx, self.nny))
 
             # Iterative decomposition
             if self.refine_method == 'gauss_seidel':
                 self.lstar =  tril(self.mat)
                 self.triu = self.mat - self.lstar
-                print('Start Inversion')
                 self.lstar_inv = inv(self.lstar)
-                print('End inversion')
                 self.lstar_invU = self.lstar_inv * self.triu
             else:
                 self.P = csr_matrix(self.mat.shape)
@@ -158,7 +155,6 @@ class PoissonNetwork(BasePoisson):
         # Interpolate if the shape of the rhs does not match
         # the input resolution of the model
         interpolate = self.model.input_res != physical_rhs.shape
-        print('Interpolate: ', interpolate, self.model.input_res, physical_rhs.shape)
 
         # Convert to torch.Tensor of shape (batch_size, 1, H, W) with normalization
         if self.benchmark:

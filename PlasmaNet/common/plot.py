@@ -163,10 +163,13 @@ def plot_ax_scalar(fig, ax, X, Y, field, title, cmap_scale=None, cmap='RdBu',
         else:
             aspect = 0.85 * ymax / fraction_cbar / xmax
         # Set the colorbar in scientific notation
-        sfmt = mpl.ticker.ScalarFormatter(useMathText=True)
-        sfmt.set_powerlimits((0, 0))
+        # sfmt = mpl.ticker.ScalarFormatter(useMathText=True)
+        # sfmt = mpl.ticker.ScalarFormatter()
+        # sfmt.set_powerlimits((0, 0))
+        # fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect,
+        #     ticks=field_ticks, format=sfmt)
         fig.colorbar(cs1, ax=ax, pad=0.05, fraction=fraction_cbar, aspect=aspect,
-            ticks=field_ticks, format=sfmt)
+            ticks=field_ticks)
 
     if geom == 'xr':
         ax.set_yticks([-ymax, -ymax / 2, 0, ymax / 2, ymax])
