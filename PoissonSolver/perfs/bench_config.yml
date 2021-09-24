@@ -6,12 +6,12 @@
 #                                                                                   #
 #####################################################################################
 
-sizes: [51, 101, 121, 201, 301, 401, 601, 801, 1001, 1501, 2001, 3001]
-# sizes: [51, 101, 121, 201]
+# sizes: [51, 101, 121, 201, 301, 401, 601, 801, 1001, 1501, 2001, 3001]
+sizes: [51, 101, 121, 201]
 solver_types: ["direct"]
-useUmfpack: [True]
-assumeSortedIndices: [True]
-nits: 200
+useUmfpack: [False]
+assumeSortedIndices: [False]
+nits: 20
 
 # Networks to test
 networks:
