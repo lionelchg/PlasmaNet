@@ -1,0 +1,112 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                            cfdsolver -- Configuration file                                           #
+#                                                                                                                      #
+#                                           Lionel Cheng, CERFACS, 27.03.2020                                          #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+casename: 'runs/kraken/network_vs_ls_videos/1e14_back/'
+description: 'Different runs of dh_streamers for network vs linear system'
+mode: 'seq'
+poisson/type: ['network', 'lin_system']
+network/arch/name: ['UNet5-100k', '']
+network/resume: ['/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study/models/UNet5_ksrect/run_1/model_best.pth',
+                '']
+
+base:
+  params:
+    nit: 3000
+    dt: 1.0e-12
+    geom: 'xr'
+    photoionization: 'no'
+    n_back: 1.0e+14
+    n_gauss: 1.0e+19
+
+  transport:
+    chemistry: 'morrow'
+
+  BC: 'outlet_axi'
+
+  poisson:
+    backE: 4.8e+6
+    type: 'network'
+    nmax_fourier: 10
+
+  mesh:
+    xmin: 0
+    ymin: 0
+    xmax: 0.004
+    ymax: 0.001
+    nnx: 401
+    nny: 101
+  output:
+    folder: 'data/'
+    save: 'iteration'
+    verbose: True
+    files: 'fig'
+    period: 50
+    dl_save: 'no'
+
+  input: 'none'
+
+  # This block is useful only if poisson/type = 'network'
+  network:
+    n_gpu: 1                                    # Number of GPUs to use
+
+    globals:                                    # Domain sizes and others, used to compute global attributes
+      nnx: 401
+      nny: 101
+      xmin: 0.0
+      xmax: 4.0e-3
+      ymin: 0.0
+      ymax: 1.0e-3
+      coord: 'cart'
+      verbosity: 2
+
+    resume: '/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study/models/UNet5_ksrect/run_1/model_best.pth'
+
+    arch:
+      db_file: 'unets_rect.yml'
+      name: 'UNet5-100k'
+      args:
+          input_res: [101, 401]
+          padding_mode: 'custom'
+
+    data_loader:
+      type: 'PoissonDataLoader'
+      data_channels: 1
+      pipe_config: True
+      args:
+        batch_size: 200
+        shuffle: True
+        validation_split: 0.0               # if float, fraction of the full dataset, if int, length of validation portion
+        num_workers: 4
+        normalize: 'analytical'                   # max, physical or no for normalization types
+        alpha: 0.1
+        scaling_factor: 1.0e+6
+
+    initializer: 'off'
+
+    loss:
+      type: 'ComposedLoss'
+      pipe_config: True                       # Object initialization require config as first argument
+      args:
+        loss_list:                          # List of the losses to compose if ComposedLoss is used
+          - DirichletBoundaryLoss
+          - LaplacianLoss
+        bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
+        lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
+
+    metrics:
+      - 'residual'
+      - 'inf_norm'
+      - 'Eresidual'
+      - 'Einf_norm'

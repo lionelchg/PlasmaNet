@@ -50,20 +50,20 @@ class PlasmaEuler(Euler):
             zeros_y = np.zeros_like(self.y)
             self.pot_bcs = {'left': zeros_y, 'right': zeros_y,
                             'bottom': zeros_x, 'top': zeros_x}
-            
+
             if self.poisson_type == 'hybrid':
                 self.hybrid_it = config['poisson']['hybrid_it']
                 self.poisson_ls = DatasetPoisson(config['poisson'])
             else:
                 self.poisson = DatasetPoisson(config['poisson'])
-        
+
         # Analytical solution for 2D cartesian rectangular geometry
         elif self.poisson_type == 'analytical':
             config['poisson']['nmax_rhs'] = config['poisson']['nmax_fourier']
             config['poisson']['mmax_rhs'] = config['poisson']['nmax_fourier']
             config['poisson']['nmax_d'] = 0
             self.poisson = PoissonAnalytical(config['poisson'])
-        
+
         # The if loop has been changed from elif to if for 'hybrid' case
         if self.poisson_type == 'network' or self.poisson_type == 'hybrid':
             config['poisson']['geom'] = self.geom
@@ -190,7 +190,7 @@ class PlasmaEuler(Euler):
 
         # Creation of rhs variable
         rhs_field = - (self.U[0] / self.m_e - self.n_back) * co.e / co.epsilon_0
-        
+
         # Interpolation of rhs
         if self.interpol:
             f = interpolate.interp2d(self.x, self.y, rhs_field, kind=self.interp_kind)
@@ -260,6 +260,22 @@ class PlasmaEuler(Euler):
         fig.tight_layout()
         fig.savefig(self.fig_dir +
                     f'variables_{self.number:04d}', bbox_inches='tight')
+        plt.close(fig)
+
+        # Only 2D plotting
+        fig, axes = plt.subplots(ncols=2, figsize=(8, 4))
+        plot_ax_scalar(fig, axes[0], self.X, self.Y, n_e,
+                       r"$n_e$", geom='xy', max_value=1.1 * self.nep_max)
+        plot_ax_vector_arrow(
+            fig, axes[1], self.X, self.Y, E, 'Electric field', max_value=1.1 * self.E_max)
+        fig.suptitle(rf'$t$ = {self.dtsum:.2e} s')
+        fig.tight_layout()
+        fig.axes[0].get_xaxis().set_visible(False)
+        fig.axes[0].get_yaxis().set_visible(False)
+        fig.axes[1].get_xaxis().set_visible(False)
+        fig.axes[1].get_yaxis().set_visible(False)
+        fig.savefig(self.fig_dir +
+                    f'variables_2D_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
 
     def postproc(self, it):
@@ -468,7 +484,7 @@ class PlasmaEuler(Euler):
 
 @njit(cache=True)
 def compute_flux_cold(U, gamma, r, F):
-    """ Compute the 2D flux of the Euler equations 
+    """ Compute the 2D flux of the Euler equations
     assuming a zero pressure (and temperature). """
     # rhou - rhov
     F[0, 0] = U[1]

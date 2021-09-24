@@ -279,7 +279,8 @@ class StreamerMorrow(BaseSim):
                     geom=self.geom, cmap_scale='log', field_ticks=[1e23, 1e26, 1e29])
 
         plt.tight_layout()
-        fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+        fig.suptitle(f'$t$ = {self.dtsum:.2e} s')
+        fig.tight_layout(rect=[0, 0.02, 1, 0.98])
         plt.savefig(self.fig_dir + 'instant_2D_%04d' % self.number, bbox_inches='tight')
         plt.close(fig)
 

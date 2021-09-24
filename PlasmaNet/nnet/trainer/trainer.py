@@ -70,7 +70,7 @@ class Trainer(BaseTrainer):
             self.alpha_adaptative = self.config["loss"]["args"]["adaptative"]
         else:
             self.adaptative_weights = False
-        
+
         # Loop to get the index of the Laplacian Loss (as need for the update)
         for i_loss, loss in enumerate(self.criterion.losses):
             if isinstance(loss, LaplacianLoss):
@@ -122,14 +122,14 @@ class Trainer(BaseTrainer):
                 data = torch.cat((data, data_lt), dim=1)
                 output = torch.cat((output, output_lt), dim=1)
 
-            # Get gradient information!
+            # Get gradient information
             if self.gradient_info:
                 # Get Average and Mean gradients for each loss component
                 if self.criterion.require_input_data():
-                    max_grads, mean_grads = self.criterion.intermediate(self.model, self.optimizer, 
+                    max_grads, mean_grads = self.criterion.intermediate(self.model, self.optimizer,
                         output, target, epoch, batch_idx, data=data, target_norm=target_norm, data_norm=data_norm)
                 else:
-                    max_grads, mean_grads = self.criterion.intermediate(self.model, self.optimizer, 
+                    max_grads, mean_grads = self.criterion.intermediate(self.model, self.optimizer,
                         output, target, epoch, batch_idx)
 
                 # Adaptative weight update following Wang 2020 (https://arxiv.org/pdf/2001.04536.pdf)
@@ -274,7 +274,7 @@ class Trainer(BaseTrainer):
         self.df_valid_metrics.loc[epoch] = self.valid_metrics._data.average
 
         return val_log
-    
+
     def train(self):
         """ Define train for saving of dataframes """
         super().train()

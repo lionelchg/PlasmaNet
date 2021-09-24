@@ -4,6 +4,7 @@
 #SBATCH --ntasks-per-node=4
 #SBATCH --time=03:00:00
 #SBATCH --partition=gpu
+#SBATCH --nodelist=krakengpu2
 # #SBATCH --nodelist=krakenepyc1
 
 run_cases -np 4 -c $1 -t streamer

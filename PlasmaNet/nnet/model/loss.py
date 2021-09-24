@@ -63,7 +63,7 @@ class AxialNeumannLoss(BaseLoss):
     def _forward(self, output, target, **_):
         # Compute normal electric field at the axis
         grad_output = (4 * output[:, 0, 1, 1:-1] - 3 * output[:, 0, 0, 1:-1] - output[:, 0, 2, 1:-1]) / (2 * self.dy)
-        
+
         # Loss on that boundary
         bnd_loss = F.mse_loss(grad_output, torch.zeros_like(grad_output))
 
@@ -208,7 +208,7 @@ class LongTermLaplacianLoss(LaplacianLoss):
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         laplacian = lapl(output[:,1].unsqueeze(1) * target_norm / data_norm, self.dx, self.dy, r=self.r_nodes)
         return F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 1, 1:-1, 1:-1]) * self.weight
-        
+
 
 class ComposedLoss(BaseLoss):
     """
@@ -254,12 +254,12 @@ class ComposedLoss(BaseLoss):
     def intermediate(self, model, optimizer, output, target, epoch, ibatch, **kwargs):
         """
         Calculates the mean and max gradients of all the forwarded losses.
-        """    
-        # Initialize lists that will contain the max and mean grads    
+        """
+        # Initialize lists that will contain the max and mean grads
         max_grads = []
         mean_grads = []
 
-        # Only perform plots if plot gradients is not 0 
+        # Only perform plots if plot gradients is not 0
         plot_gradients = (self.gradients_every > 0) and (epoch % self.gradients_every == 0) and (ibatch == 0)
 
         # TODO generalizing for specific gradients
@@ -277,15 +277,15 @@ class ComposedLoss(BaseLoss):
             # Compute each individual loss and retain graph as multiple backwards will be performed.
             loss_indv = loss(output, target, **kwargs)
             loss_indv.backward(retain_graph=True)
-            
+
             # Initialize list containing the gradients of each weight and the max/mean/n_el values
-            # As the list contains elements with variable sizes, the number of weights of each layer 
+            # As the list contains elements with variable sizes, the number of weights of each layer
             # is stored in the n_el variable to correctly compute the mean
             gradients = []
             max_grad = 0
-            mean_grad = 0 
+            mean_grad = 0
             n_el = 0
-            
+
             # Loop over the network variables, storing the max grad
             # and adding the sum of each layer, as well as the number of elements
             for p in model.parameters():
@@ -295,27 +295,27 @@ class ComposedLoss(BaseLoss):
                 #if isinstance(loss, LaplacianLoss):
                 #    gradients_lapl.append(p.grad.clone().detach())
                 #elif isinstance(loss, DirichletBoundaryLoss):
-                #    gradients_bc_dr.append(p.grad.clone().detach())     
+                #    gradients_bc_dr.append(p.grad.clone().detach())
                 #elif isinstance(loss, InsideAxialLoss):
-                #    gradients_bc_ax.append(p.grad.clone().detach())  
+                #    gradients_bc_ax.append(p.grad.clone().detach())
 
                 if torch.max(torch.abs(p.grad)) > max_grad:
                     max_grad = torch.max(torch.abs(p.grad))
                 mean_grad +=torch.sum(torch.abs(p.grad))
-                n_el += len(p.grad.view(-1)) 
+                n_el += len(p.grad.view(-1))
 
             # Compute overall mean of the gradients
             mean_grad /= n_el
 
             # Store the computed values
             max_grads.append(max_grad)
-            mean_grads.append(mean_grad) 
+            mean_grads.append(mean_grad)
 
             # Plot
             if plot_gradients:
 
                 # plot k_de for not normalized gradients for the:
-                # last layer (output), m1 layer (minus 1), p1 layer (plus 1), zero (input) 
+                # last layer (output), m1 layer (minus 1), p1 layer (plus 1), zero (input)
                 x = np.linspace(-2*max_grad.detach().cpu().numpy(), 2*max_grad.detach().cpu().numpy(), 200)
                 plot_kde(x, gradients[-2], ax_list[0], loss.label)
                 plot_kde(x, gradients[-4], ax_list[1], loss.label)
@@ -323,15 +323,15 @@ class ComposedLoss(BaseLoss):
                 plot_kde(x, gradients[2], ax_list[3], loss.label)
 
                 # plot k_de for normalized gradients for the:
-                # last layer (output), m1 layer (minus 1), p1 layer (plus 1), zero (input) 
+                # last layer (output), m1 layer (minus 1), p1 layer (plus 1), zero (input)
                 xn = np.linspace(-1, 1, 200)
                 plot_kde(xn, gradients[-2]/max_grad, ax_list_norm[0], loss.label)
                 plot_kde(xn, gradients[-4]/max_grad, ax_list_norm[1], loss.label)
                 plot_kde(xn, gradients[0]/max_grad, ax_list_norm[2], loss.label)
-                plot_kde(xn, gradients[2]/max_grad, ax_list_norm[3], loss.label) 
-                
+                plot_kde(xn, gradients[2]/max_grad, ax_list_norm[3], loss.label)
+
             # Clean the gradients to avoid overlap!
-            optimizer.zero_grad() 
+            optimizer.zero_grad()
 
 
         if plot_gradients:
@@ -341,10 +341,10 @@ class ComposedLoss(BaseLoss):
             # Loop over network layers
             #for i in range(len(gradients_lapl)):
             #    # Check maximum gradient value between axial and dirichlet losses
-            #    max_bc = torch.where(torch.abs(gradients_bc_dr[i]) > torch.abs(gradients_bc_ax[i]), 
+            #    max_bc = torch.where(torch.abs(gradients_bc_dr[i]) > torch.abs(gradients_bc_ax[i]),
             #                        gradients_bc_dr[i], gradients_bc_ax[i])
             #    # Check where the laplacian gradients are higher
-            #    lapl_big = torch.where(torch.abs(gradients_lapl[i]) > torch.abs(max_bc), 
+            #    lapl_big = torch.where(torch.abs(gradients_lapl[i]) > torch.abs(max_bc),
             #                        torch.ones_like(gradients_lapl[i]), torch.zeros_like(gradients_lapl[i]))
             #    val = torch.sum(lapl_big).detach().cpu()
             #    #if val >0:
@@ -359,9 +359,9 @@ class ComposedLoss(BaseLoss):
             save_gradient_plots(fig_list_norm, ax_list_norm, name_list, self.fig_dir, epoch)
             plt.close('all')
 
-            # Useful print?
-            print('Max grads: ', max_grads)
-            print('Mean grads: ', mean_grads)
+            # # Useful print?
+            # print('Max grads: ', max_grads)
+            # print('Mean grads: ', mean_grads)
 
         return max_grads, mean_grads
 

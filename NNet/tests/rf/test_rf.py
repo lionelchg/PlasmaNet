@@ -126,7 +126,7 @@ def direct_method(
     """ Direct RF calculating method issued from:
         https://github.com/rogertrullo/Receptive-Field-in-Pytorch/blob/master/Receptive_Field.ipynb
 
-    - model: network containing the wieghts initialized to 1  and biases to 0
+    - model: network containing the weights initialized to 1 and biases to 0
     - cfg_dict: dictionary loaded from the cfg.yml file
     - network: string containing the name of the studied network
     - center: boolean to study the center or the BC case
@@ -195,26 +195,20 @@ def test_rf_2d():
             print("Load Network: {}".format(network))
             print("")
 
-            # Model initialization!
-
+            # Model initialization
             cfg_dict["arch"]["db_file"] = file
             cfg_dict["arch"]["name"] = network
 
             # Architecture parsing in database
             if "db_file" in cfg_dict["arch"]:
                 with open(
-                    Path(os.getenv("ARCHS_DIR")) / cfg_dict["arch"]["db_file"]
-                ) as yaml_stream:
+                    Path(os.getenv("ARCHS_DIR")) / cfg_dict["arch"]["db_file"]) as yaml_stream:
                     archs = yaml.safe_load(yaml_stream)
 
                 if network in archs:
                     tmp_cfg_arch = archs[cfg_dict["arch"]["name"]]
                 else:
-                    print(
-                        "Network {} does not exist on file {} ===> Skipping".format(
-                            network, file
-                        )
-                    )
+                    print("Network {} does not exist on file {} ===> Skipping".format(network, file))
                     break
 
                 if "args" in cfg_dict["arch"]:
@@ -231,12 +225,15 @@ def test_rf_2d():
             # 0 in biases and 1 in weights
             model = config.init_obj("arch", module_arch)
 
+            # Initialize the weights to 0.1 instead of 1.0 to have less huge values
+            # At the center in the end
             def weights_init(m):
                 if isinstance(m, torch.nn.Conv2d):
                     torch.nn.init.constant_(m.weight, 0.1)
                     # torch.nn.init.ones_(m.weight)
                     torch.nn.init.zeros_(m.bias)
 
+            # Apply the model with the defined weights
             model.apply(weights_init)
 
             # Compute RF with direct and inverse methods for the center points
@@ -251,7 +248,7 @@ def test_rf_2d():
             print("Inverse Procedure effective RF: {}".format(inv_ERF))
             print("===================================")
 
-            # Compute RF with direct and inverse methods for the BC points
+            # Compute RF with direct and inverse methods for the boundary conditions points
             dir_RF, dir_ERF = direct_method(model, cfg_dict, network, False)
             inv_RF, inv_ERF = inverse_method(model, cfg_dict, network, False)
 
