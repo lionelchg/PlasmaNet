@@ -84,7 +84,37 @@ class BasePhoto:
 
         # Set axes on or off
         if axis == 'off':
-            for ax in axes:
+            for ax in axes.reshape(-1):
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+
+
+        fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+        plt.savefig(figname, dpi=150, bbox_inches='tight')
+        plt.close()
+
+    def plot_2D_expanded(self, figname, geom='xr', axis='on'):
+        """ Plot the Sph, electric field and laplacian of the Poisson problem
+        at hand in 2D fields
+
+        :param figname: Name of the figure
+        :type figname: str
+        :param geom: Geometry of the problem either xy for cartesian and xr for axisymmetric, defaults to 'xy'
+        :type geom: str, optional
+        """
+
+        fig, axes = plt.subplots(ncols=2, nrows=2, figsize=(10, 8))
+
+        plot_ax_scalar(fig, axes[0][0], self.X, self.Y, self.Sph, r'$S_{ph}$', geom=geom)
+
+        plot_ax_scalar(fig, axes[0][1], self.X, self.Y, self.ioniz_rate, r'$I$', geom=geom)
+
+        for j in range(self.jtot):
+            plot_ax_scalar(fig, axes[1][j], self.X, self.Y, self.Sphj[j], rf'$S_{{ph}}^{j:d}$', geom=geom)
+
+        # Set axes on or off
+        if axis == 'off':
+            for ax in axes.reshape(-1):
                 ax.get_xaxis().set_visible(False)
                 ax.get_yaxis().set_visible(False)
 

@@ -46,7 +46,8 @@ data_loader:
     data_channels: 1
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/photo/train_cyl/401x101/random_8'
+        # data_dir: '/scratch/cfd/cheng/DL/datasets/photo/train_cyl/401x101/random_8'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/photo/train_cyl/401x101/random_16'
         batch_size: 64
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion

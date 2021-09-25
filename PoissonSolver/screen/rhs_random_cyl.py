@@ -75,11 +75,11 @@ def params(nits):
 
 def compute(args):
     """ Compute function for imap (multiprocessing) """
-    ioniz_rate = 3.5e22 * args
+    ioniz_rate = ni0 * args
 
     photo.solve(ioniz_rate, bcs)
 
-    return photo.Sph, photo.ioniz_rate
+    return photo.Sph, photo.Sphj, photo.ioniz_rate
 
 
 if __name__ == '__main__':
@@ -111,6 +111,7 @@ if __name__ == '__main__':
     print(f'Directory : {data_dir:s} - n_procs = {n_procs:d} - chunksize = {chunksize:d}')
 
     Sph_list = np.zeros((nits, nny, nnx))
+    Sphj_list = np.zeros((nits, photo.jtot, nny, nnx))
     ioniz_rate_list = np.zeros((nits, nny, nnx))
 
     time_start = time.time()
@@ -118,15 +119,19 @@ if __name__ == '__main__':
     with get_context('spawn').Pool(processes=n_procs) as p:
         results_train = list(tqdm(p.imap(compute, params(nits), chunksize=chunksize), total=nits))
 
-    for i, (photo_source, rhs) in enumerate(tqdm(results_train)):
+    for i, (photo_source, photo_sources, rhs) in enumerate(tqdm(results_train)):
         Sph_list[i, :, :] = photo_source
+        Sphj_list[i, :, :, :] = photo_sources
         ioniz_rate_list[i, :, :] = rhs
         if i % plot_period == 0:
             photo.Sph = photo_source
+            photo.Sphj = photo_sources
             photo.ioniz_rate = rhs
             photo.plot_2D(fig_dir + f'input_{i:05d}', axis='off')
+            photo.plot_2D_expanded(fig_dir + f'input_expanded_{i:05d}', axis='off')
 
     np.save(data_dir + 'Sph.npy', Sph_list)
+    np.save(data_dir + 'Sphj.npy', Sphj_list)
     np.save(data_dir + 'ioniz_rate.npy', ioniz_rate_list)
     time_stop = time.time()
     print('Elapsed time (s) : %.2f' % (time_stop - time_start))
