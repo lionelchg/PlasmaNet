@@ -2,7 +2,7 @@
 
 PlasmaNet is an open-source code to study the capability of neural networks to solve the Poisson equation coupled to plasma simulations. It is written in Python using object-oriented paradigms. [PyTorch](https://pytorch.org) is used to implement the neural networks studied in `PlasmaNet`.
 
-![alt text](images/streamer.png)
+![alt text](docs/images/streamer.png)
 
 ## Features
 
