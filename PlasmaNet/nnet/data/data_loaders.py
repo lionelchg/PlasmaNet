@@ -70,12 +70,12 @@ class PoissonDataLoader(BaseDataLoader):
             self.logger.info("No normalization")
             self.data_norm = torch.ones((physical_rhs.size(0), physical_rhs.size(1), 1, 1))
             self.target_norm = torch.ones((potential.size(0), potential.size(1), 1, 1))
-        
+
         # Scaling factor for the float32 that are not very precise
         self.scaling_factor = scaling_factor
         physical_rhs *= self.scaling_factor
         potential *= self.scaling_factor
-        
+
         # Convert to torch.float32
         physical_rhs = physical_rhs.type(torch.float32)
         potential = potential.type(torch.float32)
@@ -139,3 +139,48 @@ def ratio_potrhs(alpha, Lx, Ly):
     :rtype: float
     """
     return alpha / (np.pi**2 / 4)**2 / (1 / Lx**2 + 1 / Ly**2)
+
+class PhotoDataLoader(BaseDataLoader):
+    """
+    Loads a set of charge distribution and the associated potential.
+    Automatically shuffles the dataset before the validation split (see BaseDataLoader class).
+    """
+
+    def __init__(self, config, data_dir, batch_size, shuffle=True, validation_split=0.0,
+                num_workers=1, scaling_factor=1.0):
+        self.data_dir = Path(data_dir)
+        self.logger = config.get_logger('PoissonDataLoader', config['globals']['verbosity'])
+
+        # Load numpy files of shape (batch_size, H, W)
+        ioniz_rate = np.load(self.data_dir / 'ioniz_rate.npy')
+        Sph = np.load(self.data_dir / 'Sph.npy')
+
+        # Convert to torch.Tensor of shape (batch_size, 1, H, W)
+        ioniz_rate = torch.from_numpy(ioniz_rate[:, np.newaxis, :, :])
+        Sph = torch.from_numpy(Sph[:, np.newaxis, :, :])
+
+        # Normalization and length
+        self.normalize = ''
+        self.Lx = config.Lx
+        self.Ly = config.Ly
+
+        self.data_norm = torch.ones((ioniz_rate.size(0), ioniz_rate.size(1), 1, 1))
+        self.target_norm = torch.ones((Sph.size(0), Sph.size(1), 1, 1))
+
+        # Scaling factor for the float32 that are not very precise
+        self.scaling_factor = scaling_factor
+        ioniz_rate *= self.scaling_factor
+        Sph *= self.scaling_factor
+
+        # Convert to torch.float32
+        ioniz_rate = ioniz_rate.type(torch.float32)
+        Sph = Sph.type(torch.float32)
+        self.data_norm = self.data_norm.type(torch.float32)
+        self.target_norm = self.target_norm.type(torch.float32)
+
+        self.data = ioniz_rate
+
+        # Create Dataset from Tensor
+        self.dataset = TensorDataset(self.data, Sph, self.data_norm, self.target_norm)
+
+        super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)

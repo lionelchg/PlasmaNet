@@ -19,7 +19,7 @@ import scipy.constants as co
 from scipy import interpolate
 from tqdm import tqdm
 
-from PlasmaNet.helmholtzsolver.photo_ls import PhotoLinSystem
+from PlasmaNet.poissonscreensolver.photo_ls import PhotoLinSystem
 from PlasmaNet.common.utils import create_dir
 
 args = argparse.ArgumentParser(description='RHS random dataset')

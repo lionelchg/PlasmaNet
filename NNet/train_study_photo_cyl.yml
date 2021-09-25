@@ -1,0 +1,108 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                           PlasmaNet -- Configuration file                                            #
+#                                                                                                                      #
+#                                      Guillaume Bogopolsky, CERFACS, 11.03.2020                                       #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+# The train routine will automatically load the required `type` of each section with the given `args` by using the
+# `config.init_obj` method.
+
+
+# name: 'UNet5_rf200/run_8'                      # Experience name
+name: 'UNet5_ksrect/run_1'                      # Experience name
+n_gpu: 1                                    # Number of GPUs to use
+
+globals:                                    # Domain sizes and others, used to compute global attributes
+    nnx: 401
+    nny: 101
+    xmin: 0.0
+    xmax: 4.0e-3
+    ymin: 0.0
+    ymax: 1.0e-3
+    coord: 'cyl'
+    verbosity: 2
+
+arch:
+    # db_file: 'unets_ks3_rf200.yml'
+    db_file: 'unets_rect.yml'
+    # name: 'UNet5'
+    name: 'UNet5-100k'
+    args:
+        input_res: [101, 401]
+        # input_res: 101
+        padding_mode: 'custom'
+
+# resume: 'train_cyl/study/models/UNet5_rf200/run_5/checkpoint-epoch00100.pth'
+
+data_loader:
+    type: 'PhotoDataLoader'
+    data_channels: 1
+    pipe_config: True
+    args:
+        data_dir: '/scratch/cfd/cheng/DL/datasets/photo/train_cyl/401x101/random_8'
+        batch_size: 64
+        shuffle: True
+        validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
+        num_workers: 4
+        scaling_factor: 1.0e-20
+initializer: 'off'
+
+optimizer:
+    type: 'Adam'
+    args:
+        lr: 4.e-4
+        weight_decay: 0
+        amsgrad: False                      # AMSGrad variant from paper 'On the convergence of Adam and Beyond'
+
+loss:
+    type: 'ComposedLoss'
+    pipe_config: True                       # Object initialization require config as first argument
+    args:
+        loss_list:                          # List of the losses to compose if ComposedLoss is used
+            - InsideLoss
+            - DirichletBoundaryLoss
+            # - LaplacianLoss
+            # - AxialDirichletLoss
+            - AxialNeumannLoss
+        inside_weight: 1.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
+        bound_weight: 1.0                    # Weighting of the loss on the boundaries (float)
+        lapl_weight: 1.0e+6                    # Weighting of the loss on the Laplacian (float)
+        axial_dir_weight: 1.0
+        axial_neu_weight: 1.0
+        # adaptative: 0.1                     # Alpha value for adaptative weights
+        # gradients: 10
+
+metrics:
+    - 'residual'
+    - 'inf_norm'
+
+lr_scheduler:
+    type: 'ReduceLROnPlateau'
+    plateau_metric: loss                    # monitoring metric for ReduceLROnPlateau step()
+    args:
+        mode: 'min'
+        factor: 0.9                         # Amount scheduler reduces LR by (float)
+        patience: 50                        # Number of epochs the scheduler waits (int)
+        threshold: 3.e-4                    # Relative improvement the scheduler must see (float)
+        threshold_mode: 'rel'
+        verbose: False
+
+trainer:
+    epochs: 20
+    save_dir: 'train_cyl/study_photo'
+    save_period: 5
+    plot_period: 5                         # Period to send plots to TensorBoard
+    verbosity: 2
+    monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
+    early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
+    tensorboard: true
+    histograms: false                       # Save weights and bias histograms (turned off to increase TensorBoard perf)
