@@ -28,3 +28,12 @@ UNet5-300k:
             scale_4: [20, 60, 20]
         kernel_sizes: [[3, 9]]
 
+UNet4:
+    type: 'UNet'
+    args:
+        scales:
+            scale_0: [[1, 10, 15], [30, 10, 1]]
+            scale_1: [[15, 15, 20], [40, 15, 15]]
+            scale_2: [[20, 15, 20], [40, 15, 20]]
+            scale_3: [20, 15, 20]
+        kernel_sizes: [[3, 9]]

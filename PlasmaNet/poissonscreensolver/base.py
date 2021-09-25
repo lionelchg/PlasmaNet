@@ -170,4 +170,3 @@ class BasePhoto:
     def Linf_sph(self):
         """ Return the infinity norm of the Sph """
         return np.max(np.abs(self.Sph))
-

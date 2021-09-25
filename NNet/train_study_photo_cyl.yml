@@ -32,13 +32,11 @@ globals:                                    # Domain sizes and others, used to c
     verbosity: 2
 
 arch:
-    # db_file: 'unets_ks3_rf200.yml'
     db_file: 'unets_rect.yml'
-    # name: 'UNet5'
-    name: 'UNet5-100k'
+    # name: 'UNet5-100k'
+    name: 'UNet4'
     args:
         input_res: [101, 401]
-        # input_res: 101
         padding_mode: 'custom'
 
 # resume: 'train_cyl/study/models/UNet5_rf200/run_5/checkpoint-epoch00100.pth'
@@ -54,7 +52,20 @@ data_loader:
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
         scaling_factor: 1.0e-20
-initializer: 'off'
+
+# initializer: 'off'
+# initializer:
+#     type: 'constant_'
+#     args:
+#         val: 0.01
+initializer:
+    type: 'xavier_uniform_'
+    args:
+        gain: 1.0
+# initializer:
+#     type: 'xavier_normal_'
+#     args:
+#         gain: 1.0
 
 optimizer:
     type: 'Adam'

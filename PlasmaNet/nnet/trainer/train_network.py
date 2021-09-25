@@ -87,13 +87,13 @@ def main():
         if 'args' in cfg_dict['arch']:
             tmp_cfg_arch['args'] = {**cfg_dict['arch']['args'], **tmp_cfg_arch['args']}
         cfg_dict['arch'] = tmp_cfg_arch
-    
+
     # Resume the training or not depending on entry in yaml
     if 'resume' in cfg_dict:
         resume = cfg_dict['resume']
     else:
         resume = None
-    
+
     # Creation of config object
     config = ConfigParser(cfg_dict, resume)
     run_train(config)
