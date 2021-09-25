@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from numba import njit
 
 # From current library
-from .photo import photo_coeff
+from ...helmholtzsolver.photo import photo_coeff
 from ...common.utils import create_dir
 
 
@@ -109,7 +109,7 @@ def diffusion_coeff_morrow(Eprim, N, mobility):
 if __name__ == '__main__':
     fig_dir = 'figures/'
     create_dir(fig_dir)
-    
+
     npoints = 201
     Elog = np.logspace(1, 7, npoints)
     Elin = np.linspace(1e5, 1e7, npoints)

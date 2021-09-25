@@ -15,9 +15,8 @@ import argparse
 from numba import njit
 import logging
 
-from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
+from ...common.plot import plot_ax_scalar, plot_ax_scalar_1D
 from ..base.base_sim import BaseSim
-
 
 class Euler(BaseSim):
     def __init__(self, config):
@@ -47,7 +46,7 @@ class Euler(BaseSim):
         logging.info('{:>10} {:>16} {:>17}'.format('Iteration', 'Timestep [s]', 'Total time [s]', width=14))
 
     def compute_flux(self):
-        """ Compute the 2D flux of the Euler equations as well as pressure and 
+        """ Compute the 2D flux of the Euler equations as well as pressure and
         temperature with wrapper around numba routine (optimized for speed). """
         F = self.F
         U = self.U
@@ -188,7 +187,7 @@ def compute_timestep(cfl, dx, U, press, gamma):
 
 @njit(cache=True)
 def compute_flux(U, gamma, r, F, press, Tgas):
-    """ Compute the 2D flux of the Euler equations 
+    """ Compute the 2D flux of the Euler equations
     as well as pressure and temperature. """
     press = (gamma - 1) * (U[3] - (U[1]**2 + U[2]**2) / 2 / U[0])
     Tgas = press / U[0] / r

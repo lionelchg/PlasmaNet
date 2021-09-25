@@ -14,9 +14,9 @@ from scipy import sparse
 from scipy.sparse.linalg import spsolve
 from numba import njit
 
-from ...common.utils import create_dir
-from ..base.base_plot import plot_ax_scalar, plot_ax_scalar_1D
-from ...poissonsolver.linsystem import matrix_axisym, impose_dirichlet
+from ..common.utils import create_dir
+from ..common.plot import plot_ax_scalar, plot_ax_scalar_1D
+from ..poissonsolver.linsystem import matrix_axisym, impose_dirichlet
 
 
 lambda_j_three = np.array([0.0553, 0.1460,0.89]) * 1.0e2
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     right = np.zeros_like(r)
 
     bcs = {'left':left, 'right':right, 'top':up}
-    
+
     Sph = np.zeros_like(X)
     for i in range(2):
         # Axisymmetric resolution

@@ -21,18 +21,16 @@ from scipy.sparse.linalg import spsolve
 from ..base.base_sim import BaseSim
 from .scalar import compute_flux
 from .chemistry import morrow
-from .photo import photo_axisym, A_j_two, A_j_three, lambda_j_two, lambda_j_three
 from .boundary import outlet_x, outlet_y
 from ...common.plot import plot_ax_scalar, plot_ax_scalar_1D
 from ...common.operators_numpy import grad
 from ...common.profiles import gaussian
 from ...common.utils import create_dir
 
-from ...poissonsolver.linsystem import matrix_axisym, impose_dirichlet
-from ...poissonsolver.poisson import PoissonLinSystem
+from ...poissonsolver.linsystem import impose_dirichlet
 from ...poissonsolver.poisson import DatasetPoisson
-from ...poissonsolver.analytical import PoissonAnalytical
 from ...poissonsolver.network import PoissonNetwork
+from ...helmholtzsolver.photo import photo_axisym, A_j_two, A_j_three, lambda_j_two, lambda_j_three
 
 sns.set_context('notebook', font_scale=1.0)
 
@@ -181,8 +179,8 @@ class StreamerMorrow(BaseSim):
 
     def solve_photo(self):
         """ Solve the photoionization source term using approximation in Helmholtz equations """
-        self.Sph[:] = 0
         logging.info('--> Photoionization resolution')
+        self.Sph[:] = 0
         if self.photo_model == 'two':
             for i in range(2):
                 rhs = - self.irate * A_j_two[i] * self.pO2**2 * self.scale
@@ -277,7 +275,8 @@ class StreamerMorrow(BaseSim):
         if self.photo:
             plot_ax_scalar(fig, axes[2], self.X, self.Y, self.Sph, r"$S_{ph}$",
                     geom=self.geom, cmap_scale='log', field_ticks=[1e23, 1e26, 1e29])
-
+            fig.axes[2].get_xaxis().set_visible(False)
+            fig.axes[2].get_yaxis().set_visible(False)
         plt.tight_layout()
         fig.suptitle(f'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout(rect=[0, 0.02, 1, 0.98])

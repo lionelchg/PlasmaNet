@@ -13,16 +13,16 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/dh_streamer_linsys/photo/'
-# casename: 'runs/kraken/UNet5-rect-100k/'
+# casename: 'runs/kraken/dh_streamer_linsys/1e-12/'
+casename: 'runs/kraken/UNet5-rect-100k/'
 
 params:
   nit: 3200
   dt: 1.0e-12
   geom: 'xr'
-  photoionization: 'three'
-  # n_back: 1.0e+14
-  n_back: 1.0e+9
+  photoionization: 'no'
+  n_back: 1.0e+14
+  #n_back: 1.0e+9
   n_gauss: 1.0e+19
 
 transport:
@@ -32,8 +32,8 @@ BC: 'outlet_axi'
 
 poisson:
   backE: 4.8e+6
-  # type: 'network'
-  type: 'lin_system'
+  type: 'network'
+  # type: 'lin_system'
   nmax_fourier: 10
 
 mesh:
@@ -48,7 +48,7 @@ output:
   save: 'iteration'
   verbose: True
   files: 'figdata'
-  period: 200
+  period: 400
   dl_save: 'no'
 
 input: 'none'
