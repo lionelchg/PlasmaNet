@@ -109,8 +109,8 @@ class BasePhoto:
 
         plot_ax_scalar(fig, axes[0][1], self.X, self.Y, self.ioniz_rate, r'$I$', geom=geom)
 
-        for j in range(self.jtot):
-            plot_ax_scalar(fig, axes[1][j], self.X, self.Y, self.Sphj[j], rf'$S_{{ph}}^{j:d}$', geom=geom)
+        plot_ax_scalar(fig, axes[1][0], self.X, self.Y, self.Sphj1, rf'$S_{{ph}}^1$', geom=geom)
+        plot_ax_scalar(fig, axes[1][1], self.X, self.Y, self.Sphj2, rf'$S_{{ph}}^2$', geom=geom)
 
         # Set axes on or off
         if axis == 'off':

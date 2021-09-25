@@ -37,22 +37,27 @@ class PhotoLinSystem(BasePhoto):
         self.mats_photo = []
         if self.photo_model == 'two':
             self.jtot = 2
-            self.Sphj = np.zeros((2, self.nny, self.nnx))
             for i in range(2):
                 # Axisymmetric resolution
                 self.mats_photo.append(
                     photo_axisym(self.dx, self.dy, self.nnx, self.nny, self.R_nodes,
                                     (lambda_j_two[i] * self.pO2)**2, self.scale)
                 )
+            self.Sphj1 = np.zeros_like(self.Sph)
+            self.Sphj2 = np.zeros_like(self.Sph)
+
         elif self.photo_model == 'three':
             self.jtot = 3
-            self.Sphj = np.zeros((3, self.nny, self.nnx))
             for i in range(3):
                 # Axisymmetric resolution
                 self.mats_photo.append(
                     photo_axisym(self.dx, self.dy, self.nnx, self.nny, self.R_nodes,
                                     (lambda_j_three[i] * self.pO2)**2, self.scale)
                 )
+            self.Sphj1 = np.zeros_like(self.Sph)
+            self.Sphj2 = np.zeros_like(self.Sph)
+            self.Sphj3 = np.zeros_like(self.Sph)
+
         # Boundary conditions imposition
         self.impose_dirichlet = impose_dirichlet
 
@@ -64,18 +69,24 @@ class PhotoLinSystem(BasePhoto):
         :param bcs: Dictionnary of boundary conditions
         :type bcs: dict
         """
-        # self.Sph[:] = 0
         self.ioniz_rate = ioniz_rate
         if self.photo_model == 'two':
             for i in range(2):
                 rhs = - self.ioniz_rate * A_j_two[i] * self.pO2**2 * self.scale
                 self.impose_dirichlet(rhs, bcs)
-                self.Sphj[i] = spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
-
+                if i == 0:
+                    self.Sphj1 = spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
+                elif i == 1:
+                    self.Sphj2 = spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
+                self.Sph = self.Sphj1 + self.Sphj2
         elif self.photo_model == 'three':
             for i in range(3):
                 rhs = - self.ioniz_rate * A_j_three[i] * self.pO2**2 * self.scale
                 impose_dirichlet(rhs, bcs)
-                self.Sphj[i] = spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
-
-        self.Sph = np.sum(self.Sphj, axis=0)
+                if i == 0:
+                    self.Sphj1 = spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
+                elif i == 1:
+                    self.Sphj2 = spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
+                elif i == 2:
+                    self.Sphj3 = spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
+                self.Sph = self.Sphj1 + self.Sphj2 + self.Sphj3

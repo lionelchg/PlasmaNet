@@ -79,8 +79,8 @@ def compute(args):
 
     photo.solve(ioniz_rate, bcs)
 
-    return photo.Sph, photo.Sphj, photo.ioniz_rate
-
+    # return photo.Sph, photo.Sphj1, photo.Sphj2, photo.Sphj3, photo.ioniz_rate
+    return photo.Sph, photo.Sphj1, photo.Sphj2, photo.ioniz_rate
 
 if __name__ == '__main__':
     # Parameters for the rhs and plotting
@@ -111,7 +111,9 @@ if __name__ == '__main__':
     print(f'Directory : {data_dir:s} - n_procs = {n_procs:d} - chunksize = {chunksize:d}')
 
     Sph_list = np.zeros((nits, nny, nnx))
-    Sphj_list = np.zeros((nits, photo.jtot, nny, nnx))
+    Sphj1_list = np.zeros((nits, nny, nnx))
+    Sphj2_list = np.zeros((nits, nny, nnx))
+    # Sphj3_list = np.zeros((nits, nny, nnx))
     ioniz_rate_list = np.zeros((nits, nny, nnx))
 
     time_start = time.time()
@@ -119,19 +121,24 @@ if __name__ == '__main__':
     with get_context('spawn').Pool(processes=n_procs) as p:
         results_train = list(tqdm(p.imap(compute, params(nits), chunksize=chunksize), total=nits))
 
-    for i, (photo_source, photo_sources, rhs) in enumerate(tqdm(results_train)):
+    # for i, (photo_source, photo_source1, photo_source2, photo_source3, rhs) in enumerate(tqdm(results_train)):
+    for i, (photo_source, photo_source1, photo_source2, rhs) in enumerate(tqdm(results_train)):
         Sph_list[i, :, :] = photo_source
-        Sphj_list[i, :, :, :] = photo_sources
+        Sphj1_list[i, :, :] = photo_source1
+        Sphj2_list[i, :, :] = photo_source2
         ioniz_rate_list[i, :, :] = rhs
         if i % plot_period == 0:
             photo.Sph = photo_source
-            photo.Sphj = photo_sources
+            photo.Sphj1 = photo_source1
+            photo.Sphj2 = photo_source2
             photo.ioniz_rate = rhs
             photo.plot_2D(fig_dir + f'input_{i:05d}', axis='off')
             photo.plot_2D_expanded(fig_dir + f'input_expanded_{i:05d}', axis='off')
 
     np.save(data_dir + 'Sph.npy', Sph_list)
-    np.save(data_dir + 'Sphj.npy', Sphj_list)
+    np.save(data_dir + 'Sphj1.npy', Sphj1_list)
+    np.save(data_dir + 'Sphj2.npy', Sphj2_list)
+    # np.save(data_dir + 'Sphj3.npy', Sphj3_list)
     np.save(data_dir + 'ioniz_rate.npy', ioniz_rate_list)
     time_stop = time.time()
     print('Elapsed time (s) : %.2f' % (time_stop - time_start))
