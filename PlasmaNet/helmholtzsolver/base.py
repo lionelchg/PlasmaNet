@@ -76,11 +76,11 @@ class BasePhoto:
         :type geom: str, optional
         """
 
-        fig, axes = plt.subplots(ncols=3, figsize=(11, 14))
+        fig, axes = plt.subplots(ncols=2, figsize=(10, 6))
 
-        plot_ax_scalar(fig, axes[0], self.X, self.Y, self.Sph, r'$\phi$', geom=geom)
+        plot_ax_scalar(fig, axes[0], self.X, self.Y, self.Sph, r'$S_{ph}$', geom=geom)
 
-        plot_ax_scalar(fig, axes[2], self.X, self.Y, self.ioniz_rate, r'$-\nabla^2 \phi$', geom=geom)
+        plot_ax_scalar(fig, axes[1], self.X, self.Y, self.ioniz_rate, r'$I$', geom=geom)
 
         # Set axes on or off
         if axis == 'off':

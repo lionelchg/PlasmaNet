@@ -10,6 +10,7 @@ import numpy as np
 import scipy.sparse.linalg as linalg
 from time import perf_counter
 from scipy.sparse.linalg import spsolve
+import copy
 
 from .photo import photo_axisym, lambda_j_two, lambda_j_three, A_j_two, A_j_three
 from .base import BasePhoto
@@ -27,6 +28,10 @@ class PhotoLinSystem(BasePhoto):
 
         # Pressure in Torr
         self.pO2 = 150
+
+        # Radiuses for axisymmetric computation
+        self.R_nodes = copy.deepcopy(self.Y)
+        self.R_nodes[0] = self.dy / 4
 
         # Two or three helmholtz equations depending on the photoionization model
         self.mats_photo = []
@@ -66,5 +71,5 @@ class PhotoLinSystem(BasePhoto):
         elif self.photo_model == 'three':
             for i in range(3):
                 rhs = - self.ioniz_rate * A_j_three[i] * self.pO2**2 * self.scale
-                impose_dirichlet(rhs, self.bcs_photo)
+                impose_dirichlet(rhs, bcs)
                 self.Sph += spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
