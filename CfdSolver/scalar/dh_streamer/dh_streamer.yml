@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/dh_streamer_linsys/photo/'
+casename: 'runs/kraken/dh_streamer_linsys/photo/three'
 # casename: 'runs/kraken/UNet5-rect-100k/'
 
 params:
@@ -25,7 +25,6 @@ params:
   # n_back: 1.0e+14
   n_back: 1.0e+9
   n_gauss: 1.0e+19
-
 transport:
   chemistry: 'morrow'
 
@@ -51,6 +50,10 @@ output:
   files: 'figdata'
   period: 200
   dl_save: 'no'
+  plot:
+    ne_ticks: [1.0e+17, 1.0e+18, 1.0e+19, 1.0e+20, 1.0e+21]
+    Emax: 1.9e+7
+    Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+29]
 
 input: 'none'
 

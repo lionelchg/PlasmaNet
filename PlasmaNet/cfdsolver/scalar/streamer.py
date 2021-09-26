@@ -149,8 +149,8 @@ class StreamerMorrow(BaseSim):
         # datasets for deep-learning
         self.dl_save = config['output']['dl_save'] == 'yes'
         if self.dl_save:
-            self.dl_dir = config['casename'] + 'dl_data/'
-            self.dl_fig = self.dl_dir + 'figures/'
+            self.dl_dir = self.case_dir / 'dl_data/'
+            self.dl_fig = self.dl_dir / 'figures/'
             create_dir(self.dl_dir)
             create_dir(self.dl_fig)
             self.potential_list = np.zeros((self.nit, self.nny, self.nnx))
@@ -166,6 +166,15 @@ class StreamerMorrow(BaseSim):
         self.gstreamer = np.zeros((self.nit + 1, 4))
         self.gstreamer[:, 0] = np.linspace(0, self.nit * self.dt, self.nit + 1)
         self.n_middle = int(self.nnx / 2)
+
+        # Values for 2D plotting
+        self.ne_ticks, self.Emax, self.Sph_ticks = None, None, None
+        if 'plot' in config['output']:
+            self.ne_ticks = config['output']['plot']['ne_ticks']
+            self.Emax = config['output']['plot']['Emax']
+            if self.photo:
+                self.Sph_ticks = config['output']['plot']['Sph_ticks']
+
 
     def print_init(self):
         """ Print header to sum up the parameters. """
@@ -263,40 +272,41 @@ class StreamerMorrow(BaseSim):
         plot_ax_scalar_1D(fig, axes[3], self.X, [0.0, 0.1, 0.2], self.normE, r"$|\mathbf{E}|$")
         if self.photo:
             plot_ax_scalar(fig, axes[4], self.X, self.Y, self.Sph, r"$S_{ph}$",
-                    geom=self.geom, cmap_scale='log', field_ticks=[1e23, 1e26, 1e29])
+                    geom=self.geom, cmap_scale='log')
             plot_ax_scalar_1D(fig, axes[5], self.X, [0.0, 0.1, 0.2], self.Sph, r"$S_{ph}$",
-                    yscale='log', ylim=[1e23, 1e29])
+                    yscale='log')
 
         plt.tight_layout()
         fig.suptitle(f'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
-        plt.savefig(self.fig_dir + 'instant_%04d' % self.number, bbox_inches='tight')
+        plt.savefig(self.fig_dir / 'instant_%04d' % self.number, bbox_inches='tight')
         plt.close(fig)
 
         # 2D contour plots only
         if self.photo:
-            fig, axes = plt.subplots(nrows=3, figsize=(8, 7))
+            fig, axes = plt.subplots(nrows=3, figsize=(6, 8))
         else:
             fig, axes = plt.subplots(nrows=2, figsize=(6, 6))
 
         axes = axes.reshape(-1)
 
         plot_ax_scalar(fig, axes[0], self.X, self.Y, self.nd[0], r"$n_e$", geom=self.geom, cmap_scale='log',
-                            field_ticks=[1e17, 1e18, 1e19, 1e20, 1e21])
-        plot_ax_scalar(fig, axes[1], self.X, self.Y, self.normE, r"$|\mathbf{E}|$", cmap='Blues', geom=self.geom, max_value=1.9e7)
+                            field_ticks=self.ne_ticks)
+        plot_ax_scalar(fig, axes[1], self.X, self.Y, self.normE, r"$|\mathbf{E}|$",
+                            cmap='Blues', geom=self.geom, max_value=self.Emax)
         fig.axes[0].get_xaxis().set_visible(False)
         fig.axes[0].get_yaxis().set_visible(False)
         fig.axes[1].get_xaxis().set_visible(False)
         fig.axes[1].get_yaxis().set_visible(False)
         if self.photo:
             plot_ax_scalar(fig, axes[2], self.X, self.Y, self.Sph, r"$S_{ph}$",
-                    geom=self.geom, cmap_scale='log', field_ticks=[1e23, 1e26, 1e29])
+                    geom=self.geom, cmap_scale='log', field_ticks=self.Sph_ticks)
             fig.axes[2].get_xaxis().set_visible(False)
             fig.axes[2].get_yaxis().set_visible(False)
         plt.tight_layout()
         fig.suptitle(f'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout(rect=[0, 0.02, 1, 0.98])
-        plt.savefig(self.fig_dir + 'instant_2D_%04d' % self.number, bbox_inches='tight')
+        plt.savefig(self.fig_dir / 'instant_2D_%04d' % self.number, bbox_inches='tight')
         plt.close(fig)
 
     def postproc(self, it):
@@ -316,11 +326,11 @@ class StreamerMorrow(BaseSim):
 
     def save(self):
         """ Save solutions. """
-        np.save(self.data_dir + f'nd_{self.number:04d}', self.nd)
-        np.save(self.data_dir + f'normE_{self.number:04d}', self.normE)
-        np.save(self.data_dir + f'globals_{self.number:04d}', self.gstreamer)
+        np.save(self.data_dir / f'nd_{self.number:04d}', self.nd)
+        np.save(self.data_dir / f'normE_{self.number:04d}', self.normE)
+        np.save(self.data_dir / f'globals_{self.number:04d}', self.gstreamer)
         if self.photo:
-            np.save(self.data_dir + f'Sph_{self.number:04d}', self.Sph)
+            np.save(self.data_dir / f'Sph_{self.number:04d}', self.Sph)
 
     def plot_global(self):
         """ Global quantities (position of negative streamer,
@@ -356,14 +366,14 @@ class StreamerMorrow(BaseSim):
         axes[1].grid(True)
 
         fig.tight_layout()
-        fig.savefig(self.fig_dir + 'globals', bbox_inches='tight')
+        fig.savefig(self.fig_dir / 'globals', bbox_inches='tight')
         plt.close(fig)
 
     def post_temporal(self):
         """ Post-temporal processing with saving and plotting of global arrays """
         self.plot_global()
         if self.save_data:
-            np.save(self.data_dir + 'globals', self.gstreamer)
+            np.save(self.data_dir / 'globals', self.gstreamer)
 
         if self.dl_save:
             np.save(self.dl_dir + 'potential.npy', self.potential_list)

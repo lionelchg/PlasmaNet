@@ -13,23 +13,36 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/dh_streamers/'
-description: 'Different runs of dh_streamers for different resolutions and with/without photoionization'
-mode: 'seq'
-params/photoionization: ['no', 'no', 'three', 'three']
-params/n_back: [1.0e+14, 1.0e+14, 1.0e+9, 1.0e+9]
-mesh/nnx: [401, 801, 401, 801]
-mesh/nny: [101, 201, 101, 201]
+casename: 'runs/kraken/debug/'
+description: 'Different runs of dh_streamers for parameters to stabilize the streamer'
+mode: 'tree'
+poisson/backE: [1.0e+6, 2.0e+6, 3.0e+6]
+poisson/electrode_V0: [4.0e+3, 4.5e+3, 5.0e+3, 5.5e+3, 6.0e+3]
+poisson/electrode_b: [1.0e-3, 2.0e-3, 3.0e-3]
 
 base:
   params:
-    nit: 8000
-    dt: 5.0e-13
+    nit: 4000
+    dt: 1.0e-12
     geom: 'xr'
-    photoionization: 'three'
-    x0: 2.0e-3
-    n_back: 1.0e+9
+    photoionization: 'no'
+    x0: 2.0e-4
+    n_back: 1.0e+14
+    #n_back: 1.0e+9
     n_gauss: 1.0e+19
+
+  transport:
+    chemistry: 'morrow'
+
+  BC: 'outlet_axi'
+
+  poisson:
+    backE: 1.0e+6
+    electrode_b: 1.0e-3
+    electrode_V0: 6.5e+3
+    # type: 'network'
+    type: 'lin_system'
+    nmax_fourier: 10
 
   mesh:
     xmin: 0
@@ -38,22 +51,16 @@ base:
     ymax: 0.001
     nnx: 401
     nny: 101
-
-  transport:
-    chemistry: 'morrow'
-
-  BC: 'outlet_axi'
-
-  poisson:
-    backE: 4.8e+6
-    type: 'lin_system'
-
   output:
     folder: 'data/'
     save: 'iteration'
     verbose: True
     files: 'fig'
-    period: 400
+    period: 100
     dl_save: 'no'
+    plot:
+      ne_ticks: [1.0e+17, 1.0e+18, 1.0e+19, 1.0e+20, 1.0e+21]
+      Emax: 1.8e+7
+      Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+29]
 
   input: 'none'

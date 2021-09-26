@@ -1,10 +1,10 @@
 #!/usr/bin/bash
 #SBATCH --job-name=PlasmaNet
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
+#SBATCH --ntasks-per-node=10
 #SBATCH --time=03:00:00
 #SBATCH --partition=rome
 # #SBATCH --nodelist=krakengpu2
 # #SBATCH --nodelist=krakenepyc1
 
-run_cases -np 4 -c $1 -t streamer
+run_cases -np 10 -c $1 -t streamer

@@ -103,7 +103,7 @@ class Euler(BaseSim):
         plot_ax_scalar(fig, axes[1][1], self.X, self.Y, self.U[2] / self.U[0], "$v$", geom='xy')
         plt.suptitle(rf'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
-        fig.savefig(self.fig_dir + f'2D_{self.number:04d}', bbox_inches='tight')
+        fig.savefig(self.fig_dir / f'2D_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
 
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 10))
@@ -114,7 +114,7 @@ class Euler(BaseSim):
         plot_ax_scalar_1D(fig, axes[1][1], self.X, [0.25, 0.5], self.U[2] / self.U[0], "$v$")
         plt.suptitle(rf'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
-        fig.savefig(self.fig_dir + f'1D_{self.number:04d}', bbox_inches='tight')
+        fig.savefig(self.fig_dir / f'1D_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
 
     @classmethod

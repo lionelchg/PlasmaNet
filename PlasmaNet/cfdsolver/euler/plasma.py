@@ -378,7 +378,7 @@ class PlasmaEuler(Euler):
         self.ax_prop(axes[3], r'$f / f_p$', "",
                      r"PSD of $> 0.9\mathrm{max}(n_e)$", xlim=[0, 5])
 
-        fig.savefig(self.fig_dir + 'temporals', bbox_inches='tight')
+        fig.savefig(self.fig_dir / 'temporals', bbox_inches='tight')
 
         if hasattr(self, 'gfig'):
             # Global plot of temporals + 2D snapshots
@@ -414,7 +414,7 @@ class PlasmaEuler(Euler):
                 tmp_ax.plot(tmp_time * np.ones(2),
                             [-1.5, tmp_ne], 'k--', lw=1.0)
 
-            self.gfig.savefig(self.fig_dir + 'global', bbox_inches='tight')
+            self.gfig.savefig(self.fig_dir / 'global', bbox_inches='tight')
 
         if hasattr(self, 'globals'):
             self.globals['error_temporal_de'] = self.norm2(

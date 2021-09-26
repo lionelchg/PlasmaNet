@@ -106,7 +106,7 @@ class ScalarTransport(BaseSim):
         plt.tight_layout()
         fig.suptitle(f'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
-        plt.savefig(self.fig_dir + 'instant_%04d' % self.number, bbox_inches='tight')
+        plt.savefig(self.fig_dir / 'instant_%04d' % self.number, bbox_inches='tight')
         plt.close(fig)
 
     @classmethod

@@ -16,7 +16,7 @@
 casename: 'runs/kraken/dt_cases/'
 description: 'Different runs of dh_streamers for different timesteps'
 mode: 'seq'
-params/nit: [1000, 2000]
+params/nit: [5000, 10000]
 params/dt: [1.0e-12, 5.0e-13]
 output/period: [100, 200]
 
@@ -58,5 +58,9 @@ base:
     files: 'figdata'
     period: 50
     dl_save: 'no'
+    plot:
+      ne_ticks: [1.0e+17, 1.0e+18, 1.0e+19, 1.0e+20, 1.0e+21]
+      Emax: 1.5e+7
+      Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+29]
 
   input: 'none'
