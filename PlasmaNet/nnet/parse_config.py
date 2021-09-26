@@ -87,12 +87,11 @@ class ConfigParser:
                 self.guess = self.config['data_loader']['args'].get('guess')
                 self.modes = self.config['data_loader']['args'].get('modes')
 
+            self.scaling_factor = self.config['data_loader']['args']['scaling_factor']
             if self.config['data_loader']['type'] == 'PoissonDataLoader':
                 # Length and resolution invariance parameters
                 self.normalization = self.config['data_loader']['args']['normalize']
-                self.scaling_factor = self.config['data_loader']['args']['scaling_factor']
                 self.alpha = self.config['data_loader']['args']['alpha']
-
 
         # Declare global runtime parameters attributes
         self.nnx = self.config['globals']['nnx']

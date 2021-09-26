@@ -122,7 +122,7 @@ class PoissonNetwork(BasePoisson):
                 self.triu = self.mat - self.lstar
                 self.lstar_inv = inv(self.lstar)
                 self.lstar_invU = self.lstar_inv * self.triu
-            else:
+            elif self.refine_method == 'jacobi':
                 self.P = csr_matrix(self.mat.shape)
                 self.P.setdiag(self.mat.diagonal())
                 self.Pinv = csr_matrix(self.mat.shape)

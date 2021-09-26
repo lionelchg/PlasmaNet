@@ -64,3 +64,4 @@ if __name__ == '__main__':
         plot_Sph(photo, photo.X, photo.Y, photo.Sph, fig_dir / f'Sph_{photo.photo_model}')
         plot_Sph_irate(photo.X, photo.Y, photo.Sph, I, fig_dir / f'Sph_irate_{photo.photo_model}')
 
+

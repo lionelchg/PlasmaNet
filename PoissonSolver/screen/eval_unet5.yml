@@ -1,0 +1,77 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                         NetworkPoisson -- Configuration file                                         #
+#                                                                                                                      #
+#                                           Lionel Cheng, CERFACS, 04.03.2021                                          #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+network:
+    photo_model: 'two'
+    casename: 'cases/UNet5-rf800-200/'                  # Experience name
+    n_gpu: 1                                    # Number of GPUs to use
+
+    globals:                                    # Domain sizes and others, used to compute global attributes
+        nnx: 401
+        nny: 101
+        xmin: 0.0
+        xmax: 4.0e-3
+        ymin: 0.0
+        ymax: 1.0e-3
+        coord: 'cyl'
+        verbosity: 2
+
+    resume: ['/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/run_j1/model_best.pth',
+            '/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/run_j2/model_best.pth']
+
+    arch:
+        db_file: 'unets_rect.yml'
+        name: 'UNet5-100k'
+        args:
+            input_res: [101, 401]
+            padding_mode: 'custom'
+
+
+    data_loader:
+        type: 'PhotoDataLoader'
+        data_channels: 1
+        pipe_config: True
+        args:
+            data_dir: '/scratch/cfd/cheng/DL/datasets/photo/train_cyl/401x101/random_24'
+            batch_size: 64
+            shuffle: True
+            validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
+            num_workers: 4
+            scaling_factor: 1.0e-8
+            # normalize: 1.0e+2
+            normalize: 1.0
+            # sph_file: 'Sphj1.npy'
+            sph_file: 'Sphj2.npy'
+
+    initializer: 'off'
+
+    loss:
+        type: 'ComposedLoss'
+        pipe_config: True                       # Object initialization require config as first argument
+        args:
+            loss_list:                          # List of the losses to compose if ComposedLoss is used
+                #- InsideLoss
+                - DirichletBoundaryLoss
+                - LaplacianLoss
+            inside_weight: 0.                   # Weighting of the loss inside the domain, excluding boundaries (float)
+            bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
+            elec_weight: 0.                     # Weighting of the loss on the electric field (float)
+            lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
+
+    metrics:
+        - 'residual'
+        - 'inf_norm'
+        - 'Eresidual'
+        - 'Einf_norm'
