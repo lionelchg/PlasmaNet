@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from numba import njit
 
 # From current library
-from ...helmholtzsolver.photo import photo_coeff
+from ...poissonscreensolver.photo import photo_coeff
 from ...common.utils import create_dir
 
 

@@ -165,8 +165,8 @@ class PhotoDataLoader(BaseDataLoader):
         self.Ly = config.Ly
 
         # Normalization
-        self.normalize = 1e-2
-        self.data_norm = torch.ones((ioniz_rate.size(0), ioniz_rate.size(1), 1, 1)) * 1e-2
+        self.normalize = 1e2
+        self.data_norm = torch.ones((ioniz_rate.size(0), ioniz_rate.size(1), 1, 1)) * self.normalize
         self.target_norm = torch.ones((Sph.size(0), Sph.size(1), 1, 1))
         ioniz_rate /= self.data_norm
 

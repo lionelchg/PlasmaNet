@@ -30,9 +30,14 @@ from ...common.utils import create_dir
 from ...poissonsolver.linsystem import impose_dirichlet
 from ...poissonsolver.poisson import DatasetPoisson
 from ...poissonsolver.network import PoissonNetwork
-from ...helmholtzsolver.photo import photo_axisym, A_j_two, A_j_three, lambda_j_two, lambda_j_three
+from ...poissonscreensolver.photo import photo_axisym, A_j_two, A_j_three, lambda_j_two, lambda_j_three
 
 sns.set_context('notebook', font_scale=1.0)
+
+def V_sphere(x, r, V_0, b, E_0):
+    """ Spherical electrode potential """
+    d_s = np.sqrt((b + x)**2 + r**2)
+    return V_0 * b / d_s - E_0 * (1 - (b / d_s)**3) * (x + b)
 
 class StreamerMorrow(BaseSim):
     """ Streamer based on Morrow chemistry which inclues electrons, positive ions A+ and negative
@@ -53,6 +58,11 @@ class StreamerMorrow(BaseSim):
         config['poisson']['bcs'] = 'axi'
 
         self.backE = config['poisson']['backE']
+        # Check if spherical electrode is applied
+        self.sphere_electrode = 'electrode_b' in config['poisson']
+        if self.sphere_electrode:
+            self.electrode_b = config['poisson']['electrode_b']
+            self.electrode_V0 = config['poisson']['electrode_V0']
 
         # Choose the way to solve poisson equation, either classic with linear system
         # or with analytical solution (2D Fourier series)
@@ -60,9 +70,14 @@ class StreamerMorrow(BaseSim):
 
         # Initialize the poisson object depending on what is specified
         if self.poisson_type == 'lin_system':
-            self.up = - self.x * self.backE
-            self.left = np.zeros_like(self.y)
-            self.right = - np.ones_like(self.y) * self.backE * self.xmax
+            if self.sphere_electrode:
+                self.up = V_sphere(self.x, self.ymax, self.electrode_V0, self.electrode_b, self.backE)
+                self.left = V_sphere(self.xmin, self.y, self.electrode_V0, self.electrode_b, self.backE)
+                self.right = V_sphere(self.xmax, self.y, self.electrode_V0, self.electrode_b, self.backE)
+            else:
+                self.up = - self.x * self.backE
+                self.left = np.zeros_like(self.y)
+                self.right = - np.ones_like(self.y) * self.backE * self.xmax
             self.bcs = {'left':self.left, 'right':self.right, 'top':self.up}
             self.poisson = DatasetPoisson(config['poisson'])
 
@@ -118,8 +133,9 @@ class StreamerMorrow(BaseSim):
             # Gaussian initialization for the electrons and positive ions
             self.n_back = config['params']['n_back']
             self.n_gauss = config['params']['n_gauss']
-            self.nd[0, :] = gaussian(self.X, self.Y, self.n_gauss, 2e-3, 0, 2e-4, 2e-4) + self.n_back
-            self.nd[1, :] = gaussian(self.X, self.Y, self.n_gauss, 2e-3, 0, 2e-4, 2e-4) + self.n_back
+            self.x0 = config['params']['x0']
+            self.nd[0, :] = gaussian(self.X, self.Y, self.n_gauss, self.x0, 0, 2e-4, 2e-4) + self.n_back
+            self.nd[1, :] = gaussian(self.X, self.Y, self.n_gauss, self.x0, 0, 2e-4, 2e-4) + self.n_back
         else:
             # Scalar and Residual declaration
             self.resnd = np.zeros((3, self.nny, self.nnx))

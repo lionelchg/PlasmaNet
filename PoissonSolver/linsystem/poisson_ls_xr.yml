@@ -17,7 +17,7 @@ geom: 'cylindrical'
 bcs: 'dirichlet'
 xmin: 0.0
 xmax: 4.0e-3
-nnx: 201
+nnx: 401
 ymin: 0.0
 ymax: 1.0e-3
 nny: 101

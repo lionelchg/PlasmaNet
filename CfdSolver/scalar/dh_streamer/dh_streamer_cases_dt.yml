@@ -26,6 +26,7 @@ base:
     dt: 5.0e-13
     geom: 'xr'
     photoionization: 'no'
+    x0: 2.0e-3
     n_back: 1.0e+14
     n_gauss: 1.0e+19
 

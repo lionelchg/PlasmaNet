@@ -21,6 +21,7 @@ params:
   dt: 1.0e-12
   geom: 'xr'
   photoionization: 'three'
+  x0: 2.0e-3
   # n_back: 1.0e+14
   n_back: 1.0e+9
   n_gauss: 1.0e+19
