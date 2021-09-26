@@ -1,9 +1,37 @@
-# Comparison of globals from streamer
-fig_dir: 'network_vs_ls/1e14_back'
+# # Comparison of globals from streamer
+# fig_dir: 'network_vs_ls/1e14_back'
 
-solut_paths: ['runs/kraken/network_vs_ls_4/1e14_back/case_1/data',
-              'runs/kraken/network_vs_ls_4/1e14_back/case_3/data']
+# solut_paths: ['runs/kraken/network_vs_ls_4/1e14_back/case_1/data',
+#               'runs/kraken/network_vs_ls_4/1e14_back/case_3/data']
+# solut_labels: ['Neural network', 'Linear system']
+
+# mesh:
+#   xmin: 0
+#   ymin: 0
+#   xmax: 0.004
+#   ymax: 0.001
+#   nnx: 401
+#   nny: 101
+
+# photo: 'no'
+# combined: 'yes'
+# instants: [3, 5, 7]
+
+# ne_ticks: [1.0e+17, 1.0e+18, 1.0e+19, 1.0e+20, 1.0e+21]
+# Emax: 1.8e+7
+# Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+29]
+
+
+# Comparison of globals from streamer
+fig_dir: 'photo_two_vs_three/'
+
+solut_paths: ['runs/kraken/linsystem/photo/case_1/data',
+              'runs/kraken/linsystem/photo/case_2/data']
 solut_labels: ['Neural network', 'Linear system']
+
+photo: 'yes'
+combined: 'yes'
+instants: [2, 4, 6]
 
 mesh:
   xmin: 0
@@ -13,10 +41,7 @@ mesh:
   nnx: 401
   nny: 101
 
-instants: [2, 4, 6]
 
 ne_ticks: [1.0e+17, 1.0e+18, 1.0e+19, 1.0e+20, 1.0e+21]
-Emax: 1.9e+7
-Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+29]
-
-combined: 'yes'
+Emax: 1.4e+7
+Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+28]

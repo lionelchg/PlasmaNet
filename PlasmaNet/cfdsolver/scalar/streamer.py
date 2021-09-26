@@ -279,7 +279,7 @@ class StreamerMorrow(BaseSim):
         plt.tight_layout()
         fig.suptitle(f'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
-        plt.savefig(self.fig_dir / 'instant_%04d' % self.number, bbox_inches='tight')
+        plt.savefig(self.fig_dir / f'instant_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
 
         # 2D contour plots only
@@ -306,7 +306,7 @@ class StreamerMorrow(BaseSim):
         plt.tight_layout()
         fig.suptitle(f'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout(rect=[0, 0.02, 1, 0.98])
-        plt.savefig(self.fig_dir / 'instant_2D_%04d' % self.number, bbox_inches='tight')
+        plt.savefig(self.fig_dir / f'instant_2D_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
 
     def postproc(self, it):

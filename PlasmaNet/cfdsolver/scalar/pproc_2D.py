@@ -94,6 +94,36 @@ def plot_ax_scalar(fig, ax, X, Y, field_up, field_down, title, cmap_scale=None, 
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
 
+    return cs1
+
+def plot_combined(mesh, solut_labels, solut_paths, varname,
+            instants, figname, title, cmap_scale, max_value=None, field_ticks=None,
+            cmap='RdBu'):
+    ninstants = len(instants)
+    fig, axes = plt.subplots(ncols=ninstants, figsize=(3.5 * ninstants + 1, 5))
+    axes[0].text(2.0e-4, 7.0e-4, solut_labels[0], fontsize='small')
+    axes[0].text(2.0e-4, -8.0e-4, solut_labels[1], fontsize='small')
+    for i_inst, instant in enumerate(instants):
+        field_up = np.load(Path(solut_paths[0]) / f'{varname}_{instant:04d}.npy')
+        field_down = np.load(Path(solut_paths[1]) / f'{varname}_{instant:04d}.npy')
+        # Handle special cases of electron density
+        if len(field_up.shape) == 3:
+            field_up = field_up[0]
+            field_down = field_down[0]
+        cs = plot_ax_scalar(fig, axes[i_inst], mesh.X, mesh.Y, field_up, field_down, '', cmap_scale=cmap_scale,
+                        field_ticks=field_ticks, max_value=max_value, cbar=False, cmap=cmap)
+    fraction_cbar = 0.05
+    aspect = 1.4 * mesh.ymax / fraction_cbar / mesh.xmax
+    if max_value is not None:
+        field_ticks = np.linspace(0, max_value, 5)
+    cbar = fig.colorbar(cs, ax=axes.ravel().tolist(), fraction=fraction_cbar,
+                aspect=aspect, shrink=0.31,
+                ticks=field_ticks)
+    cbar.set_label(title)
+    # plt.tight_layout()
+    plt.savefig(figname, dpi=200, bbox_inches='tight')
+    plt.close(fig)
+
 def main():
     parser = argparse.ArgumentParser(description='Streamer post-processing globals')
     parser.add_argument('-c', '--config', type=str,
@@ -110,9 +140,13 @@ def main():
     solut_paths = cfg['solut_paths']
     solut_labels = cfg['solut_labels']
 
+    # Photoionization or not
+    photo = cfg['photo'] == 'yes'
+
     # Limitations of colorbars
     ne_ticks = cfg['ne_ticks']
     Emax = cfg['Emax']
+    if photo: photo_ticks = cfg['Sph_ticks']
 
     # Creation of grid
     mesh = Mesh(cfg)
@@ -122,7 +156,10 @@ def main():
     ninstants = len(instants)
 
     for instant in instants:
-        fig, axes = plt.subplots(nrows=2, figsize=(6, 6))
+        if photo:
+            fig, axes = plt.subplots(nrows=3, figsize=(6, 7))
+        else:
+            fig, axes = plt.subplots(nrows=2, figsize=(6, 6))
         axes = axes.reshape(-1)
         # Load solutions
         normE_up = np.load(Path(solut_paths[0]) / f'normE_{instant:04d}.npy')
@@ -136,6 +173,12 @@ def main():
         plot_ax_scalar(fig, axes[1], mesh.X, mesh.Y, normE_up, normE_down, r"$|\mathbf{E}|$",
                             cmap='Blues', max_value=Emax)
 
+        if photo:
+            photo_up = np.load(Path(solut_paths[0]) / f'Sph_{instant:04d}.npy')
+            photo_down = np.load(Path(solut_paths[1]) / f'Sph_{instant:04d}.npy')
+            plot_ax_scalar(fig, axes[2], mesh.X, mesh.Y, photo_up, photo_down, r"$S_{ph}$", cmap_scale='log',
+                            field_ticks=photo_ticks)
+
         plt.tight_layout()
         fig.tight_layout(rect=[0, 0.02, 1, 0.98])
         plt.savefig(fig_dir / f'comp_2D_{instant:04d}', dpi=200, bbox_inches='tight')
@@ -144,23 +187,17 @@ def main():
     # Combined plot
     combined = cfg['combined'] == 'yes'
     if combined:
-        fig, axes = plt.subplots(nrows=2, ncols=ninstants, figsize=(4 * ninstants + 1, 5))
-        for i_inst, instant in enumerate(instants):
-            # Load solutions
-            normE_up = np.load(Path(solut_paths[0]) / f'normE_{instant:04d}.npy')
-            normE_down = np.load(Path(solut_paths[1]) / f'normE_{instant:04d}.npy')
-            nd_up = np.load(Path(solut_paths[0]) / f'nd_{instant:04d}.npy')
-            nd_down = np.load(Path(solut_paths[1]) / f'nd_{instant:04d}.npy')
+        plot_combined(mesh, solut_labels, solut_paths, 'nd', instants,
+                    fig_dir / 'comp_2D_ne', r"$n_e$", cmap_scale='log',
+                    max_value=None, field_ticks=ne_ticks)
+        plot_combined(mesh, solut_labels, solut_paths, 'normE', instants,
+                    fig_dir / 'comp_2D_normE', r"$|\mathbf{E}|$", cmap_scale=None,
+                    max_value=Emax, field_ticks=None, cmap='Blues')
 
-            # Plotting
-            plot_ax_scalar(fig, axes[0][i_inst], mesh.X, mesh.Y, nd_up[0], nd_down[0], r"$n_e$", cmap_scale='log',
-                                field_ticks=ne_ticks, cbar=False)
-            plot_ax_scalar(fig, axes[1][i_inst], mesh.X, mesh.Y, normE_up, normE_down, r"$|\mathbf{E}|$",
-                                cmap='Blues', max_value=Emax, cbar=False)
-
-        plt.tight_layout()
-        plt.savefig(fig_dir / f'comp_2D', dpi=200, bbox_inches='tight')
-        plt.close(fig)
+        if photo:
+            plot_combined(mesh, solut_labels, solut_paths, 'Sph', instants,
+                    fig_dir / 'comp_2D_Sph', r'$S_{ph}$', cmap_scale='log',
+                    max_value=None, field_ticks=photo_ticks)
 
 if __name__ == '__main__':
     main()
