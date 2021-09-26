@@ -119,6 +119,7 @@ def main():
 
     # Instants wanted
     instants = cfg['instants']
+    ninstants = len(instants)
 
     for instant in instants:
         fig, axes = plt.subplots(nrows=2, figsize=(6, 6))
@@ -138,6 +139,27 @@ def main():
         plt.tight_layout()
         fig.tight_layout(rect=[0, 0.02, 1, 0.98])
         plt.savefig(fig_dir / f'comp_2D_{instant:04d}', dpi=200, bbox_inches='tight')
+        plt.close(fig)
+
+    # Combined plot
+    combined = cfg['combined'] == 'yes'
+    if combined:
+        fig, axes = plt.subplots(nrows=2, ncols=ninstants, figsize=(4 * ninstants + 1, 5))
+        for i_inst, instant in enumerate(instants):
+            # Load solutions
+            normE_up = np.load(Path(solut_paths[0]) / f'normE_{instant:04d}.npy')
+            normE_down = np.load(Path(solut_paths[1]) / f'normE_{instant:04d}.npy')
+            nd_up = np.load(Path(solut_paths[0]) / f'nd_{instant:04d}.npy')
+            nd_down = np.load(Path(solut_paths[1]) / f'nd_{instant:04d}.npy')
+
+            # Plotting
+            plot_ax_scalar(fig, axes[0][i_inst], mesh.X, mesh.Y, nd_up[0], nd_down[0], r"$n_e$", cmap_scale='log',
+                                field_ticks=ne_ticks, cbar=False)
+            plot_ax_scalar(fig, axes[1][i_inst], mesh.X, mesh.Y, normE_up, normE_down, r"$|\mathbf{E}|$",
+                                cmap='Blues', max_value=Emax, cbar=False)
+
+        plt.tight_layout()
+        plt.savefig(fig_dir / f'comp_2D', dpi=200, bbox_inches='tight')
         plt.close(fig)
 
 if __name__ == '__main__':
