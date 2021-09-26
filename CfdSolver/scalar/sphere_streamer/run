@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+#SBATCH --job-name=streamer
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=01:00:00
+#SBATCH --partition=biggpu
+# #SBATCH --nodelist=krakenepyc1
+
+streamer -c dh_streamer.yml

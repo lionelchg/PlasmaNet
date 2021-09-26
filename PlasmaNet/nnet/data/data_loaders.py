@@ -146,15 +146,15 @@ class PhotoDataLoader(BaseDataLoader):
     Automatically shuffles the dataset before the validation split (see BaseDataLoader class).
     """
 
-    def __init__(self, config, data_dir, batch_size, shuffle=True, validation_split=0.0,
-                num_workers=1, scaling_factor=1.0):
+    def __init__(self, config, data_dir, batch_size, sph_file, shuffle=True, validation_split=0.0,
+                num_workers=1, scaling_factor=1.0, normalize=1.0):
         self.data_dir = Path(data_dir)
         self.logger = config.get_logger('PoissonDataLoader', config['globals']['verbosity'])
 
         # Load numpy files of shape (batch_size, H, W)
         ioniz_rate = np.load(self.data_dir / 'ioniz_rate.npy')
         # Sph = np.load(self.data_dir / 'Sph.npy')
-        Sph = np.load(self.data_dir / 'Sphj1.npy')
+        Sph = np.load(self.data_dir / sph_file)
 
         # Convert to torch.Tensor of shape (batch_size, 1, H, W)
         ioniz_rate = torch.from_numpy(ioniz_rate[:, np.newaxis, :, :])
@@ -165,7 +165,7 @@ class PhotoDataLoader(BaseDataLoader):
         self.Ly = config.Ly
 
         # Normalization
-        self.normalize = 1e2
+        self.normalize = normalize
         self.data_norm = torch.ones((ioniz_rate.size(0), ioniz_rate.size(1), 1, 1)) * self.normalize
         self.target_norm = torch.ones((Sph.size(0), Sph.size(1), 1, 1))
         ioniz_rate /= self.data_norm
