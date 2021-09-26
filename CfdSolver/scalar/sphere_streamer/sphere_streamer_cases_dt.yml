@@ -16,9 +16,9 @@
 casename: 'runs/kraken/dt_cases/'
 description: 'Different runs of dh_streamers for different timesteps'
 mode: 'seq'
-params/nit: [2500, 5000, 10000, 20000]
-params/dt: [4.0e-12, 2.0e-12, 1.0e-12, 5.0e-13]
-output/period: [500, 1000, 2000, 4000]
+params/nit: [1000, 2000]
+params/dt: [1.0e-12, 5.0e-13]
+output/period: [100, 200]
 
 base:
   params:

@@ -17,7 +17,8 @@
 # `config.init_obj` method.
 
 
-name: 'UNet5/run_j1'                      # Experience name
+# name: 'UNet5/run_j1'                      # Experience name
+name: 'UNet5/run_j2'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -49,8 +50,10 @@ data_loader:
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
         scaling_factor: 1.0e-12
-        normalize: 1.0e+2
-        sph_file: 'Sphj1.npy'
+        # normalize: 1.0e+2
+        normalize: 1.0
+        # sph_file: 'Sphj1.npy'
+        sph_file: 'Sphj2.npy'
 
 # initializer: 'off'
 # initializer:
@@ -80,16 +83,16 @@ loss:
         loss_list:                          # List of the losses to compose if ComposedLoss is used
             # - InsideLoss
             - DirichletBoundaryLoss
-            - PhotoLoss_j1
-            # - PhotoLoss_j2
+            # - PhotoLoss_j1
+            - PhotoLoss_j2
             - AxialNeumannLoss
         inside_weight: 1.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.0                    # Weighting of the loss on the boundaries (float)
         lapl_weight: 1.0e+6                    # Weighting of the loss on the Laplacian (float)
         axial_dir_weight: 1.0
         axial_neu_weight: 1.0
-        photo_weight_j1: 1.0                # Weightinig of photoloss
-        # photo_weight_j2: 1.0                # Weightinig of photoloss
+        # photo_weight_j1: 1.0                # Weightinig of photoloss
+        photo_weight_j2: 1.0                # Weightinig of photoloss
         # adaptative: 0.1                     # Alpha value for adaptative weights
         # gradients: 10
 

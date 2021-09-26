@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --time=03:00:00
-#SBATCH --partition=gpu
+#SBATCH --partition=rome
 # #SBATCH --nodelist=krakengpu2
 # #SBATCH --nodelist=krakenepyc1
 

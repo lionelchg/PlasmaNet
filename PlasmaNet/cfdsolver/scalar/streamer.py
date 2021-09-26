@@ -317,7 +317,10 @@ class StreamerMorrow(BaseSim):
     def save(self):
         """ Save solutions. """
         np.save(self.data_dir + f'nd_{self.number:04d}', self.nd)
+        np.save(self.data_dir + f'normE_{self.number:04d}', self.normE)
         np.save(self.data_dir + f'globals_{self.number:04d}', self.gstreamer)
+        if self.photo:
+            np.save(self.data_dir + f'Sph_{self.number:04d}', self.Sph)
 
     def plot_global(self):
         """ Global quantities (position of negative streamer,

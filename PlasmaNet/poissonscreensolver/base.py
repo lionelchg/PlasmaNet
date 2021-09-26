@@ -103,7 +103,7 @@ class BasePhoto:
         :type geom: str, optional
         """
 
-        fig, axes = plt.subplots(ncols=2, nrows=2, figsize=(10, 8))
+        fig, axes = plt.subplots(ncols=2, nrows=2, figsize=(10, 6))
 
         plot_ax_scalar(fig, axes[0][0], self.X, self.Y, self.Sph, r'$S_{ph}$', geom=geom)
 
