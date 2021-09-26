@@ -18,7 +18,8 @@
 
 
 # name: 'UNet5_rf200/run_8'                      # Experience name
-name: 'UNet5_ksrect/run_1'                      # Experience name
+name: 'UNet5_ksrect/run_j1_photoloss'                      # Experience name
+# name: 'UNet4_ksrect/run_j2_photoloss'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -33,8 +34,8 @@ globals:                                    # Domain sizes and others, used to c
 
 arch:
     db_file: 'unets_rect.yml'
-    # name: 'UNet5-100k'
-    name: 'UNet4'
+    name: 'UNet5-100k'
+    # name: 'UNet4'
     args:
         input_res: [101, 401]
         padding_mode: 'custom'
@@ -47,26 +48,27 @@ data_loader:
     pipe_config: True
     args:
         # data_dir: '/scratch/cfd/cheng/DL/datasets/photo/train_cyl/401x101/random_8'
-        data_dir: '/scratch/cfd/cheng/DL/datasets/photo/train_cyl/401x101/random_16'
+        # data_dir: '/scratch/cfd/cheng/DL/datasets/photo/train_cyl/401x101/random_16'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/photo/eval_cyl/401x101/random_24'
         batch_size: 64
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
-        scaling_factor: 1.0e-20
+        scaling_factor: 1.0e-12
 
 # initializer: 'off'
 # initializer:
 #     type: 'constant_'
 #     args:
 #         val: 0.01
-initializer:
-    type: 'xavier_uniform_'
-    args:
-        gain: 1.0
 # initializer:
-#     type: 'xavier_normal_'
+#     type: 'xavier_uniform_'
 #     args:
 #         gain: 1.0
+initializer:
+    type: 'xavier_normal_'
+    args:
+        gain: 1.0
 
 optimizer:
     type: 'Adam'
@@ -84,12 +86,14 @@ loss:
             - DirichletBoundaryLoss
             # - LaplacianLoss
             # - AxialDirichletLoss
+            # - PhotoLoss
             - AxialNeumannLoss
         inside_weight: 1.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.0                    # Weighting of the loss on the boundaries (float)
         lapl_weight: 1.0e+6                    # Weighting of the loss on the Laplacian (float)
         axial_dir_weight: 1.0
         axial_neu_weight: 1.0
+        photo_weight: 1.0                # Weightinig of photoloss
         # adaptative: 0.1                     # Alpha value for adaptative weights
         # gradients: 10
 
@@ -109,7 +113,7 @@ lr_scheduler:
         verbose: False
 
 trainer:
-    epochs: 20
+    epochs: 100
     save_dir: 'train_cyl/study_photo'
     save_period: 5
     plot_period: 5                         # Period to send plots to TensorBoard

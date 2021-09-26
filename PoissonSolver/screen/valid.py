@@ -15,7 +15,7 @@ def plot_Sph(photo, X, R, Sph, figname):
     fig, axes = plt.subplots(ncols=2, figsize=(10, 8))
     plot_ax_scalar(fig, axes[0], X, R, Sph, 'Sph 2D', cmap_scale='log', geom='xr', field_ticks=[1e23, 1e26, 1e29])
     for j in range(photo.jtot):
-        axes[1].plot(photo.x, photo.Sphj[j, 0, :], label=f'Sph_{j:d}')
+        axes[1].plot(photo.x, eval(f'photo.Sphj{j+1:d}[0, :]'), label=f'Sph_{j:d}')
     plot_ax_scalar_1D(fig, axes[1], X, [0], Sph, "Sph 1D cuts", yscale='log', ylim=[1e23, 1e29])
     plt.savefig(figname, bbox_inches='tight')
 

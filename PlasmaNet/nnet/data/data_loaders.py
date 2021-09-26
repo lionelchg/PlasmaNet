@@ -153,19 +153,22 @@ class PhotoDataLoader(BaseDataLoader):
 
         # Load numpy files of shape (batch_size, H, W)
         ioniz_rate = np.load(self.data_dir / 'ioniz_rate.npy')
-        Sph = np.load(self.data_dir / 'Sph.npy')
+        # Sph = np.load(self.data_dir / 'Sph.npy')
+        Sph = np.load(self.data_dir / 'Sphj1.npy')
 
         # Convert to torch.Tensor of shape (batch_size, 1, H, W)
         ioniz_rate = torch.from_numpy(ioniz_rate[:, np.newaxis, :, :])
         Sph = torch.from_numpy(Sph[:, np.newaxis, :, :])
 
         # Normalization and length
-        self.normalize = ''
         self.Lx = config.Lx
         self.Ly = config.Ly
 
-        self.data_norm = torch.ones((ioniz_rate.size(0), ioniz_rate.size(1), 1, 1))
+        # Normalization
+        self.normalize = 1e-2
+        self.data_norm = torch.ones((ioniz_rate.size(0), ioniz_rate.size(1), 1, 1)) * 1e-2
         self.target_norm = torch.ones((Sph.size(0), Sph.size(1), 1, 1))
+        ioniz_rate /= self.data_norm
 
         # Scaling factor for the float32 that are not very precise
         self.scaling_factor = scaling_factor

@@ -21,6 +21,7 @@ from ..base.base_loss import BaseLoss
 from ..operators.gradient import gradient_scalar
 from ..operators.laplacian import laplacian as lapl
 from ..utils.util import initialize_figures, plot_kde, save_gradient_plots
+from ...poissonscreensolver.photo import A_j_two, lambda_j_two, pO2
 
 class InsideLoss(BaseLoss):
     """ Computes the weighted MSELoss of the interior of the domain (excluding boundaries). """
@@ -121,6 +122,41 @@ class LaplacianLoss(BaseLoss):
             return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1], - data[:, 0, 0:-1, 1:-1]) * self.weight
         else:
             return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
+
+class PhotoLoss(BaseLoss):
+    """ A Laplacian loss function on the inside of the domain (excluding boundaries). """
+    def __init__(self, config, photo_weight, **_):
+        super().__init__()
+        self.weight = photo_weight
+        self.base_weight = self.weight
+        self.dx = config.dx
+        self.dy = config.dy
+        self.Lx = config.Lx
+        self.Ly = config.Ly
+        self.r_nodes = config.r_nodes
+        if self.r_nodes is not None:  # in this case, a NumPy array
+            self.r_nodes = torch.from_numpy(self.r_nodes).cuda()
+        self._require_input_data = True  # Need rhs for computation
+        self.cyl = config.coord == 'cyl'
+        self.label = 'Laplacian'
+
+    # def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
+    #     laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy, r=self.r_nodes)
+    #     if self.cyl:
+    #         return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1]
+    #         - (lambda_j_two[1] * pO2)**2 * output[:, 0, 0:-1, 1:-1],
+    #         - A_j_two[1] * pO2**2 * data[:, 0, 0:-1, 1:-1]) * self.weight
+    #     else:
+    #         return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - A_j_two[1] * pO2**2 * data[:, 0, 1:-1, 1:-1]) * self.weight
+
+    def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
+        laplacian = lapl(output * target_norm / data_norm, self.dx, self.dy, r=self.r_nodes)
+        if self.cyl:
+            return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1]
+            - (lambda_j_two[0] * pO2)**2 * output[:, 0, 0:-1, 1:-1],
+            - A_j_two[0] * pO2**2 * data[:, 0, 0:-1, 1:-1]) * self.weight
+        else:
+            return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - A_j_two[1] * pO2**2 * data[:, 0, 1:-1, 1:-1]) * self.weight
 
 
 class EnergyLoss(BaseLoss):

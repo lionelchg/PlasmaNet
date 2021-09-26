@@ -19,6 +19,9 @@ A_j_two = np.array([0.0021, 0.1775]) * (1.0e2)**2
 
 coef_p = 0.038
 
+# Atmospheric Pressure in Torr
+pO2 = 150
+
 def photo_axisym(dx, dr, nx, nr, R, coeff, scale):
     diags = np.zeros((5, nx * nr))
     r = R.reshape(-1)
