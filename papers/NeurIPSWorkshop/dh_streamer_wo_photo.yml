@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/double_headed_streamer'
+casename: 'runs/dh_streamer_wo_photo/'
 description: 'Different runs of double headed streamer for network and linear system'
 mode: 'seq'
 poisson/type: ['network', 'lin_system']
@@ -73,7 +73,7 @@ base:
       coord: 'cart'
       verbosity: 2
 
-    resume: 'models/UNet5-rfx800-rfy200.pth'
+    resume: 'models/UNet5-rfx800-rfy200_NN1.pth'
 
     arch:
       db_file: 'unets_rect.yml'

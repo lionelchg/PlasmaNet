@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/double_headed_streamer'
+casename: 'runs/dh_streamer_photo'
 description: 'Different runs of double headed streamer for up to three neural networks and linear system'
 mode: 'tree'
 poisson/type: ['lin_system', 'network']
@@ -117,10 +117,8 @@ base:
   # Photoionization
   # ---------------------------
   photo:
-    # type: 'lin_system'
     type: 'network'
     photo_model: 'two'
-    # casename: 'cases/UNet5-rf800-200/'                  # Experience name
     n_gpu: 1                                    # Number of GPUs to use
 
     globals:                                    # Domain sizes and others, used to compute global attributes
@@ -167,12 +165,9 @@ base:
       pipe_config: True                       # Object initialization require config as first argument
       args:
         loss_list:                          # List of the losses to compose if ComposedLoss is used
-          #- InsideLoss
           - DirichletBoundaryLoss
           - LaplacianLoss
-        inside_weight: 0.                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
-        elec_weight: 0.                     # Weighting of the loss on the electric field (float)
         lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
 
     metrics:

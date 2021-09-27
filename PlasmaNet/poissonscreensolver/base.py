@@ -103,7 +103,7 @@ class BasePhoto:
         :type geom: str, optional
         """
 
-        fig, axes = plt.subplots(ncols=2, nrows=2, figsize=(10, 6))
+        fig, axes = plt.subplots(ncols=2, nrows=2, figsize=(6, 3))
 
         plot_ax_scalar(fig, axes[0][0], self.X, self.Y, self.Sph, r'$S_{ph}$', geom=geom)
 
@@ -120,7 +120,7 @@ class BasePhoto:
 
 
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
-        plt.savefig(figname, dpi=150, bbox_inches='tight')
+        plt.savefig(figname, dpi=200, bbox_inches='tight')
         plt.close()
 
     def plot_1D2D(self, figname, geom='xy'):

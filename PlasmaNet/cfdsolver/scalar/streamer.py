@@ -104,6 +104,7 @@ class StreamerMorrow(BaseSim):
 
                 self.photo_obj = PhotoLinSystem(config['photo'])
             elif self.photo_type == 'network':
+                config['photo']['casename'] = config['casename']
                 self.photo_obj = PhotoNetwork(config['photo'])
         else:
             self.irate = None
