@@ -33,7 +33,7 @@ setup(
     test_suite='tests',
     tests_require=tests_requirements,
     url='https://nitrox.cerfacs.fr/cfd-apps/plasmanet',
-    version='0.9',
+    version='1.0',
     zip_safe=False,
     entry_points={
         'console_scripts': [
@@ -48,7 +48,6 @@ setup(
             'train_pproc=PlasmaNet.nnet.pproc:main',
             'opti_train=PlasmaNet.nnet.trainer.opti_train:main',
             'eval_datasets=PlasmaNet.poissonsolver.eval_datasets:main',
-            'eval_datasets_2=PlasmaNet.poissonsolver.eval_datasets_2:main',
             'compute_rf=PlasmaNet.nnet.compute_rf:compute_RF_2D',
         ],
     },

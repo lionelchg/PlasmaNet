@@ -5,7 +5,6 @@
 #                                  Lionel Cheng, CERFACS, 16.04.2021                                       #
 #                                                                                                          #
 ############################################################################################################
-
 import argparse
 import yaml
 from pathlib import Path
@@ -14,10 +13,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from copy import deepcopy
 import shutil
+import re
 
 # From PlasmaNet
 from PlasmaNet.poissonsolver.network import PoissonNetwork
-
 
 latex_dict = {
     'Eresidual': r'$||\mathbf{E}_\mathrm{out} - \mathbf{E}_\mathrm{target}||_1$',
@@ -53,8 +52,8 @@ def main():
                       help='Config file path (default: None)')
     args.add_argument('-m', '--mode', default='separate', type=str,
                       help='Run mode of the dataset (either combined or separated)')
-    args.add_argument('-fn', '--figname', default='metrics', type=str,
-                      help='Name of the figure in the casename directory')
+    args.add_argument('-fn', '--filename', default='metrics', type=str,
+                      help='Name of the h5 file of the DataFrame in the casename directory')
     args = args.parse_args()
 
     with open(args.config, 'r') as yaml_stream:
@@ -78,70 +77,62 @@ def main():
     # datasets studied
     datasets = config['datasets']
     ndatasets = len(datasets)
-    metrics_ds = dict()
+
+    # Metrics and number of metrics
+    metrics = config['network']['metrics']
+    nmetrics = len(metrics)
+
+    # Global dataframe
+    df_columns = ['nn_name', 'nn_type', 'rf_global', 'nbranches', 'depth', 'ks', 'ds_name', 'ds_type',
+                       'test_res', 'train_res', 'metric_name', 'value']
+    df = pd.DataFrame(columns=df_columns)
+
+    # Regex for dstype and rf_list
+    re_ds_type = re.compile('[^_]+')
+
+    # Filter all the rfs to match closest to rf_list
+    rf_list = [50, 75, 100, 150, 200, 300, 400]
 
     # Evaluate on the datasets specified in config for each network
     for nn_name, nn_cfg in networks_cfg.items():
-        metrics_ds[nn_name] = dict()
         config['network']['eval'] = config['eval']
         config['network']['resume'] = nn_cfg['resume']
         config['network']['arch'] = nn_cfg['arch']
         poisson_nn = PoissonNetwork(config['network'])
+
+        # Extract network global properties
+        rf_global = poisson_nn.model.rf_global
+        nbranches = poisson_nn.model.n_scales
+        depths = poisson_nn.model.depths
+        ks = poisson_nn.model.kernel_sizes[0]
+        test_res = config['eval']['nnx']
+        train_res = config['network']['globals']['nnx'] 
+
         # Loop on datasets
         for ds_name, ds_loc in datasets.items():
             metrics_tmp = poisson_nn.evaluate(ds_loc, data_dir / ds_name, plot=False)
-            metrics_ds[nn_name][ds_name] = deepcopy(metrics_tmp)
+            # Loop on the resulting metrics and create the temporary dict
+            for metric_name in metrics:
+                tmp_dict = dict()
+                tmp_dict['nn_name'] = nn_name
+                tmp_dict['nn_type'] = type(poisson_nn.model).__name__
+                tmp_dict['rf_global'] = min(rf_list, key=lambda x:abs(x - rf_global))
+                tmp_dict['nbranches'] = nbranches
+                tmp_dict['depth'] = sum(depths)
+                tmp_dict['ks'] = ks
+                tmp_dict['ds_name'] = ds_name
+                tmp_dict['test_res'] = test_res
+                tmp_dict['train_res'] = train_res
+                tmp_dict['ds_type'] = re_ds_type.search(ds_name).group()
+                tmp_dict['metric_name'] = metric_name
+                tmp_dict['value'] = metrics_tmp._data.average[metric_name]
+                df = df.append(tmp_dict, ignore_index=True)
     
-    # Reformat to one dataframe per metrics with figure plotting
-    metrics = dict()
-    nmetrics = len(config['network']['metrics'])
-    fig, axes = plt.subplots(ncols=nmetrics, figsize=(4 * nmetrics, 4))
-    if nmetrics == 1:
-        axes = [axes]
-    for imetric, metric_name in enumerate(config['network']['metrics']):
-        tmp_df = pd.DataFrame(columns=datasets.keys())
-        for nn_name in networks_cfg.keys():
-            tmp_dict = dict()
-            for ds_name in datasets.keys():
-                tmp_dict[ds_name] = metrics_ds[nn_name][ds_name]._data.average[metric_name]
-            tmp_df.loc[nn_name] = tmp_dict
+    # Save the dataframe
+    h5filename = args.filename + '.h5'
+    df.to_hdf(data_dir / h5filename, key='df', mode='w')
 
-        # Save figures for each metric
-        if len(tmp_df.columns) > 1:
-            tmp_df.T.plot.bar(ax=axes[imetric], rot=30, legend=False)
-        elif len(tmp_df.columns) == 1:
-            tmp_df.plot.bar(ax=axes[imetric], rot=30, legend=False)
-            axes[imetric].grid(True, alpha=0.3)
-        axes[imetric].set_ylabel(latex_dict[metric_name])
-
-        # Set the yticks to scientific format
-        scilimx = int(np.log10(max(tmp_df.max())))
-        axes[imetric].ticklabel_format(axis='y', style='sci', scilimits=(scilimx, scilimx))
-
-        # Set axis limits manually for coherent plots
-        if 'bar_plot_limits' in config['network']:
-            limits = config['network']['bar_plot_limits'][imetric]
-            axes[imetric].set_ylim(limits[0], limits[1])
-
-        # Create grid
-        axes[imetric].grid(True, axis='y', alpha=0.3)
-
-        # Pass the metrics to a global dict
-        metrics[metric_name] = tmp_df
-    
-    # Create one legend for all the subplots when not combined option
-    if not len(tmp_df.columns) == 1: 
-        handles, labels = axes[0].get_legend_handles_labels()
-        if not nmetrics == 1:
-            fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(1.02, 0.8))
-        else:
-            fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(1.07, 0.8))
-
-    fig.tight_layout()
-    fig.savefig(data_dir / args.figname, bbox_inches='tight')
-    plt.close()
-
-    # Delete combined dataset 
+    # Delete combined dataset
     if args.mode == 'combined':
         shutil.rmtree(output_dsname)
 

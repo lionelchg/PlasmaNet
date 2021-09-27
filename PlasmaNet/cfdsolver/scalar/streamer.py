@@ -17,8 +17,6 @@ import logging
 import seaborn as sns
 import copy
 
-from scipy.sparse.linalg import spsolve
-
 from ..base.base_sim import BaseSim
 from .scalar import compute_flux
 from .chemistry import morrow
@@ -28,10 +26,8 @@ from ...common.operators_numpy import grad
 from ...common.profiles import gaussian
 from ...common.utils import create_dir
 
-from ...poissonsolver.linsystem import impose_dirichlet
 from ...poissonsolver.poisson import DatasetPoisson
 from ...poissonsolver.network import PoissonNetwork
-from ...poissonscreensolver.photo import photo_axisym, A_j_two, A_j_three, lambda_j_two, lambda_j_three
 from ...poissonscreensolver.photo_network import PhotoNetwork
 from ...poissonscreensolver.photo_ls import PhotoLinSystem
 
