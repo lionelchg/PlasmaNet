@@ -91,7 +91,7 @@ def set_nested(data, value, *args):
     """ Function to set arguments with value in nested dictionary """
     element = args[0]
     if len(args) == 1:
-        data[element] = value 
+        data[element] = value
     else:
         set_nested(data[element], value, *args[1:])
 
@@ -138,6 +138,9 @@ def main():
             p.map(Euler.run, params(cases, base_cfg, base_cn))
         elif args.type == 'pleuler':
             p.map(PlasmaEuler.run, params(cases, base_cfg, base_cn))
+        else:
+            raise NameError(f"args.type = {args.type} does not correspond to any simulation implemented"
+                    "Only scalar/streamer/euler/pleuler are available")
 
 if __name__ == '__main__':
     main()
