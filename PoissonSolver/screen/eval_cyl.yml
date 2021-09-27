@@ -14,7 +14,7 @@
 #         config = yaml.safe_load(yaml_stream)
 
 device: 'kraken'
-n_entries: 1000
+n_entries: 100
 n_procs: 20
 output_dir: '/scratch/cfd/cheng/DL/datasets/photo/eval_cyl/'
 

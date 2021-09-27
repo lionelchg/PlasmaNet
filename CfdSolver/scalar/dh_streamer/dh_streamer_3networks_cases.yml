@@ -13,20 +13,30 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/linsystem/photo'
-description: 'Different runs of dh_streamers photoionization models'
-mode: 'seq'
-params/photoionization: ['two', 'three']
+casename: 'runs/double_headed_streamer'
+description: 'Different runs of double headed streamer for up to three neural networks and linear system'
+mode: 'tree'
+poisson/type: ['lin_system', 'network']
+photo/type: ['lin_system', 'network']
 
 base:
   params:
-    nit: 4000
+    nit: 3000
     dt: 1.0e-12
     geom: 'xr'
-    photoionization: 'three'
     x0: 2.0e-3
     n_back: 1.0e+9
     n_gauss: 1.0e+19
+  transport:
+    chemistry: 'morrow'
+
+  BC: 'outlet_axi'
+
+  poisson:
+    backE: 4.8e+6
+    type: 'network'
+    # type: 'lin_system'
+    nmax_fourier: 10
 
   mesh:
     xmin: 0
@@ -35,23 +45,12 @@ base:
     ymax: 0.001
     nnx: 401
     nny: 101
-
-  transport:
-    chemistry: 'morrow'
-
-  BC: 'outlet_axi'
-
-  poisson:
-    backE: 4.8e+6
-    type: 'lin_system'
-    nmax_fourier: 10
-
   output:
     folder: 'data/'
     save: 'iteration'
     verbose: True
     files: 'figdata'
-    period: 400
+    period: 200
     dl_save: 'no'
     plot:
       ne_ticks: [1.0e+17, 1.0e+18, 1.0e+19, 1.0e+20, 1.0e+21]
@@ -59,3 +58,120 @@ base:
       Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+29]
 
   input: 'none'
+
+  # This block is useful only if poisson/type = 'network'
+  network:
+    n_gpu: 1                                    # Number of GPUs to use
+
+    globals:                                    # Domain sizes and others, used to compute global attributes
+      nnx: 401
+      nny: 101
+      xmin: 0.0
+      xmax: 4.0e-3
+      ymin: 0.0
+      ymax: 1.0e-3
+      coord: 'cart'
+      verbosity: 2
+
+    resume: 'models/UNet5-rfx800-rfy200_NN1.pth'
+
+    arch:
+      db_file: 'unets_rect.yml'
+      name: 'UNet5-100k'
+      args:
+          input_res: [101, 401]
+          padding_mode: 'custom'
+
+    data_loader:
+      type: 'PoissonDataLoader'
+      data_channels: 1
+      pipe_config: True
+      args:
+        batch_size: 200
+        shuffle: True
+        validation_split: 0.0               # if float, fraction of the full dataset, if int, length of validation portion
+        num_workers: 4
+        normalize: 'analytical'                   # max, physical or no for normalization types
+        alpha: 0.1
+        scaling_factor: 1.0e+6
+
+    initializer: 'off'
+
+    loss:
+      type: 'ComposedLoss'
+      pipe_config: True                       # Object initialization require config as first argument
+      args:
+        loss_list:                          # List of the losses to compose if ComposedLoss is used
+          - DirichletBoundaryLoss
+          - LaplacianLoss
+        bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
+        lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
+
+    metrics:
+      - 'residual'
+      - 'inf_norm'
+      - 'Eresidual'
+      - 'Einf_norm'
+
+  # ---------------------------
+  # Photoionization
+  # ---------------------------
+  photo:
+    type: 'network'
+    photo_model: 'two'
+    n_gpu: 1                                    # Number of GPUs to use
+
+    globals:                                    # Domain sizes and others, used to compute global attributes
+      nnx: 401
+      nny: 101
+      xmin: 0.0
+      xmax: 4.0e-3
+      ymin: 0.0
+      ymax: 1.0e-3
+      coord: 'cyl'
+      verbosity: 2
+
+    resume: ['models/UNet5-rfx800-rfy200_NN2.pth',
+            'models/UNet5-rfx800-rfy200_NN3.pth']
+
+    arch:
+      db_file: 'unets_rect.yml'
+      name: 'UNet5-100k'
+      args:
+        input_res: [101, 401]
+        padding_mode: 'custom'
+
+
+    data_loader:
+      type: 'PhotoDataLoader'
+      data_channels: 1
+      pipe_config: True
+      args:
+        data_dir: '/scratch/cfd/cheng/DL/datasets/photo/train_cyl/401x101/random_24'
+        batch_size: 64
+        shuffle: True
+        validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
+        num_workers: 4
+        scaling_factor: 1.0e-8
+        # normalize: 1.0e+2
+        normalize: 1.0
+        # sph_file: 'Sphj1.npy'
+        sph_file: 'Sphj2.npy'
+
+    initializer: 'off'
+
+    loss:
+      type: 'ComposedLoss'
+      pipe_config: True                       # Object initialization require config as first argument
+      args:
+        loss_list:                          # List of the losses to compose if ComposedLoss is used
+          - DirichletBoundaryLoss
+          - LaplacianLoss
+        bound_weight: 1.                    # Weighting of the loss on the boundaries (float)
+        lapl_weight: 0.1                    # Weighting of the loss on the Laplacian (float)
+
+    metrics:
+      - 'residual'
+      - 'inf_norm'
+      - 'Eresidual'
+      - 'Einf_norm'

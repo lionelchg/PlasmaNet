@@ -258,7 +258,7 @@ class PlasmaEuler(Euler):
                           ylim=[0, 1.1 * self.E_max])
         fig.suptitle(rf'$t$ = {self.dtsum:.2e} s')
         fig.tight_layout()
-        fig.savefig(self.fig_dir +
+        fig.savefig(self.fig_dir /
                     f'variables_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
 
@@ -274,7 +274,7 @@ class PlasmaEuler(Euler):
         fig.axes[0].get_yaxis().set_visible(False)
         fig.axes[1].get_xaxis().set_visible(False)
         fig.axes[1].get_yaxis().set_visible(False)
-        fig.savefig(self.fig_dir +
+        fig.savefig(self.fig_dir /
                     f'variables_2D_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
 

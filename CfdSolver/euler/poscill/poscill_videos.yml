@@ -13,7 +13,7 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/network_vs_ls_videos/'
+casename: 'runs/kraken/network_vs_ls_videos_debug/'
 description: 'Two periods runs of two gaussians in 101x101 for network vs linsystem'
 mode: 'seq'
 poisson/type: ['network', 'lin_system']
