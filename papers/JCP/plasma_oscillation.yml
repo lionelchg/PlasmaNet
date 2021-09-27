@@ -61,7 +61,7 @@ base:
       coord: 'cart'
       verbosity: 2
 
-    resume: 'UNet5-rf200.pth'
+    resume: 'models/UNet5-rf200.pth'
 
     arch:
       db_file: 'unets_ks3_rf200.yml'

@@ -5,7 +5,7 @@
 To run plasma oscillation for two periods for a linear system solver and the best neural network `UNet5-rf200` shown in Fig. 17(b) of the article:
 
 ```shell
-run_cases -c plasma_oscillation.yml -np 2 -t peuler
+run_cases -c plasma_oscillation.yml -np 2 -t pleuler
 ```
 
 ## Double headed streamer
