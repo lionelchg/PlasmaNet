@@ -46,7 +46,6 @@ setup(
             'train_network=PlasmaNet.nnet.trainer.train_network:main',
             'train_networks=PlasmaNet.nnet.trainer.train_networks:main',
             'train_pproc=PlasmaNet.nnet.pproc:main',
-            'opti_train=PlasmaNet.nnet.trainer.opti_train:main',
             'eval_datasets=PlasmaNet.poissonsolver.eval_datasets:main',
             'compute_rf=PlasmaNet.nnet.compute_rf:compute_RF_2D',
         ],
