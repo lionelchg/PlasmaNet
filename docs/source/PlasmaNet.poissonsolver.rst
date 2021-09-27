@@ -28,14 +28,6 @@ PlasmaNet.poissonsolver.eval\_datasets module
    :undoc-members:
    :show-inheritance:
 
-PlasmaNet.poissonsolver.eval\_datasets\_2 module
-------------------------------------------------
-
-.. automodule:: PlasmaNet.poissonsolver.eval_datasets_2
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 PlasmaNet.poissonsolver.linsystem module
 ----------------------------------------
 

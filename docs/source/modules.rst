@@ -1,10 +1,7 @@
-PlasmaNet
-=========
+PlasmaNet Module Index
+=======================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
 
-   PlasmaNet.poissonsolver
-   PlasmaNet.cfdsolver
-   PlasmaNet.nnet
-   PlasmaNet.common
+   PlasmaNet

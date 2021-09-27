@@ -10,6 +10,7 @@ Subpackages
    PlasmaNet.cfdsolver
    PlasmaNet.common
    PlasmaNet.nnet
+   PlasmaNet.poissonscreensolver
    PlasmaNet.poissonsolver
 
 Module contents

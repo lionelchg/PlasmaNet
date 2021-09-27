@@ -20,18 +20,18 @@ PlasmaNet.cfdsolver.scalar.chemistry module
    :undoc-members:
    :show-inheritance:
 
-PlasmaNet.cfdsolver.scalar.photo module
----------------------------------------
-
-.. automodule:: PlasmaNet.cfdsolver.scalar.photo
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 PlasmaNet.cfdsolver.scalar.pproc module
 ---------------------------------------
 
 .. automodule:: PlasmaNet.cfdsolver.scalar.pproc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+PlasmaNet.cfdsolver.scalar.pproc\_2D module
+-------------------------------------------
+
+.. automodule:: PlasmaNet.cfdsolver.scalar.pproc_2D
    :members:
    :undoc-members:
    :show-inheritance:

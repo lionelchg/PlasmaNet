@@ -4,14 +4,6 @@ PlasmaNet.cfdsolver.base package
 Submodules
 ----------
 
-PlasmaNet.cfdsolver.base.base\_plot module
-------------------------------------------
-
-.. automodule:: PlasmaNet.cfdsolver.base.base_plot
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 PlasmaNet.cfdsolver.base.base\_sim module
 -----------------------------------------
 

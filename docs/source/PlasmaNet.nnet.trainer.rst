@@ -12,14 +12,6 @@ PlasmaNet.nnet.trainer.long\_term\_trainer module
    :undoc-members:
    :show-inheritance:
 
-PlasmaNet.nnet.trainer.opti\_train module
------------------------------------------
-
-.. automodule:: PlasmaNet.nnet.trainer.opti_train
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 PlasmaNet.nnet.trainer.plot module
 ----------------------------------
 
