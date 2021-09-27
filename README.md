@@ -15,6 +15,11 @@ PlasmaNet is an open-source code to study the capability of neural networks to s
 
 ### Publications
 
+- Using neural networks to solve the 2D Poisson equation for electric field computation in plasma fluid simulations, *Lionel Cheng, Ekhi Ajuria Illarramendi, Guillaume Bogopolsky, Michael Bauerheim, Benedicte Cuenot*, submitted to Journal of Computational Physics.
+- PlasmaNet: a framework to study and solve elliptic differential equations using neural networks in plasma fluid simulations, *Lionel Cheng, Ekhi Ajuria Illarramendi, Michael Bauerheim, Benedicte Cuenot*, submitted to NeurIPS Workshop "Machine Learning and the Physical Sciences".
+
+Models from the papers can be found in the branch `papers` in the `papers/` directory at the root of the repository.
+
 ### Installation
 
 `PlasmaNet` is written as a python library working. To install it, go the repository root (where the `setup.py` file is) and run:
