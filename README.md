@@ -28,6 +28,15 @@ Models and configuration files to run experiments from papers can be found by sw
 pip install -e .
 ```
 
+Some environment variables need to be defined for the library (these lines can be added to a `.bashrc` file):
+
+```shell
+export ARCHS_DIR=path/to/plasmanet/NNet/archs
+export POISSON_DIR=path/to/plasmanet/PoissonSolver/linsystem
+```
+
+The first one is to indicate the network architectures directory which are stored in `yaml` files. The second environment variable is for testing.
+
 ### Documentation and guides
 
 The documentation can be found online [here](https://plasmanet.readthedocs.io/en/latest/).

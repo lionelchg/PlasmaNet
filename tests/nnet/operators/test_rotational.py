@@ -10,7 +10,7 @@ import torch
 import numpy as np
 import pytest
 from PlasmaNet.nnet.operators.rotational import scalar_rot as rot
-from tests.operators import create_grid
+from PlasmaNet.common.operators_torch import create_grid
 
 
 def test_scalar_rotational():

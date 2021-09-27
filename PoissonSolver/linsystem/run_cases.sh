@@ -1,3 +1,5 @@
+#!/bin/bash
+
 python rhs_axi.py
 python rhs_dirichlet.py
 python rhs_mixed.py
