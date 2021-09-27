@@ -2,7 +2,7 @@
 #                                                                                                                      #
 #                                            cfdsolver -- Configuration file                                           #
 #                                                                                                                      #
-#                                           Lionel Cheng, CERFACS, 27.09.2021                                          #
+#                                           Lionel Cheng, CERFACS, 27.03.2020                                          #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -120,7 +120,7 @@ base:
     # type: 'lin_system'
     type: 'network'
     photo_model: 'two'
-    casename: 'cases/UNet5-rf800-200/'                  # Experience name
+    # casename: 'cases/UNet5-rf800-200/'                  # Experience name
     n_gpu: 1                                    # Number of GPUs to use
 
     globals:                                    # Domain sizes and others, used to compute global attributes
