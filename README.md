@@ -18,11 +18,11 @@ PlasmaNet is an open-source code to study the capability of neural networks to s
 - Using neural networks to solve the 2D Poisson equation for electric field computation in plasma fluid simulations, *Lionel Cheng, Ekhi Ajuria Illarramendi, Guillaume Bogopolsky, Michael Bauerheim, Benedicte Cuenot*, submitted to Journal of Computational Physics.
 - PlasmaNet: a framework to study and solve elliptic differential equations using neural networks in plasma fluid simulations, *Lionel Cheng, Ekhi Ajuria Illarramendi, Michael Bauerheim, Benedicte Cuenot*, submitted to NeurIPS Workshop "Machine Learning and the Physical Sciences".
 
-Models from the papers can be found in the branch `papers` in the `papers/` directory at the root of the repository.
+Models and configuration files to run experiments from papers can be found by switching to the `papers` branch. The `papers/` directory will appear at the root of the repository. The first paper models and config files are located in the `papers/JCP/` directory whereas the second paper models and config files are located in the `papers/NeurIPSWorkshop/`.
 
 ### Installation
 
-`PlasmaNet` is written as a python library working. To install it, go the repository root (where the `setup.py` file is) and run:
+`PlasmaNet` is written as a python library. To install it, go the repository root (where the `setup.py` file is) and run:
 
 ```shell
 pip install -e .
@@ -30,13 +30,15 @@ pip install -e .
 
 ### Documentation and guides
 
-To generate the html documentation of the package go to `docs/` directory and:
+The documentation can be found online [here](https://plasmanet.readthedocs.io/en/latest/).
+
+To generate locally the html documentation of the package go to `docs/` directory and:
 
 ```bash
 make html
 ```
 
-The generated html documentation will be located in `docs/build/html` and to access it `docs/build/html/index.html` needs to be opened on a web browser.
+The generated html documentation will be located in `docs/build/html` and to access it open `docs/build/html/index.html` in a web browser.
 
 ### Contributions
 
