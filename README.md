@@ -25,6 +25,7 @@ Models and configuration files to run experiments from papers can be found by sw
 `PlasmaNet` is written as a python library. To install it, go the repository root (where the `setup.py` file is) and run:
 
 ```shell
+pip install -r requirements.txt
 pip install -e .
 ```
 
