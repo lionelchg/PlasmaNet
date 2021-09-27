@@ -1,6 +1,7 @@
 absl-py==0.9.0
 astroid==2.4.2
 attrs==19.3.0
+autopep8==1.5.7
 backcall==0.1.0
 bleach==3.1.5
 cachetools==4.0.0
@@ -31,10 +32,10 @@ jupyter-core==4.6.3
 kiwisolver==1.1.0
 lazy-object-proxy==1.4.3
 line-profiler==3.1.0
-llvmlite==0.34.0
+llvmlite==0.37.0
 Markdown==3.2.1
 MarkupSafe==1.1.1
-matplotlib==3.4.2
+matplotlib==3.4.3
 matplotlib-inline==0.1.2
 mccabe==0.6.1
 mistune==0.8.4
@@ -42,7 +43,7 @@ more-itertools==8.6.0
 nbconvert==5.6.1
 nbformat==5.0.7
 notebook==6.0.3
-numba==0.51.2
+numba==0.54.0
 numexpr==2.7.2
 numpy==1.20.3
 oauthlib==3.1.0
@@ -61,6 +62,7 @@ ptyprocess==0.6.0
 py==1.10.0
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
+pycodestyle==2.7.0
 Pygments==2.5.2
 pylint==2.6.0
 pyparsing==2.4.6
@@ -87,7 +89,6 @@ terminado==0.8.3
 testpath==0.4.4
 toml==0.10.1
 torch==1.9.1
-torchaudio==0.9.1
 torchvision==0.10.1
 tornado==6.0.4
 tqdm==4.43.0
