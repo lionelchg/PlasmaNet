@@ -6,6 +6,7 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.constants as co
@@ -31,6 +32,8 @@ from ...poissonsolver.linsystem import impose_dirichlet
 from ...poissonsolver.poisson import DatasetPoisson
 from ...poissonsolver.network import PoissonNetwork
 from ...poissonscreensolver.photo import photo_axisym, A_j_two, A_j_three, lambda_j_two, lambda_j_three
+from ...poissonscreensolver.photo_network import PhotoNetwork
+from ...poissonscreensolver.photo_ls import PhotoLinSystem
 
 sns.set_context('notebook', font_scale=1.0)
 
@@ -87,39 +90,25 @@ class StreamerMorrow(BaseSim):
             config['network']['casename'] = config['casename']
             self.poisson = PoissonNetwork(config['network'])
 
-        self.scale = self.dx * self.dy
-
         # Photoionization initialization
-        self.photo = config['params']['photoionization'] != 'no'
+        self.photo = 'photo' in config
         if self.photo:
-            self.photo_model = config['params']['photoionization']
-            # Pressure in Torr
-            self.pO2 = 150
-
-            # Boundary conditions
-            self.up_photo = np.zeros_like(self.x)
-            self.left_photo = np.zeros_like(self.y)
-            self.right_photo = np.zeros_like(self.y)
-            self.bcs_photo = {'left':self.left_photo, 'right':self.right_photo, 'top':self.up_photo}
-
-            self.mats_photo = []
-            self.irate = np.zeros_like(self.X)
             self.Sph = np.zeros_like(self.X)
+            self.irate = np.zeros_like(self.X)
+            self.photo_type = config['photo']['type']
+            if self.photo_type == 'lin_system':
+                # Copy mesh info to dict
+                for key, value in config['mesh'].items():
+                    config['photo'][key] = value
+                # Initialize boudary conditions
+                self.up_photo = np.zeros_like(self.x)
+                self.left_photo = np.zeros_like(self.y)
+                self.right_photo = np.zeros_like(self.y)
+                self.bcs_photo = {'left':self.left_photo, 'right':self.right_photo, 'top':self.up_photo}
 
-            if self.photo_model == 'two':
-                for i in range(2):
-                    # Axisymmetric resolution
-                    self.mats_photo.append(
-                        photo_axisym(self.dx, self.dy, self.nnx, self.nny, self.R_nodes,
-                                     (lambda_j_two[i] * self.pO2)**2, self.scale)
-                    )
-            elif self.photo_model == 'three':
-                for i in range(3):
-                    # Axisymmetric resolution
-                    self.mats_photo.append(
-                        photo_axisym(self.dx, self.dy, self.nnx, self.nny, self.R_nodes,
-                                     (lambda_j_three[i] * self.pO2)**2, self.scale)
-                    )
+                self.photo_obj = PhotoLinSystem(config['photo'])
+            elif self.photo_type == 'network':
+                self.photo_obj = PhotoNetwork(config['photo'])
         else:
             self.irate = None
 
@@ -205,17 +194,11 @@ class StreamerMorrow(BaseSim):
     def solve_photo(self):
         """ Solve the photoionization source term using approximation in Helmholtz equations """
         logging.info('--> Photoionization resolution')
-        self.Sph[:] = 0
-        if self.photo_model == 'two':
-            for i in range(2):
-                rhs = - self.irate * A_j_two[i] * self.pO2**2 * self.scale
-                impose_dirichlet(rhs, self.bcs_photo)
-                self.Sph += spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
-        elif self.photo_model == 'three':
-            for i in range(3):
-                rhs = - self.irate * A_j_three[i] * self.pO2**2 * self.scale
-                impose_dirichlet(rhs, self.bcs_photo)
-                self.Sph += spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
+        if self.photo_type == 'lin_system':
+            self.photo_obj.solve(self.irate, self.bcs_photo)
+        elif self.photo_type == 'network':
+            self.photo_obj.solve(self.irate)
+        self.Sph = self.photo_obj.Sph
 
     def compute_chemistry(self, it):
         """ Apply chemistry from Morrow et. al. with or without photoionization. """

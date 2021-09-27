@@ -22,16 +22,88 @@
 # Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+29]
 
 
-# Comparison of globals from streamer
-fig_dir: 'photo_two_vs_three/'
+# # Comparison of globals from streamer
+# fig_dir: 'photo_two_vs_three/'
 
-solut_paths: ['runs/kraken/linsystem/photo/case_1/data',
-              'runs/kraken/linsystem/photo/case_2/data']
-solut_labels: ['Neural network', 'Linear system']
+# solut_paths: ['runs/kraken/linsystem/photo/case_1/data',
+#               'runs/kraken/linsystem/photo/case_2/data']
+# solut_labels: ['Neural network', 'Linear system']
+
+# photo: 'yes'
+# combined: 'yes'
+# instants: [2, 4, 6]
+
+# mesh:
+#   xmin: 0
+#   ymin: 0
+#   xmax: 0.004
+#   ymax: 0.001
+#   nnx: 401
+#   nny: 101
+
+
+# ne_ticks: [1.0e+17, 1.0e+18, 1.0e+19, 1.0e+20, 1.0e+21]
+# Emax: 1.4e+7
+# Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+28]
+
+# # Comparison of globals from streamer
+# fig_dir: 'photo_nn_vs_ls/'
+
+# solut_paths: ['runs/kraken/photo/nn_two/data',
+#               'runs/kraken/photo/ls_two/data']
+# solut_labels: ['Neural network', 'Linear system']
+
+# photo: 'yes'
+# combined: 'yes'
+# instants: [5, 10, 15]
+
+# mesh:
+#   xmin: 0
+#   ymin: 0
+#   xmax: 0.004
+#   ymax: 0.001
+#   nnx: 401
+#   nny: 101
+
+
+# ne_ticks: [1.0e+17, 1.0e+18, 1.0e+19, 1.0e+20, 1.0e+21]
+# Emax: 1.4e+7
+# Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+29]
+
+# # Comparison of globals from streamer
+# fig_dir: 'photo_nn_vs_fullnn/'
+
+# solut_paths: ['runs/kraken/photo/nn_two/data',
+#               'runs/kraken/photo/nn_two_nn_poisson/data']
+# solut_labels: ['2 NN', '3 NN']
+
+# photo: 'yes'
+# combined: 'yes'
+# instants: [5, 10, 14]
+
+# mesh:
+#   xmin: 0
+#   ymin: 0
+#   xmax: 0.004
+#   ymax: 0.001
+#   nnx: 401
+#   nny: 101
+
+
+# ne_ticks: [1.0e+17, 1.0e+18, 1.0e+19, 1.0e+20, 1.0e+21]
+# Emax: 1.4e+7
+# Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+29]
+
+# Comparison of globals from streamer
+fig_dir: 'photo_ls_vs_fullnn/'
+
+solut_paths: ['runs/kraken/photo/nn_two_nn_poisson/data',
+              'runs/kraken/photo/ls_two/data']
+solut_labels: ['3 NN', 'Linear system']
 
 photo: 'yes'
 combined: 'yes'
-instants: [2, 4, 6]
+instants: [5, 10, 14]
 
 mesh:
   xmin: 0
@@ -44,4 +116,4 @@ mesh:
 
 ne_ticks: [1.0e+17, 1.0e+18, 1.0e+19, 1.0e+20, 1.0e+21]
 Emax: 1.4e+7
-Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+28]
+Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+29]

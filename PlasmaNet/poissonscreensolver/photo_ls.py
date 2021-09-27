@@ -24,7 +24,7 @@ class PhotoLinSystem(BasePhoto):
     def __init__(self, cfg):
         super().__init__(cfg)
         self.scale = self.dx * self.dy
-        self.photo_model = cfg['model']
+        self.photo_model = cfg['photo_model']
 
         # Pressure in Torr
         self.pO2 = 150

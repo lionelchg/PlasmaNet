@@ -19,7 +19,7 @@ n_procs: 20
 output_dir: '/scratch/cfd/cheng/DL/datasets/photo/eval_cyl/'
 
 photo:
-  model: 'two'
+  photo_model: 'two'
   xmin: 0.0
   xmax: 4.0e-3
   nnx: 401
