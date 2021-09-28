@@ -10,6 +10,7 @@ Welcome! This is the documentation for ``PlasmaNet``, last updated Sept 28, 2021
 
 .. code-block:: shell
 
+   pip install -r requirements.txt
    pip install -e .
 
 Some environment variables need to be defined for the library (these lines can be added to a ``.bashrc`` file):
