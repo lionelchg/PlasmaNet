@@ -123,22 +123,10 @@ class LaplacianLoss(BaseLoss):
         else:
             return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1], - data[:, 0, 1:-1, 1:-1]) * self.weight
 
-class PhotoLoss_j1(BaseLoss):
+class PhotoLoss_j1(LaplacianLoss):
     """ A Laplacian loss function on the inside of the domain (excluding boundaries). """
     def __init__(self, config, photo_weight_j1, **_):
-        super().__init__()
-        self.weight = photo_weight_j1
-        self.base_weight = self.weight
-        self.dx = config.dx
-        self.dy = config.dy
-        self.Lx = config.Lx
-        self.Ly = config.Ly
-        self.r_nodes = config.r_nodes
-        if self.r_nodes is not None:  # in this case, a NumPy array
-            self.r_nodes = torch.from_numpy(self.r_nodes).cuda()
-        self._require_input_data = True  # Need rhs for computation
-        self.cyl = config.coord == 'cyl'
-        self.label = 'Laplacian'
+        super().__init__(config, photo_weight_j1)
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         # Renormalize to make it coherent with RHS
@@ -154,22 +142,10 @@ class PhotoLoss_j1(BaseLoss):
             - (lambda_j_two[0] * pO2)**2 * out_norm[:, 0, 1:-1, 1:-1],
             - A_j_two[1] * pO2**2 * data[:, 0, 1:-1, 1:-1]) * self.weight
 
-class PhotoLoss_j2(BaseLoss):
+class PhotoLoss_j2(LaplacianLoss):
     """ A Laplacian loss function on the inside of the domain (excluding boundaries). """
     def __init__(self, config, photo_weight_j2, **_):
-        super().__init__()
-        self.weight = photo_weight_j2
-        self.base_weight = self.weight
-        self.dx = config.dx
-        self.dy = config.dy
-        self.Lx = config.Lx
-        self.Ly = config.Ly
-        self.r_nodes = config.r_nodes
-        if self.r_nodes is not None:  # in this case, a NumPy array
-            self.r_nodes = torch.from_numpy(self.r_nodes).cuda()
-        self._require_input_data = True  # Need rhs for computation
-        self.cyl = config.coord == 'cyl'
-        self.label = 'Laplacian'
+        super().__init__(config, photo_weight_j2)
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         # Renormalize to make it coherent with RHS
@@ -183,6 +159,26 @@ class PhotoLoss_j2(BaseLoss):
             return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1],
             - (lambda_j_two[0] * pO2)**2 * out_norm[:, 0, 1:-1, 1:-1],
             - A_j_two[1] * pO2**2 * data[:, 0, 1:-1, 1:-1]) * self.weight
+
+class PhotoLoss(LaplacianLoss):
+    """ A Laplacian loss function on the inside of the domain (excluding boundaries). """
+    def __init__(self, config, photo_weight_j, **_):
+        super().__init__(config, photo_weight_j)
+        self.lamb = config.lamb # For now lambda is a int which can be either 0 or 1
+
+    def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
+        # Renormalize to make it coherent with RHS
+        out_norm = output / data_norm
+        laplacian = lapl(out_norm, self.dx, self.dy, r=self.r_nodes)
+        if self.cyl:
+            return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1]
+            - (lambda_j_two[self.lamb] * pO2)**2 * out_norm[:, 0, 0:-1, 1:-1],
+            - A_j_two[self.lamb] * pO2**2 * data[:, 0, 0:-1, 1:-1]) * self.weight
+        else:
+            return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1],
+            - (lambda_j_two[0] * pO2)**2 * out_norm[:, 0, 1:-1, 1:-1],
+            - A_j_two[1] * pO2**2 * data[:, 0, 1:-1, 1:-1]) * self.weight
+
 
 class EnergyLoss(BaseLoss):
     """ An Energy loss that is minimum for Poisson's equation (Variational approach). """
