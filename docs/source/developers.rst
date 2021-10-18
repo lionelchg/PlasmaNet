@@ -9,7 +9,7 @@ Training neural networks
 
 The python class ``Trainer`` is explained in this part.
 
-.. image:: figures/Trainer.eps
+.. image:: figures/Trainer.png
     :align: center
     :width: 700
     :alt: Overview of the Trainer class
