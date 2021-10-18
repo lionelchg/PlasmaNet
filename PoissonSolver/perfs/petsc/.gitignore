@@ -1,0 +1,5 @@
+# Output format for matrices and vectors
+*.m
+*.mod
+log/
+poisson.out

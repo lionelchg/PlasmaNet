@@ -34,7 +34,7 @@ def parse_output(filepath, lookup_table):
             if value_string in line:
                 value = value_type(line.split("=")[-1].strip())
                 data[value_name].append(value)
-
+    print(data)
     n_rows = min([len(data[k]) for k in data])
     print(f"Found {n_rows} data rows")
     # If a set has more data than another, cut it
