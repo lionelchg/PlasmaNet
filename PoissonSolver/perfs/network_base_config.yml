@@ -28,7 +28,7 @@ eval:
     benchmark: True
 
 network:
-    casename: 'cases/bench/'                  # Experience name
+    casename: 'cases/bench_V100/'                  # Experience name
     n_gpu: 1                                    # Number of GPUs to use
 
     globals:                                    # Domain sizes and others, used to compute global attributes
@@ -41,10 +41,10 @@ network:
         coord: 'cart'
         verbosity: 2
 
-    resume: '/home/cfd/cheng/scratch/DL/common/networks/train/4_RF_study/101x101/models/config_5/random_8'
-    
+    resume: '/scratch/cfd/PlasmaDL/networks/train/101x101/models/UNet5/rf200/checkpoint-epoch00300.pth'
+
     arch:
-        db_file: 'unets_ks3_rf100.yml'
+        db_file: 'unets_ks3_rf200.yml'
         name: 'UNet5'
         args:
             input_res: 101

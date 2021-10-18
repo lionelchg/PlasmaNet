@@ -1,0 +1,8 @@
+#!/bin/bash -l
+#SBATCH --job-name perfs
+#SBATCH --time=00:30:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=36
+#SBATCH --partition biggpu
+
+python network_bench.py

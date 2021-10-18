@@ -54,8 +54,8 @@ if __name__ == "__main__":
                                         x01, y01, sigma_x, sigma_y) * co.e / co.epsilon_0
         for i in range(bench_cfg["nits"]):
             poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=False, save=False)
-
-        poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=True, save=False)
+            # if i == bench_cfg["nits"] - 1:
+            #     poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=True, save=False)
 
         # Clean GPU cache?
         torch.cuda.empty_cache()
