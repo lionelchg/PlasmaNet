@@ -23,7 +23,7 @@ Convective vortex case for validating the Euler equations Lax-Wendroff scheme.  
 ``euler/poscill``
 ---------------------
 
-Plasma oscillation test case described in [Cheng_NN]_ and ran by the following command
+Plasma oscillation test case described in [Cheng]_ and ran by the following command
 
 .. code-block:: shell
 
@@ -58,13 +58,13 @@ Double headed streamer simulation that can be run using
 
 This repository allows to train neural networks from configuration files and post-process the training (plotting things such as metrics and losses). Two main architectures are studied in ``PlasmaNet``: UNet and MSNet architectures. Sketches are showcased below:
 
-.. figure:: figures/unet3_rf.eps
+.. figure:: figures/unet3_rf.png
     :align: center
     :width: 600
 
     Sketch of UNet
 
-.. figure:: figures/msnet3_rf.eps
+.. figure:: figures/msnet3_rf.png
     :align: center
     :width: 600
 
@@ -119,4 +119,4 @@ Unit tests of Poisson resolution.
 
 .. [Jackson] Classical Electrodynamics, John David Jackson, 1999, John Wiley & Sons.
 
-.. [Cheng_NN] Using neural networks to solve the 2D Poisson equation for electric field computation in plasma fluid simulations, Lionel Cheng, 2021, Arxiv Preprint.
+.. [Cheng] Using neural networks to solve the 2D Poisson equation for electric field computation in plasma fluid simulations, Lionel Cheng, 2021, arXiv preprint arXiv:2109.13076.
