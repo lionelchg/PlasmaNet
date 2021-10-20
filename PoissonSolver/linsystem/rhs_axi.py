@@ -15,7 +15,6 @@ import numpy as np
 
 from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 from PlasmaNet.common.profiles import gaussian
-from PlasmaNet.common.utils import create_dir
 
 
 if __name__ == '__main__':

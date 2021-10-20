@@ -1,0 +1,15 @@
+#!/bin/bash -l
+#SBATCH --job-name perfs
+#SBATCH --time=00:30:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=2
+#SBATCH --partition biggpu
+
+export LD_LIBRARY_PATH=/softs/local_intel/petsc/3.13.4/lib:$LD_LIBRARY_PATH
+nb_cpu=$SLURM_NPROCS
+
+module list
+
+casename=log/axi
+mkdir -p "${casename}"
+mpirun -np "$nb_cpu" ./poisson_axi.out 41 11 "${casename}"
