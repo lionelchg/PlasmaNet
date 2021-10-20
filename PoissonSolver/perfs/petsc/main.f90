@@ -114,7 +114,7 @@ do i = 1, test%local_size
             mod(global_index, nnx) == 0 .or. mod(global_index, nnx) == 1) then
         rhs(i) = 0.0d0
     else
-        ix = mod(global_index, nny) + 1
+        ix = mod(global_index, nnx) + 1
         iy = global_index / nnx + 1
         rhs(i) = - ampl * exp(-(x(ix, iy) - x0)**2 / sigma_x**2 - (y(ix, iy) - y0)**2 / sigma_y**2) * scale&
             - ampl * exp(-(x(ix, iy) - x01)**2 / sigma_x**2 - (y(ix, iy) - y01)**2 / sigma_y**2) * scale

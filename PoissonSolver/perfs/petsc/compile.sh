@@ -6,7 +6,6 @@ if [ $AVBP_HOSTTYPE == "MACBOOK" ]; then
    mpif90 -cpp -g -Wall -I$PETSC_DIR/include -L$PETSC_DIR/lib -lpetsc mod_linsystem.f90 main_axi.f90 -o poisson_axi.out
 
 elif [ $AVBP_HOSTTYPE == "KRAKEN" ]; then
-   # export PETSC_DIR=/softs/local_intel/petsc/3.11.1
    export PETSC_DIR=/softs/local_intel/petsc/3.13.4
    export LD_LIBRARY_PATH=$PETSC_DIR/lib:$LD_LIBRARY_PATH
 
