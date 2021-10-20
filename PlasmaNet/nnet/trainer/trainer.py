@@ -7,6 +7,7 @@
 ########################################################################################################################
 
 import numpy as np
+from numpy import random
 import torch
 
 import pandas as pd
@@ -14,6 +15,7 @@ from ..base import BaseTrainer
 from .plot import plot_batch, plot_distrib, plot_scales, plot_batch_Efield
 from ..utils import inf_loop, MetricTracker
 from ..model.loss import LaplacianLoss
+from ...poissonscreensolver.photo_ls import PhotoLinSystem
 #from .long_term_trainer import init_subprocesses, propagate
 
 
@@ -65,11 +67,20 @@ class Trainer(BaseTrainer):
                                            *[m.__name__ for m in self.metric_ftns]))
 
         # Aditional option for adaptative weights (based on Wang 2020.)
-        if  'adaptative' in self.config["loss"]["args"].keys():
+        if 'adaptative' in self.config["loss"]["args"].keys():
             self.adaptative_weights = True
             self.alpha_adaptative = self.config["loss"]["args"]["adaptative"]
         else:
             self.adaptative_weights = False
+
+        # If photo
+        if 'PhotoLoss' in self.config['loss']['args']['loss_list']:
+            self.photo = True
+            self.photo_system = PhotoLinSystem(self.config['photo'])
+            zeros_x, zeros_y = np.zeros(self.photo_system.nnx), np.zeros(self.photo_system.nny)
+            self.bcs = {'left':zeros_y, 'right':zeros_y, 'top':zeros_x}
+        else:
+            self.photo = False
 
         # Loop to get the index of the Laplacian Loss (as need for the update)
         for i_loss, loss in enumerate(self.criterion.losses):
@@ -93,6 +104,11 @@ class Trainer(BaseTrainer):
             data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
 
             self.optimizer.zero_grad()
+
+            # If generic photoloss, add lambda to data!
+            if self.photo:
+                lamda_val = float(np.random.random(1)) * torch.ones_like(data)
+                data = torch.cat((data, lamda_val), dim=1)
 
             # output_raw = self.model(data, epoch)
             output_raw = self.model(data)
@@ -170,6 +186,10 @@ class Trainer(BaseTrainer):
 
             # Figure output after the 1st batch of each epoch
             if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
+                # Computer real target values if generic photoionization
+                if self.photo:
+                    data[:,1] *= self.data_loader.lambda_scale
+                    target = self.photo_system.solve(data, self.bcs)
                 self._batch_plots(output, target, data, epoch, batch_idx)
                 if multiple_outputs:
                     print("Multiple outputs, performing plots!")
@@ -212,6 +232,11 @@ class Trainer(BaseTrainer):
 
                 data, target = data.to(self.device), target.to(self.device)
                 data_norm, target_norm = data_norm.to(self.device), target_norm.to(self.device)
+
+                # If generic photoloss, add lambda to data!
+                if self.photo:
+                    lamda_val = float(np.random.random(1)) * torch.ones_like(data)
+                    data = torch.cat((data, lamda_val), dim=1)
 
                 # output_raw = self.model(data, epoch)
                 output_raw = self.model(data)
@@ -256,6 +281,10 @@ class Trainer(BaseTrainer):
                     self.writer.set_step(epoch - 1, 'valid')
                 # Figure output after the 1st batch of each epoch
                 if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
+                    # Computer real target values if generic photoionization
+                    if self.photo:
+                        data[:,1] *= self.data_loader.lambda_scale
+                    target = self.photo_system.solve(data, self.bcs)
                     self._batch_plots(output, target, data, epoch, batch_idx, 'valid')
                     if multiple_outputs:
                         # Plot input, target, output and residual

@@ -132,7 +132,6 @@ class PhotoLoss_j1(LaplacianLoss):
         # Renormalize to make it coherent with RHS
         out_norm = output / data_norm
         laplacian = lapl(out_norm, self.dx, self.dy, r=self.r_nodes)
-
         if self.cyl:
             return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1]
             - (lambda_j_two[0] * pO2)**2 * out_norm[:, 0, 0:-1, 1:-1],
@@ -140,7 +139,7 @@ class PhotoLoss_j1(LaplacianLoss):
         else:
             return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1],
             - (lambda_j_two[0] * pO2)**2 * out_norm[:, 0, 1:-1, 1:-1],
-            - A_j_two[1] * pO2**2 * data[:, 0, 1:-1, 1:-1]) * self.weight
+            - A_j_two[0] * pO2**2 * data[:, 0, 1:-1, 1:-1]) * self.weight
 
 class PhotoLoss_j2(LaplacianLoss):
     """ A Laplacian loss function on the inside of the domain (excluding boundaries). """
@@ -157,28 +156,30 @@ class PhotoLoss_j2(LaplacianLoss):
             - A_j_two[1] * pO2**2 * data[:, 0, 0:-1, 1:-1]) * self.weight
         else:
             return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1],
-            - (lambda_j_two[0] * pO2)**2 * out_norm[:, 0, 1:-1, 1:-1],
+            - (lambda_j_two[1] * pO2)**2 * out_norm[:, 0, 1:-1, 1:-1],
             - A_j_two[1] * pO2**2 * data[:, 0, 1:-1, 1:-1]) * self.weight
 
 class PhotoLoss(LaplacianLoss):
     """ A Laplacian loss function on the inside of the domain (excluding boundaries). """
-    def __init__(self, config, photo_weight_j, **_):
-        super().__init__(config, photo_weight_j)
-        self.lamb = config.lamb # For now lambda is a int which can be either 0 or 1
+    def __init__(self, config, photo_weight, **_):
+        super().__init__(config, photo_weight)
+        self.photo_scale = config.config['data_loader']['args']['lambda_scale']
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         # Renormalize to make it coherent with RHS
-        out_norm = output / data_norm
+        out_norm =  output / data_norm
+        data[:,1] *= self.photo_scale
         laplacian = lapl(out_norm, self.dx, self.dy, r=self.r_nodes)
+        lamb = torch.mean(data[:, 1])
+        rhs_photo_scale = 1.0 #0.572*(lamb**2) - 512.32*lamb + 1
         if self.cyl:
             return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1]
-            - (lambda_j_two[self.lamb] * pO2)**2 * out_norm[:, 0, 0:-1, 1:-1],
-            - A_j_two[self.lamb] * pO2**2 * data[:, 0, 0:-1, 1:-1]) * self.weight
+            - data[:, 1, 0:-1, 1:-1]**2 * out_norm[:, 0, 0:-1, 1:-1],
+            - rhs_photo_scale * data[:, 0, 0:-1, 1:-1]) * self.weight
         else:
             return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 1:-1, 1:-1],
-            - (lambda_j_two[0] * pO2)**2 * out_norm[:, 0, 1:-1, 1:-1],
-            - A_j_two[1] * pO2**2 * data[:, 0, 1:-1, 1:-1]) * self.weight
-
+            - data[:, 1, 1:-1, 1:-1]**2 * out_norm[:, 0, 1:-1, 1:-1],
+            - rhs_photo_scale * data[:, 0, 1:-1, 1:-1]) * self.weight
 
 class EnergyLoss(BaseLoss):
     """ An Energy loss that is minimum for Poisson's equation (Variational approach). """

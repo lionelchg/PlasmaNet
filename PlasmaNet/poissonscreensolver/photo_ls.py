@@ -7,6 +7,7 @@
 ########################################################################################################################
 
 import numpy as np
+import torch
 import scipy.sparse.linalg as linalg
 from time import perf_counter
 from scipy.sparse.linalg import spsolve
@@ -90,3 +91,15 @@ class PhotoLinSystem(BasePhoto):
                 elif i == 2:
                     self.Sphj3 = spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
                 self.Sph = self.Sphj1 + self.Sphj2 + self.Sphj3
+        elif self.photo_model == 'custom':
+            target = torch.zeros_like(self.ioniz_rate[:,0].unsqueeze(1))
+            for batch in range(self.ioniz_rate.size(0)):
+                rhs = (- self.ioniz_rate[batch, 0]).cpu().detach().numpy()
+                # As all the field consists on the lambda value, just select a point
+                # (BC are avoided just in case)
+                lambda_in = float(self.ioniz_rate[batch, 1, -5, -5])
+                self.impose_dirichlet(rhs, bcs)
+                mats_photo = photo_axisym(self.dx, self.dy, self.nnx, self.nny, self.R_nodes, (lambda_in)**2, self.scale)
+                Sph = spsolve(mats_photo, rhs.reshape(-1)).reshape(self.nny, self.nnx)
+                target[batch] = torch.from_numpy(Sph).unsqueeze(0).cuda()
+            return target

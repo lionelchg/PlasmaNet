@@ -146,7 +146,7 @@ class PhotoDataLoader(BaseDataLoader):
     Automatically shuffles the dataset before the validation split (see BaseDataLoader class).
     """
 
-    def __init__(self, config, data_dir, batch_size, sph_file, shuffle=True, validation_split=0.0,
+    def __init__(self, config, data_dir, batch_size, sph_file, lambda_scale=1.0, shuffle=True, validation_split=0.0,
                 num_workers=1, scaling_factor=1.0, normalize=1.0):
         self.data_dir = Path(data_dir)
         self.logger = config.get_logger('PoissonDataLoader', config['globals']['verbosity'])
@@ -185,5 +185,8 @@ class PhotoDataLoader(BaseDataLoader):
 
         # Create Dataset from Tensor
         self.dataset = TensorDataset(self.data, Sph, self.data_norm, self.target_norm)
+
+        # Add lambda scaling factor to better match the desired photoionization values
+        self.lambda_scale= lambda_scale
 
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)

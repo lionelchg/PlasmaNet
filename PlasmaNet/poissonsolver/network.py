@@ -18,9 +18,14 @@ from scipy.sparse.linalg import inv
 from scipy.sparse import csr_matrix, tril
 
 # From PlasmaNet
-import PlasmaNet.nnet.data.data_loaders as module_data
-import PlasmaNet.nnet.model as module_arch
-import PlasmaNet.nnet.model.metric as module_metric
+#import PlasmaNet.nnet.data.data_loaders as module_data
+#import PlasmaNet.nnet.model as module_arch
+#import PlasmaNet.nnet.model.metric as module_metric
+from ..nnet.data import data_loaders as module_data
+from ..nnet import model as module_arch
+from ..nnet.model import metric as module_metric
+
+
 from ..nnet.parse_config import ConfigParser
 from ..nnet.data.data_loaders import ratio_potrhs
 from ..nnet.utils import MetricTracker
