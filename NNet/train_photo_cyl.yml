@@ -126,7 +126,7 @@ trainer:
     histograms: false                       # Save weights and bias histograms (turned off to increase TensorBoard perf)
 
 photo:
-  photo_model: 'custom'
+  photo_model: 'custom_train'
   xmin: 0.0
   xmax: 4.0e-3
   nnx: 401

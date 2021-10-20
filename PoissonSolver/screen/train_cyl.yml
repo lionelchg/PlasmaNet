@@ -14,15 +14,16 @@
 #         config = yaml.safe_load(yaml_stream)
 
 device: 'kraken'
-n_entries: 10000
+n_entries: 20
 n_procs: 30
-output_dir: '/scratch/cfd/cheng/DL/datasets/photo/train_cyl/'
+output_dir: '/scratch/cfd/ajuria/Plasma/plasmanet_new/datasets/inference/photo/test_lambda/'
 
 photo:
-  model: 'three'
+  photo_model: 'custom'
   xmin: 0.0
   xmax: 4.0e-3
   nnx: 401
   ymin: 0.0
   ymax: 1.0e-3
   nny: 101
+  lambda_max: 1.0e+4
