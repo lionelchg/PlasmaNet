@@ -160,9 +160,9 @@ if (test%myrank == 0) then
     close(11)
 end if
 
-! See the matrix and vectors
-call test%vectorsInfo()
-call test%matrixInfo()
+! ! See the matrix and vectors
+! call test%vectorsInfo()
+! call test%matrixInfo()
 
 call test%dealloc()
 

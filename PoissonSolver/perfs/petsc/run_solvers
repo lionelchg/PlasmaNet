@@ -8,65 +8,45 @@
 export LD_LIBRARY_PATH=/softs/local_intel/petsc/3.13.4/lib:$LD_LIBRARY_PATH
 nb_cpu=$SLURM_NPROCS
 
-module list
+source utils_cart.sh
 
-# mpirun -np $nb_cpu ./poisson.out $1 $1 -ksp_type cg -ksp_norm_type unpreconditioned \
-#     -pc_type gamg -gamg_est_ksp_type cg -gamg_est_ksp_max_it 10 -pc_gamg_process_eq_limit 500 \
-#     -pc_gamg_coarse_eq_limit 1000 -mg_levels_esteig_ksp_type cg -mg_levels_esteig_ksp_max_it 10 \
-#     -mg_levels_pc_type sor -mg_levels_ksp_type richardson
-
-run_cg_gamg() {
-    for nn in 101 201 401 801 2001 4001
-    do
-        mpirun -np "$nb_cpu" ./poisson.out $nn $nn "$1"/solver_cg_gamg_"$2"_procs_$nn.log -ksp_type cg -ksp_rtol "$3" -pc_type gamg
-    done
-}
-
-run_cg_hypre_boomerang() {
-    for nn in 101 201 401 801 2001 4001
-    do
-        mpirun -np "$nb_cpu" ./poisson.out $nn $nn "$1"/solver_cg_gamg_"$2"_procs_$nn.log -ksp_type cg -ksp_rtol "$3" -pc_type hypre -pc_hypre_type boomeramg
-    done
-}
-
-run_lu() {
-    for nn in 101 201 401 801 2001 4001
-    do
-        mpirun -np "$nb_cpu" ./poisson.out $nn $nn "$1"/solver_cg_gamg_"$2"_procs_$nn.log -ksp_type preonly -pc_type lu
-    done
-}
+# Study different solvers for cartesian matrix
+# CG-GAMG / CG-Hypre-bommerang / LU and Cholesky
 
 rtol="1.0e-3"
-casename=log/solvers/cg_gamg/rtol_1e-3
+casename=log/cart/solvers/cg_gamg/"$nb_cpu"_procs/rtol_1e-3
 mkdir -p "${casename}"
-run_cg_gamg "${casename}" "${nb_cpu}" "${rtol}"
+run_cg_gamg "${nb_cpu}" "${rtol}" "${casename}"
 
 rtol="1.0e-6"
-casename=log/solvers/cg_gamg/rtol_1e-6
+casename=log/cart/solvers/cg_gamg/"$nb_cpu"_procs/rtol_1e-6
 mkdir -p "${casename}"
-run_cg_gamg "${casename}" "${nb_cpu}" "${rtol}"
+run_cg_gamg "${nb_cpu}" "${rtol}" "${casename}"
 
 rtol="1.0e-10"
-casename=log/solvers/cg_gamg/rtol_1e-10
+casename=log/cart/solvers/cg_gamg/"$nb_cpu"_procs/rtol_1e-10
 mkdir -p "${casename}"
-run_cg_gamg "${casename}" "${nb_cpu}" "${rtol}"
+run_cg_gamg "${nb_cpu}" "${rtol}" "${casename}"
 
 rtol="1.0e-3"
-casename=log/solvers/hypre_boomerang/rtol_1e-3
+casename=log/cart/solvers/hypre_boomerang/"$nb_cpu"_procs/rtol_1e-3
 mkdir -p "${casename}"
-run_cg_gamg "${casename}" "${nb_cpu}" "${rtol}"
+run_cg_gamg "${nb_cpu}" "${rtol}" "${casename}"
 
 rtol="1.0e-6"
-casename=log/solvers/hypre_boomerang/rtol_1e-6
+casename=log/cart/solvers/hypre_boomerang/"$nb_cpu"_procs/rtol_1e-6
 mkdir -p "${casename}"
-run_cg_gamg "${casename}" "${nb_cpu}" "${rtol}"
+run_cg_gamg "${nb_cpu}" "${rtol}" "${casename}"
 
 rtol="1.0e-10"
-casename=log/solvers/hypre_boomerang/rtol_1e-10
+casename=log/cart/solvers/hypre_boomerang/"$nb_cpu"_procs/rtol_1e-10
 mkdir -p "${casename}"
-run_cg_gamg "${casename}" "${nb_cpu}" "${rtol}"
+run_cg_gamg "${nb_cpu}" "${rtol}" "${casename}"
 
-casename=log/solvers/direct_lu
+casename=log/cart/solvers/direct_lu/"$nb_cpu"_procs
 mkdir -p "${casename}"
-run_lu "${casename}" "${nb_cpu}"
+run_direct_cart "${nb_cpu}" lu "${casename}"
 
+casename=log/cart/solvers/direct_cholesky/"$nb_cpu"_procs
+mkdir -p "${casename}"
+run_direct_cart "${nb_cpu}" cholesky "${casename}"

@@ -1,0 +1,18 @@
+#!/bin/bash -l
+#SBATCH --job-name perfs
+#SBATCH --time=00:30:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=36
+#SBATCH --partition biggpu
+
+source utils_cart.sh
+
+export LD_LIBRARY_PATH=/softs/local_intel/petsc/3.13.4/lib:$LD_LIBRARY_PATH
+
+nb_cpu=$SLURM_NPROCS
+rtol="1.0e-3"
+solver="cg"
+precond="gamg"
+casename=log/test/cart/solvers/"$solver"_"$precond"/"$nb_cpu"_procs/rtol_1e-3
+mkdir -p "${casename}"
+run_solver_cart "${nb_cpu}" $solver $precond "${rtol}" "${casename}"
