@@ -150,6 +150,8 @@ class PhotoLoss_j2(LaplacianLoss):
         # Renormalize to make it coherent with RHS
         out_norm = output / data_norm
         laplacian = lapl(out_norm, self.dx, self.dy, r=self.r_nodes)
+        import pdb
+        pdb.set_trace()
         if self.cyl:
             return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1]
             - (lambda_j_two[1] * pO2)**2 * out_norm[:, 0, 0:-1, 1:-1],
@@ -167,16 +169,18 @@ class PhotoLoss(LaplacianLoss):
 
     def _forward(self, output, target, data=None, target_norm=1., data_norm=1., **_):
         # Renormalize to make it coherent with RHS
-        #out_norm =  output / data_norm
+        out_norm =  output / data_norm
         #data *= self.photo_scale
         #data[:,0] *= data_norm[:,0]
         data[:,1] *= self.photo_scale
-        lamb = torch.mean(data[:, 1])
-        laplacian_norm = lamb**2 + 1/(self.dx*self.dy)
-        out_norm =  output * data_norm/ laplacian_norm
+        #laplacian_norm = lamb**2 + 1/(self.dx*self.dy)
+        #out_norm =  output * data_norm/ laplacian_norm
         laplacian = lapl(out_norm, self.dx, self.dy, r=self.r_nodes)
 
-        rhs_photo_scale = 1.0 #0.572*(lamb**2) - 512.32*lamb + 1
+        lamb = torch.mean(data[:, 1])
+        rhs_photo_scale = 1.0 * (lamb**2 + 1/(self.dx*self.dy))/ data_norm.mean()
+
+        #rhs_photo_scale = 1.0 #0.572*(lamb**2) - 512.32*lamb + 1
         if self.cyl:
             return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1]
             - data[:, 1, 0:-1, 1:-1]**2 * out_norm[:, 0, 0:-1, 1:-1],
