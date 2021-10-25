@@ -21,6 +21,7 @@ from tqdm import tqdm
 
 from PlasmaNet.poissonscreensolver.photo_ls import PhotoLinSystem
 from PlasmaNet.common.utils import create_dir
+from PlasmaNet.common.operators_numpy import grad, lapl
 
 args = argparse.ArgumentParser(description='RHS random dataset')
 args.add_argument('-c', '--cfg', type=str, default=None,
@@ -123,9 +124,12 @@ if __name__ == '__main__':
 
     for i, (photo_sph, data) in enumerate(tqdm(results_train)):
         Sph_list[i, :, :] = photo_sph
-        ioniz_rate_list[i, :, :] = data[0]
+        ioniz_rate_list[i, :, :] = data[0]/(photo.dx * photo.dy)
         if i % plot_period == 0:
-            photo.plot_2D_variable(fig_dir + f'input_{i:05d}', photo_sph, data[0], data[1, 0, 0], geom='xr', axis='on')
+            if i ==0:
+                lapl_field = -lapl(photo_sph, photo.dx, photo.dy, photo.nnx, photo.nny, r=photo.R_nodes)
+                photo.plot_2D_variable(fig_dir + f'input_lapl_{i:05d}', photo_sph, lapl_field, data[1, 0, 0], geom='xr', axis='on')
+            photo.plot_2D_variable(fig_dir + f'input_{i:05d}', photo_sph, data[0]/(photo.dx * photo.dy), data[1, 0, 0], geom='xr', axis='on')
 
     np.save(data_dir + 'Sph.npy', Sph_list)
     np.save(data_dir + 'ioniz_rate.npy', ioniz_rate_list)

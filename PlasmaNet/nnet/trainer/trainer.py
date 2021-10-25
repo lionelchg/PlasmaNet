@@ -108,6 +108,8 @@ class Trainer(BaseTrainer):
             # If generic photoloss, add lambda to data!
             if self.photo:
                 lamda_val = float(np.random.random(1)) * torch.ones_like(data)
+                #lamda_val = 0.0 * torch.ones_like(data)
+                #data /= self.data_loader.lambda_scale
                 data = torch.cat((data, lamda_val), dim=1)
 
             # output_raw = self.model(data, epoch)
@@ -188,8 +190,11 @@ class Trainer(BaseTrainer):
             if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
                 # Computer real target values if generic photoionization
                 if self.photo:
-                    data[:,1] *= self.data_loader.lambda_scale
                     target = self.photo_system.solve(data, self.bcs)
+                    target *= (self.config.dx*self.config.dy)
+                    laplacian_norm = self.data_loader.lambda_scale**2 + 1/(self.config.dx*self.config.dy)
+                    output = output * data_norm / laplacian_norm
+
                 self._batch_plots(output, target, data, epoch, batch_idx)
                 if multiple_outputs:
                     print("Multiple outputs, performing plots!")
@@ -236,6 +241,8 @@ class Trainer(BaseTrainer):
                 # If generic photoloss, add lambda to data!
                 if self.photo:
                     lamda_val = float(np.random.random(1)) * torch.ones_like(data)
+                    #lamda_val = 0.0 * torch.ones_like(data)
+                    #data /= self.data_loader.lambda_scale
                     data = torch.cat((data, lamda_val), dim=1)
 
                 # output_raw = self.model(data, epoch)
@@ -283,8 +290,11 @@ class Trainer(BaseTrainer):
                 if epoch % self.config['trainer']['plot_period'] == 0 and batch_idx == 0:
                     # Computer real target values if generic photoionization
                     if self.photo:
-                        data[:,1] *= self.data_loader.lambda_scale
-                    target = self.photo_system.solve(data, self.bcs)
+                        target = self.photo_system.solve(data, self.bcs)
+                        target *= (self.config.dx*self.config.dy)
+                        laplacian_norm = self.data_loader.lambda_scale**2 + 1/(self.config.dx*self.config.dy)
+                        output = output * data_norm / laplacian_norm
+
                     self._batch_plots(output, target, data, epoch, batch_idx, 'valid')
                     if multiple_outputs:
                         # Plot input, target, output and residual

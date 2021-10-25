@@ -16,7 +16,7 @@
 device: 'kraken'
 n_entries: 20
 n_procs: 30
-output_dir: '/scratch/cfd/ajuria/Plasma/plasmanet_new/datasets/inference/photo/test_lambda/'
+output_dir: '/scratch/cfd/ajuria/Plasma/plasmanet_new/datasets/inference/photo/test_lambda_noi/'
 
 photo:
   photo_model: 'custom'

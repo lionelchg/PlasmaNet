@@ -18,7 +18,7 @@
 
 
 # name: 'UNet5/run_j1'                      # Experience name
-name: 'UNet5/run_05'                      # Experience name
+name: 'UNet5/run_03'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -51,7 +51,7 @@ data_loader:
         num_workers: 4
         scaling_factor: 1.0e-12
         # normalize: 1.0e+2
-        normalize: 1.0
+        normalize: 1.0e+4 #1.0
         sph_file: 'Sphj1.npy'
         #sph_file: 'Sphj2.npy'
         lambda_scale: 1.0e+4
@@ -95,7 +95,7 @@ loss:
         axial_neu_weight: 1.0
         # photo_weight_j1: 1.0                # Weightinig of photoloss
         # photo_weight_j2: 1.0                # Weightinig of photoloss
-        photo_weight: 1.0
+        photo_weight: 1.0e+10
         # adaptative: 0.1                     # Alpha value for adaptative weights
         # gradients: 10
 
@@ -116,9 +116,9 @@ lr_scheduler:
 
 trainer:
     epochs: 400
-    save_dir: 'train_cyl/study_photo/generic_photo'
-    save_period: 5 #20
-    plot_period: 5 #20                         # Period to send plots to TensorBoard
+    save_dir: 'train_cyl/study_photo/generic_photo_normalization'
+    save_period: 1 #20
+    plot_period: 1 #20                         # Period to send plots to TensorBoard
     verbosity: 2
     monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
     early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
