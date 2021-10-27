@@ -1,9 +1,17 @@
 import numpy as np
+from cycler import cycler
+import matplotlib.pyplot as plt
 
-def ax_prop(ax, xlabel, ylabel):
+default_cycler = (cycler(color=['darkblue', 'darkred', 'mediumblue', 'firebrick', 'royalblue', 'lightcoral']) +
+                  cycler(linestyle=['-', '--', ':', '-.', '-', '--']))
+
+plt.rc('lines', linewidth=1.8)
+plt.rc('axes', prop_cycle=default_cycler)
+
+def ax_prop(ax, xlabel, ylabel, scale='linear'):
     ax.grid(True)
-    ax.set_xscale('log')
-    ax.set_yscale('log')
+    ax.set_xscale(scale)
+    ax.set_yscale(scale)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.legend()

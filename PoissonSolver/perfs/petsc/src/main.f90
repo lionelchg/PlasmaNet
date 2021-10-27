@@ -72,11 +72,11 @@ do i = 1, test%local_size
         indices(i, 1) = global_index
         indices(i, 2:) = -1
     else
-        values(i, 1) = - (2 / dx**2 + 2 / dy**2) * scale
-        values(i, 2) = 1 / dx**2 * scale
-        values(i, 3) = 1 / dx**2 * scale
-        values(i, 4) = 1 / dy**2 * scale
-        values(i, 5) = 1 / dy**2 * scale
+        values(i, 1) = (2 / dx**2 + 2 / dy**2) * scale
+        values(i, 2) = - 1 / dx**2 * scale
+        values(i, 3) = - 1 / dx**2 * scale
+        values(i, 4) = - 1 / dy**2 * scale
+        values(i, 5) = - 1 / dy**2 * scale
         indices(i, 1) = global_index
         ! ! Classical matrix
         ! indices(i, 2) = global_index + 1
@@ -116,8 +116,8 @@ do i = 1, test%local_size
     else
         ix = mod(global_index, nnx) + 1
         iy = global_index / nnx + 1
-        rhs(i) = - ampl * exp(-(x(ix, iy) - x0)**2 / sigma_x**2 - (y(ix, iy) - y0)**2 / sigma_y**2) * scale&
-            - ampl * exp(-(x(ix, iy) - x01)**2 / sigma_x**2 - (y(ix, iy) - y01)**2 / sigma_y**2) * scale
+        rhs(i) = ampl * exp(-(x(ix, iy) - x0)**2 / sigma_x**2 - (y(ix, iy) - y0)**2 / sigma_y**2) * scale&
+            + ampl * exp(-(x(ix, iy) - x01)**2 / sigma_x**2 - (y(ix, iy) - y01)**2 / sigma_y**2) * scale
     end if
 end do
 

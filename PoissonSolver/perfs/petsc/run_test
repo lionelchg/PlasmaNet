@@ -3,16 +3,13 @@
 #SBATCH --time=00:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=36
-#SBATCH --partition biggpu
-
-source utils_cart.sh
+#SBATCH --partition prod
 
 export LD_LIBRARY_PATH=/softs/local_intel/petsc/3.13.4/lib:$LD_LIBRARY_PATH
 
-nb_cpu=$SLURM_NPROCS
-rtol="1.0e-3"
-solver="cg"
-precond="gamg"
-casename=log/test/cart/solvers/"$solver"_"$precond"/"$nb_cpu"_procs/rtol_1e-3
+casename=log/cart/single_case
 mkdir -p "${casename}"
-run_solver_cart "${nb_cpu}" $solver $precond "${rtol}" "${casename}"
+mpirun -np 36 ./src/poisson.out 2001 2001 "$casename"/perfs_unprecond_res_4mglevels_spd_eigen.log \
+    -ksp_monitor_true_residual -ksp_norm_type unpreconditioned \
+    -pc_mg_levels 4 \
+    -ksp_type cg -ksp_rtol 1e-10 -pc_type gamg

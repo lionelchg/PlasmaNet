@@ -6,4 +6,4 @@
 #SBATCH --partition rome
 #SBATCH --nodelist krakenepyc2
 
-python network_bench.py
+/scratch/cfd/cheng/DL/dl_env/bin/python network_bench.py
