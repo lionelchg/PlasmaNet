@@ -1,0 +1,135 @@
+########################################################################################################################
+#                                                                                                                      #
+#                                           PlasmaNet -- Configuration file                                            #
+#                                                                                                                      #
+#                                      Guillaume Bogopolsky, CERFACS, 11.03.2020                                       #
+#                                                                                                                      #
+########################################################################################################################
+
+# Contains the parameters for the model (training, etc.)
+
+# To import the parameters, use
+#     import yaml
+#     with open('config.yml', 'r') as yaml_stream:
+#         config = yaml.safe_load(yaml_stream)
+
+# The train routine will automatically load the required `type` of each section with the given `args` by using the
+# `config.init_obj` method.
+
+
+# name: 'UNet5/run_j1'                      # Experience name
+name: 'UNet5/run_01'                      # Experience name
+n_gpu: 1                                    # Number of GPUs to use
+
+globals:                                    # Domain sizes and others, used to compute global attributes
+    nnx: 401
+    nny: 101
+    xmin: 0.0
+    xmax: 4.0e-3
+    ymin: 0.0
+    ymax: 1.0e-3
+    coord: 'cyl'
+    verbosity: 2
+
+arch:
+    db_file: 'unets_rect_attention.yml'
+    name: 'UNet5-100k'
+    args:
+        input_res: [101, 401]
+        padding_mode: 'custom'
+
+
+data_loader:
+    type: 'PhotoDataLoader'
+    data_channels: 1
+    pipe_config: True
+    args:
+        data_dir: '/scratch/cfd/cheng/DL/datasets/photo/train_cyl/401x101/random_24'
+        batch_size: 64
+        shuffle: True
+        validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
+        num_workers: 4
+        scaling_factor: 1.0e-12
+        # normalize: 1.0e+2
+        normalize: 1.0e+4 #1.0
+        #sph_file: 'Sphj1.npy'
+        sph_file: 'Sphj2.npy'
+        lambda_scale: 1.0e+4
+
+# initializer: 'off'
+# initializer:
+#     type: 'constant_'
+#     args:
+#         val: 0.01
+# initializer:
+#     type: 'xavier_uniform_'
+#     args:
+#         gain: 1.0
+initializer:
+    type: 'xavier_normal_'
+    args:
+        gain: 1.0
+
+optimizer:
+    type: 'Adam'
+    args:
+        lr: 4.e-4
+        weight_decay: 0
+        amsgrad: False                      # AMSGrad variant from paper 'On the convergence of Adam and Beyond'
+
+loss:
+    type: 'ComposedLoss'
+    pipe_config: True                       # Object initialization require config as first argument
+    args:
+        loss_list:                          # List of the losses to compose if ComposedLoss is used
+            # - InsideLoss
+            - DirichletBoundaryLoss
+            # - PhotoLoss_j1
+            # - PhotoLoss_j2
+            - PhotoLoss
+            - AxialNeumannLoss
+        inside_weight: 1.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
+        bound_weight: 1.0                    # Weighting of the loss on the boundaries (float)
+        lapl_weight: 1.0e+6                    # Weighting of the loss on the Laplacian (float)
+        axial_dir_weight: 1.0
+        axial_neu_weight: 1.0
+        # photo_weight_j1: 1.0                # Weightinig of photoloss
+        # photo_weight_j2: 1.0                # Weightinig of photoloss
+        photo_weight: 1.0e+10
+        # adaptative: 0.1                     # Alpha value for adaptative weights
+        # gradients: 10
+
+metrics:
+    - 'residual'
+    - 'inf_norm'
+
+lr_scheduler:
+    type: 'ReduceLROnPlateau'
+    plateau_metric: loss                    # monitoring metric for ReduceLROnPlateau step()
+    args:
+        mode: 'min'
+        factor: 0.9                         # Amount scheduler reduces LR by (float)
+        patience: 50                        # Number of epochs the scheduler waits (int)
+        threshold: 3.e-4                    # Relative improvement the scheduler must see (float)
+        threshold_mode: 'rel'
+        verbose: False
+
+trainer:
+    epochs: 400
+    save_dir: 'train_cyl/study_photo/attention_generic_photo'
+    save_period: 10
+    plot_period: 10                         # Period to send plots to TensorBoard
+    verbosity: 2
+    monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
+    early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
+    tensorboard: true
+    histograms: false                       # Save weights and bias histograms (turned off to increase TensorBoard perf)
+
+photo:
+  photo_model: 'custom_train'
+  xmin: 0.0
+  xmax: 4.0e-3
+  nnx: 401
+  ymin: 0.0
+  ymax: 1.0e-3
+  nny: 101
