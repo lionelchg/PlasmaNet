@@ -28,7 +28,7 @@ eval:
     benchmark: True
 
 network:
-    casename: 'cases/bench_V100/'                  # Experience name
+    casename: 'cases/bench_V100_debug/'                  # Experience name
     n_gpu: 1                                    # Number of GPUs to use
 
     globals:                                    # Domain sizes and others, used to compute global attributes

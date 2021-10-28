@@ -2,7 +2,7 @@
 #SBATCH --job-name perfs
 #SBATCH --time=00:30:00
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=36
+#SBATCH --ntasks-per-node=4
 #SBATCH --partition biggpu
 
-python network_bench.py
+CUDA_VISIBLE_DEVICES=0 /scratch/cfd/cheng/DL/dl_env/bin/python network_bench.py

@@ -153,9 +153,9 @@ if __name__ == "__main__":
     print(perf)
 
     # PETSc performance
-    nnxs = [101, 201, 401, 801, 2001, 4001, 5001, 5501]
-    nnodes_list, best_times, av_times, stddev_times = read_perfs('petsc/log/cart/solvers/hypre_boomeramg/128_procs/rtol_1e-3', nnxs)
-    # nnodes_list, best_times, av_times, stddev_times = read_perfs('petsc/log/cart/solvers/hypre_boomeramg/36_procs/rtol_1e-3', nnxs)
+    nnxs = [101, 201, 401, 801, 2001, 4001, 5001]
+    # nnodes_list, best_times, av_times, stddev_times = read_perfs('petsc/log/cart/solvers/hypre_boomeramg/128_procs/rtol_1e-3', nnxs)
+    nnodes_list, best_times, av_times, stddev_times = read_perfs('petsc/log/cart/solvers/hypre_boomeramg/36_procs/rtol_1e-3', nnxs)
 
     ###########################################
     #   Plots
@@ -174,7 +174,7 @@ if __name__ == "__main__":
         ax.plot(idx, comm["mean"], "-+", label=net + " comm")
         ax.plot(idx, model["mean"], "-^", label=net + " model")
 
-    # ax.loglog()
+    ax.loglog()
     ax.legend()
     ax.set_xlabel("Number of mesh nodes")
     ax.set_ylabel(f"Mean execution time [s]", wrap=True)
@@ -194,4 +194,4 @@ if __name__ == "__main__":
         output_name = "figures/perf_plot_{:03d}.png".format(i_fig + 1)
     else:
         output_name = args.output_name
-    fig.savefig(output_name, format='pdf')
+    fig.savefig(output_name, dpi=250)

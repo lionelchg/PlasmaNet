@@ -2,8 +2,8 @@
 #SBATCH --job-name perfs
 #SBATCH --time=00:30:00
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=128
+#SBATCH --ntasks-per-node=4
 #SBATCH --partition rome
 #SBATCH --nodelist krakenepyc2
 
-/scratch/cfd/cheng/DL/dl_env/bin/python network_bench.py
+CUDA_VISIBLE_DEVICES=0 /scratch/cfd/cheng/DL/dl_env/bin/python network_bench.py

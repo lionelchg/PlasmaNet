@@ -1,9 +1,9 @@
 #!/bin/bash -l
 #SBATCH --job-name perfs
-#SBATCH --time=00:30:00
+#SBATCH --time=01:30:00
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=128
-#SBATCH --partition rome
+#SBATCH --ntasks-per-node=36
+#SBATCH --partition cfdci
 
 export LD_LIBRARY_PATH=/softs/local_intel/petsc/3.13.4/lib:$LD_LIBRARY_PATH
 nb_cpu=$SLURM_NPROCS

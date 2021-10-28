@@ -56,6 +56,6 @@ if __name__ == "__main__":
             poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=False, save=False)
             # if i == bench_cfg["nits"] - 1:
             #     poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=True, save=False)
-
+        # poisson.logger.info(torch.cuda.memory_summary(poisson.device, False))
         # Clean GPU cache?
         torch.cuda.empty_cache()

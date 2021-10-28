@@ -2,8 +2,8 @@
 #SBATCH --job-name=PlasmaNet
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --time=16:00:00
-#SBATCH --partition=biggpu
+#SBATCH --time=00:10:00
+#SBATCH --partition=gpu
 # #SBATCH --nodelist=krakengpu1
 
 echo PlasmaNet train network with config file: $1

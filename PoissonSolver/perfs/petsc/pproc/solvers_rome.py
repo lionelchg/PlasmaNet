@@ -19,7 +19,7 @@ if __name__ == '__main__':
     fig_dir.mkdir(parents=True, exist_ok=True)
 
     # Resolution studied
-    nnxs = [101, 201, 401, 801, 2001, 4001, 5001]
+    nnxs = [101, 201, 401, 801, 2001, 4001, 5001, 5501, 6001]
 
     # CG-GAMG
     log_fn_base = '../log/cart/solvers/cg_gamg/128_procs/'
