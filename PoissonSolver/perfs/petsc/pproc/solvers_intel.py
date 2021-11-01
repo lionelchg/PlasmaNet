@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 from utils import ax_prop, read_perfs
+from cycler import cycler
 
 def plot_perfs(log_fns: list, labels: str, nnxs: list, scale:str,
         figname: Path):
@@ -11,7 +12,7 @@ def plot_perfs(log_fns: list, labels: str, nnxs: list, scale:str,
         nnodes_list, _, av_times, _ = read_perfs(log_fn, nnxs)
         ax.plot(nnodes_list, av_times, label=label)
     ax_prop(ax, 'Number of mesh nodes', 'Execution time [s]', scale)
-    fig.savefig(figname, bbox_inches='tight')
+    fig.savefig(figname, bbox_inches='tight', format='pdf')
 
 if __name__ == '__main__':
     # Figures directory
@@ -19,36 +20,41 @@ if __name__ == '__main__':
     fig_dir.mkdir(parents=True, exist_ok=True)
 
     # Resolution studied
-    nnxs = [101, 201, 401, 801, 2001, 4001, 5001]
-
-    # CG-GAMG
-    log_fn_base = '../log/cart/solvers/cg_gamg/36_procs/'
-    log_fns = ['rtol_1e-3', 'rtol_1e-6', 'rtol_1e-10', 'rtol_1e-12']
-    log_fns = [log_fn_base + tmp for tmp in log_fns]
-    labels = ['rtol=1e-3', 'rtol=1e-6', 'rtol=1e-10', 'rtol=1e-12']
-    figname = 'perfs_36_procs_cg_gamg_linear'
-    plot_perfs(log_fns, labels, nnxs, 'linear', fig_dir / figname)
-    figname = 'perfs_36_procs_cg_gamg_log'
-    plot_perfs(log_fns, labels, nnxs, 'log', fig_dir / figname)
-
-    # CG-BoomerAMG
-    log_fn_base = '../log/cart/solvers/hypre_boomeramg/36_procs/'
-    log_fns = ['rtol_1e-3', 'rtol_1e-6', 'rtol_1e-10', 'rtol_1e-12']
-    log_fns = [log_fn_base + tmp for tmp in log_fns]
-    labels = ['rtol=1e-3', 'rtol=1e-6', 'rtol=1e-10', 'rtol=1e-12']
-    figname = 'perfs_36_procs_hypre_boomeramg_linear'
-    plot_perfs(log_fns, labels, nnxs, 'linear', fig_dir / figname)
-    figname = 'perfs_36_procs_hypre_boomeramg_log'
-    plot_perfs(log_fns, labels, nnxs, 'log', fig_dir / figname)
+    nnxs = [101, 201, 401, 801, 2001, 4001, 5001, 5501, 6001]
 
     # Combined plots for CG-GAMG and CG-BoomerAMG
-    log_fns = ['../log/cart/solvers/cg_gamg/36_procs/rtol_1e-3',
-            '../log/cart/solvers/cg_gamg/36_procs/rtol_1e-12',
-            '../log/cart/solvers/hypre_boomeramg/36_procs/rtol_1e-3',
-            '../log/cart/solvers/hypre_boomeramg/36_procs/rtol_1e-12']
-    labels = [r'rtol= $10^{-3}$ GAMG', r'rtol= $10^{-12}$ GAMG',
-        r'rtol= $10^{-3}$ BoomerAMG', r'rtol= $10^{-12}$ BoomerAMG']
-    figname = 'perfs_36_procs_iterative_linear'
+    default_cycler = (cycler(color=['mediumblue', 'royalblue', 'darkblue', 'firebrick']) +
+                  cycler(linestyle=['-', '--', ':', ':']))
+    plt.rc('lines', linewidth=1.8)
+    plt.rc('axes', prop_cycle=default_cycler)
+    log_fns = ['../log/cart/solvers_rtol_1e-3/default/cg_boomeramg/36_procs',
+            '../log/cart/solvers_rtol_1e-7/default/cg_boomeramg/36_procs',
+            '../log/cart/solvers_rtol_1e-12/default/cg_boomeramg/36_procs']
+    labels = [r'rtol= $10^{-3}$ BoomerAMG', r'rtol= $10^{-7}$ BoomerAMG',
+                r'rtol= $10^{-12}$ BoomerAMG']
+    figname = 'perfs_36_procs_iterative.pdf'
     plot_perfs(log_fns, labels, nnxs, 'linear', fig_dir / figname)
-    figname = 'perfs_36_procs_iterative_log'
-    plot_perfs(log_fns, labels, nnxs, 'log', fig_dir / figname)
+
+    # Combined plots for all solvers with GAMG at rtol=1e-3
+    default_cycler = (cycler(color=['mediumblue', 'royalblue', 'darkblue', 'firebrick', 'darkred', 'lightcoral']) +
+                  cycler(linestyle=['-', '--', ':', '-', '-.', '--']))
+    plt.rc('lines', linewidth=1.8)
+    plt.rc('axes', prop_cycle=default_cycler)
+    log_fns = ['../log/cart/solvers_rtol_1e-3/default/cg_gamg/36_procs',
+            '../log/cart/solvers_rtol_1e-3/default/cgs_gamg/36_procs',
+            '../log/cart/solvers_rtol_1e-3/default/bcgs_gamg/36_procs',
+            '../log/cart/solvers_rtol_1e-3/default/gmres_gamg/36_procs',
+            '../log/cart/solvers_rtol_1e-3/default/minres_gamg/36_procs']
+    labels = ['CG-GAMG', 'CGS-GAMG', 'BiCGStab-GAMG', 'GMRES-GAMG', 'MINRES-GAMG']
+    figname = 'perfs_36_procs_rtol1e-3_solvers_gamg.pdf'
+    plot_perfs(log_fns, labels, nnxs, 'linear', fig_dir / figname)
+
+    # Combined plots for all solvers with GAMG at rtol=1e-3
+    log_fns = ['../log/cart/solvers_rtol_1e-3/default/cg_boomeramg/36_procs',
+            '../log/cart/solvers_rtol_1e-3/default/cgs_boomeramg/36_procs',
+            '../log/cart/solvers_rtol_1e-3/default/bcgs_boomeramg/36_procs',
+            '../log/cart/solvers_rtol_1e-3/default/gmres_boomeramg/36_procs',
+            '../log/cart/solvers_rtol_1e-3/default/minres_boomeramg/36_procs']
+    labels = ['CG-BoomerAMG', 'CGS-BoomerAMG', 'BiCGStab-BoomerAMG', 'GMRES-BoomerAMG', 'MINRES-BoomerAMG']
+    figname = 'perfs_36_procs_rtol1e-3_solvers_boomeramg.pdf'
+    plot_perfs(log_fns, labels, nnxs, 'linear', fig_dir / figname)

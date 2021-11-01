@@ -178,6 +178,9 @@ def main():
             photo_down = np.load(Path(solut_paths[1]) / f'Sph_{instant:04d}.npy')
             plot_ax_scalar(fig, axes[2], mesh.X, mesh.Y, photo_up, photo_down, r"$S_{ph}$", cmap_scale='log',
                             field_ticks=photo_ticks)
+            max_photo = np.max(photo_up)
+            min_photo = np.min(photo_up)
+            print(f'Max Sph = {max_photo:.3e} - Min Sph = {min_photo:.3e}')
 
         plt.tight_layout()
         fig.tight_layout(rect=[0, 0.02, 1, 0.98])

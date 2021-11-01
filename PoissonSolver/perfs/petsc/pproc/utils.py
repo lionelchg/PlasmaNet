@@ -1,12 +1,7 @@
 import numpy as np
 from cycler import cycler
 import matplotlib.pyplot as plt
-
-default_cycler = (cycler(color=['darkblue', 'darkred', 'mediumblue', 'firebrick', 'royalblue', 'lightcoral']) +
-                  cycler(linestyle=['-', '--', ':', '-.', '-', '--']))
-
-plt.rc('lines', linewidth=1.8)
-plt.rc('axes', prop_cycle=default_cycler)
+from pathlib import Path
 
 def ax_prop(ax, xlabel, ylabel, scale='linear'):
     ax.grid(True)
@@ -41,3 +36,13 @@ def read_perfs(base_fn: str, nnxs: list):
     stddev_times = np.array(stddev_times)
 
     return nnodes_list, best_times, av_times, stddev_times
+
+def plot_perfs(log_fns: list, labels: str, nnxs: list, scale:str,
+        figname: Path):
+    """ Performance plot for a given number of log filenames and labels """
+    fig, ax = plt.subplots(figsize=(5, 5))
+    for log_fn, label in zip(log_fns, labels):
+        nnodes_list, _, av_times, _ = read_perfs(log_fn, nnxs)
+        ax.plot(nnodes_list, av_times, label=label)
+    ax_prop(ax, 'Number of mesh nodes', 'Execution time [s]', scale)
+    fig.savefig(figname, bbox_inches='tight')

@@ -18,6 +18,7 @@ lambda_j_two = np.array([0.0974, 0.5877]) * 1.0e2
 A_j_two = np.array([0.0021, 0.1775]) * (1.0e2)**2
 
 coef_p = 0.038
+quenching_press = 30 * 133
 
 # Atmospheric Pressure in Torr
 pO2 = 150

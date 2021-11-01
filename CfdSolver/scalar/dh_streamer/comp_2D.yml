@@ -95,7 +95,7 @@
 # Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+29]
 
 # Comparison of globals from streamer
-fig_dir: 'photo_ls_vs_fullnn/'
+fig_dir: 'photo_ls_vs_fullnn_debug/'
 
 solut_paths: ['runs/kraken/photo/nn_two_nn_poisson/data',
               'runs/kraken/photo/ls_two/data']

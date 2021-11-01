@@ -59,7 +59,9 @@ base:
 
   input: 'none'
 
+  # ------------------------------------------------------
   # This block is useful only if poisson/type = 'network'
+  # ------------------------------------------------------
   network:
     n_gpu: 1                                    # Number of GPUs to use
 
