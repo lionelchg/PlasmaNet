@@ -18,7 +18,7 @@
 
 
 # name: 'UNet5/run_j1'                      # Experience name
-name: 'UNet5/run_01'                      # Experience name
+name: 'UNet5/run_02'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -95,7 +95,7 @@ loss:
         axial_neu_weight: 1.0
         # photo_weight_j1: 1.0                # Weightinig of photoloss
         # photo_weight_j2: 1.0                # Weightinig of photoloss
-        photo_weight: 1.0e+10
+        photo_weight: 1.0e+6
         # adaptative: 0.1                     # Alpha value for adaptative weights
         # gradients: 10
 
