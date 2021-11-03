@@ -150,8 +150,6 @@ class PhotoLoss_j2(LaplacianLoss):
         # Renormalize to make it coherent with RHS
         out_norm = output / data_norm
         laplacian = lapl(out_norm, self.dx, self.dy, r=self.r_nodes)
-        import pdb
-        pdb.set_trace()
         if self.cyl:
             return self.Lx**2 * self.Ly**2 * F.mse_loss(laplacian[:, 0, 0:-1, 1:-1]
             - (lambda_j_two[1] * pO2)**2 * out_norm[:, 0, 0:-1, 1:-1],
