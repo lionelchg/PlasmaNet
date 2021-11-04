@@ -257,7 +257,7 @@ Launch the training by running in either an interactive shell or a batch job wit
       name: ['UNet5/rf100', 'UNet5/rf150', 'UNet5/rf200', 'UNet5/rf300', 'UNet5/rf400',]
       arch/db_file: ['unets_ks3_rf100.yml', 'unets_ks3_rf150.yml', 'unets_ks3_rf200.yml', 'unets_ks3_rf300.yml', 'unets_ks3_rf400.yml']
 
-   Use ``train_networks`` if you want to realise a `arametric study as specified above.
+   Use ``train_networks`` if you want to realise a parametric study as specified above.
 
 
 Monitoring a training
