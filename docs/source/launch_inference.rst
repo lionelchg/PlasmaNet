@@ -18,4 +18,83 @@ they are way heavier than electrons. Thus, the electron density evolves harmanic
 For further details about the plasma oscillation, please refer to [Cheng]_
 
 Launching plasma simulations
+******************************
+
+To launch a plasma simulation we will first go to the folder ``path/to/plasmanet/CfdSolver/euler/poscill``
+
+
+Reference with linear solver
 -----------------------------
+
+First, we will launch a plasma simulation with the linear solver. To do so, just modify the ``101.yml`` file.
+As the linear solver will be used, we will only focus on the first block of the yml file.
+First the physical parameters of the simulation are defined:
+
+.. code-block:: yaml
+
+   casename: 'runs/reference_oscillation/'                  # Set the casename
+
+   params:
+      n_periods: 2.0
+      geom: 'xy'
+      dt: 1.0e-10
+      nt_oscill: 5000
+
+Then, we specify the initialization profiles. We will start with a simple gaussian, but note that two two_gaussians
+or sinusoidal profiles can be used as well. The `ìnit_func` argument can either be an string and thus a the `init_args``
+argument needs to be declared, or instead it can be a list containing a string and a list with the arguments:
+
+.. code-block:: yaml
+
+   init:
+      n_back: 1.0e+16
+      n_pert: 1.0e+11
+      init_func: ['gaussian', [0.5e-2, 0.5e-2, 1.0e-3, 1.0e-3]]      # Second argument corresponds to the gaussian center
+
+.. code-block:: yaml
+
+   init:
+      n_back: 1.0e+16
+      n_pert: 1.0e+11
+      func: 'two_gaussians'                                           # Choose between 'gaussian', 'two_gaussians', 'sin2D', ...
+      args: [0.4e-2, 0.5e-2, 1.0e-3, 1.0e-3,                          # Coordinates of the center of the gaussians
+                0.6e-2, 0.5e-2, 1.0e-3, 1.0e-3]
+
+Concerning the Poisson equation and the simulation mesh, we will define the spatial discretization and the resolutin type:
+
+.. code-block:: yaml
+
+   poisson:
+      type: 'lin_system'                                               # Choose between network, lin_system and analytical
+      mat: 'cart_dirichlet'                                            # Choose between cart_dirichlet and
+      nmax_fourier: 10                                                 # For the analytical solution
+
+   mesh:
+      xmin: 0
+      ymin: 0
+      xmax: 1.0e-2
+      ymax: 1.0e-2
+      nnx: 101
+      nny: 101
+
+   BC: 'full_out'                                                      # Problem BC
+
+   output:
+      save: 'plasma_period'                                            # Save for period intervals
+      verbose: True                                                    # Useful information during inference
+      period: 0.1                                                      # Saving every
+      files: 'fig'                                                     # Saving options
+      dl_save: 'no'                                                    # For training purposes
+   globals:
+      fig: [1.0, 1.5]                                                  # Reference plotting points for final plot
+      vars: 'yes'                                                      # Save global variables
+
+
+Once the yml file is configured according to your needs, just perform:
+
+.. code-block:: shell
+
+    plasma_euler -c 101.yml
+
+Plasma oscillation with a CNN
+------------------------------
