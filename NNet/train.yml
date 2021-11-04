@@ -17,46 +17,47 @@
 # `config.init_obj` method.
 
 
-name: 'config_4/random_8'                      # Experience name
+name: 'config_4/random_8'                   # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
-    nnx: 101
-    nny: 101
+    nnx: 101                                # Number of points in x direction
+    nny: 101                                # Number of points in y direction
     xmin: 0.0
     xmax: 1.0e-2
     ymin: 0.0
     ymax: 1.0e-2
-    coord: 'cart'
-    verbosity: 2
+    coord: 'cart'                           # Coordinates system ('cart' or 'cyl')
+    verbosity: 2                            # Output verbosity level
 
 arch:
-    db_file: 'unets_ks3_rf100.yml'
-    name: 'UNet5'
+    db_file: 'unets_ks3_rf100.yml'          # Database file
+    name: 'UNet5'                           # Name of the network in the database file
     args:
-        input_res: 101
+        input_res: 101                      # Required argument to define the input res of the network
 
 data_loader:
-    type: 'PoissonDataLoader'
-    data_channels: 1
-    pipe_config: True
+    type: 'PoissonDataLoader'               # Class name of the wanted dataloader
+    data_channels: 1                        # Number of data channels
+    pipe_config: True                       # Does the dataloader requires the input file?
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/train/101x101/random_8'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/train/101x101/random_8'   # Dataset path
         batch_size: 64
-        shuffle: True
+        shuffle: True                       # Do we randomly reorder the dataset?
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
-        num_workers: 4
-        normalize: 'analytical'                   # max, physical or no for normalization types
-        alpha: 0.1
-        scaling_factor: 1.0e+6
-initializer: 'off'
+        num_workers: 4                      # Number of threads reading the dataset (useful for big datasets)
+        normalize: 'analytical'             # Normalization of the dataset (max, physical or no)
+        alpha: 0.1                          # Coefficient for analytical normalization
+        scaling_factor: 1.0e+6              # Supplementary scaling factor for physical_rhs and potential
+
+initializer: 'off'                          # Possible Pytorch initializer, cf. PyTorch doc
 
 optimizer:
     type: 'Adam'
     args:
-        lr: 4.e-4
+        lr: 4.e-4                           # Learning rate
         weight_decay: 0
-        amsgrad: False                      # AMSGrad variant from paper 'On the convergence of Adam and Beyond'
+        amsgrad: False                      # Use AMSGrad variant from paper 'On the convergence of Adam and Beyond'
 
 loss:
     type: 'ComposedLoss'
@@ -68,10 +69,10 @@ loss:
             - LaplacianLoss
             # - EnergyLoss
             # - LongTermLaplacianLoss
-        inside_weight: 0.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
-        bound_weight: 1.0                    # Weighting of the loss on the boundaries (float)
+        inside_weight: 0.0                  # Weighting of the loss inside the domain, excluding boundaries (float)
+        bound_weight: 1.0                   # Weighting of the loss on the boundaries (float)
         elec_weight: 0.                     # Weighting of the loss on the electric field (float)
-        lapl_weight: 2.0e+7                    # Weighting of the loss on the Laplacian (float)
+        lapl_weight: 2.0e+7                 # Weighting of the loss on the Laplacian (float)
         energy_weight: 0.0                  # Weighting of the loss on the energy functional (float)
         lt_weight: 0.0                      # Weighting of the lt loss, whoch only has a Laplacian term
         ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation
@@ -83,23 +84,23 @@ metrics:
     - 'Einf_norm'
 
 lr_scheduler:
-    type: 'ReduceLROnPlateau'
-    plateau_metric: loss                    # monitoring metric for ReduceLROnPlateau step()
+    type: 'ReduceLROnPlateau'               # Scheduler type, cf. PyTorch doc
+    plateau_metric: loss                    # Monitoring metric for ReduceLROnPlateau step()
     args:
         mode: 'min'
         factor: 0.9                         # Amount scheduler reduces LR by (float)
-        patience: 50                        # Number of epochs the scheduler waits (int)
+        patience: 50                        # Number of epochs the scheduler waits before reducing LR (int)
         threshold: 3.e-4                    # Relative improvement the scheduler must see (float)
         threshold_mode: 'rel'
         verbose: False
 
 trainer:
-    epochs: 20
-    save_dir: 'debug/'
-    save_period: 20
+    epochs: 20                              # Number of epochs
+    save_dir: 'debug/'                      # Output directory
+    save_period: 20                         # Output period
     plot_period: 20                         # Period to send plots to TensorBoard
     verbosity: 2
     monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
-    early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
-    tensorboard: true
+    early_stop: 200                         # Training is stopped if model performance does not increase for n epochs
+    tensorboard: true                       # Save TensorBoard log
     histograms: false                       # Save weights and bias histograms (turned off to increase TensorBoard perf)
