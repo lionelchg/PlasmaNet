@@ -241,7 +241,7 @@ Launch the training by running in either an interactive shell or a batch job wit
 
 .. topic:: Parametric studies
 
-   It is possible to plan a parametric study by defining values for a key, see for example ``PlasmanNet/NNet/cfg_101_unets5.yml``.
+   It is possible to plan a parametric study by defining values for a key, see for example ``PlasmaNet/NNet/cfg_101_unets5.yml``.
    Two modes are available when defining multiple values for multiple argument: *sequential* will consider the tuples of arguments (each
    list must have the same number of values) or *tree* where all the combinaisons are explored.
 

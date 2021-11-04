@@ -9,7 +9,7 @@ Plasma oscillation introduction
 Plasmas tend to maintain electric charge neutrality at a macroscopic
 scale at equilibrium. When this macroscopic charge neutrality is changed, Coulomb
 forces try to restore the macroscopic charge neutrality. Ion motion is ignored since
-they are way heavier than electrons. Thus, the electron density evolves harmanically.
+they are way heavier than electrons. Thus, the electron density evolves harmonically.
 
 .. math::
    \frac{\partial^2n_e}{\partial t^2}+\omega_p^2 n_e = 0 ~~~~ {where} ~~~~
@@ -18,13 +18,13 @@ they are way heavier than electrons. Thus, the electron density evolves harmanic
 For further details about the plasma oscillation, please refer to [Cheng]_
 
 Launching plasma simulations
-******************************
+----------------------------
 
-To launch a plasma simulation we will first go to the folder ``path/to/plasmanet/CfdSolver/euler/poscill``
+To launch a plasma simulation, we will first go to the folder ``path/to/plasmanet/CfdSolver/euler/poscill``
 
 
 Reference with linear solver
------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 First, we will launch a plasma simulation with the linear solver. To do so, just modify the ``101.yml`` file.
 As the linear solver will be used, we will only focus on the first block of the yml file.
@@ -94,10 +94,10 @@ Once the yml file is configured according to your needs, just perform:
 
 .. code-block:: shell
 
-    plasma_euler -c 101.yml
+   plasma_euler -c 101.yml
 
 Plasma oscillation with a CNN
-------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Analogously, to launch a simulation with the network, just change:
 
