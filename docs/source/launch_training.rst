@@ -177,8 +177,8 @@ The weights name should correspond to the argument name of each individual sublo
          elec_weight: 0.                     # Weighting of the loss on the electric field (float)
          lapl_weight: 2.0e+7                 # Weighting of the loss on the Laplacian (float)
          energy_weight: 0.0                  # Weighting of the loss on the energy functional (float)
-                 lt_weight: 0.0                      # Weighting of the lt loss, whoch only has a Laplacian term
-        ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation
+         lt_weight: 0.0                      # Weighting of the lt loss, whoch only has a Laplacian term
+         ltloss_num_procs: 64                # Number of processes for multiprocessing long term loss evaluation
 
 
 
