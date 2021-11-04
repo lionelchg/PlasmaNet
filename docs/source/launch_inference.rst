@@ -15,6 +15,7 @@ they are way heavier than electrons. Thus, the electron density evolves harmanic
    \frac{\partial^2n_e}{\partial t^2}+\omega_p^2 n_e = 0 ~~~~ {where} ~~~~
    \omega_p = \sqrt{\frac{n_e e^2}{m_e\varepsilon_0}}
 
+For further details about the plasma oscillation, please refer to [Cheng]_
 
 Launching plasma simulations
 -----------------------------
