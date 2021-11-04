@@ -227,8 +227,9 @@ whether we want the TensorBoard output, etc.
       histograms: false                       # Save weights and bias histograms (turned off to increase TensorBoard perf)
 
 
+This example configuration file can be found at ``PlasmaNet/NNet/train.py``
 
-Training can be launched by running in either an interactive shell or a batch job with Slurm
+Launch the training by running in either an interactive shell or a batch job with Slurm
 
 .. code-block:: shell
 
