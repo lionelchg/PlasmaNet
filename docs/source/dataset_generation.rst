@@ -33,7 +33,7 @@ The **fourier** dataset is created by reconstructing a field randomly choosing t
 
 .. math::
 
-    𝑅_{𝑛𝑚}(𝑝) ∼ \frac{1}{𝑛^𝑝 + 𝑚^𝑝} 𝑒 𝑛_0 \epsilon_0 U(−1, 1)
+   R_{nm}(p) \sim \frac{1}{n^p + m^p} \frac{en_0}{\varepsilon_0} \, \mathcal{U}(-1, 1)
 
 We will choose a max number of modes N and a decreasing power factor p that mimics the high-frequency damping
 of physical solutions. To create a **fourier** dataset the procedure is quite similar. Correctly modify
