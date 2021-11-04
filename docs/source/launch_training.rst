@@ -74,7 +74,16 @@ Further options that can be added on the training yml file.
          padding_mode: 'custom'
 
 Padding modes can vary between ``zeros``, ``reflect``, ``replicate``, ``circular`` or ``custom``. The ``custom``
-functions eeeeeeeeeeeeezezrzrzrzzrrzzrzrzrzrrzzrrzzrrzzzzrzrrzzrzrrzzrrzzrrzzrzrrzrzrz
+padding mode correspond to an example of personalized padding used for cylindrical coordinates, where zero padding
+is used for the 3D Dirichlet BC and replication padding is used for the axis. The input domain size needs to be declared
+as well, as it can be an integer (for squared domains), or a list with size (height, width)
+
+To check the local and global variables of the network, the ``show_network`` command shows the recetive field,
+number of parameters and depth of the entire network as well as for each individual branch:
+
+.. code-block:: shell
+
+    show_network -c modified_network.yml
 
 
 Launching a training
@@ -248,8 +257,24 @@ Launch the training by running in either an interactive shell or a batch job wit
       name: ['UNet5/rf100', 'UNet5/rf150', 'UNet5/rf200', 'UNet5/rf300', 'UNet5/rf400',]
       arch/db_file: ['unets_ks3_rf100.yml', 'unets_ks3_rf150.yml', 'unets_ks3_rf200.yml', 'unets_ks3_rf300.yml', 'unets_ks3_rf400.yml']
 
-   Use ``train_networks`` if you want to realise a parametric study as specified above.
+   Use ``train_networks`` if you want to realise a `arametric study as specified above.
 
 
 Monitoring a training
 ----------------------
+
+To check in live the evolution of the training, PlasmaNet generates tensorboard logs in the folder where the trainings are saved.
+To launch a tensorboard and monitor the training, go to the ``/network/saving/path`` and use the command:
+
+.. code-block:: shell
+
+    tensorboard --logdir=/path/to/dir --port=6123
+
+At this point, a tensorboard will be opened in the remote machine. In order to acces it locally,
+open a new terminal in your computer and link the remote host port as follows:
+
+.. code-block:: shell
+
+    ssh  -N -L localhost:8787:localhost:6123 kraken
+
+Then, just open in your favourite web browser the following link: ``http://localhost:8787``
