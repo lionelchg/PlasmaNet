@@ -107,11 +107,10 @@ Analogously, to launch a simulation with the network, just change:
       type: 'network'                                                  # Choose between network, lin_system, analytical and hybrid
 
 And then we will focus on the remaining arguments of the config file. Please refer to the training section,
-as the config file is quite similar, with just severa` small modifications. Just specify the network used for the
-plasma simulation at the ``resume``argument:
+as the config file is quite similar, with just several small modifications. Just specify the network used for the
+plasma simulation at the ``resume`` argument:
 
-.. code-block:: yaml
-   resume: '/path/to/trained/network/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8/model_best.pth'
+``/path/to/trained/network/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8/model_best.pth``
 
 If you don't have any trained networks, you can use the predifined configuration with the network found at:
 
