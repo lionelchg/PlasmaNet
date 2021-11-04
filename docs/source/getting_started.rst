@@ -8,12 +8,14 @@ Please use at least Python >= 3.7
 
    python3 -m venv plasma_env
 
+
 Once the environment is created, activate it and don't forget to upgrade pip:
 
 .. code-block:: shell
 
    source /path/to/your/plasma_env/bin/activate
    pip install --upgrade pip
+
 
 Then, clone the ``PlasmaNet`` repository from the `CERFACS public GitLab <https://gitlab.com/cerfacs/plasmanet>`_:
 
@@ -34,7 +36,18 @@ framework of choice and ``TensorBoard`` for the monitoring of training jobs (cf.
 
 You also need to define the following environmnet variables:
 
+
 .. code-block:: shell
 
    export ARCHS_DIR=path/to/plasmanet/NNet/archs
    export POISSON_DIR=path/to/plasmanet/PoissonSolver/linsystem
+
+Now, you can test your install by running the tests with PyTest in each test directory:
+
+
+.. code-block:: shell
+
+   cd tests/nnet
+   pytest
+   cd ../poissonsolver
+   pytest
