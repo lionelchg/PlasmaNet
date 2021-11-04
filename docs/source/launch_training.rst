@@ -22,15 +22,9 @@ Generic Unet and MultiScale architectures are available at ``path/to/plasmanet/N
     Sketch of MSNet
 
 A new architecture with the desired features can easily be added. For example, you can generate a new ``.yml`` file
-in this same folder and add the number of desired feature maps per scale. Just note that the scale_0 will correspond
+in this same folder and add the number of desired feature maps per scale. Just note that the ``scale_0`` will correspond
 to the scale where the resolution is equal to the input size (:math:`N_x \times N_y`), while the highest scale ``scale_n``
 matches the images with the lowest resolution (:math:`\frac{N_x}{2^{n-1}} \times \frac{N_y}{2^{n-1}}`).
-
-J'essaye de completer pendant que j'écoute ^^
-Tékaté
-Je fais des builds au fur et à mesure pour voir à quoi ça ressemble
-Et c'est cool pour l'instant?
-Yep !
 
 For the **Unet networks**, all scales are a list containing two lists, where the first matches the left side of the Unet
 and the second the right side. Only the bottom ``scale_n`` is composed of a single list. The input and output channel
@@ -48,8 +42,8 @@ dimensions are **hardcoded** on ``scale_0`` so make sure that they fit the train
          kernel_sizes: 3
 
 **MultiScale networks** can also be created following the same logic. The ``scale_0`` corresponds to the scale with
-the resolution with the orinal size (:math:`N_x \times N_y`). Note that for the MultiScale, the input field enters
-the lowest resolution scale ``scale_n``:
+the resolution with the original size (:math:`N_x \times N_y`). Note that for the MultiScale network, the input field
+enters the lowest resolution scale ``scale_n``:
 
 .. code-block:: yaml
 
@@ -76,9 +70,9 @@ Further options that can be added on the training yml file.
 Padding modes can vary between ``zeros``, ``reflect``, ``replicate``, ``circular`` or ``custom``. The ``custom``
 padding mode correspond to an example of personalized padding used for cylindrical coordinates, where zero padding
 is used for the 3D Dirichlet BC and replication padding is used for the axis. The input domain size needs to be declared
-as well, as it can be an integer (for squared domains), or a list with size (height, width)
+as well, as it can be an integer (for squared domains), or a list with size (height, width).
 
-To check the local and global variables of the network, the ``show_network`` command shows the recetive field,
+To check the local and global variables of the network, the ``show_network`` command shows the receptive field,
 number of parameters and depth of the entire network as well as for each individual branch:
 
 .. code-block:: shell
@@ -100,6 +94,7 @@ of GPUs we want to use:
 
    name: 'test/random_8'            # Experience name
    n_gpu: 1                         # Number of GPUs to use
+
 
 Then some global parameters are needed, such as the size of the domain, its coordinate system (cartesian or axisymmetric):
 
@@ -164,10 +159,10 @@ according to the PyTorch documentation on initializers and optimizers.
          amsgrad: False                   # Use AMSGrad variant from paper 'On the convergence of Adam and Beyond'
 
 
-Now, let's define our losses. Many losses are defined in ``PlasmaNet/PlasmaNet/nnet/model/loss.py``, but the ``ComposedLoss``
+Now, let's specify our losses. Many losses are defined in ``PlasmaNet/PlasmaNet/nnet/model/loss.py``, but the ``ComposedLoss``
 is probably the most convenient one as it allows you to use all the other losses with a weight for each one,
 each component being detailed in the outputs and in TensorBoard (and even the gradients of the losses if you want).
-The weights name should correspond to the argument name of each individual subloss.
+The weights name should correspond to the argument name of each individual loss.
 
 .. code-block:: yaml
 
@@ -263,18 +258,18 @@ Launch the training by running in either an interactive shell or a batch job wit
 Monitoring a training
 ----------------------
 
-To check in live the evolution of the training, PlasmaNet generates tensorboard logs in the folder where the trainings are saved.
-To launch a tensorboard and monitor the training, go to the ``/network/saving/path`` and use the command:
+To live check the evolution of the training, PlasmaNet generates TensorBoard logs in the folder where the trainings are saved.
+To launch a TensorBoard instance and monitor the training, go to the ``/network/saving/path`` and use the command:
 
 .. code-block:: shell
 
     tensorboard --logdir=/path/to/dir --port=6123
 
-At this point, a tensorboard will be opened in the remote machine. In order to acces it locally,
+At this point, a TensorBoard instance will be opened in the remote machine. In order to access it locally,
 open a new terminal in your computer and link the remote host port as follows:
 
 .. code-block:: shell
 
-    ssh  -N -L localhost:8787:localhost:6123 kraken
+    ssh -N -L localhost:8787:localhost:6123 kraken
 
 Then, just open in your favourite web browser the following link: ``http://localhost:8787``
