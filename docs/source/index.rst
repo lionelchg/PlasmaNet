@@ -29,5 +29,4 @@ Some environment variables need to be defined for the library (these lines can b
    users
    developers
    modules
-
-
+   tutorials

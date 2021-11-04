@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.abspath('../../PlasmaNet/'))
 # -- Project information -----------------------------------------------------
 
 project = 'PlasmaNet'
-copyright = '2021, Lionel Cheng'
-author = 'Lionel Cheng'
+copyright = '2021, Lionel Cheng, Ekhi Ajuria, Guillaume Bogopolsky'
+author = 'Lionel Cheng, Ekhi Ajuria, Guillaume Bogopolsky'
 
 # The full version, including alpha/beta/rc tags
 release = '1.0'
