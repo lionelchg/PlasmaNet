@@ -65,17 +65,17 @@ Concerning the Poisson equation and the simulation mesh, we will define the spat
 .. code-block:: yaml
 
    poisson:
-      type: 'lin_system'                                               # Choose between network, lin_system and analytical
-      mat: 'cart_dirichlet'                                            # Choose between cart_dirichlet and
+      type: 'lin_system'                                               # Choose between network, lin_system, analytical and hybrid
+      mat: 'cart_dirichlet'                                            # Plasma oscillation for now only in cartesian coordinates with D BC
       nmax_fourier: 10                                                 # For the analytical solution
 
    mesh:
       xmin: 0
       ymin: 0
-      xmax: 1.0e-2
-      ymax: 1.0e-2
-      nnx: 101
-      nny: 101
+      xmax: 1.0e-2                                                     # Physical domain length in x direction
+      ymax: 1.0e-2                                                     # Physical domain length in y direction
+      nnx: 101                                                         # Number of points in x direction
+      nny: 101                                                         # Number of points in y direction
 
    BC: 'full_out'                                                      # Problem BC
 
@@ -98,3 +98,21 @@ Once the yml file is configured according to your needs, just perform:
 
 Plasma oscillation with a CNN
 ------------------------------
+
+Analogously, to launch a simulation with the network, just change:
+
+.. code-block:: yaml
+
+   poisson:
+      type: 'network'                                                  # Choose between network, lin_system, analytical and hybrid
+
+And then we will focus on the remaining arguments of the config file. Please refer to the training section,
+as the config file is quite similar, with just severa` small modifications. Just specify the network used for the
+plasma simulation at the ``resume``argument:
+
+.. code-block:: yaml
+   resume: '/path/to/trained/network/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8/model_best.pth'
+
+If you don't have any trained networks, you can use the predifined configuration with the network found at:
+
+``path/to/trained/network/model_best.pth``
