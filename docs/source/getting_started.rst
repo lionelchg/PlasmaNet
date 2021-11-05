@@ -47,7 +47,7 @@ Now, you can test your install by running the tests with PyTest in each test dir
 
 .. code-block:: shell
 
-   cd tests/nnet
+   cd tests/nnet/operators
    pytest
-   cd ../poissonsolver
+   cd ../../poissonsolver
    pytest
