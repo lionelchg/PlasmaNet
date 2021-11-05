@@ -94,7 +94,7 @@ casename="$casedir"/"$krylov"_"$precond"/"$nb_cpu"_procs/
 mkdir -p "${casename}"
 run_hypre_boomeramg "${nb_cpu}" "$krylov" "${rtol}" "${casename}"
 
-# # Run for 1e-7 precision
+# # Run for 1e-12 precision
 # rtol="1.0e-12"
 # casedir="log/cart/solvers_rtol_1e-12/default"
 # krylov="cg"

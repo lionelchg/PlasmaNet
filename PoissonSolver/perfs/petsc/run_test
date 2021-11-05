@@ -2,8 +2,9 @@
 #SBATCH --job-name perfs
 #SBATCH --time=00:30:00
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=9
-#SBATCH --partition weekend
+#SBATCH --ntasks-per-node=128
+#SBATCH --partition rome
+#SBATCH --nodelist krakenepyc2
 
 export LD_LIBRARY_PATH=/softs/local_intel/petsc/3.13.4/lib:$LD_LIBRARY_PATH
 nb_cpu=$SLURM_NPROCS
@@ -19,7 +20,7 @@ nb_cpu_per_node=$SLURM_JOB_CPUS_PER_NODE
 #     -ksp_type cg -ksp_rtol 1e-10 -pc_type gamg
 
 mkdir -p log/debug/"$nb_cpu_per_node"
-nn=4001
+nn=6001
 
 # ksp=cg
 # precond=hypre
@@ -37,5 +38,13 @@ precond=gamg
 rtol="1e-3"
 
 mpirun -np "$nb_cpu" ./src/poisson.out "$nn" "$nn" \
-    log/debug/"$nb_cpu_per_node"/"$nn"_"$ksp"_"$precond"_"$rtol"_6levels.log \
-    -ksp_type "$ksp" -ksp_rtol "$rtol" -pc_type "$precond" -pc_mg_levels 6
+    log/debug/"$nb_cpu_per_node"/"$nn"_"$ksp"_"$precond"_"$rtol".log \
+    -ksp_type "$ksp" -ksp_rtol "$rtol" -pc_type "$precond"
+
+ksp=cg
+precond=hypre
+rtol="1e-3"
+
+mpirun -np "$nb_cpu" ./src/poisson.out "$nn" "$nn" \
+    log/debug/"$nb_cpu_per_node"/"$nn"_"$ksp"_"$precond"_"$rtol".log \
+    -ksp_type "$ksp" -ksp_rtol "$rtol" -pc_type "$precond" -pc_hypre_type boomeramg

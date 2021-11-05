@@ -6,47 +6,15 @@
 #                                                                                   #
 #####################################################################################
 
-sizes: [801, 2001, 4001, 5001, 5501]
-# sizes: [101, 201, 401, 801, 2001, 4001, 5001, 6001]
-solver_types: ["direct"]
-useUmfpack: [False]
-assumeSortedIndices: [False]
+sizes: [101, 201, 401, 801, 2001, 4001, 5001, 6001]
 nits: 20
 
 # Networks to test
 networks:
   UNet5-100k:
-    resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/5_scales/k_3/RF_200/models/random_8/checkpoint-epoch00300.pth'
+    resume: '/scratch/cfd/PlasmaDL/networks/train/101x101/models/UNet5/rf200/model_best.pth'
     arch:
       db_file: 'unets_ks3_rf200.yml'
       name: 'UNet5'
       args:
         input_res: 101
-  # UNet3-100k:
-  #   resume: '/scratch/cfd/PlasmaDL/networks/train/RF_study/Unet/3_scales/k_3/RF_200/models/random_8/checkpoint-epoch00300.pth'
-  #   arch:
-  #     db_file: 'unets_ks3_rf200.yml'
-  #     name: 'UNet3'
-  #     args:
-  #       input_res: 101
-  # UNet5-200k:
-  #   resume: "/scratch/cfd/PlasmaDL/networks/train/nparams/300to700epochs/models/200k/checkpoint-epoch00700.pth"
-  #   arch:
-  #     db_file: "unets5_ks3_nparams.yml"
-  #     name: "UNet5-200k"
-  #     args:
-  #       input_res: 101
-  # UNet5-400k:
-  #   resume: "/scratch/cfd/PlasmaDL/networks/train/nparams/300to700epochs/models/400k/checkpoint-epoch00700.pth"
-  #   arch:
-  #     db_file: "unets5_ks3_nparams.yml"
-  #     name: "UNet5-400k"
-  #     args:
-  #       input_res: 101
-  # UNet5-800k:
-  #   resume: "/scratch/cfd/PlasmaDL/networks/train/nparams/300to700epochs/models/800k/checkpoint-epoch00700.pth"
-  #   arch:
-  #     db_file: "unets5_ks3_nparams.yml"
-  #     name: "UNet5-800k"
-  #     args:
-  #       input_res: 101

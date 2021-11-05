@@ -153,8 +153,9 @@ if __name__ == "__main__":
     print(perf)
 
     # PETSc performance
-    nnxs = [801, 2001, 4001, 5001, 5501]
+    # nnxs = [801, 2001, 4001, 5001, 5501, 6001]
     # nnodes_list, best_times, av_times, stddev_times = read_perfs('petsc/log/cart/solvers/hypre_boomeramg/128_procs/rtol_1e-3', nnxs)
+    nnxs = [801, 2001, 4001, 5001, 5501]
     nnodes_list, best_times, av_times, stddev_times = read_perfs('petsc/log/cart/solvers/hypre_boomeramg/36_procs/rtol_1e-3', nnxs)
 
     ###########################################
@@ -166,13 +167,13 @@ if __name__ == "__main__":
     # Linear solver
     idx = perf.index**2
     ax.plot(nnodes_list, av_times, "-x", label="Linear solver")
-    # ax.fill_between(nnodes_list, av_times + stddev_times, av_times - stddev_times, alpha=.2)
+
     # Networks
     for net in networks:
         tot, model, comm = perf[net], perf[net + "_model"], perf[net + "_comm"]
         ax.plot(idx, tot["mean"], "-o", label=net)
-        ax.plot(idx, comm["mean"], "-+", label=net + " comm")
-        ax.plot(idx, model["mean"], "-^", label=net + " model")
+        ax.plot(idx, comm["mean"], "-+", label=net + " Comm")
+        ax.plot(idx, model["mean"], "-^", label=net + " Model")
 
     # ax.loglog()
     ax.legend()
