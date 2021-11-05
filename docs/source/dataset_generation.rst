@@ -41,7 +41,7 @@ the the ``train.yml`` file and then, for a ``101x101``dataset with ``3 fourier m
 
 .. code-block:: shell
 
-   python3 rhs_random.py -c train.yml -nn 101 -nmax 3 -dp 0
+   python3 rhs_fourier.py -c train.yml -nn 101 -nmax 3 -dp 0
 
 .. image:: figures/Fourier_dataset.png
     :align: center
