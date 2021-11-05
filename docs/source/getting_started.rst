@@ -2,7 +2,9 @@ Getting started with PlasmaNet
 ===============================
 
 First create a virtual environment for ``PlasmaNet`` to avoid version issues and to have a clean start.
-Please use at least Python >= 3.7
+Please use at least Python >= 3.7 . Make sure that the loaded python version contains the ``sqlite`` library,
+(for kraken load ``python/anaconda3.8``)
+
 
 .. code-block:: shell
 
