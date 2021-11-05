@@ -69,6 +69,7 @@ def params(nits):
     """ Parameters to give to compute function for imap """
     for i in range(nits):
         z_lower = 2 * np.random.random((nny_lower, nnx_lower)) - 1
+        # z_lower = (0.05 + np.random.random((nny_lower, nnx_lower)))
         f = interpolate.interp2d(x_lower, y_lower, z_lower, kind='cubic')
         yield f(x, y)
 
