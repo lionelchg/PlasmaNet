@@ -5,8 +5,13 @@ The first step will be to create a synthetic dataset on which the network will b
 
 .. code-block:: shell
 
-   cd path/to/plasmanet/PoissonSolver/datasets
+   cd path/to/plasmanet/examples/dataset
 
+Please note that further scripts and config files to generate different datasets can be found at:
+
+.. code-block:: shell
+
+   cd path/to/plasmanet/PoissonSolver/datasets
 
 Two types of dataset can be created by default (many more can also be created modifying the existing scripts ...), which are:
 

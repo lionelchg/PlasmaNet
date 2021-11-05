@@ -61,7 +61,7 @@ Further options that can be added on the training yml file.
 .. code-block:: yaml
 
    arch:
-      db_file: 'follo.yml'
+      db_file: 'modifed_network.yml'
       name: 'UNetModified'
       args:
          input_res: [101, 401]
