@@ -37,7 +37,7 @@ The **fourier** dataset is created by reconstructing a field randomly choosing t
 
 We will choose a max number of modes N and a decreasing power factor p that mimics the high-frequency damping
 of physical solutions. To create a **fourier** dataset the procedure is quite similar. Correctly modify
-the the ``train.yml`` file and then, for a ``101x101``dataset with ``3 fourier modes`` and ``p=0``
+the the ``train.yml`` file and then, for a ``101x101`` dataset with ``3 fourier modes`` and ``p=0``
 
 .. code-block:: shell
 
