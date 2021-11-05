@@ -118,10 +118,10 @@ class PhotoNetwork(BasePhoto):
             for i in range(2):
                 rhs = self.ioniz_rate
                 rhs_torch = torch.from_numpy(rhs[np.newaxis, np.newaxis, :, :]
-                        * self.scaling_factor / self.norm_j1).float().to(self.device)
+                        * self.scaling_factor).float().to(self.device)
                 if i == 0:
                     Sphj1_torch = self.model_j1(rhs_torch)
-                    self.Sphj1 = Sphj1_torch.detach().cpu().numpy()[0, 0, :, :] / self.scaling_factor
+                    self.Sphj1 = Sphj1_torch.detach().cpu().numpy()[0, 0, :, :] / self.scaling_factor / self.norm_j1
                 elif i == 1:
                     Sphj2_torch = self.model_j2(rhs_torch)
                     self.Sphj2 = Sphj2_torch.detach().cpu().numpy()[0, 0, :, :] / self.scaling_factor
