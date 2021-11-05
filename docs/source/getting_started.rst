@@ -23,7 +23,7 @@ Then, clone the ``PlasmaNet`` repository from the `CERFACS public GitLab <https:
 
 .. code-block:: shell
 
-   git clone git@gitlab.com:cerfacs/plasmanet.git
+   git clone https://gitlab.com/cerfacs/plasmanet.git
 
 
 At this point, you're all set to begin the journey!
