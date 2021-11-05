@@ -17,8 +17,7 @@
 # `config.init_obj` method.
 
 
-# name: 'UNet5/run_j1'                      # Experience name
-name: 'UNet5/run_03'                      # Experience name
+name: 'UNet5/random_12/run_j1'                      # Experience name
 n_gpu: 1                                    # Number of GPUs to use
 
 globals:                                    # Domain sizes and others, used to compute global attributes
@@ -44,17 +43,15 @@ data_loader:
     data_channels: 1
     pipe_config: True
     args:
-        data_dir: '/scratch/cfd/cheng/DL/datasets/photo/train_cyl/401x101/random_24'
+        data_dir: '/scratch/cfd/cheng/DL/datasets/photo/train_cyl/401x101/random_12'
         batch_size: 64
         shuffle: True
         validation_split: 0.2               # if float, fraction of the full dataset, if int, length of validation portion
         num_workers: 4
         scaling_factor: 1.0e-12
-        # normalize: 1.0e+2
-        normalize: 1.0e+4 #1.0
+        normalize: 1.0e+2
         sph_file: 'Sphj1.npy'
-        #sph_file: 'Sphj2.npy'
-        lambda_scale: 1.0e+4
+        # sph_file: 'Sphj2.npy'
 
 # initializer: 'off'
 # initializer:
@@ -84,20 +81,18 @@ loss:
         loss_list:                          # List of the losses to compose if ComposedLoss is used
             # - InsideLoss
             - DirichletBoundaryLoss
-            # - PhotoLoss_j1
+            - PhotoLoss_j1
             # - PhotoLoss_j2
-            - PhotoLoss
+            # - PhotoLoss
             - AxialNeumannLoss
         inside_weight: 1.0                   # Weighting of the loss inside the domain, excluding boundaries (float)
         bound_weight: 1.0                    # Weighting of the loss on the boundaries (float)
         lapl_weight: 1.0e+6                    # Weighting of the loss on the Laplacian (float)
         axial_dir_weight: 1.0
         axial_neu_weight: 1.0
-        # photo_weight_j1: 1.0                # Weightinig of photoloss
+        photo_weight_j1: 1.0                # Weightinig of photoloss
         # photo_weight_j2: 1.0                # Weightinig of photoloss
-        photo_weight: 1.0e+10
-        # adaptative: 0.1                     # Alpha value for adaptative weights
-        # gradients: 10
+        photo_weight: 1.0
 
 metrics:
     - 'residual'
@@ -116,20 +111,11 @@ lr_scheduler:
 
 trainer:
     epochs: 400
-    save_dir: 'train_cyl/study_photo/generic_photo_normalization'
-    save_period: 1 #20
-    plot_period: 1 #20                         # Period to send plots to TensorBoard
+    save_dir: 'train_cyl/study_photo/'
+    save_period: 20
+    plot_period: 20                         # Period to send plots to TensorBoard
     verbosity: 2
     monitor: min val_loss                   # Monitor best model ('method metric', method={min, max}, metric exists)
     early_stop: 200                         # Training is stopped if model performance does not increase for 50 epochs
     tensorboard: true
     histograms: false                       # Save weights and bias histograms (turned off to increase TensorBoard perf)
-
-photo:
-  photo_model: 'custom_train'
-  xmin: 0.0
-  xmax: 4.0e-3
-  nnx: 401
-  ymin: 0.0
-  ymax: 1.0e-3
-  nny: 101
