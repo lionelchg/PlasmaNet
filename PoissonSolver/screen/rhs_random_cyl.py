@@ -68,8 +68,8 @@ bcs = {'left':zeros_y, 'right':zeros_y, 'top':zeros_x}
 def params(nits):
     """ Parameters to give to compute function for imap """
     for i in range(nits):
-        z_lower = 2 * np.random.random((nny_lower, nnx_lower)) - 1
-        # z_lower = (0.05 + np.random.random((nny_lower, nnx_lower)))
+        # z_lower = 2 * np.random.random((nny_lower, nnx_lower)) - 1
+        z_lower = (0.05 + np.random.random((nny_lower, nnx_lower)))
         f = interpolate.interp2d(x_lower, y_lower, z_lower, kind='cubic')
         yield f(x, y)
 
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     if args.case is not None:
         casename = args.case
     else:
-        casename = f'{nnx:d}x{nny}/random_{n_res_factor:d}/'
+        casename = f'{nnx:d}x{nny}/random_{n_res_factor:d}_pos/'
 
     if device == 'mac':
         chunksize = 20

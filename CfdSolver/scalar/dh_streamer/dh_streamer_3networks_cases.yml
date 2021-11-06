@@ -13,18 +13,20 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/back1e11_peak1e19_clipping1e20'
+casename: 'runs/back1e11_peak1e19'
 description: 'Different runs of double headed streamer with photo for different training datasets'
 mode: 'seq'
-poisson/type: ['lin_system', 'network', 'network', 'network', 'network']
-photo/type: ['lin_system', 'lin_system', 'network', 'network', 'network']
+poisson/type: ['lin_system', 'network', 'network', 'network', 'network', 'network']
+photo/type: ['lin_system', 'lin_system', 'network', 'network', 'network', 'network']
 photo/resume: [ ['', ''],
                 ['', ''],
                 ['models/UNet5-rfx800-rfy200_NN2.pth', 'models/UNet5-rfx800-rfy200_NN3.pth'],
                 ['/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/random_6/run_j1/model_best.pth',
             '/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/random_6/run_j2/model_best.pth'],
                 ['/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/random_12/run_j1/model_best.pth',
-            '/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/random_12/run_j2/model_best.pth']]
+            '/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/random_12/run_j2/model_best.pth'],
+                ['/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/random_12_pos/run_j1/model_best.pth',
+            '/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/random_12_pos/run_j2/model_best.pth']]
 
 base:
   params:
