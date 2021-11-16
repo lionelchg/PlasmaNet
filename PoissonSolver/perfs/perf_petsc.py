@@ -11,14 +11,8 @@ import numpy as np
 import os
 import pandas as pd
 import yaml
-import pdb
 from glob import glob
-from itertools import product, cycle
-import matplotlib as mpl
-from matplotlib.lines import Line2D
-from numpy.polynomial import Polynomial
-from scipy.stats import linregress
-from scipy.optimize import curve_fit
+from itertools import product
 
 from PlasmaNet.common.utils import create_dir
 from cycler import cycler
@@ -91,6 +85,12 @@ if __name__ == "__main__":
                         help="Cases root directory")
     parser.add_argument("-o", "--output_name", type=str, default=None,
                         help="Output figure name")
+    parser.add_argument('-n', '--nnxs', type=int, nargs='+', default=None,
+                help='The different resolutions studied')
+    parser.add_argument('-ls_fn', '--ls_filename', type=str, required=True,
+                help='Location of linear system solvers performance files')
+    parser.add_argument('-cn', '--casename', type=str, default=None,
+                help='Casename (where the results are stored)')
     args = parser.parse_args()
 
     with open('bench_config.yml') as yaml_stream:
@@ -98,6 +98,12 @@ if __name__ == "__main__":
 
     with open("network_base_config.yml", 'r') as yaml_stream:
         config = yaml.safe_load(yaml_stream)
+
+    # Erase if specified in command line
+    if args.nnxs is not None:
+        bench_cfg["sizes"] = args.nnxs
+    if args.casename is not None:
+        config["network"]["casename"] = args.casename
 
     # Parse output files
     perf = pd.DataFrame()
@@ -153,10 +159,8 @@ if __name__ == "__main__":
     print(perf)
 
     # PETSc performance
-    # nnxs = [801, 2001, 4001, 5001, 5501, 6001]
-    # nnodes_list, best_times, av_times, stddev_times = read_perfs('petsc/log/cart/solvers/hypre_boomeramg/128_procs/rtol_1e-3', nnxs)
-    nnxs = [801, 2001, 4001, 5001, 5501]
-    nnodes_list, best_times, av_times, stddev_times = read_perfs('petsc/log/cart/solvers/hypre_boomeramg/36_procs/rtol_1e-3', nnxs)
+    nnxs = bench_cfg["sizes"]
+    nnodes_list, best_times, av_times, stddev_times = read_perfs(args.ls_filename, nnxs)
 
     ###########################################
     #   Plots
@@ -171,9 +175,9 @@ if __name__ == "__main__":
     # Networks
     for net in networks:
         tot, model, comm = perf[net], perf[net + "_model"], perf[net + "_comm"]
-        ax.plot(idx, tot["mean"], "-o", label=net)
-        ax.plot(idx, comm["mean"], "-+", label=net + " Comm")
-        ax.plot(idx, model["mean"], "-^", label=net + " Model")
+        ax.plot(idx, tot["mean"], "-o", label="UNet5 Total")
+        ax.plot(idx, comm["mean"], "-+", label="UNet5 Comm")
+        ax.plot(idx, model["mean"], "-^", label="UNet5 Model")
 
     # ax.loglog()
     ax.legend()
@@ -196,5 +200,5 @@ if __name__ == "__main__":
         output_name = "figures/perf_plot_{:03d}.png".format(i_fig + 1)
     else:
         output_name = args.output_name
-    fig.savefig(output_name, format='pdf')
-    # fig.savefig(output_name)
+    # fig.savefig(output_name, format='pdf')
+    fig.savefig(output_name)

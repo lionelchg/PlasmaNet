@@ -6,5 +6,5 @@
 #SBATCH --partition rome
 
 /scratch/cfd/cheng/DL/dl_env/bin/python network_bench.py \
-    -n 101 201 401 801 2001 4001 5001 6001 \
+    -n 101 201 401 801 2001 4001 5001 5501 6001 \
     -cn cases/bench_A100/
