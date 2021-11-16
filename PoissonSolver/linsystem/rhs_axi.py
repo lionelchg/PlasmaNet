@@ -12,10 +12,10 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import yaml
 import numpy as np
+import scipy.constants as co
 
 from PlasmaNet.poissonsolver.poisson import PoissonLinSystem
 from PlasmaNet.common.profiles import gaussian
-from PlasmaNet.common.utils import create_dir
 
 
 if __name__ == '__main__':
@@ -38,5 +38,6 @@ if __name__ == '__main__':
     # interior rhs
     case_dir = f'{basecase_dir}gaussian/'
     physical_rhs = gaussian(poisson.X, poisson.Y, ni0, x0, y0,
-                            sigma_x, sigma_y)
+                            sigma_x, sigma_y) * co.e / co.epsilon_0
     poisson.run_case(case_dir, physical_rhs, pot_bcs, plot)
+

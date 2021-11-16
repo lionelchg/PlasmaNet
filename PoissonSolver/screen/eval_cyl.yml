@@ -14,9 +14,9 @@
 #         config = yaml.safe_load(yaml_stream)
 
 device: 'kraken'
-n_entries: 100
+n_entries: 10000
 n_procs: 20
-output_dir: '/scratch/cfd/cheng/DL/datasets/photo/eval_cyl/'
+output_dir: '/scratch/cfd/ajuria/Plasma/plasmanet_new/datasets/training/photo/'
 
 photo:
   photo_model: 'two'

@@ -1,0 +1,50 @@
+#!/bin/bash -l
+#SBATCH --job-name perfs
+#SBATCH --time=00:30:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=128
+#SBATCH --partition rome
+#SBATCH --nodelist krakenepyc2
+
+export LD_LIBRARY_PATH=/softs/local_intel/petsc/3.13.4/lib:$LD_LIBRARY_PATH
+nb_cpu=$SLURM_NPROCS
+nb_cpu_per_node=$SLURM_JOB_CPUS_PER_NODE
+
+# source utils_cart.sh
+
+# casename=log/cart/single_case
+# mkdir -p "${casename}"
+# mpirun -np 36 ./src/poisson.out 2001 2001 "$casename"/perfs_unprecond_res_4mglevels_spd_eigen.log \
+#     -ksp_monitor_true_residual -ksp_norm_type unpreconditioned \
+#     -pc_mg_levels 4 \
+#     -ksp_type cg -ksp_rtol 1e-10 -pc_type gamg
+
+mkdir -p log/debug/"$nb_cpu_per_node"
+nn=6001
+
+# ksp=cg
+# precond=hypre
+# rtol="1e-3"
+
+# mpirun -np "$nb_cpu" ./src/poisson.out "$nn" "$nn" \
+#     log/debug/"$nb_cpu_per_node"/"$nn"_"$ksp"_"$precond"_"$rtol"_tmp.log \
+#     -ksp_type "$ksp" -ksp_rtol "$rtol" -pc_type "$precond" -pc_hypre_type boomeramg \
+#     -pc_hypre_boomeramg_max_levels 25 -pc_hypre_boomeramg_strong_threshold 0.2 \
+#     -pc_hypre_boomeramg_coarsen_type Falgout -pc_hypre_boomeramg_agg_nl 1 \
+#     -pc_hypre_boomeramg_truncfactor 0.05
+
+ksp=cg
+precond=gamg
+rtol="1e-3"
+
+mpirun -np "$nb_cpu" ./src/poisson.out "$nn" "$nn" \
+    log/debug/"$nb_cpu_per_node"/"$nn"_"$ksp"_"$precond"_"$rtol".log \
+    -ksp_type "$ksp" -ksp_rtol "$rtol" -pc_type "$precond"
+
+ksp=cg
+precond=hypre
+rtol="1e-3"
+
+mpirun -np "$nb_cpu" ./src/poisson.out "$nn" "$nn" \
+    log/debug/"$nb_cpu_per_node"/"$nn"_"$ksp"_"$precond"_"$rtol".log \
+    -ksp_type "$ksp" -ksp_rtol "$rtol" -pc_type "$precond" -pc_hypre_type boomeramg

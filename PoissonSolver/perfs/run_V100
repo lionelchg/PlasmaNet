@@ -1,8 +1,10 @@
 #!/bin/bash -l
-#SBATCH --job-name perfs
+#SBATCH --job-name perf_V100
 #SBATCH --time=00:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=36
 #SBATCH --partition biggpu
 
-python network_bench.py
+/scratch/cfd/cheng/DL/dl_env/bin/python network_bench.py \
+    -n 101 201 401 801 2001 4001 5001 \
+    -cn cases/bench_V100/

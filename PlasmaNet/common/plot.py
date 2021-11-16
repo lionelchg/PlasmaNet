@@ -205,7 +205,10 @@ def plot_ax_scalar_1D(fig, ax, X, list_cut, field, title, yscale='linear', ylim=
 def plot_ax_vector_arrow(fig, ax, X, Y, vector_field, name, colormap='Blues',
                             geom='xy', max_value=None, cbar=True):
     norm_field = np.sqrt(vector_field[0]**2 + vector_field[1]**2)
-    arrow_step = int(len(X[:, 0]) / 10)
+    if geom == 'xy':
+        arrow_step = int(len(X[:, 0]) / 10)
+    elif geom == 'xr':
+        arrow_step = int(len(X[:, 0]) / 5)
 
     if max_value is None:
         max_value = round_up(np.max(np.abs(norm_field)), decimals=1)

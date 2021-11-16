@@ -11,19 +11,19 @@ import numpy as np
 import os
 import pandas as pd
 import yaml
-import pdb
 from glob import glob
-from itertools import product, cycle
-import matplotlib as mpl
-from matplotlib.lines import Line2D
-from numpy.polynomial import Polynomial
-from scipy.stats import linregress
-from scipy.optimize import curve_fit
+from itertools import product
 
 from PlasmaNet.common.utils import create_dir
+from cycler import cycler
 
-def read_perfs_petsc(base_fn: str, nnxs: list):
-    """ Read PETSc performance output file """
+default_cycler = (cycler(color=['mediumblue', 'darkred', 'firebrick', 'lightcoral', 'royalblue', 'lightcoral']) +
+                  cycler(linestyle=['-', '--', ':', '-.', '-', '--']))
+
+plt.rc('lines', linewidth=1.8)
+plt.rc('axes', prop_cycle=default_cycler)
+
+def read_perfs(base_fn: str, nnxs: list):
     nnodes_list = list()
     best_times = list()
     av_times = list()
@@ -31,7 +31,7 @@ def read_perfs_petsc(base_fn: str, nnxs: list):
 
     # Read the elapsed times
     for nnx in nnxs:
-        fp = open(f'{base_fn}_{nnx:d}.log', 'r')
+        fp = open(f'{base_fn}/{nnx:d}.log', 'r')
         for line in fp:
             if '*------' in line:
                 nnodes_list.append(int(fp.readline().strip('\n').split('=')[1]))
@@ -83,10 +83,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--cases_root", type=str, default=None,
                         help="Cases root directory")
-    parser.add_argument("-l", "--linsystem", type=str, default="linsystem.out",
-                        help="Linsystem benchmark file")
     parser.add_argument("-o", "--output_name", type=str, default=None,
                         help="Output figure name")
+    parser.add_argument('-n', '--nnxs', type=int, nargs='+', default=None,
+                help='The different resolutions studied')
+    parser.add_argument('-ls_fn', '--ls_filename', type=str, required=True,
+                help='Location of linear system solvers performance files')
+    parser.add_argument('-cn', '--casename', type=str, default=None,
+                help='Casename (where the results are stored)')
     args = parser.parse_args()
 
     with open('bench_config.yml') as yaml_stream:
@@ -94,6 +98,12 @@ if __name__ == "__main__":
 
     with open("network_base_config.yml", 'r') as yaml_stream:
         config = yaml.safe_load(yaml_stream)
+
+    # Erase if specified in command line
+    if args.nnxs is not None:
+        bench_cfg["sizes"] = args.nnxs
+    if args.casename is not None:
+        config["network"]["casename"] = args.casename
 
     # Parse output files
     perf = pd.DataFrame()
@@ -149,38 +159,34 @@ if __name__ == "__main__":
     print(perf)
 
     # PETSc performance
-    nnxs = [101, 201, 401, 801, 2001, 4001, 5001]
-    # nnodes_list, best_times, av_times, stddev_times = read_perfs_petsc('petsc/log/A100/solver_cg_gamg_128_procs', nnxs)
-    nnodes_list, best_times, av_times, stddev_times = read_perfs_petsc('petsc/log/V100/solver_cg_gamg_36_procs', nnxs)
+    nnxs = bench_cfg["sizes"]
+    nnodes_list, best_times, av_times, stddev_times = read_perfs(args.ls_filename, nnxs)
 
     ###########################################
     #   Plots
     ###########################################
 
-    fig, ax = plt.subplots(figsize=(7, 4))
+    fig, ax = plt.subplots(figsize=(5, 5))
 
     # Linear solver
     idx = perf.index**2
     ax.plot(nnodes_list, av_times, "-x", label="Linear solver")
-    ax.fill_between(nnodes_list, av_times + stddev_times, av_times - stddev_times, alpha=.2)
+
     # Networks
     for net in networks:
         tot, model, comm = perf[net], perf[net + "_model"], perf[net + "_comm"]
-        ax.plot(idx, tot["mean"], "-o", label=net)
-        ax.fill_between(idx, tot["mean"] + tot["std"], tot["mean"] - tot["std"],
-                        alpha=.2)
-        ax.plot(idx, comm["mean"], "-+", label=net + " comm")
-        ax.fill_between(idx, comm["mean"] + comm["std"], comm["mean"] - comm["std"], alpha=.2)
-        ax.plot(idx, model["mean"], "-^", label=net + " model")
-        ax.fill_between(idx, model["mean"] + model["std"], model["mean"] - model["std"], alpha=.2)
+        ax.plot(idx, tot["mean"], "-o", label="UNet5 Total")
+        ax.plot(idx, comm["mean"], "-+", label="UNet5 Comm")
+        ax.plot(idx, model["mean"], "-^", label="UNet5 Model")
 
-    ax.loglog()
+    # ax.loglog()
     ax.legend()
-    ax.set_xlabel("Number of nodes")
-    ax.set_ylabel(f"Mean execution time with standard deviation [s]", wrap=True)
-
+    ax.set_xlabel("Number of mesh nodes")
+    ax.set_ylabel(f"Mean execution time [s]", wrap=True)
+    ax.grid(True)
     plt.tight_layout()
-
+    ax.set_xlim([0, 3.8e7])
+    ax.set_ylim([0, 1.4])
 
     # Save fig in figures directory, with an incremented number if a previous figure already exists
     if args.output_name is None:
@@ -194,4 +200,5 @@ if __name__ == "__main__":
         output_name = "figures/perf_plot_{:03d}.png".format(i_fig + 1)
     else:
         output_name = args.output_name
-    fig.savefig(output_name, dpi=250)
+    # fig.savefig(output_name, format='pdf')
+    fig.savefig(output_name)

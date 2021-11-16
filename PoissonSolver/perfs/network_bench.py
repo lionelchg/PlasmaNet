@@ -13,12 +13,21 @@ from pathlib import Path
 import numpy as np
 import scipy.constants as co
 from itertools import product
+import argparse
 
 from PlasmaNet.poissonsolver.network import PoissonNetwork
 import PlasmaNet.common.profiles as pf
 
 
 if __name__ == "__main__":
+    # Parser
+    parser = argparse.ArgumentParser(description='Network performance monitoring')
+    parser.add_argument('-n', '--nnxs', type=int, nargs='+', default=None,
+                help='The different resolutions studied')
+    parser.add_argument('-cn', '--casename', type=str, default=None,
+                help='Casename (where the results are stored)')
+    args = parser.parse_args()
+
     # Read PoissonNetwork config file
     base_config = "network_base_config.yml"
     with open(base_config, 'r') as yaml_stream:
@@ -28,6 +37,12 @@ if __name__ == "__main__":
     # Read benchmark config file
     with open('bench_config.yml') as yaml_stream:
         bench_cfg = yaml.safe_load(yaml_stream)
+
+    # Erase if specified in command line
+    if args.nnxs is not None:
+        bench_cfg["sizes"] = args.nnxs
+    if args.casename is not None:
+        config["network"]["casename"] = args.casename
 
     # Iterate over the networks to evaluate and the sizes
     base_casename = config["network"]["casename"]
@@ -54,8 +69,6 @@ if __name__ == "__main__":
                                         x01, y01, sigma_x, sigma_y) * co.e / co.epsilon_0
         for i in range(bench_cfg["nits"]):
             poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=False, save=False)
-            # if i == bench_cfg["nits"] - 1:
-            #     poisson.run_case(Path(config['network']['casename']), physical_rhs, plot=True, save=False)
 
         # Clean GPU cache?
         torch.cuda.empty_cache()

@@ -262,6 +262,13 @@ class StreamerMorrow(BaseSim):
         plt.savefig(self.fig_dir / f'instant_{self.number:04d}', bbox_inches='tight')
         plt.close(fig)
 
+        # Print the ionization rate for photoionization debugging
+        if self.photo:
+            fig, ax = plt.subplots(figsize=(6, 4))
+            plot_ax_scalar(fig, ax, self.X, self.Y, self.irate, r"$n_e$", geom=self.geom, cmap_scale='log')
+            plt.savefig(self.fig_dir / f'irate_{self.number:04d}', bbox_inches='tight')
+            plt.close(fig)
+
         # 2D contour plots only
         if self.photo:
             fig, axes = plt.subplots(nrows=3, figsize=(6, 8))

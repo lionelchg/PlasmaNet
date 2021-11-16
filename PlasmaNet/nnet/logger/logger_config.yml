@@ -3,7 +3,7 @@ disable_existing_loggers: False
 formatters:
     simple:
         format: "%(asctime)s - %(message)s"
-        datefmt: "%m-%d %H:%M"
+        datefmt: "%m-%d %H:%M:%S"
     datetime:
         format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 handlers:

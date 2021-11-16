@@ -13,11 +13,20 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/double_headed_streamer'
-description: 'Different runs of double headed streamer for up to three neural networks and linear system'
-mode: 'tree'
-poisson/type: ['lin_system', 'network']
-photo/type: ['lin_system', 'network']
+casename: 'runs/back1e11_peak1e19'
+description: 'Different runs of double headed streamer with photo for different training datasets'
+mode: 'seq'
+poisson/type: ['lin_system', 'network', 'network', 'network', 'network', 'network']
+photo/type: ['lin_system', 'lin_system', 'network', 'network', 'network', 'network']
+photo/resume: [ ['', ''],
+                ['', ''],
+                ['models/UNet5-rfx800-rfy200_NN2.pth', 'models/UNet5-rfx800-rfy200_NN3.pth'],
+                ['/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/random_6/run_j1/model_best.pth',
+            '/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/random_6/run_j2/model_best.pth'],
+                ['/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/random_12/run_j1/model_best.pth',
+            '/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/random_12/run_j2/model_best.pth'],
+                ['/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/random_12_pos/run_j1/model_best.pth',
+            '/scratch/cfd/cheng/DL/plasmanet/NNet/train_cyl/study_photo/models/UNet5/random_12_pos/run_j2/model_best.pth']]
 
 base:
   params:
@@ -25,7 +34,7 @@ base:
     dt: 1.0e-12
     geom: 'xr'
     x0: 2.0e-3
-    n_back: 1.0e+9
+    n_back: 1.0e+10
     n_gauss: 1.0e+19
   transport:
     chemistry: 'morrow'
@@ -55,11 +64,13 @@ base:
     plot:
       ne_ticks: [1.0e+17, 1.0e+18, 1.0e+19, 1.0e+20, 1.0e+21]
       Emax: 1.9e+7
-      Sph_ticks: [1.0e+23, 1.0e+26, 1.0e+29]
+      Sph_ticks: [1.0e+22, 1.0e+25, 1.0e+28]
 
   input: 'none'
 
+  # ------------------------------------------------------
   # This block is useful only if poisson/type = 'network'
+  # ------------------------------------------------------
   network:
     n_gpu: 1                                    # Number of GPUs to use
 
@@ -131,8 +142,8 @@ base:
       coord: 'cyl'
       verbosity: 2
 
-    resume: ['models/UNet5-rfx800-rfy200_NN2.pth',
-            'models/UNet5-rfx800-rfy200_NN3.pth']
+    # Original - random 24
+    # resume: ['models/UNet5-rfx800-rfy200_NN2.pth', 'models/UNet5-rfx800-rfy200_NN3.pth']
 
     arch:
       db_file: 'unets_rect.yml'

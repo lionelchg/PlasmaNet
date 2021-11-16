@@ -125,5 +125,6 @@ class PhotoNetwork(BasePhoto):
                 elif i == 1:
                     Sphj2_torch = self.model_j2(rhs_torch)
                     self.Sphj2 = Sphj2_torch.detach().cpu().numpy()[0, 0, :, :] / self.scaling_factor
-                self.Sph = self.Sphj1 + self.Sphj2
+            self.Sph = self.Sphj1 + self.Sphj2
+            self.Sph = np.maximum(1e20, self.Sph)
 

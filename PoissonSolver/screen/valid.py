@@ -38,7 +38,7 @@ if __name__ == '__main__':
     photo_models = ['two', 'three']
 
     for photo_model in photo_models:
-        cfg['photo']['model'] = photo_model
+        cfg['photo']['photo_model'] = photo_model
 
         # Photo class
         photo = PhotoLinSystem(cfg['photo'])

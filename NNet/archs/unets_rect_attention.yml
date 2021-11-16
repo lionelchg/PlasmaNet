@@ -1,0 +1,25 @@
+#############################################################################################################
+#                                                                                                           #
+#          PlasmaNet -- Architectures with around 100 000 params for 4 x 1 mm streamer simulation           #
+#                                       with attention layers!                                              #
+#                                                                                                           #
+#                                 Ekhi Ajuria & Lionel Cheng, CERFACS, 26.10.2021                           #
+#                                                                                                           #
+#############################################################################################################
+
+UNet5-100k:
+    type: 'UNet_attention'
+    args:
+        scales:
+            scale_0: [[1, 20, 10], [20, 20, 1]]
+            scale_1: [[10, 20, 10], [20, 20, 10]]
+            scale_2: [[10, 15, 15, 10], [20, 10, 10, 10]]
+            scale_3: [[10, 10, 10], [30, 10, 10]]
+            scale_4: [10, 20, 20]
+        attention:
+            scale_0: [[True, False], [False, False]]
+            scale_1: [[True, False], [False, False]]
+            scale_2: [[True, True,  False], [False, True, False]]
+            scale_3: [[True, False], [False, False]]
+            scale_4: [True, False]
+        kernel_sizes: [[3, 9]]

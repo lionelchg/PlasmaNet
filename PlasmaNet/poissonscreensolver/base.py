@@ -93,6 +93,39 @@ class BasePhoto:
         plt.savefig(figname, dpi=150, bbox_inches='tight')
         plt.close()
 
+    def plot_2D_variable(self, figname, Sph, ionization_rate, lamb, geom='xr', axis='on'):
+        """ Plot the Sph, electric field and laplacian of the Poisson problem
+        at hand in 2D fields. Add chosen lambda as title
+
+        :param figname: Name of the figure
+        :type figname: str
+        :param Sph: Sph of the field
+        :type Sph: np.array
+        :param ionization_rate: ionization_rate of the field
+        :type ionization_rate: np.array
+        :param lamb: lambda value for the equation
+        :type lamb: float
+        :param geom: Geometry of the problem either xy for cartesian and xr for axisymmetric, defaults to 'xy'
+        :type geom: str, optional
+        """
+
+        fig, axes = plt.subplots(ncols=2, figsize=(10, 6))
+
+        plot_ax_scalar(fig, axes[0], self.X, self.Y, Sph, r'$S_{ph}$', geom=geom)
+
+        plot_ax_scalar(fig, axes[1], self.X, self.Y, ionization_rate, r'$I$', geom=geom)
+
+        # Set axes on or off
+        if axis == 'off':
+            for ax in axes.reshape(-1):
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+
+        fig.suptitle(f'Lambda = {lamb}')
+        fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+        plt.savefig(figname, dpi=150, bbox_inches='tight')
+        plt.close()
+
     def plot_2D_expanded(self, figname, geom='xr', axis='on'):
         """ Plot the Sph, electric field and laplacian of the Poisson problem
         at hand in 2D fields

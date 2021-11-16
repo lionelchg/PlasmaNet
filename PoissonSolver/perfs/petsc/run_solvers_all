@@ -1,0 +1,118 @@
+#!/bin/bash -l
+#SBATCH --job-name perfs
+#SBATCH --time=04:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=36
+#SBATCH --partition biggpu
+
+export LD_LIBRARY_PATH=/softs/local_intel/petsc/3.13.4/lib:$LD_LIBRARY_PATH
+
+# Define some variables
+nb_cpu=$SLURM_NPROCS
+nb_cpu_per_node=$SLURM_JOB_CPUS_PER_NODE
+
+source utils_cart.sh
+
+# --------------------------------------------
+# PETsc native GAMG with multiple Krylov solvers
+# --------------------------------------------
+rtol="1.0e-3"
+casedir=log/cart/"$nb_cpu_per_node"/rtol_1e-3/default
+krylov="cg"
+precond="gamg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_solver_cart "${nb_cpu}" "$krylov" "$precond" "${rtol}" "${casename}"
+
+krylov="gmres"
+precond="gamg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_solver_cart "${nb_cpu}" "$krylov" "$precond" "${rtol}" "${casename}"
+
+krylov="minres"
+precond="gamg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_solver_cart "${nb_cpu}" "$krylov" "$precond" "${rtol}" "${casename}"
+
+krylov="bcgs"
+precond="gamg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_solver_cart "${nb_cpu}" "$krylov" "$precond" "${rtol}" "${casename}"
+
+krylov="cgs"
+precond="gamg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_solver_cart "${nb_cpu}" "$krylov" "$precond" "${rtol}" "${casename}"
+
+# Lower the tolerance to 1e-7 and 1e-12
+rtol="1.0e-7"
+casedir=log/cart/"$nb_cpu_per_node"/rtol_1e-7/default
+krylov="cg"
+precond="gamg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_solver_cart "${nb_cpu}" "$krylov" "$precond" "${rtol}" "${casename}"
+
+rtol="1.0e-12"
+casedir=log/cart/"$nb_cpu_per_node"/rtol_1e-12/default
+krylov="cg"
+precond="gamg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_solver_cart "${nb_cpu}" "$krylov" "$precond" "${rtol}" "${casename}"
+
+# --------------------------------------------
+# Hypre-BoomerAMG with multiple Krylov solvers
+# --------------------------------------------
+rtol="1.0e-3"
+casedir=log/cart/"$nb_cpu_per_node"/rtol_1e-3/default
+krylov="cg"
+precond="boomeramg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_hypre_boomeramg "${nb_cpu}" "$krylov" "${rtol}" "${casename}"
+
+krylov="gmres"
+precond="boomeramg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_hypre_boomeramg "${nb_cpu}" "$krylov" "${rtol}" "${casename}"
+
+krylov="minres"
+precond="boomeramg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_hypre_boomeramg "${nb_cpu}" "$krylov" "${rtol}" "${casename}"
+
+krylov="bcgs"
+precond="boomeramg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_hypre_boomeramg "${nb_cpu}" "$krylov" "${rtol}" "${casename}"
+
+krylov="cgs"
+precond="boomeramg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_hypre_boomeramg "${nb_cpu}" "$krylov" "${rtol}" "${casename}"
+
+# Lower the tolerance to 1e-7 and 1e-12
+rtol="1.0e-7"
+casedir=log/cart/"$nb_cpu_per_node"/rtol_1e-7/default
+krylov="cg"
+precond="boomeramg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_hypre_boomeramg "${nb_cpu}" "$krylov" "${rtol}" "${casename}"
+
+rtol="1.0e-12"
+casedir=log/cart/"$nb_cpu_per_node"/rtol_1e-12/default
+krylov="cg"
+precond="boomeramg"
+casename="$casedir"/"$krylov"_"$precond"/
+mkdir -p "${casename}"
+run_hypre_boomeramg "${nb_cpu}" "$krylov" "${rtol}" "${casename}"

@@ -7,6 +7,7 @@
 ########################################################################################################################
 
 import numpy as np
+import torch
 import scipy.sparse.linalg as linalg
 from time import perf_counter
 from scipy.sparse.linalg import spsolve
@@ -14,7 +15,30 @@ import copy
 
 from .photo import photo_axisym, lambda_j_two, lambda_j_three, A_j_two, A_j_three
 from .base import BasePhoto
-from ..poissonsolver.linsystem import impose_dirichlet
+#from ..poissonsolver.linsystem import impose_dirichlet
+
+# Define impose dirichlet to avoid circular import problems
+# TODO improve location
+def impose_dirichlet(rhs: np.ndarray, bcs: dict) -> None:
+    """ Impose Dirichlet boundary conditions to the rhs vector
+
+    :param rhs: rhs vector of the Poisson equation
+    :type rhs: 2D-np.ndarray
+    :param bcs: dictionnary of boundary conditions
+    :type bcs: dict
+    """
+    if 'left' in bcs:
+        rhs[:, 0] = bcs['left']
+
+    if 'right' in bcs:
+        rhs[:, -1] = bcs['right']
+
+    if 'bottom' in bcs:
+        rhs[0, :] = bcs['bottom']
+
+    if 'top' in bcs:
+        rhs[-1, :] = bcs['top']
+
 
 class PhotoLinSystem(BasePhoto):
     """ Class for linear system solver of Poisson problem
@@ -90,3 +114,25 @@ class PhotoLinSystem(BasePhoto):
                 elif i == 2:
                     self.Sphj3 = spsolve(self.mats_photo[i], rhs.reshape(-1)).reshape(self.nny, self.nnx)
                 self.Sph = self.Sphj1 + self.Sphj2 + self.Sphj3
+        elif self.photo_model == 'custom':
+            target = np.zeros_like(self.ioniz_rate[0])
+            rhs = (- self.ioniz_rate[0])
+            # As all the field consists on the lambda value, just select a point
+            # (BC are avoided just in case)
+            lambda_in = float(self.ioniz_rate[1, -5, -5])
+            self.impose_dirichlet(rhs, bcs)
+            mats_photo = photo_axisym(self.dx, self.dy, self.nnx, self.nny, self.R_nodes, (lambda_in)**2, self.scale)
+            Sph = spsolve(mats_photo, rhs.reshape(-1)).reshape(self.nny, self.nnx)
+            return Sph
+        elif self.photo_model == 'custom_train':
+            target = torch.zeros_like(self.ioniz_rate[:,0].unsqueeze(1))
+            for batch in range(self.ioniz_rate.size(0)):
+                rhs = (- self.ioniz_rate[batch, 0]).cpu().detach().numpy()
+                # As all the field consists on the lambda value, just select a point
+                # (BC are avoided just in case)
+                lambda_in = float(self.ioniz_rate[batch, 1, -5, -5])
+                self.impose_dirichlet(rhs, bcs)
+                mats_photo = photo_axisym(self.dx, self.dy, self.nnx, self.nny, self.R_nodes, (lambda_in)**2, self.scale)
+                Sph = spsolve(mats_photo, rhs.reshape(-1)).reshape(self.nny, self.nnx)
+                target[batch] = torch.from_numpy(Sph).unsqueeze(0).cuda()
+            return target

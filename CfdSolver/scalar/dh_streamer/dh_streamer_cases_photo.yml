@@ -13,10 +13,12 @@
 #     with open('config.yml', 'r') as yaml_stream:
 #         config = yaml.safe_load(yaml_stream)
 
-casename: 'runs/kraken/linsystem/photo'
+casename: 'runs/kraken/debug_linsys/'
 description: 'Different runs of dh_streamers photoionization models'
 mode: 'seq'
-params/photoionization: ['two', 'three']
+mesh/nnx: [601, 801, 1001]
+mesh/xmax: [6.0e-3, 8.0e-3, 1.0e-2]
+params/x0: [3.0e-3, 4.0e-3, 5.0e-3]
 
 base:
   params:
@@ -24,17 +26,17 @@ base:
     dt: 1.0e-12
     geom: 'xr'
     photoionization: 'three'
-    x0: 2.0e-3
+    x0: 3.0e-3
     n_back: 1.0e+9
-    n_gauss: 1.0e+19
+    n_gauss: 1.0e+20
 
   mesh:
     xmin: 0
     ymin: 0
-    xmax: 0.004
-    ymax: 0.001
-    nnx: 401
-    nny: 101
+    xmax: 0.006
+    ymax: 0.002
+    nnx: 601
+    nny: 201
 
   transport:
     chemistry: 'morrow'

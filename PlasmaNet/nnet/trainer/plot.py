@@ -53,6 +53,10 @@ def plot_batch(output, target, data, epoch, batch_idx, config):
             plot_ax_scalar(fig, axes[k, 3], config.X, config.Y, np.abs(target_tmp - output_tmp), '',
                         cmap='Blues')
 
+        if data.size(1)==2:
+            lamb_val = data[0, 1, 0, 0]
+            fig.suptitle(f'Lambda value {lamb_val}')
+
     return fig
 
 def plot_batch_Efield(output, target, data, epoch, batch_idx, config):
@@ -82,20 +86,20 @@ def plot_batch_Efield(output, target, data, epoch, batch_idx, config):
         if k == 0:
             plot_ax_scalar(fig, axes[k, 0], config.X, config.Y, data_tmp, 'RHS')
             # Same scale for output and target
-            plot_ax_vector_arrow(fig, axes[k, 1], config.X, config.Y, output_tmp, 
+            plot_ax_vector_arrow(fig, axes[k, 1], config.X, config.Y, output_tmp,
                                                 'Predicted E', max_value=target_max)
-            plot_ax_vector_arrow(fig, axes[k, 2], config.X, config.Y, target_tmp, 
+            plot_ax_vector_arrow(fig, axes[k, 2], config.X, config.Y, target_tmp,
                                                 'Target E', max_value=target_max)
-            plot_ax_scalar(fig, axes[k, 3], config.X, config.Y, np.abs(norm_target_tmp - norm_output_tmp), 
+            plot_ax_scalar(fig, axes[k, 3], config.X, config.Y, np.abs(norm_target_tmp - norm_output_tmp),
                                 'Residual', cmap='Blues')
         else:
             plot_ax_scalar(fig, axes[k, 0], config.X, config.Y, data_tmp, '')
             # Same scale for output and target
-            plot_ax_vector_arrow(fig, axes[k, 1], config.X, config.Y, output_tmp, 
+            plot_ax_vector_arrow(fig, axes[k, 1], config.X, config.Y, output_tmp,
                                                 '', max_value=target_max)
-            plot_ax_vector_arrow(fig, axes[k, 2], config.X, config.Y, target_tmp, 
+            plot_ax_vector_arrow(fig, axes[k, 2], config.X, config.Y, target_tmp,
                                                 '', max_value=target_max)
-            plot_ax_scalar(fig, axes[k, 3], config.X, config.Y, np.abs(norm_target_tmp - norm_output_tmp), 
+            plot_ax_scalar(fig, axes[k, 3], config.X, config.Y, np.abs(norm_target_tmp - norm_output_tmp),
                                 '', cmap='Blues')
 
     return fig

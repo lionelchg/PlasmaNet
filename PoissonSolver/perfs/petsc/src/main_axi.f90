@@ -1,9 +1,9 @@
-program main
+program main_axi
 use mod_linsystem
 implicit none
 
 type(linsystem) :: test
-integer :: n = 101, i, j
+integer :: i, j
 double precision, dimension(:), allocatable :: rhs, sol
 integer :: myrank, nprocs, ierr, global_index
 integer, dimension(:, :), allocatable :: indices
@@ -14,6 +14,7 @@ double precision :: xmin, xmax, Lx, dx, ymin, ymax, Ly, dy, scale
 double precision :: x0, y0, x01, y01, sigma_x, sigma_y, ampl
 integer :: ix, iy
 double precision, dimension(:, :), allocatable :: x, y
+double precision, dimension(:), allocatable :: y_flatten
 integer :: ierror
 
 ! Some strings
@@ -38,24 +39,25 @@ call MPI_Comm_size(MPI_COMM_WORLD, nprocs, ierr)
 ! Mesh properties
 ncx = nnx - 1
 xmin = 0.0d0
-xmax = 1.0d-2
+xmax = 4.0d-3
 Lx = xmax - xmin
 dx = Lx / ncx
 
 ncy = nny - 1
 ymin = 0.0d0
-ymax = 1.0d-2
+ymax = 1.0d-3
 Ly = ymax - ymin
 dy = Ly / ncy
 
 scale = dx * dy
 
 ! Create geometry vectors
-allocate(x(nnx, nny), y(nnx, nny))
+allocate(x(nnx, nny), y(nnx, nny), y_flatten(nnx * nny))
 do i = 1, nnx
     do j = 1, nny
         x(i, j) = (i - 1) * dx
         y(i, j) = (j - 1) * dy
+        y_flatten((j - 1) * nnx + i) = (j - 1) * dy
     end do
 end do
 
@@ -67,7 +69,17 @@ allocate(indices(test%local_size, 5), values(test%local_size, 5))
 
 do i = 1, test%local_size
     global_index = i + test%istart - 1
-    if (isBoundary(global_index)) then
+    if (isAxis(global_index)) then
+        values(i, 1) = - (2 / dx**2 + 4 / dy**2) * scale
+        values(i, 2) = 1 / dx**2 * scale
+        values(i, 3) = 1 / dx**2 * scale
+        values(i, 4) = 4 / dy**2 * scale
+        indices(i, 1) = global_index
+        indices(i, 2) = global_index + 1
+        indices(i, 3) = global_index - 1
+        indices(i, 4) = global_index + nnx
+        indices(i, 5) = -1
+    else if (isBoundary(global_index)) then
         values(i, 1) = 1
         indices(i, 1) = global_index
         indices(i, 2:) = -1
@@ -75,19 +87,15 @@ do i = 1, test%local_size
         values(i, 1) = - (2 / dx**2 + 2 / dy**2) * scale
         values(i, 2) = 1 / dx**2 * scale
         values(i, 3) = 1 / dx**2 * scale
-        values(i, 4) = 1 / dy**2 * scale
-        values(i, 5) = 1 / dy**2 * scale
+        values(i, 4) = (1 + dy / (2 * y_flatten(i))) / dy**2 * scale
+        values(i, 5) = (1 - dy / (2 * y_flatten(i))) / dy**2 * scale
+
         indices(i, 1) = global_index
-        ! ! Classical matrix
-        ! indices(i, 2) = global_index + 1
-        ! indices(i, 3) = global_index - 1
-        ! indices(i, 4) = global_index + nnx
-        ! indices(i, 5) = global_index - nnx
-        ! Symmetrized matrix, no repercussion on rhs since we impose zero dirichlet bcs
-        indices(i, 2) = merge(-1, global_index + 1, isBoundary(global_index + 1))
-        indices(i, 3) = merge(-1, global_index - 1, isBoundary(global_index - 1))
-        indices(i, 4) = merge(-1, global_index + nnx, isBoundary(global_index + nnx))
-        indices(i, 5) = merge(-1, global_index - nnx, isBoundary(global_index - nnx))
+        ! Classical matrix
+        indices(i, 2) = global_index + 1
+        indices(i, 3) = global_index - 1
+        indices(i, 4) = global_index + nnx
+        indices(i, 5) = global_index - nnx
     end if
 end do
 
@@ -100,24 +108,21 @@ call test%solverInfo()
 ! Initialize rhs and sol with zero dirichlet boundary condition
 allocate(rhs(test%local_size), sol(test%local_size))
 
-! Two gaussians RHS
+! Gaussian RHS in axisym
 sigma_x = 1d-3
 sigma_y = 1d-3
-x01 = 0.4e-2
-y01 = 0.5e-2
-x0 = 0.6d-2
-y0 = 0.5e-2
-ampl = 1d11 * 1.602176634e-19 / 8.8541878128e-12
+x0 = 2.0d-3
+y0 = 0.0d0
+ampl = 1d16 * 1.602176634e-19 / 8.8541878128e-12
 do i = 1, test%local_size
     global_index = i + test%istart - 1
-    if (global_index <= nnx .or. global_index >= (nny - 1) * nnx + 1 .or. &
+    if (global_index >= (nny - 1) * nnx + 1 .or. &
             mod(global_index, nnx) == 0 .or. mod(global_index, nnx) == 1) then
         rhs(i) = 0.0d0
     else
-        ix = mod(global_index, nny) + 1
+        ix = mod(global_index, nnx) + 1
         iy = global_index / nnx + 1
-        rhs(i) = - ampl * exp(-(x(ix, iy) - x0)**2 / sigma_x**2 - (y(ix, iy) - y0)**2 / sigma_y**2) * scale&
-            - ampl * exp(-(x(ix, iy) - x01)**2 / sigma_x**2 - (y(ix, iy) - y01)**2 / sigma_y**2) * scale
+        rhs(i) = - ampl * exp(-(x(ix, iy) - x0)**2 / sigma_x**2 - (y(ix, iy) - y0)**2 / sigma_y**2) * scale
     end if
 end do
 
@@ -156,12 +161,22 @@ if (test%myrank == 0) then
 end if
 
 ! ! See the matrix and vectors
-! call test%matrixInfo()
 ! call test%vectorsInfo()
+! call test%matrixInfo()
 
 call test%dealloc()
 
 contains
+
+! Indicates if global_index is a symmetry axis node or not
+function isAxis(global_index)
+    implicit none
+    integer, intent(in) :: global_index
+    logical :: isAxis
+
+    isAxis = global_index < nnx .and. global_index > 0
+
+end function
 
 ! Indicates if global_index is a boundary or not
 function isBoundary(global_index)
@@ -169,9 +184,9 @@ function isBoundary(global_index)
     integer, intent(in) :: global_index
     logical :: isBoundary
 
-    isBoundary = global_index <= nnx .or. global_index >= (nny - 1) * nnx + 1 .or. &
+    isBoundary = global_index >= (nny - 1) * nnx + 1 .or. &
             mod(global_index, nnx) == 0 .or. mod(global_index, nnx) == 1
 
 end function
 
-end program main
+end program main_axi

@@ -37,6 +37,10 @@ def run_train(config):
     data_loader = config.init_obj('data_loader', module_data)
     valid_data_loader = data_loader.split_validation()
 
+    # If General photo, network will have two input channels!
+    if 'PhotoLoss' in config['loss']['args']['loss_list']:
+        config['arch']['args']['scales']['scale_0'][0][0] = 2
+
     # Build model architecture, then print to console
     model = config.init_obj('arch', module_arch)
     logger.info(model)

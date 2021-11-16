@@ -147,7 +147,7 @@ contains
         PetscViewer :: viewer
 
         call KSPView(this%solver, PETSC_VIEWER_STDOUT_WORLD, ierr)
-        ! Matrices to matrix.m file
+        ! Print solver info to file
         call PetscViewerASCIIOpen(PETSC_COMM_WORLD, this%casename, viewer, ierr)
         call PetscViewerPushFormat(viewer, PETSC_VIEWER_DEFAULT, ierr)
         call KSPView(this%solver, viewer, ierr)
@@ -163,12 +163,6 @@ contains
         integer :: i, global_index
         PetscErrorCode :: ierr
 
-        ! this%rhs_pointer(global_index) = rhs(i)
-        ! call VecSetValue(this%rhs, global_index, rhs(i), INSERT_VALUES, ierr)
-
-        ! call VecAssemblyBegin(this%rhs, ierr);
-        ! call VecAssemblyEnd(this%rhs, ierr);
-
         ! Transfer rhs values into rhs_pointer (pointer to PetscVec)
         call VecGetArrayF90(this%rhs, this%rhs_pointer, ierr)
         do i = 1, this%local_size
@@ -176,21 +170,6 @@ contains
             this%rhs_pointer(i) = rhs(i)
         end do
         call VecRestoreArrayF90(this%rhs, this%rhs_pointer, ierr)
-
-        !
-        ! Use the rhs and sol directly as work array for Petsc.
-        !
-        ! This allows the PETSc linear solvers to compute the solution
-        ! directly in the user's array rather than in the PETSc vector.
-        !
-        ! This is essentially a hack and not highly recommend unless you
-        ! are quite comfortable with using PETSc. In general, users should
-        ! write their entire application using PETSc vectors rather than
-        ! arrays.
-        ! From https://www.mcs.anl.gov/petsc/petsc-current/src/ksp/ksp/tutorials/ex13f90.F90.html
-        !
-        ! call VecPlaceArray(this%rhs, rhs, ierr)
-        ! call VecPlaceArray(this%sol, sol, ierr)
 
         ! Solve linear system
         call KSPSolve(this%solver, this%rhs, this%sol, ierr)
@@ -202,10 +181,6 @@ contains
             global_index = i + this%istart - 1
         end do
         call VecRestoreArrayF90(this%sol, this%sol_pointer, ierr)
-
-        ! Return array to original state. Is it necessary? Nope, it introduces a segfault.
-        ! call VecResetArray(this%rhs, ierr);CHKERRQ(ierr)
-        ! call VecResetArray(this%sol, ierr);CHKERRQ(ierr)
 
     end subroutine solve
 

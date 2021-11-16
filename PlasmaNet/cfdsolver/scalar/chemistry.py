@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from numba import njit
 
 # From current library
-from ...poissonscreensolver.photo import photo_coeff
+from ...poissonscreensolver.photo import photo_coeff, quenching_press
 from ...common.utils import create_dir
 
 
@@ -21,6 +21,8 @@ def morrow(mu, D, E_field, nd, resnd, nnx, nny, voln, irate=None):
     """ Apply chemistry from computed coefficients. """
     ngas, Tgas = 2.688e25, 300
     beta_recombination = 2e-13
+    Pgas = ngas * co.k * Tgas
+    quenching_coef = quenching_press / (quenching_press + Pgas)
 
     for i in range(nnx):
         for j in range(nny):
@@ -30,7 +32,7 @@ def morrow(mu, D, E_field, nd, resnd, nnx, nny, voln, irate=None):
             ionization_freq = ionization_rate_morrow(normE / ngas, ngas) * mu[j, i] * normE
             attachment_freq = attachment_rate_morrow(normE / ngas, ngas) * mu[j, i] * normE
 
-            if irate is not None: irate[j, i] = nd[0, j, i] * ionization_freq * photo_coeff(normE / ngas / co.k / Tgas)
+            if irate is not None: irate[j, i] = nd[0, j, i] * ionization_freq * photo_coeff(normE / Pgas) * quenching_coef
             resnd[0, j, i] -= (nd[0, j, i] * ionization_freq - nd[0, j, i] * attachment_freq - nd[0, j, i] * nd[1, j, i] * beta_recombination) * voln[j, i]
             resnd[1, j, i] -= (nd[0, j, i] * ionization_freq - (nd[0, j, i] + nd[2, j, i]) * nd[1, j, i] * beta_recombination) * voln[j, i]
             resnd[2, j, i] -= (nd[0, j, i] * attachment_freq - nd[2, j, i] * nd[1, j, i] * beta_recombination) * voln[j, i]
