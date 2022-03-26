@@ -16,7 +16,7 @@ PlasmaNet is an open-source code to study the capability of neural networks to s
 ### Publications
 
 - [Using neural networks to solve the 2D Poisson equation for electric field computation in plasma fluid simulations](https://arxiv.org/abs/2109.13076), *Lionel Cheng, Ekhi Ajuria Illarramendi, Guillaume Bogopolsky, Michael Bauerheim, Benedicte Cuenot*, submitted to Computer & Fluids.
-- PlasmaNet: a framework to study and solve elliptic differential equations using neural networks in plasma fluid simulations, *Lionel Cheng, Ekhi Ajuria Illarramendi, Michael Bauerheim, Benedicte Cuenot*, accepted to NeurIPS Workshop "Machine Learning and the Physical Sciences".
+- [PlasmaNet: a framework to study and solve elliptic differential equations using neural networks in plasma fluid simulations](https://ml4physicalsciences.github.io/2021/files/NeurIPS_ML4PS_2021_104.pdf), *Lionel Cheng, Ekhi Ajuria Illarramendi, Michael Bauerheim, Benedicte Cuenot*, accepted to NeurIPS Workshop "Machine Learning and the Physical Sciences".
 
 Models and configuration files to run experiments from papers can be found by switching to the `papers` branch. The `papers/` directory will appear at the root of the repository. The first paper models and config files are located in the `papers/CAF/` directory where instructions for performance tests with `PETSc` are included. The second paper models and config files are located in the `papers/NeurIPSWorkshop/`.
 
